@@ -12,7 +12,8 @@ function urlBase64ToUint8Array(base64String) {
 
 export function usePushNotifications(user, profile) {
   useEffect(() => {
-    if (!user || !profile || !('serviceWorker' in navigator) || !('PushManager' in window)) return
+    if (!user || !profile || !VAPID_PUBLIC_KEY) return
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
     registerPush(user, profile)
   }, [user, profile])
 }
@@ -21,7 +22,7 @@ async function registerPush(user, profile) {
   try {
     const registration = await navigator.serviceWorker.ready
     const existing = await registration.pushManager.getSubscription()
-    if (existing) return // Déjà abonné
+    if (existing) return
 
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') return
@@ -31,10 +32,9 @@ async function registerPush(user, profile) {
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     })
 
-    // Sauvegarde l'abonnement en base
     await supabase.from('push_subscriptions').upsert({
       user_id: user.id,
-      user_role: profile.role,
+      user_role: profile.role || 'joueur',
       subscription: JSON.stringify(subscription)
     }, { onConflict: 'user_id' })
 
@@ -43,16 +43,56 @@ async function registerPush(user, profile) {
   }
 }
 
-// Envoie une notification locale (sans serveur)
-export function sendLocalNotification(title, body, data = {}) {
-  if (!('serviceWorker' in navigator)) return
-  navigator.serviceWorker.ready.then(reg => {
-    reg.showNotification(title, {
-      body,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      data,
-      vibrate: [100, 50, 100]
+// Fonction pour envoyer une notification depuis l'app (coach)
+export async function sendPushNotification({ title, body, url = '/', target = 'all' }) {
+  try {
+    const response = await fetch('/api/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, body, url, target })
     })
-  })
+    return await response.json()
+  } catch (err) {
+    console.error('Erreur envoi notification:', err)
+  }
+}
+
+// Notifications automatiques selon le type d'événement
+export async function notifyEvent(event, type) {
+  const messages = {
+    creation_match: {
+      title: `⚽ Match programmé — ${event.titre}`,
+      body: `${new Date(event.date_heure).toLocaleDateString('fr-FR')} · ${event.lieu || ''}`,
+      url: '/calendrier'
+    },
+    rappel_j2: {
+      title: `⏰ Rappel — ${event.titre} dans 2 jours`,
+      body: `Confirme ta présence dans l'application`,
+      url: '/calendrier'
+    },
+    rappel_j1: {
+      title: `📢 ${event.titre} demain !`,
+      body: `N'oublie pas : ${new Date(event.date_heure).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}`,
+      url: '/calendrier'
+    },
+    invitation_rpe: {
+      title: `📝 RPE à remplir — ${event.titre}`,
+      body: `Prends 2 minutes pour évaluer ta séance`,
+      url: '/mon-rpe'
+    },
+    nouveau_message: {
+      title: `💬 Nouveau message du coach`,
+      body: event.contenu || 'Tu as reçu un nouveau message',
+      url: '/messages'
+    },
+    nouveau_document: {
+      title: `📄 Nouveau document disponible`,
+      body: event.titre || 'Un document a été partagé',
+      url: '/ressources'
+    }
+  }
+
+  const msg = messages[type]
+  if (!msg) return
+  return sendPushNotification({ ...msg, target: 'all' })
 }
