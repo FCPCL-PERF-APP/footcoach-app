@@ -180,3 +180,83 @@ function EventCard({ ev, isCoach, navigate, past = false }) {
     </Card>
   )
 }
+
+// Export addRecurring for use in the page
+export function RecurringModal({ onClose, onSave }) {
+  const [form, setForm] = useState({
+    titre: '', jour: '2', heure: '19:30', lieu: '',
+    dateDebut: '', dateFin: '', notif_rpe: true
+  })
+  const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
+
+  async function handleSave() {
+    if (!form.titre || !form.dateDebut || !form.dateFin) return
+    const start = new Date(form.dateDebut)
+    const end = new Date(form.dateFin)
+    const jourNum = parseInt(form.jour)
+    const seances = []
+    const current = new Date(start)
+    // Avance au bon jour de la semaine
+    while (current.getDay() !== jourNum) current.setDate(current.getDate() + 1)
+    while (current <= end) {
+      seances.push({
+        type: 'seance',
+        titre: form.titre,
+        date_heure: `${current.toISOString().split('T')[0]}T${form.heure}:00`,
+        lieu: form.lieu,
+        domicile: true
+      })
+      current.setDate(current.getDate() + 7)
+    }
+    await supabase.from('evenements').insert(seances)
+    alert(`✅ ${seances.length} séances créées !`)
+    onSave()
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: 20, width: '100%', maxWidth: 480, margin: '0 auto' }}>
+        <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>🔁 Séances récurrentes</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ gridColumn: '1/-1' }}>
+            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Intitulé</label>
+            <input value={form.titre} onChange={e => setForm(p => ({...p, titre: e.target.value}))} placeholder="Entraînement" style={inputStyle} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Jour</label>
+            <select value={form.jour} onChange={e => setForm(p => ({...p, jour: e.target.value}))} style={inputStyle}>
+              {JOURS.map((j,i) => <option key={i} value={i}>{j}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Heure</label>
+            <input type="time" value={form.heure} onChange={e => setForm(p => ({...p, heure: e.target.value}))} style={inputStyle} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Date début</label>
+            <input type="date" value={form.dateDebut} onChange={e => setForm(p => ({...p, dateDebut: e.target.value}))} style={inputStyle} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Date fin</label>
+            <input type="date" value={form.dateFin} onChange={e => setForm(p => ({...p, dateFin: e.target.value}))} style={inputStyle} />
+          </div>
+          <div style={{ gridColumn: '1/-1' }}>
+            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Lieu</label>
+            <input value={form.lieu} onChange={e => setForm(p => ({...p, lieu: e.target.value}))} placeholder="Terrain 1" style={inputStyle} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          <button onClick={handleSave} style={{ flex: 1, padding: 12, background: 'linear-gradient(135deg, #0F2347, #2952A3)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            Créer toutes les séances
+          </button>
+          <button onClick={onClose} style={{ padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13 }}>
+            Annuler
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const inputStyle = { width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }
