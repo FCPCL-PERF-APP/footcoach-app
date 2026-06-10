@@ -7,7 +7,7 @@ const NAV_COACH = [
   { path: '/rpe',        icon: '❤️', label: 'RPE' },
   { path: '/joueurs',    icon: '👥', label: 'Joueurs' },
   { path: '/messages',   icon: '💬', label: 'Messages' },
-  { path: '/dashboard',  icon: '📊', label: 'Dashboard' },
+  { path: '/ressources', icon: '📁', label: 'Docs' },
 ]
 const NAV_STAFF = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
