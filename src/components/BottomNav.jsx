@@ -4,17 +4,17 @@ import { THEME } from '../theme'
 
 const NAV_COACH = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
-  { path: '/rpe',        icon: '❤️', label: 'RPE' },
   { path: '/joueurs',    icon: '👥', label: 'Joueurs' },
   { path: '/messages',   icon: '💬', label: 'Messages' },
   { path: '/ressources', icon: '📁', label: 'Docs' },
+  { path: '/dashboard',  icon: '📊', label: 'Dashboard' },
 ]
 const NAV_STAFF = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
   { path: '/joueurs',    icon: '👥', label: 'Joueurs' },
   { path: '/messages',   icon: '💬', label: 'Messages' },
-  { path: '/dashboard',  icon: '📊', label: 'Dashboard' },
   { path: '/ressources', icon: '📁', label: 'Docs' },
+  { path: '/dashboard',  icon: '📊', label: 'Dashboard' },
 ]
 const NAV_JOUEUR = [
   { path: '/mon-rpe',     icon: '❤️', label: 'Mon RPE' },
@@ -61,7 +61,11 @@ export default function BottomNav({ unreadCount = 0 }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>{unreadCount}</span>
             )}
-            <span style={{ fontSize: 9, color: active ? THEME.primaryLight : 'rgba(255,255,255,.5)', fontWeight: active ? 700 : 400 }}>
+            <span style={{
+              fontSize: 9,
+              color: active ? THEME.primaryLight : 'rgba(255,255,255,.5)',
+              fontWeight: active ? 700 : 400
+            }}>
               {item.label}
             </span>
           </button>
