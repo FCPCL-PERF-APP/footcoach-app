@@ -17,11 +17,11 @@ const NAV_STAFF = [
   { path: '/ressources', icon: '📁', label: 'Docs' },
 ]
 const NAV_JOUEUR = [
-  { path: '/mon-rpe',    icon: '❤️', label: 'Mon RPE' },
-  { path: '/calendrier', icon: '📅', label: 'Agenda' },
-  { path: '/ma-fiche',   icon: '👤', label: 'Ma fiche' },
-  { path: '/messages',   icon: '💬', label: 'Messages' },
-  { path: '/ressources', icon: '📁', label: 'Docs' },
+  { path: '/mon-rpe',     icon: '❤️', label: 'Mon RPE' },
+  { path: '/mon-footbar', icon: '📡', label: 'Footbar' },
+  { path: '/calendrier',  icon: '📅', label: 'Agenda' },
+  { path: '/ma-fiche',    icon: '👤', label: 'Ma fiche' },
+  { path: '/messages',    icon: '💬', label: 'Messages' },
 ]
 
 export default function BottomNav({ unreadCount = 0 }) {

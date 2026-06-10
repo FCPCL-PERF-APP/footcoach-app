@@ -8,19 +8,20 @@ import LoginPage from './pages/LoginPage'
 import { lazy, Suspense, useState } from 'react'
 import { THEME } from './theme'
 
-const CalendrierPage    = lazy(() => import('./pages/CalendrierPage'))
-const RpePage           = lazy(() => import('./pages/RpePage'))
-const MonRpePage        = lazy(() => import('./pages/MonRpePage'))
-const FootbarPage       = lazy(() => import('./pages/FootbarPage'))
-const JoueursPage       = lazy(() => import('./pages/JoueursPage'))
-const FicheJoueurPage   = lazy(() => import('./pages/FicheJoueurPage'))
-const MaFichePage       = lazy(() => import('./pages/MaFichePage'))
-const MessagesPage      = lazy(() => import('./pages/MessagesPage'))
-const DashboardPage     = lazy(() => import('./pages/DashboardPage'))
-const RessourcesPage    = lazy(() => import('./pages/RessourcesPage'))
-const StaffPage         = lazy(() => import('./pages/StaffPage'))
-const StatsPage         = lazy(() => import('./pages/StatsPage'))
-const ConvocationsPage  = lazy(() => import('./pages/ConvocationsPage'))
+const CalendrierPage   = lazy(() => import('./pages/CalendrierPage'))
+const RpePage          = lazy(() => import('./pages/RpePage'))
+const MonRpePage       = lazy(() => import('./pages/MonRpePage'))
+const FootbarPage      = lazy(() => import('./pages/FootbarPage'))
+const MonFootbarPage   = lazy(() => import('./pages/MonFootbarPage'))
+const JoueursPage      = lazy(() => import('./pages/JoueursPage'))
+const FicheJoueurPage  = lazy(() => import('./pages/FicheJoueurPage'))
+const MaFichePage      = lazy(() => import('./pages/MaFichePage'))
+const MessagesPage     = lazy(() => import('./pages/MessagesPage'))
+const DashboardPage    = lazy(() => import('./pages/DashboardPage'))
+const RessourcesPage   = lazy(() => import('./pages/RessourcesPage'))
+const StaffPage        = lazy(() => import('./pages/StaffPage'))
+const StatsPage        = lazy(() => import('./pages/StatsPage'))
+const ConvocationsPage = lazy(() => import('./pages/ConvocationsPage'))
 
 function AppContent() {
   const { user, profile, loading, isCoach, isAdjoint, isJoueur } = useAuth()
@@ -51,6 +52,7 @@ function AppContent() {
             <Route path="/rpe"               element={isCoach || isAdjoint ? <RpePage /> : <Navigate to="/" />} />
             <Route path="/mon-rpe"           element={isJoueur ? <MonRpePage /> : <Navigate to="/rpe" />} />
             <Route path="/footbar"           element={isCoach || isAdjoint ? <FootbarPage /> : <Navigate to="/" />} />
+            <Route path="/mon-footbar"       element={isJoueur ? <MonFootbarPage /> : <Navigate to="/footbar" />} />
             <Route path="/joueurs"           element={<JoueursPage />} />
             <Route path="/joueurs/:id"       element={<FicheJoueurPage />} />
             <Route path="/ma-fiche"          element={isJoueur ? <MaFichePage /> : <Navigate to="/" />} />
