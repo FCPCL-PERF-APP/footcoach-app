@@ -4,8 +4,8 @@ import { THEME } from '../theme'
 
 const NAV_COACH = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
-  { path: '/joueurs',    icon: '👥', label: 'Joueurs' },
-  { path: '/messages',   icon: '💬', label: 'Messages' },
+  { path: '/rpe',        icon: '❤️', label: 'RPE' },
+  { path: '/footbar',    icon: '📡', label: 'Footbar' },
   { path: '/ressources', icon: '📁', label: 'Docs' },
   { path: '/dashboard',  icon: '📊', label: 'Dashboard' },
 ]

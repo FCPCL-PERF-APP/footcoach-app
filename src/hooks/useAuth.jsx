@@ -9,14 +9,12 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Récupère la session active
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       else setLoading(false)
     })
 
-    // Écoute les changements d'auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
@@ -27,28 +25,69 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function fetchProfile(userId) {
-    // Cherche d'abord dans staff
-    const { data: staffData } = await supabase
-      .from('staff')
-      .select('*')
-      .eq('auth_id', userId)
-      .single()
+    try {
+      // Cherche dans staff avec auth_id
+      const { data: staffData, error: staffError } = await supabase
+        .from('staff')
+        .select('*')
+        .eq('auth_id', userId)
+        .maybeSingle()
 
-    if (staffData) {
-      setProfile({ ...staffData, type: 'staff' })
-      setLoading(false)
-      return
-    }
+      if (staffData && !staffError) {
+        setProfile({ ...staffData, type: 'staff' })
+        setLoading(false)
+        return
+      }
 
-    // Sinon cherche dans joueurs
-    const { data: joueurData } = await supabase
-      .from('joueurs')
-      .select('*')
-      .eq('auth_id', userId)
-      .single()
+      // Cherche dans joueurs avec auth_id
+      const { data: joueurData, error: joueurError } = await supabase
+        .from('joueurs')
+        .select('*')
+        .eq('auth_id', userId)
+        .maybeSingle()
 
-    if (joueurData) {
-      setProfile({ ...joueurData, type: 'joueur' })
+      if (joueurData && !joueurError) {
+        setProfile({ ...joueurData, type: 'joueur', role: 'joueur' })
+        setLoading(false)
+        return
+      }
+
+      // Fallback — cherche par email dans auth.users
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser?.email) {
+        const { data: staffByEmail } = await supabase
+          .from('staff')
+          .select('*')
+          .eq('email', authUser.email)
+          .maybeSingle()
+
+        if (staffByEmail) {
+          // Met à jour auth_id automatiquement
+          await supabase.from('staff').update({ auth_id: userId }).eq('id', staffByEmail.id)
+          setProfile({ ...staffByEmail, auth_id: userId, type: 'staff' })
+          setLoading(false)
+          return
+        }
+
+        const { data: joueurByEmail } = await supabase
+          .from('joueurs')
+          .select('*')
+          .eq('email', authUser.email)
+          .maybeSingle()
+
+        if (joueurByEmail) {
+          await supabase.from('joueurs').update({ auth_id: userId }).eq('id', joueurByEmail.id)
+          setProfile({ ...joueurByEmail, auth_id: userId, type: 'joueur', role: 'joueur' })
+          setLoading(false)
+          return
+        }
+      }
+
+      // Aucun profil trouvé
+      setProfile({ type: 'joueur', role: 'joueur' })
+    } catch (err) {
+      console.error('fetchProfile error:', err)
+      setProfile({ type: 'joueur', role: 'joueur' })
     }
     setLoading(false)
   }
@@ -71,22 +110,19 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
-  // Droits selon le rôle
-  const isCoach = profile?.role === 'coach'
-  const isStaff = ['coach', 'adjoint', 'gardien'].includes(profile?.role)
-  const isAdjoint = ['adjoint', 'gardien'].includes(profile?.role)
-  const isJoueur = profile?.type === 'joueur'
-
-  const canEdit = isCoach
+  const isCoach   = profile?.role === 'coach'
+  const isAdjoint = profile?.role === 'adjoint' || profile?.role === 'gardien'
+  const isStaff   = isCoach || isAdjoint
+  const isJoueur  = profile?.type === 'joueur' || (!isCoach && !isAdjoint)
+  const canEdit    = isCoach
   const canComment = isStaff
-  const canViewAll = isStaff
 
   return (
     <AuthContext.Provider value={{
       user, profile, loading,
       signIn, signOut, resetPassword,
       isCoach, isStaff, isAdjoint, isJoueur,
-      canEdit, canComment, canViewAll
+      canEdit, canComment, canViewAll: isStaff
     }}>
       {children}
     </AuthContext.Provider>
