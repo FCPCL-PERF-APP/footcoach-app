@@ -24,18 +24,28 @@ export default function MonFootbarPage() {
   const [activeTab, setActiveTab] = useState('saisie')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [alreadyFilled, setAlreadyFilled] = useState(false)
+  const [existingId, setExistingId] = useState(null) // id de la ligne existante
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { loadData() }, [])
-  useEffect(() => { if (selectedEvent) checkExisting() }, [selectedEvent])
+  // L'id joueur dans la table joueurs
+  const joueurId = profile?.id
+
+  useEffect(() => { if (joueurId) loadData() }, [joueurId])
+  useEffect(() => { if (selectedEvent && joueurId) checkExisting() }, [selectedEvent, joueurId])
 
   async function loadData() {
     setLoading(true)
-    const since = subDays(new Date(), 7).toISOString()
+    // Récupère les événements des 14 derniers jours
+    const since = subDays(new Date(), 14).toISOString()
     const [{ data: evs }, { data: hist }] = await Promise.all([
-      supabase.from('evenements').select('*').gte('date_heure', since).order('date_heure', { ascending: false }),
-      supabase.from('footbar').select('*, evenements(titre,type,date_heure)').eq('joueur_id', profile?.id).order('created_at', { ascending: false }).limit(10)
+      supabase.from('evenements').select('*')
+        .gte('date_heure', since)
+        .order('date_heure', { ascending: false }),
+      supabase.from('footbar')
+        .select('*, evenements(titre,type,date_heure)')
+        .eq('joueur_id', joueurId)
+        .order('created_at', { ascending: false })
+        .limit(10)
     ])
     setEvents(evs || [])
     if (evs?.length) setSelectedEvent(evs[0].id)
@@ -44,35 +54,77 @@ export default function MonFootbarPage() {
   }
 
   async function checkExisting() {
-    const { data } = await supabase.from('footbar').select('*')
-      .eq('evenement_id', selectedEvent).eq('joueur_id', profile?.id).single()
-    if (data) { setAlreadyFilled(true); setForm(data) }
-    else { setAlreadyFilled(false); setForm({}) }
+    // Cherche une entrée existante pour ce joueur et cet événement
+    const { data } = await supabase
+      .from('footbar')
+      .select('*')
+      .eq('evenement_id', selectedEvent)
+      .eq('joueur_id', joueurId)
+      .maybeSingle()
+
+    if (data) {
+      setExistingId(data.id)
+      // Pré-remplit le formulaire avec les données existantes
+      const prefill = {}
+      FIELDS.forEach(f => { if (data[f.key] !== null) prefill[f.key] = String(data[f.key]) })
+      setForm(prefill)
+    } else {
+      setExistingId(null)
+      setForm({})
+    }
     setSaved(false)
   }
 
   async function handleSave() {
+    if (!joueurId || !selectedEvent) return
     setSaving(true)
+
     const payload = {
       evenement_id: selectedEvent,
-      joueur_id: profile?.id,
-      ...Object.fromEntries(FIELDS.map(f => [f.key, form[f.key] ? parseFloat(form[f.key]) : null]))
+      joueur_id: joueurId,
+      ...Object.fromEntries(
+        FIELDS.map(f => [f.key, form[f.key] ? parseFloat(form[f.key]) : null])
+      )
     }
-    await supabase.from('footbar').upsert(payload, { onConflict: 'evenement_id,joueur_id' })
+
+    let error
+    if (existingId) {
+      // Met à jour la ligne existante
+      const { error: e } = await supabase
+        .from('footbar')
+        .update(payload)
+        .eq('id', existingId)
+      error = e
+    } else {
+      // Crée une nouvelle ligne
+      const { error: e } = await supabase
+        .from('footbar')
+        .insert(payload)
+      error = e
+    }
+
+    if (error) {
+      console.error('Erreur Footbar:', error)
+      alert('Erreur lors de l\'enregistrement. Réessaie.')
+    } else {
+      setSaved(true)
+      loadData()
+      // Recheck pour mettre à jour l'existingId
+      await checkExisting()
+    }
     setSaving(false)
-    setSaved(true)
-    setAlreadyFilled(true)
-    loadData()
   }
 
   const currentEvent = events.find(e => e.id === selectedEvent)
 
-  // Moyennes pour les stats
-  const avgData = FIELDS.slice(0, 4).map(f => ({
-    label: `${f.label} ${f.unit ? `(${f.unit})` : ''}`,
-    value: history.length ? parseFloat((history.reduce((s, h) => s + (h[f.key] || 0), 0) / history.filter(h => h[f.key]).length || 0).toFixed(1)) : 0,
-    color: THEME.primary
-  }))
+  const avgData = FIELDS.slice(0, 4).map(f => {
+    const vals = history.map(h => h[f.key]).filter(v => v !== null && v !== undefined)
+    return {
+      label: `${f.label}${f.unit ? ` (${f.unit})` : ''}`,
+      value: vals.length ? parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)) : 0,
+      color: THEME.primary
+    }
+  })
 
   return (
     <div style={{ padding: 12 }}>
@@ -92,26 +144,48 @@ export default function MonFootbarPage() {
 
       {loading ? <Spinner /> : (
         <>
-          {/* SAISIE */}
           {activeTab === 'saisie' && (
             <>
               {events.length === 0 ? (
-                <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucun événement récent.</p></Card>
+                <Card>
+                  <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>
+                    Aucun événement récent (14 derniers jours).
+                  </p>
+                </Card>
               ) : (
                 <>
                   <Select
                     label="Événement"
                     value={selectedEvent}
                     onChange={v => { setSelectedEvent(v); setSaved(false) }}
-                    options={events.map(e => ({ value: e.id, label: `${e.type === 'match' ? '⚽' : '🏃'} ${e.titre}` }))}
+                    options={events.map(e => ({
+                      value: e.id,
+                      label: `${e.type === 'match' ? '⚽' : '🏃'} ${e.titre}`
+                    }))}
                   />
+
+                  {/* Indicateur déjà rempli */}
+                  {existingId && !saved && (
+                    <div style={{ background: '#EAF3DE', borderRadius: 10, padding: '8px 12px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 16 }}>✅</span>
+                      <div>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: '#3B6D11' }}>Footbar déjà rempli pour cet événement</p>
+                        <p style={{ fontSize: 11, color: '#3B6D11' }}>Tu peux modifier tes données ci-dessous.</p>
+                      </div>
+                    </div>
+                  )}
 
                   {saved ? (
                     <Card>
                       <div style={{ textAlign: 'center', padding: 20 }}>
                         <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: THEME.success }}>Données enregistrées !</p>
-                        <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>Merci pour ta saisie Footbar.</p>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: THEME.success }}>
+                          {existingId ? 'Données mises à jour !' : 'Données enregistrées !'}
+                        </p>
+                        <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>Ton coach peut maintenant les consulter.</p>
+                        <Button variant="default" style={{ marginTop: 12 }} onClick={() => setSaved(false)}>
+                          Modifier
+                        </Button>
                       </div>
                     </Card>
                   ) : (
@@ -120,7 +194,7 @@ export default function MonFootbarPage() {
                         📡 {currentEvent?.type === 'match' ? 'Données match' : 'Données séance'}
                       </p>
                       <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>
-                        {alreadyFilled ? 'Tu peux modifier tes données ci-dessous.' : 'Saisis tes données Footbar.'}
+                        Saisis tes données Footbar pour cet événement.
                       </p>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -133,14 +207,23 @@ export default function MonFootbarPage() {
                               type="number" step={f.step} placeholder={f.placeholder}
                               value={form[f.key] || ''}
                               onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                              style={{
+                                width: '100%', padding: '8px 10px',
+                                border: '0.5px solid #D1D5DB', borderRadius: 10,
+                                fontSize: 13, outline: 'none', boxSizing: 'border-box'
+                              }}
                             />
                           </div>
                         ))}
                       </div>
 
-                      <Button variant="primary" style={{ width: '100%', marginTop: 14 }} onClick={handleSave} disabled={saving}>
-                        {saving ? 'Enregistrement...' : alreadyFilled ? '💾 Mettre à jour' : '💾 Enregistrer mes données'}
+                      <Button
+                        variant="primary"
+                        style={{ width: '100%', marginTop: 14 }}
+                        onClick={handleSave}
+                        disabled={saving}
+                      >
+                        {saving ? 'Enregistrement...' : existingId ? '💾 Mettre à jour' : '💾 Enregistrer mes données'}
                       </Button>
                     </Card>
                   )}
@@ -149,11 +232,14 @@ export default function MonFootbarPage() {
             </>
           )}
 
-          {/* MES STATS */}
           {activeTab === 'stats' && (
             <>
               {history.length === 0 ? (
-                <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucune donnée Footbar pour l'instant.</p></Card>
+                <Card>
+                  <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>
+                    Aucune donnée Footbar pour l'instant.
+                  </p>
+                </Card>
               ) : (
                 <>
                   <Card>
@@ -163,7 +249,7 @@ export default function MonFootbarPage() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
                     {[
-                      ['Dist. moy.', `${(history.reduce((s,h) => s+(h.distance_km||0),0)/history.filter(h=>h.distance_km).length||0).toFixed(1)} km`],
+                      ['Dist. moy.', `${(history.filter(h=>h.distance_km).reduce((s,h)=>s+h.distance_km,0)/Math.max(history.filter(h=>h.distance_km).length,1)).toFixed(1)} km`],
                       ['Max sprints', Math.max(...history.map(h => h.sprints || 0))],
                       ['V. max', `${Math.max(...history.map(h => h.vitesse_max || 0))} km/h`],
                     ].map(([lbl, val]) => (
@@ -174,23 +260,27 @@ export default function MonFootbarPage() {
                     ))}
                   </div>
 
-                  <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>Historique</p>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>
+                    Historique
+                  </p>
                   {history.map(h => (
                     <Card key={h.id}>
                       <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
-                        {h.evenements?.titre} · {h.evenements?.date_heure ? format(parseISO(h.evenements.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
+                        {h.evenements?.titre} · {h.evenements?.date_heure
+                          ? format(parseISO(h.evenements.date_heure), 'd MMM yyyy', { locale: fr })
+                          : ''}
                       </p>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
                         {[
-                          ['Distance', `${h.distance_km}km`],
-                          ['Sprints', h.sprints],
-                          ['Ballons', h.ballons_touches],
-                          ['V.max', `${h.vitesse_max}km/h`],
-                          ['Accél.', h.accelerations],
-                          ['Dist.HI', `${h.distance_hi}m`],
+                          ['Distance', h.distance_km ? `${h.distance_km}km` : '—'],
+                          ['Sprints', h.sprints ?? '—'],
+                          ['Ballons', h.ballons_touches ?? '—'],
+                          ['V.max', h.vitesse_max ? `${h.vitesse_max}km/h` : '—'],
+                          ['Accél.', h.accelerations ?? '—'],
+                          ['Dist.HI', h.distance_hi ? `${h.distance_hi}m` : '—'],
                         ].map(([lbl, val]) => (
                           <div key={lbl} style={{ background: '#F9FAFB', borderRadius: 8, padding: '6px 8px', textAlign: 'center' }}>
-                            <div style={{ fontSize: 12, fontWeight: 600 }}>{val ?? '—'}</div>
+                            <div style={{ fontSize: 12, fontWeight: 600 }}>{val}</div>
                             <div style={{ fontSize: 9, color: '#9CA3AF' }}>{lbl}</div>
                           </div>
                         ))}
