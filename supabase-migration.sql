@@ -48,3 +48,6 @@ ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
 CREATE POLICY IF NOT EXISTS "Allow read staff" ON staff FOR SELECT USING (true);
 CREATE POLICY IF NOT EXISTS "Allow update staff" ON staff FOR UPDATE USING (true);
 CREATE POLICY IF NOT EXISTS "Allow insert staff" ON staff FOR INSERT WITH CHECK (true);
+
+-- Ajouter colonne photo_url aux joueurs
+ALTER TABLE joueurs ADD COLUMN IF NOT EXISTS photo_url text;

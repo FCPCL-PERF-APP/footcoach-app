@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { Card, PageHeader, Spinner, Avatar } from '../components/UI'
+import { Card, PageHeader, Spinner, Avatar, Button } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -23,6 +23,8 @@ export default function MessagesPage({ setUnreadCount }) {
   const [convMessages, setConvMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
+  const [showNewMsg, setShowNewMsg] = useState(false)
+  const [searchContact, setSearchContact] = useState('')
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -40,37 +42,35 @@ export default function MessagesPage({ setUnreadCount }) {
   }, [groupMessages, convMessages])
 
   async function loadGroupMessages() {
-    const { data } = await supabase.from('messages').select('*').eq('groupe', true)
-      .order('created_at', { ascending: true }).limit(100)
+    const { data } = await supabase.from('messages').select('*')
+      .eq('groupe', true).order('created_at', { ascending: true }).limit(100)
     setGroupMessages(data || [])
     setLoading(false)
   }
 
   async function loadContacts() {
-    // Charge tous les joueurs et staff comme contacts potentiels
+    const myAuthId = profile?.auth_id || profile?.id
     const [{ data: joueurs }, { data: staff }] = await Promise.all([
       supabase.from('joueurs').select('id, nom, prenom, poste, auth_id').order('nom'),
       supabase.from('staff').select('id, nom, prenom, role, auth_id').order('nom')
     ])
-    const allContacts = [
-      ...(joueurs || []).filter(j => j.auth_id && j.auth_id !== profile?.id).map(j => ({ ...j, type: 'joueur' })),
-      ...(staff || []).filter(s => s.auth_id && s.auth_id !== profile?.id).map(s => ({ ...s, type: 'staff' }))
+    const all = [
+      ...(joueurs || []).filter(j => j.auth_id && j.auth_id !== myAuthId).map(j => ({ ...j, type: 'joueur' })),
+      ...(staff || []).filter(s => s.auth_id && s.auth_id !== myAuthId).map(s => ({ ...s, type: 'staff' }))
     ]
-    setContacts(allContacts)
+    setContacts(all)
   }
 
   async function openConv(contact) {
     setActiveConv(contact)
+    setShowNewMsg(false)
     const myAuthId = profile?.auth_id || profile?.id
     const theirAuthId = contact.auth_id
-
     const { data } = await supabase.from('messages').select('*')
       .eq('groupe', false)
       .or(`and(expediteur_id.eq.${myAuthId},destinataire_id.eq.${theirAuthId}),and(expediteur_id.eq.${theirAuthId},destinataire_id.eq.${myAuthId})`)
       .order('created_at', { ascending: true })
     setConvMessages(data || [])
-
-    // Marque comme lus
     await supabase.from('messages').update({ lu: true })
       .eq('destinataire_id', myAuthId).eq('expediteur_id', theirAuthId)
   }
@@ -99,13 +99,24 @@ export default function MessagesPage({ setUnreadCount }) {
   const myAuthId = profile?.auth_id || profile?.id
   const isMe = (msg) => msg.expediteur_id === myAuthId
 
+  const filteredContacts = contacts.filter(c =>
+    `${c.nom} ${c.prenom}`.toLowerCase().includes(searchContact.toLowerCase())
+  )
+
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="Messages" />
+      <PageHeader
+        title="Messages"
+        action={
+          <Button variant="primary" size="sm" onClick={() => { setShowNewMsg(!showNewMsg); setActiveTab('prives'); setActiveConv(null) }}>
+            ✉️ Nouveau
+          </Button>
+        }
+      />
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {[['groupe','👥 Groupe'],['prives','💬 Privés']].map(([tab, lbl]) => (
-          <button key={tab} onClick={() => { setActiveTab(tab); setActiveConv(null) }} style={{
+          <button key={tab} onClick={() => { setActiveTab(tab); setActiveConv(null); setShowNewMsg(false) }} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
             background: activeTab === tab ? '#E6F1FB' : 'transparent',
@@ -125,7 +136,9 @@ export default function MessagesPage({ setUnreadCount }) {
               </p>
               <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
                 {groupMessages.length === 0 && (
-                  <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 13, padding: 20 }}>Aucun message pour l'instant.</p>
+                  <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 13, padding: 20 }}>
+                    Aucun message pour l'instant. Envoie le premier message au groupe !
+                  </p>
                 )}
                 {groupMessages.map(msg => (
                   <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime} />
@@ -139,11 +152,56 @@ export default function MessagesPage({ setUnreadCount }) {
           {/* PRIVÉS */}
           {activeTab === 'prives' && (
             <>
+              {/* Nouveau message — sélection contact */}
+              {showNewMsg && (
+                <Card>
+                  <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Nouveau message — choisir un destinataire</p>
+                  <input
+                    value={searchContact}
+                    onChange={e => setSearchContact(e.target.value)}
+                    placeholder="🔍 Rechercher un joueur ou staff..."
+                    style={{ width: '100%', padding: '8px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 10 }}
+                  />
+                  <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                    {filteredContacts.length === 0 ? (
+                      <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 16 }}>
+                        Aucun contact trouvé. Les joueurs doivent avoir un compte créé.
+                      </p>
+                    ) : (
+                      filteredContacts.map((c, i) => {
+                        const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
+                        const initials = `${c.nom?.[0] || ''}${c.prenom?.[0] || ''}`
+                        return (
+                          <div key={c.id} onClick={() => openConv(c)} style={{
+                            display: 'flex', alignItems: 'center', gap: 10,
+                            padding: '10px 0', cursor: 'pointer',
+                            borderBottom: '0.5px solid #F3F4F6'
+                          }}>
+                            <Avatar initials={initials} bg={col.bg} color={col.color} size={36} />
+                            <div>
+                              <p style={{ fontSize: 13, fontWeight: 500 }}>{c.nom} {c.prenom}</p>
+                              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
+                            </div>
+                            <span style={{ marginLeft: 'auto', color: THEME.primary, fontSize: 12 }}>Écrire →</span>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </Card>
+              )}
+
+              {/* Conversation active */}
               {activeConv ? (
-                <Card style={{ display: 'flex', flexDirection: 'column', height: '68vh' }}>
+                <Card style={{ display: 'flex', flexDirection: 'column', height: '65vh' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
                     <button onClick={() => setActiveConv(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
-                    <p style={{ fontSize: 13, fontWeight: 600 }}>{activeConv.nom} {activeConv.prenom}</p>
+                    <Avatar initials={`${activeConv.nom?.[0] || ''}${activeConv.prenom?.[0] || ''}`}
+                      bg={AVATAR_COLORS[0].bg} color={AVATAR_COLORS[0].color} size={32} />
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 600 }}>{activeConv.nom} {activeConv.prenom}</p>
+                      <p style={{ fontSize: 10, color: '#9CA3AF' }}>{activeConv.type === 'joueur' ? activeConv.poste : activeConv.role}</p>
+                    </div>
                   </div>
                   <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
                     {convMessages.length === 0 && (
@@ -156,17 +214,20 @@ export default function MessagesPage({ setUnreadCount }) {
                   </div>
                   <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(false)} />
                 </Card>
-              ) : (
+              ) : !showNewMsg && (
+                /* Liste des conversations existantes */
                 <Card style={{ padding: 0 }}>
-                  <div style={{ padding: '10px 14px', borderBottom: '0.5px solid #F3F4F6' }}>
-                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>{contacts.length} contact(s) disponible(s)</p>
+                  <div style={{ padding: '12px 14px', borderBottom: '0.5px solid #F3F4F6' }}>
+                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>
+                      {contacts.length > 0 ? `${contacts.length} contact(s) disponible(s)` : 'Aucun contact pour l\'instant'}
+                    </p>
                   </div>
                   {contacts.length === 0 ? (
                     <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 24 }}>
-                      Aucun contact disponible pour l'instant.
+                      Les contacts apparaîtront ici une fois que les joueurs auront un compte.
                     </p>
                   ) : (
-                    contacts.map((c, i) => {
+                    contacts.slice(0, 10).map((c, i) => {
                       const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
                       const initials = `${c.nom?.[0] || ''}${c.prenom?.[0] || ''}`
                       return (
