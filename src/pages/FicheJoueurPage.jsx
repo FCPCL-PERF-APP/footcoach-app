@@ -362,7 +362,7 @@ export default function FicheJoueurPage() {
                   <div key={f.id} style={{ marginBottom: 8, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
                     <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>{f.evenements?.titre}</p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 4 }}>
-                      {[['Dist.',`${f.distance_km}km`],['Sprints',f.sprints],['Ballons',f.ballons_touches],['V.max',`${f.vitesse_max}km/h`],['Accél.',f.accelerations]].map(([l,v]) => (
+                      {[['Distance',f.distance_km?`${f.distance_km}km`:'—'],['Sprint max',f.sprint_max?`${f.sprint_max}km/h`:'—'],['Sprints',f.sprints??'—'],['Dist.HI',f.distance_hi?`${f.distance_hi}m`:'—'],['Tps jeu',f.temps_jeu?`${f.temps_jeu}min`:'—'],['Ballons',f.ballons_touches??'—'],['Passes',f.nb_passes??'—'],['Tirs',f.nb_tirs??'—']].map(([l,v]) => (
                         <div key={l} style={{ background: '#F9FAFB', borderRadius: 6, padding: '4px 6px', textAlign: 'center' }}>
                           <div style={{ fontSize: 12, fontWeight: 600 }}>{v ?? '—'}</div>
                           <div style={{ fontSize: 9, color: '#9CA3AF' }}>{l}</div>

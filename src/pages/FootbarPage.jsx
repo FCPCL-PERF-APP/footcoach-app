@@ -6,12 +6,14 @@ import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 const FOOTBAR_FIELDS = [
-  { key: 'distance_km',    label: 'Distance parcourue',    unit: 'km',   placeholder: '8.4',  step: '0.1', max: 15 },
-  { key: 'sprints',        label: 'Nombre de sprints',     unit: '',     placeholder: '12',   step: '1',   max: 40 },
-  { key: 'ballons_touches',label: 'Ballons touchés',       unit: '',     placeholder: '47',   step: '1',   max: 120 },
-  { key: 'vitesse_max',    label: 'Vitesse max',           unit: 'km/h', placeholder: '28.5', step: '0.1', max: 40 },
-  { key: 'accelerations',  label: 'Accélérations',         unit: '',     placeholder: '22',   step: '1',   max: 60 },
-  { key: 'distance_hi',    label: 'Distance haute intensité', unit: 'm', placeholder: '680',  step: '1',   max: 1500 },
+  { key: 'distance_km',     label: 'Distance',        unit: 'km',   placeholder: '8.4',  step: '0.1', max: 15 },
+  { key: 'sprint_max',      label: 'Sprint max',      unit: 'km/h', placeholder: '28.5', step: '0.1', max: 40 },
+  { key: 'sprints',         label: 'Nb sprints',      unit: '',     placeholder: '12',   step: '1',   max: 40 },
+  { key: 'distance_hi',     label: 'Haute intensité', unit: 'm',    placeholder: '680',  step: '1',   max: 1500 },
+  { key: 'temps_jeu',       label: 'Temps de jeu',    unit: 'min',  placeholder: '90',   step: '1',   max: 120 },
+  { key: 'ballons_touches', label: 'Nb ballons',      unit: '',     placeholder: '47',   step: '1',   max: 120 },
+  { key: 'nb_passes',       label: 'Nb passes',       unit: '',     placeholder: '32',   step: '1',   max: 100 },
+  { key: 'nb_tirs',         label: 'Nb tirs',         unit: '',     placeholder: '3',    step: '1',   max: 30 },
 ]
 
 export default function FootbarPage() {
