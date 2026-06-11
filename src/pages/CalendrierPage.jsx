@@ -8,7 +8,7 @@ import { format, parseISO, isAfter, isBefore } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 export default function CalendrierPage() {
-  const { isCoach } = useAuth()
+  const { isCoach, isJoueur } = useAuth()
   const navigate = useNavigate()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -64,7 +64,6 @@ export default function CalendrierPage() {
         )}
       />
 
-      {/* Filtre */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {['tous','match','seance'].map(f => (
           <button key={f} onClick={() => setFilter(f)} style={{
@@ -79,8 +78,7 @@ export default function CalendrierPage() {
         ))}
       </div>
 
-      {/* Formulaire ajout */}
-      {showAdd && (
+      {showAdd && isCoach && (
         <Card>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Nouvel événement</p>
           <Select label="Type" value={form.type} onChange={v => setForm(p => ({...p, type: v}))}
@@ -111,21 +109,20 @@ export default function CalendrierPage() {
         </Card>
       )}
 
-      {/* Séances récurrentes */}
-      {showRecurring && <RecurringModal onClose={() => setShowRecurring(false)} onSave={loadEvents} />}
+      {showRecurring && isCoach && <RecurringModal onClose={() => setShowRecurring(false)} onSave={loadEvents} />}
 
       {loading ? <Spinner /> : (
         <>
           {upcoming.length > 0 && (
             <>
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>À venir</p>
-              {upcoming.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} navigate={navigate} />)}
+              {upcoming.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} />)}
             </>
           )}
           {past.length > 0 && (
             <>
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', margin: '14px 0 8px' }}>Passés</p>
-              {past.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} navigate={navigate} past />)}
+              {past.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} past />)}
             </>
           )}
           {filtered.length === 0 && (
@@ -139,7 +136,7 @@ export default function CalendrierPage() {
   )
 }
 
-function EventCard({ ev, isCoach, navigate, past = false }) {
+function EventCard({ ev, isCoach, isJoueur, navigate, past = false }) {
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
@@ -149,7 +146,7 @@ function EventCard({ ev, isCoach, navigate, past = false }) {
         <Badge type={ev.type}>{ev.type === 'match' ? '⚽ Match' : '🏃 Séance'}</Badge>
         <span style={{ fontSize: 13, fontWeight: 600 }}>{ev.titre}</span>
       </div>
-      <p style={{ fontSize: 11, color: '#6B7280', marginBottom: ev.lieu ? 2 : 8 }}>
+      <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>
         📅 {dateStr}{ev.type === 'match' ? (ev.domicile ? ' · Domicile' : ' · Déplacement') : ''}
       </p>
       {ev.lieu && <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>📍 {ev.lieu}</p>}
@@ -158,18 +155,25 @@ function EventCard({ ev, isCoach, navigate, past = false }) {
           🕐 RDV {ev.rdv_heure}{ev.rdv_lieu ? ` · ${ev.rdv_lieu}` : ''}
         </p>
       )}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-        {isCoach && ev.type === 'match' && (
-          <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}>📢 Convocations</Button>
-        )}
-        {isCoach && ev.type === 'match' && (
-          <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}>📊 Stats</Button>
-        )}
-        <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}>❤️ RPE</Button>
-        {isCoach && ev.type === 'match' && (
+
+      {/* Boutons COACH */}
+      {isCoach && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}>📢 Convocations</Button>}
+          {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}>📊 Stats</Button>}
+          <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}>❤️ RPE</Button>
           <Button size="sm" onClick={() => navigate(`/footbar?event=${ev.id}`)}>📡 Footbar</Button>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Boutons JOUEUR */}
+      {isJoueur && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          <Button size="sm" onClick={() => navigate(`/mon-rpe?event=${ev.id}`)}>❤️ Mon RPE</Button>
+          <Button size="sm" onClick={() => navigate(`/mon-footbar?event=${ev.id}`)}>📡 Mon Footbar</Button>
+        </div>
+      )}
+
       {isCoach && (
         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #F3F4F6' }}>
           <span style={{ fontSize: 10, color: '#9CA3AF' }}>
@@ -185,6 +189,7 @@ function RecurringModal({ onClose, onSave }) {
   const [form, setForm] = useState({ titre: 'Entraînement', jour: '2', heure: '19:30', lieu: '', dateDebut: '', dateFin: '' })
   const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
   const [saving, setSaving] = useState(false)
+  const iStyle = { width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }
 
   async function handleSave() {
     if (!form.titre || !form.dateDebut || !form.dateFin) return
@@ -196,11 +201,7 @@ function RecurringModal({ onClose, onSave }) {
     const current = new Date(start)
     while (current.getDay() !== jourNum) current.setDate(current.getDate() + 1)
     while (current <= end) {
-      seances.push({
-        type: 'seance', titre: form.titre,
-        date_heure: `${current.toISOString().split('T')[0]}T${form.heure}:00`,
-        lieu: form.lieu, domicile: true
-      })
+      seances.push({ type: 'seance', titre: form.titre, date_heure: `${current.toISOString().split('T')[0]}T${form.heure}:00`, lieu: form.lieu, domicile: true })
       current.setDate(current.getDate() + 7)
     }
     await supabase.from('evenements').insert(seances)
@@ -209,39 +210,17 @@ function RecurringModal({ onClose, onSave }) {
     onSave(); onClose()
   }
 
-  const iStyle = { width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }
-
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }}>
       <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: 20, width: '100%', maxWidth: 480, margin: '0 auto' }}>
         <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>🔁 Séances récurrentes</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <div style={{ gridColumn: '1/-1' }}>
-            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Intitulé</label>
-            <input value={form.titre} onChange={e => setForm(p => ({...p, titre: e.target.value}))} style={iStyle} />
-          </div>
-          <div>
-            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Jour</label>
-            <select value={form.jour} onChange={e => setForm(p => ({...p, jour: e.target.value}))} style={iStyle}>
-              {JOURS.map((j,i) => <option key={i} value={i}>{j}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Heure</label>
-            <input type="time" value={form.heure} onChange={e => setForm(p => ({...p, heure: e.target.value}))} style={iStyle} />
-          </div>
-          <div>
-            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Date début</label>
-            <input type="date" value={form.dateDebut} onChange={e => setForm(p => ({...p, dateDebut: e.target.value}))} style={iStyle} />
-          </div>
-          <div>
-            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Date fin</label>
-            <input type="date" value={form.dateFin} onChange={e => setForm(p => ({...p, dateFin: e.target.value}))} style={iStyle} />
-          </div>
-          <div style={{ gridColumn: '1/-1' }}>
-            <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Lieu</label>
-            <input value={form.lieu} onChange={e => setForm(p => ({...p, lieu: e.target.value}))} placeholder="Terrain 1" style={iStyle} />
-          </div>
+          <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Intitulé</label><input value={form.titre} onChange={e => setForm(p => ({...p, titre: e.target.value}))} style={iStyle} /></div>
+          <div><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Jour</label><select value={form.jour} onChange={e => setForm(p => ({...p, jour: e.target.value}))} style={iStyle}>{JOURS.map((j,i) => <option key={i} value={i}>{j}</option>)}</select></div>
+          <div><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Heure</label><input type="time" value={form.heure} onChange={e => setForm(p => ({...p, heure: e.target.value}))} style={iStyle} /></div>
+          <div><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Date début</label><input type="date" value={form.dateDebut} onChange={e => setForm(p => ({...p, dateDebut: e.target.value}))} style={iStyle} /></div>
+          <div><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Date fin</label><input type="date" value={form.dateFin} onChange={e => setForm(p => ({...p, dateFin: e.target.value}))} style={iStyle} /></div>
+          <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Lieu</label><input value={form.lieu} onChange={e => setForm(p => ({...p, lieu: e.target.value}))} placeholder="Terrain 1" style={iStyle} /></div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: 12, background: THEME.gradient, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>

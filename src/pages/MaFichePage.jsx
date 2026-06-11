@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { Card, PageHeader, Input, Button, BarChart, Spinner } from '../components/UI'
+import { Card, PageHeader, Input, Select, Button, BarChart, Spinner } from '../components/UI'
+import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -24,10 +25,10 @@ const RPE_ITEMS = [
 export default function MaFichePage() {
   const { profile } = useAuth()
   const [joueur, setJoueur] = useState(null)
+  const [form, setForm] = useState({})
   const [rpeHistory, setRpeHistory] = useState([])
   const [statsHistory, setStatsHistory] = useState([])
   const [poidsHistory, setPoidsHistory] = useState([])
-  const [form, setForm] = useState({})
   const [newPoids, setNewPoids] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -43,7 +44,8 @@ export default function MaFichePage() {
       supabase.from('stats_match').select('*, evenements(titre,date_heure)').eq('joueur_id', profile.id).order('created_at', { ascending: false }).limit(10),
       supabase.from('suivi_poids').select('*').eq('joueur_id', profile.id).order('date_mesure', { ascending: true }).limit(12),
     ])
-    setJoueur(j); setForm(j || {})
+    setJoueur(j)
+    setForm(j || {})
     setRpeHistory(rpe || [])
     setStatsHistory(stats || [])
     setPoidsHistory(poids || [])
@@ -53,19 +55,23 @@ export default function MaFichePage() {
   async function saveForm() {
     setSaving(true)
     await supabase.from('joueurs').update({
-      telephone: form.telephone, email: form.email,
-      adresse: form.adresse, poids: form.poids,
+      telephone: form.telephone,
+      email: form.email,
+      adresse: form.adresse,
+      poids: form.poids,
       contact_urgence_nom: form.contact_urgence_nom,
       contact_urgence_tel: form.contact_urgence_tel,
     }).eq('id', profile.id)
-    setSaving(false); setSaved(true)
+    setSaving(false)
+    setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
 
   async function savePoids() {
     if (!newPoids) return
     await supabase.from('suivi_poids').insert({ joueur_id: profile.id, poids: parseFloat(newPoids), date_mesure: new Date().toISOString().split('T')[0] })
-    setNewPoids(''); loadData()
+    setNewPoids('')
+    loadData()
   }
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
@@ -79,19 +85,34 @@ export default function MaFichePage() {
   const totalButs = statsHistory.reduce((s, r) => s + (r.buts || 0), 0)
   const totalPD = statsHistory.reduce((s, r) => s + (r.passes_decisives || 0), 0)
   const noteMoy = statsHistory.length ? (statsHistory.reduce((s, r) => s + (r.note || 0), 0) / statsHistory.length).toFixed(1) : '—'
+  const imc = form.taille && form.poids ? (form.poids / ((form.taille / 100) ** 2)).toFixed(1) : '—'
+
+  const tabs = [
+    { key: 'infos',  label: '👤 Mes infos' },
+    { key: 'rpe',    label: '❤️ Mon RPE' },
+    { key: 'stats',  label: '⚽ Mes stats' },
+    { key: 'poids',  label: '⚖️ Mon poids' },
+  ]
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="Ma fiche" />
-
       {/* Hero */}
-      <div style={{ background: '#185FA5', borderRadius: 14, padding: '16px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,255,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: '#fff' }}>
-          {joueur?.nom?.[0]}{joueur?.prenom?.[0]}
-        </div>
+      <div style={{ background: THEME.gradient, borderRadius: 16, padding: '16px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
+        {joueur?.photo_url ? (
+          <img src={joueur.photo_url} alt={joueur.nom} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,.4)' }} />
+        ) : (
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff' }}>
+            {joueur?.nom?.[0]}{joueur?.prenom?.[0]}
+          </div>
+        )}
         <div>
           <p style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{joueur?.nom} {joueur?.prenom}</p>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,.75)' }}>{joueur?.poste} {joueur?.numero ? `· N°${joueur.numero}` : ''}</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,.75)' }}>
+            {joueur?.poste || '—'} {joueur?.numero ? `· N°${joueur.numero}` : ''} {joueur?.groupe ? `· Pôle ${joueur.groupe}` : ''}
+          </p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,.6)', marginTop: 2 }}>
+            {joueur?.pied ? `Pied ${joueur.pied}` : ''} {joueur?.date_naissance ? `· Né le ${joueur.date_naissance}` : ''}
+          </p>
         </div>
       </div>
 
@@ -107,42 +128,64 @@ export default function MaFichePage() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>
-        {[['infos','👤 Mes infos'],['rpe','❤️ Mon RPE'],['stats','⚽ Mes stats'],['poids','⚖️ Mon poids']].map(([tab, lbl]) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} style={{
+        {tabs.map(t => (
+          <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-            background: activeTab === tab ? '#E6F1FB' : 'transparent',
-            color: activeTab === tab ? '#185FA5' : '#6B7280',
-            fontWeight: activeTab === tab ? 600 : 400
-          }}>{lbl}</button>
+            background: activeTab === t.key ? '#E6F1FB' : 'transparent',
+            color: activeTab === t.key ? THEME.primary : '#6B7280',
+            fontWeight: activeTab === t.key ? 600 : 400
+          }}>{t.label}</button>
         ))}
       </div>
 
-      {/* INFOS */}
+      {/* MES INFOS */}
       {activeTab === 'infos' && (
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-            <p style={{ fontSize: 13, fontWeight: 600 }}>Mes coordonnées</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF' }}>Modifiables par toi</p>
-          </div>
-          {saved && <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '7px 10px', marginBottom: 10, fontSize: 12, color: '#3B6D11' }}>✅ Enregistré !</div>}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <Input label="Téléphone" value={form.telephone || ''} onChange={v => setForm(p => ({ ...p, telephone: v }))} />
-            <Input label="Email" value={form.email || ''} onChange={v => setForm(p => ({ ...p, email: v }))} />
-          </div>
-          <Input label="Adresse" value={form.adresse || ''} onChange={v => setForm(p => ({ ...p, adresse: v }))} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <Input label="Contact urgence — Nom" value={form.contact_urgence_nom || ''} onChange={v => setForm(p => ({ ...p, contact_urgence_nom: v }))} />
-            <Input label="Contact urgence — Tél." value={form.contact_urgence_tel || ''} onChange={v => setForm(p => ({ ...p, contact_urgence_tel: v }))} />
-          </div>
-          <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 10, marginBottom: 10 }}>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 6 }}>Informations physiques (uniquement ton poids)</p>
-            <Input label="Poids actuel (kg)" type="number" step="0.1" value={form.poids || ''} onChange={v => setForm(p => ({ ...p, poids: v }))} />
-          </div>
+        <>
+          {saved && <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#3B6D11' }}>✅ Enregistré !</div>}
+
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Informations personnelles</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>Ces informations sont gérées par le coach</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Input label="Nom" value={form.nom || ''} onChange={() => {}} disabled />
+              <Input label="Prénom" value={form.prenom || ''} onChange={() => {}} disabled />
+              <Input label="Date de naissance" value={form.date_naissance || ''} onChange={() => {}} disabled />
+              <Input label="N° Licence" value={form.licence || ''} onChange={() => {}} disabled />
+              <Input label="Pied fort" value={form.pied || ''} onChange={() => {}} disabled />
+              <Input label="Poste" value={form.poste || ''} onChange={() => {}} disabled />
+              <Input label="Numéro" value={form.numero || ''} onChange={() => {}} disabled />
+              <Input label="Pôle / Groupe" value={form.groupe || ''} onChange={() => {}} disabled />
+            </div>
+          </Card>
+
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Mes coordonnées</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>Tu peux modifier ces informations</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Input label="Téléphone" value={form.telephone || ''} onChange={v => setForm(p => ({ ...p, telephone: v }))} />
+              <Input label="Email" value={form.email || ''} onChange={v => setForm(p => ({ ...p, email: v }))} />
+            </div>
+            <Input label="Adresse" value={form.adresse || ''} onChange={v => setForm(p => ({ ...p, adresse: v }))} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Input label="Contact urgence — Nom" value={form.contact_urgence_nom || ''} onChange={v => setForm(p => ({ ...p, contact_urgence_nom: v }))} />
+              <Input label="Contact urgence — Tél." value={form.contact_urgence_tel || ''} onChange={v => setForm(p => ({ ...p, contact_urgence_tel: v }))} />
+            </div>
+          </Card>
+
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Morphologie</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+              <Input label="Taille (cm)" value={form.taille || ''} onChange={() => {}} disabled />
+              <Input label="Poids (kg)" type="number" step="0.1" value={form.poids || ''} onChange={v => setForm(p => ({ ...p, poids: v }))} />
+              <Input label="IMC" value={imc} disabled />
+            </div>
+          </Card>
+
           <Button variant="primary" style={{ width: '100%' }} onClick={saveForm} disabled={saving}>
             {saving ? 'Enregistrement...' : '💾 Enregistrer mes infos'}
           </Button>
-        </Card>
+        </>
       )}
 
       {/* MON RPE */}
@@ -152,8 +195,7 @@ export default function MaFichePage() {
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Mes moyennes RPE — saison</p>
             {rpeHistory.length === 0
               ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucune donnée RPE pour l'instant.</p>
-              : <BarChart data={rpeAvg} maxValue={5} />
-            }
+              : <BarChart data={rpeAvg} maxValue={5} />}
           </Card>
           {rpeHistory.map(r => {
             const avg = (RPE_ITEMS.reduce((s, i) => s + (r[i.key] || 0), 0) / RPE_ITEMS.length).toFixed(1)
@@ -197,7 +239,7 @@ export default function MaFichePage() {
                       {s.temps_jeu}min · {s.titulaire ? 'Titulaire' : 'Remplaçant'} {s.carton_jaune ? '🟡' : ''}{s.carton_rouge ? '🔴' : ''}
                     </p>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note || '—'}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Note</div></div>
                     <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Buts</div></div>
                   </div>
@@ -212,19 +254,25 @@ export default function MaFichePage() {
         <Card>
           <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Suivi de mon poids</p>
           {poidsHistory.length > 1 && (
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 70, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 70, marginBottom: 12 }}>
               {poidsHistory.map((p, i) => {
                 const min = Math.min(...poidsHistory.map(x => x.poids))
                 const max = Math.max(...poidsHistory.map(x => x.poids))
                 const h = max === min ? 50 : ((p.poids - min) / (max - min)) * 50 + 10
                 return (
-                  <div key={p.id} title={`${p.poids} kg`}
-                    style={{ flex: 1, background: '#185FA5', borderRadius: '3px 3px 0 0', height: `${h}px`, opacity: 0.5 + (i / poidsHistory.length) * 0.5 }} />
+                  <div key={p.id} title={`${p.poids} kg — ${p.date_mesure}`}
+                    style={{ flex: 1, background: THEME.primary, borderRadius: '3px 3px 0 0', height: `${h}px`, opacity: 0.5 + (i / poidsHistory.length) * 0.5 }} />
                 )
               })}
             </div>
           )}
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          {poidsHistory.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>
+              <span>Dernier : <strong style={{ color: '#111' }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
+              <span>Min : {Math.min(...poidsHistory.map(p => p.poids))} kg · Max : {Math.max(...poidsHistory.map(p => p.poids))} kg</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
             <Input label="Nouvelle pesée (kg)" type="number" step="0.1" value={newPoids} onChange={setNewPoids} style={{ marginBottom: 0 }} />
             <Button variant="primary" onClick={savePoids} style={{ marginTop: 16, flexShrink: 0 }}>+ Ajouter</Button>
           </div>

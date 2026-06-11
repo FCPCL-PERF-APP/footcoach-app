@@ -12,23 +12,30 @@ const NAV_COACH_MAIN = [
 ]
 const NAV_COACH_MORE = [
   { path: '/rpe',        icon: '❤️', label: 'RPE équipe' },
-  { path: '/footbar',    icon: '📡', label: 'Footbar' },
+  { path: '/footbar',    icon: '📡', label: 'Footbar équipe' },
   { path: '/ressources', icon: '📁', label: 'Ressources' },
   { path: '/staff',      icon: '⚙️', label: 'Staff' },
 ]
-const NAV_STAFF = [
+const NAV_STAFF_MAIN = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
   { path: '/joueurs',    icon: '👥', label: 'Joueurs' },
   { path: '/messages',   icon: '💬', label: 'Messages' },
-  { path: '/ressources', icon: '📁', label: 'Docs' },
   { path: '/dashboard',  icon: '📊', label: 'Dashboard' },
+  { path: '/plus',       icon: '☰',  label: 'Plus' },
 ]
-const NAV_JOUEUR = [
-  { path: '/mon-rpe',     icon: '❤️', label: 'Mon RPE' },
-  { path: '/mon-footbar', icon: '📡', label: 'Footbar' },
-  { path: '/calendrier',  icon: '📅', label: 'Agenda' },
-  { path: '/ma-fiche',    icon: '👤', label: 'Ma fiche' },
-  { path: '/messages',    icon: '💬', label: 'Messages' },
+const NAV_STAFF_MORE = [
+  { path: '/ressources', icon: '📁', label: 'Ressources' },
+]
+const NAV_JOUEUR_MAIN = [
+  { path: '/mon-rpe',    icon: '❤️', label: 'Mon RPE' },
+  { path: '/calendrier', icon: '📅', label: 'Agenda' },
+  { path: '/ma-fiche',   icon: '👤', label: 'Ma fiche' },
+  { path: '/messages',   icon: '💬', label: 'Messages' },
+  { path: '/plus',       icon: '☰',  label: 'Plus' },
+]
+const NAV_JOUEUR_MORE = [
+  { path: '/mon-footbar', icon: '📡', label: 'Mon Footbar' },
+  { path: '/ressources',  icon: '📁', label: 'Ressources' },
 ]
 
 export default function BottomNav({ unreadCount = 0 }) {
@@ -37,7 +44,8 @@ export default function BottomNav({ unreadCount = 0 }) {
   const { isCoach, isAdjoint, isJoueur } = useAuth()
   const [showMore, setShowMore] = useState(false)
 
-  const items = isCoach ? NAV_COACH_MAIN : isAdjoint ? NAV_STAFF : NAV_JOUEUR
+  const mainItems = isCoach ? NAV_COACH_MAIN : isAdjoint ? NAV_STAFF_MAIN : NAV_JOUEUR_MAIN
+  const moreItems = isCoach ? NAV_COACH_MORE : isAdjoint ? NAV_STAFF_MORE : NAV_JOUEUR_MORE
 
   function handleNav(path) {
     if (path === '/plus') { setShowMore(!showMore); return }
@@ -47,35 +55,31 @@ export default function BottomNav({ unreadCount = 0 }) {
 
   return (
     <>
-      {/* Menu "Plus" pour coach */}
-      {showMore && isCoach && (
-        <div style={{
-          position: 'fixed', bottom: 64, left: 0, right: 0,
-          background: THEME.blackSoft, zIndex: 99,
-          borderTop: `1px solid ${THEME.primary}`,
-          maxWidth: 480, margin: '0 auto',
-          boxShadow: '0 -4px 20px rgba(0,0,0,.4)'
-        }}>
-          {NAV_COACH_MORE.map(item => (
-            <button key={item.path} onClick={() => { navigate(item.path); setShowMore(false) }} style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-              padding: '14px 20px', border: 'none',
-              background: pathname.startsWith(item.path) ? 'rgba(255,255,255,.08)' : 'transparent',
-              cursor: 'pointer', borderBottom: '0.5px solid rgba(255,255,255,.06)'
-            }}>
-              <span style={{ fontSize: 22 }}>{item.icon}</span>
-              <span style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{item.label}</span>
-              {pathname.startsWith(item.path) && <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Overlay pour fermer le menu */}
+      {/* Menu Plus */}
       {showMore && (
-        <div onClick={() => setShowMore(false)} style={{
-          position: 'fixed', inset: 0, zIndex: 98, background: 'rgba(0,0,0,.3)'
-        }} />
+        <>
+          <div onClick={() => setShowMore(false)} style={{ position: 'fixed', inset: 0, zIndex: 98, background: 'rgba(0,0,0,.4)' }} />
+          <div style={{
+            position: 'fixed', bottom: 64, left: 0, right: 0,
+            background: THEME.blackSoft, zIndex: 99,
+            borderTop: `1px solid ${THEME.primary}`,
+            maxWidth: 480, margin: '0 auto',
+            boxShadow: '0 -4px 20px rgba(0,0,0,.4)'
+          }}>
+            {moreItems.map(item => (
+              <button key={item.path} onClick={() => { navigate(item.path); setShowMore(false) }} style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                padding: '14px 20px', border: 'none',
+                background: pathname.startsWith(item.path) ? 'rgba(255,255,255,.08)' : 'transparent',
+                cursor: 'pointer', borderBottom: '0.5px solid rgba(255,255,255,.06)'
+              }}>
+                <span style={{ fontSize: 22 }}>{item.icon}</span>
+                <span style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{item.label}</span>
+                {pathname.startsWith(item.path) && <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>}
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       <nav style={{
@@ -87,7 +91,7 @@ export default function BottomNav({ unreadCount = 0 }) {
         boxShadow: '0 -4px 20px rgba(0,0,0,.3)',
         maxWidth: 480, margin: '0 auto'
       }}>
-        {items.map(item => {
+        {mainItems.map(item => {
           const active = item.path !== '/plus' && pathname.startsWith(item.path)
           const isMoreOpen = item.path === '/plus' && showMore
           const showBadge = item.path === '/messages' && unreadCount > 0
