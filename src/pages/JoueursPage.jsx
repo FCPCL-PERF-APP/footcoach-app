@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Button, Spinner, Avatar } from '../components/UI'
+import { THEME } from '../theme'
 
 const AVATAR_COLORS = [
   { bg: '#B5D4F4', color: '#0C447C' },
@@ -32,10 +33,10 @@ export default function JoueursPage() {
   useEffect(() => { loadJoueurs() }, [])
 
   async function loadJoueurs() {
-    const { data } = await supabase.from('joueurs').select('*').order('nom')
+    const { data, error } = await supabase.from('joueurs').select('*').order('nom')
+    if (error) console.error('Erreur chargement joueurs:', error)
     setJoueurs(data || [])
 
-    // RPE moyens récents par joueur
     const { data: rpe } = await supabase
       .from('rpe')
       .select('joueur_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
@@ -65,18 +66,15 @@ export default function JoueursPage() {
     return matchSearch && matchPoste
   })
 
+  function goToFiche(joueurId) {
+    console.log('Navigation vers:', `/joueurs/${joueurId}`)
+    navigate(`/joueurs/${joueurId}`)
+  }
+
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader
-        title="Joueurs"
-        action={isCoach && (
-          <Button variant="primary" size="sm" onClick={() => navigate('/joueurs/nouveau')}>
-            + Ajouter
-          </Button>
-        )}
-      />
+      <PageHeader title="Joueurs" />
 
-      {/* Recherche */}
       <input
         value={search}
         onChange={e => setSearch(e.target.value)}
@@ -88,14 +86,13 @@ export default function JoueursPage() {
         }}
       />
 
-      {/* Filtre poste */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', paddingBottom: 4 }}>
         {postes.map(p => (
           <button key={p} onClick={() => setFilterPoste(p)} style={{
             padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
             background: filterPoste === p ? '#E6F1FB' : 'transparent',
-            color: filterPoste === p ? '#185FA5' : '#6B7280',
+            color: filterPoste === p ? THEME.primary : '#6B7280',
             fontWeight: filterPoste === p ? 600 : 400
           }}>{p === 'tous' ? 'Tous' : p}</button>
         ))}
@@ -106,41 +103,58 @@ export default function JoueursPage() {
           <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>
             {filtered.length} joueur(s)
           </p>
+          {filtered.length === 0 && (
+            <div style={{ textAlign: 'center', padding: 40, color: '#9CA3AF', fontSize: 13 }}>
+              {joueurs.length === 0 ? 'Aucun joueur dans l\'effectif. Ajoutez vos joueurs dans Supabase.' : 'Aucun joueur trouvé.'}
+            </div>
+          )}
           {filtered.map((j, i) => {
             const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
             const initials = `${j.nom?.[0] || ''}${j.prenom?.[0] || ''}`
             const rpe = rpeAvgs[j.id]
             return (
-              <Card key={j.id} style={{ cursor: 'pointer', marginBottom: 8 }}
-                onClick={() => navigate(`/joueurs/${j.id}`)}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                key={j.id}
+                onClick={() => goToFiche(j.id)}
+                style={{
+                  background: '#fff',
+                  border: '0.5px solid #E5E7EB',
+                  borderRadius: 14,
+                  padding: '12px 14px',
+                  marginBottom: 8,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  WebkitTapHighlightColor: 'transparent'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {j.photo_url ? (
+                    <img src={j.photo_url} alt={j.nom}
+                      style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  ) : (
                     <Avatar initials={initials} bg={col.bg} color={col.color} size={40} />
-                    <div>
-                      <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
-                      <p style={{ fontSize: 11, color: '#9CA3AF' }}>
-                        {j.poste || '—'} {j.numero ? `· N°${j.numero}` : ''}
-                      </p>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {rpe && (
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: rpeColor(parseFloat(rpe)) }}>{rpe}</div>
-                        <div style={{ fontSize: 9, color: '#9CA3AF' }}>RPE</div>
-                      </div>
-                    )}
-                    <span style={{ color: '#D1D5DB', fontSize: 18 }}>›</span>
+                  )}
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{j.nom} {j.prenom}</p>
+                    <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                      {j.poste || '—'}{j.numero ? ` · N°${j.numero}` : ''}{j.groupe ? ` · Pôle ${j.groupe}` : ''}
+                    </p>
                   </div>
                 </div>
-              </Card>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {rpe && (
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: rpeColor(parseFloat(rpe)) }}>{rpe}</div>
+                      <div style={{ fontSize: 9, color: '#9CA3AF' }}>RPE</div>
+                    </div>
+                  )}
+                  <span style={{ color: '#D1D5DB', fontSize: 20 }}>›</span>
+                </div>
+              </div>
             )
           })}
-          {filtered.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 40, color: '#9CA3AF', fontSize: 13 }}>
-              Aucun joueur trouvé.
-            </div>
-          )}
         </>
       )}
     </div>
