@@ -1,24 +1,32 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../hooks/useTheme'
 import { THEME } from '../theme'
 
 const PAGE_TITLES = {
   '/calendrier': 'Calendrier',
+  '/calendrier-visuel': 'Calendrier',
   '/rpe': 'Suivi RPE',
   '/mon-rpe': 'Mon RPE',
+  '/footbar': 'Footbar équipe',
+  '/mon-footbar': 'Mon Footbar',
   '/joueurs': 'Joueurs',
   '/messages': 'Messages',
   '/dashboard': 'Dashboard',
   '/ressources': 'Ressources',
   '/staff': 'Staff technique',
   '/ma-fiche': 'Ma fiche',
+  '/bilan-saison': 'Bilan de saison',
 }
 
 export default function AppHeader() {
   const { pathname } = useLocation()
   const { signOut, profile, isCoach } = useAuth()
+  const { darkMode, toggleTheme } = useTheme()
   const navigate = useNavigate()
-  const title = PAGE_TITLES[pathname] || 'FC PCL'
+
+  const title = PAGE_TITLES[pathname] || 
+    (pathname.startsWith('/joueurs/') ? 'Fiche joueur' : 'FC PCL')
 
   return (
     <header style={{
@@ -30,19 +38,31 @@ export default function AppHeader() {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <img src="/icons/logo.jpg" alt="FC PCL"
-          style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.4)', objectFit: 'cover' }} />
+          style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.4)', objectFit: 'cover', cursor: 'pointer' }}
+          onClick={() => navigate(isCoach ? '/calendrier' : '/mon-rpe')} />
         <div>
           <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{title}</p>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>FC PCL · {profile?.role || 'joueur'}</p>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>
+            FC PCL · {profile?.role || 'joueur'}
+          </p>
         </div>
       </div>
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        {/* Mode sombre */}
+        <button onClick={toggleTheme} style={{
+          background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)',
+          borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14
+        }}>
+          {darkMode ? '☀️' : '🌙'}
+        </button>
+        {/* Bilan saison (coach seulement) */}
         {isCoach && (
-          <button onClick={() => navigate('/staff')} style={{
+          <button onClick={() => navigate('/bilan-saison')} style={{
             background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)',
-            borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 16
-          }}>⚙️</button>
+            borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14
+          }}>🏆</button>
         )}
+        {/* Déconnexion */}
         <button onClick={signOut} style={{
           background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)',
           borderRadius: 8, padding: '5px 10px', cursor: 'pointer',

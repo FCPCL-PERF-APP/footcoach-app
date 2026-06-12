@@ -73,14 +73,15 @@ export default function JoueursPage() {
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader
-        title="Joueurs"
-        action={isCoach && (
-          <Button variant="primary" size="sm" onClick={() => navigate('/joueurs/nouveau')}>
-            + Ajouter
-          </Button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 600 }}>Joueurs</h1>
+        {isCoach && (
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={() => navigate('/joueurs/import')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📥 Import</button>
+            <button onClick={() => navigate('/joueurs/nouveau')} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>+ Ajouter</button>
+          </div>
         )}
-      />
+      </div>
 
       <input
         value={search}

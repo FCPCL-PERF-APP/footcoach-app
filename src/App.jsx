@@ -17,6 +17,8 @@ import MonFootbarPage      from './pages/MonFootbarPage'
 import JoueursPage         from './pages/JoueursPage'
 import FicheJoueurPage     from './pages/FicheJoueurPage'
 import NouveauJoueurPage   from './pages/NouveauJoueurPage'
+import ImportJoueursPage   from './pages/ImportJoueursPage'
+import BilanSaisonPage     from './pages/BilanSaisonPage'
 import MaFichePage         from './pages/MaFichePage'
 import MessagesPage        from './pages/MessagesPage'
 import DashboardPage       from './pages/DashboardPage'
@@ -58,6 +60,8 @@ function AppContent() {
           <Route path="/mon-footbar"            element={isJoueur ? <MonFootbarPage /> : <Navigate to="/footbar" />} />
           <Route path="/joueurs"                element={<JoueursPage />} />
           <Route path="/joueurs/nouveau"        element={isCoach ? <NouveauJoueurPage /> : <Navigate to="/" />} />
+          <Route path="/joueurs/import"         element={isCoach ? <ImportJoueursPage /> : <Navigate to="/" />} />
+          <Route path="/bilan-saison"           element={isCoach ? <BilanSaisonPage /> : <Navigate to="/" />} />
           <Route path="/joueurs/:id"            element={<FicheJoueurPage />} />
           <Route path="/ma-fiche"               element={isJoueur ? <MaFichePage /> : <Navigate to="/" />} />
           <Route path="/messages"               element={<MessagesPage setUnreadCount={setUnreadCount} />} />
