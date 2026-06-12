@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { Card, PageHeader, Button, Select, Input, BarChart, Spinner } from '../components/UI'
+import { Card, PageHeader, Select, Button, Spinner, BarChart } from '../components/UI'
+import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -16,40 +18,52 @@ const FOOTBAR_FIELDS = [
   { key: 'nb_tirs',         label: 'Nb tirs',         unit: '',     placeholder: '3',    step: '1',   max: 30 },
 ]
 
+// Formate le titre d'un événement avec sa date
+function formatEventLabel(ev) {
+  if (!ev) return ''
+  const dateStr = ev.date_heure
+    ? format(parseISO(ev.date_heure), 'd MMM', { locale: fr })
+    : ''
+  return `${ev.type === 'match' ? '⚽' : '🏃'} ${ev.titre} — ${dateStr}`
+}
+
 export default function FootbarPage() {
-  const { isCoach, isAdjoint } = useAuth()
-  const [activeTab, setActiveTab] = useState('saisie')
+  const [searchParams] = useSearchParams()
+  const eventIdParam = searchParams.get('event')
+  const [activeTab, setActiveTab] = useState('bilan')
   const [events, setEvents] = useState([])
   const [joueurs, setJoueurs] = useState([])
-  const [selectedEvent, setSelectedEvent] = useState('')
+  const [selectedEvent, setSelectedEvent] = useState(eventIdParam || '')
+  const [footData, setFootData] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // Pour la saisie
   const [selectedJoueur, setSelectedJoueur] = useState('')
   const [form, setForm] = useState({})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [teamData, setTeamData] = useState([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => { loadData() }, [])
-  useEffect(() => { if (selectedEvent) loadTeamFootbar() }, [selectedEvent])
+  useEffect(() => { if (selectedEvent) loadFootbar() }, [selectedEvent])
 
   async function loadData() {
     const [{ data: evs }, { data: jrs }] = await Promise.all([
-      supabase.from('evenements').select('*').order('date_heure', { ascending: false }).limit(20),
+      supabase.from('evenements').select('*').order('date_heure', { ascending: false }).limit(30),
       supabase.from('joueurs').select('id,nom,prenom,poste').order('nom')
     ])
     setEvents(evs || [])
     setJoueurs(jrs || [])
-    if (evs?.length) setSelectedEvent(evs[0].id)
+    if (!selectedEvent && evs?.length) setSelectedEvent(evs[0].id)
     if (jrs?.length) setSelectedJoueur(jrs[0].id)
     setLoading(false)
   }
 
-  async function loadTeamFootbar() {
+  async function loadFootbar() {
     const { data } = await supabase
       .from('footbar')
-      .select('*, joueurs(nom, prenom, poste)')
+      .select('*, joueurs(id,nom,prenom,poste)')
       .eq('evenement_id', selectedEvent)
-    setTeamData(data || [])
+    setFootData(data || [])
   }
 
   async function handleSave() {
@@ -58,34 +72,76 @@ export default function FootbarPage() {
     const payload = {
       evenement_id: selectedEvent,
       joueur_id: selectedJoueur,
-      ...Object.fromEntries(
-        FOOTBAR_FIELDS.map(f => [f.key, form[f.key] ? parseFloat(form[f.key]) : null])
-      )
+      ...Object.fromEntries(FOOTBAR_FIELDS.map(f => [f.key, form[f.key] ? parseFloat(form[f.key]) : null]))
     }
-    // Upsert : remplace si déjà existant pour ce joueur/événement
-    await supabase.from('footbar').upsert(payload, {
-      onConflict: 'evenement_id,joueur_id'
-    })
+    // Vérifie si une entrée existe déjà
+    const { data: existing } = await supabase.from('footbar').select('id')
+      .eq('evenement_id', selectedEvent).eq('joueur_id', selectedJoueur).maybeSingle()
+
+    if (existing) {
+      await supabase.from('footbar').update(payload).eq('id', existing.id)
+    } else {
+      await supabase.from('footbar').insert(payload)
+    }
     setSaving(false)
     setSaved(true)
     setForm({})
-    loadTeamFootbar()
     setTimeout(() => setSaved(false), 3000)
+    loadFootbar()
   }
 
+  const joueursSansFootbar = joueurs.filter(j => !footData.find(f => f.joueur_id === j.id))
   const currentEvent = events.find(e => e.id === selectedEvent)
+
+  // Données comparatives pour les barres
+  function getBarData(key) {
+    return footData
+      .filter(d => d[key] !== null && d[key] !== undefined)
+      .map(d => ({
+        label: `${d.joueurs?.nom?.split(' ')[0] || ''} ${d.joueurs?.prenom?.charAt(0) || ''}.`,
+        value: parseFloat(d[key]),
+        color: THEME.primary
+      }))
+      .sort((a, b) => b.value - a.value)
+  }
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="Footbar" />
+      <PageHeader title="Footbar équipe" />
 
+      {/* Sélecteur événement avec date */}
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, fontWeight: 500 }}>
+          Événement
+        </label>
+        <select
+          value={selectedEvent}
+          onChange={e => { setSelectedEvent(e.target.value); setSaved(false) }}
+          style={{
+            width: '100%', padding: '8px 10px',
+            border: '0.5px solid var(--border)', borderRadius: 10,
+            fontSize: 13, background: 'var(--bg-card)', color: 'var(--text-primary)',
+            outline: 'none', boxSizing: 'border-box'
+          }}>
+          {events.map(ev => (
+            <option key={ev.id} value={ev.id}>{formatEventLabel(ev)}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Tabs identiques au RPE */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {[['saisie','📥 Saisie'],['equipe','👥 Équipe'],['stats','📊 Stats']].map(([tab, lbl]) => (
+        {[
+          ['bilan', '📊 Bilan groupe'],
+          ['detail', '👥 Par joueur'],
+          ['saisie', '📥 Saisie'],
+          ['manquants', '⏳ Manquants'],
+        ].map(([tab, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB',
+            border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
             background: activeTab === tab ? '#E6F1FB' : 'transparent',
-            color: activeTab === tab ? '#185FA5' : '#6B7280',
+            color: activeTab === tab ? THEME.primary : '#6B7280',
             fontWeight: activeTab === tab ? 600 : 400
           }}>{lbl}</button>
         ))}
@@ -93,124 +149,148 @@ export default function FootbarPage() {
 
       {loading ? <Spinner /> : (
         <>
+          {/* BILAN GROUPE */}
+          {activeTab === 'bilan' && (
+            <>
+              <Card>
+                <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                  Moyennes équipe — {footData.length} réponse(s)
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                  {currentEvent?.titre} — {currentEvent?.date_heure ? format(parseISO(currentEvent.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
+                </p>
+                {footData.length === 0
+                  ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Aucune donnée Footbar pour cet événement.</p>
+                  : FOOTBAR_FIELDS.map(f => {
+                      const vals = footData.map(d => d[f.key]).filter(v => v !== null && v !== undefined)
+                      if (!vals.length) return null
+                      const avg = (vals.reduce((a,b) => a+b, 0) / vals.length)
+                      return (
+                        <div key={f.key} style={{ marginBottom: 7 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>
+                            <span>{f.label}</span>
+                            <span>{avg.toFixed(1)}{f.unit ? ` ${f.unit}` : ''}</span>
+                          </div>
+                          <div style={{ height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', borderRadius: 4, background: THEME.primary, width: `${Math.min(100, avg/f.max*100).toFixed(0)}%` }} />
+                          </div>
+                        </div>
+                      )
+                    })
+                }
+              </Card>
+
+              {/* Taux de complétion */}
+              <Card>
+                <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Taux de complétion</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 64, height: 64, borderRadius: '50%',
+                    border: `6px solid ${footData.length / Math.max(joueurs.length, 1) >= 0.8 ? '#3B6D11' : '#D85A30'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 16, fontWeight: 700
+                  }}>
+                    {joueurs.length ? Math.round(footData.length / joueurs.length * 100) : 0}%
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>{footData.length}</strong> joueur(s) ont rempli leur Footbar<br />
+                    sur <strong style={{ color: 'var(--text-primary)' }}>{joueurs.length}</strong> dans l'effectif
+                  </div>
+                </div>
+              </Card>
+            </>
+          )}
+
+          {/* DÉTAIL PAR JOUEUR */}
+          {activeTab === 'detail' && (
+            <Card>
+              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Footbar par joueur</p>
+              {footData.length === 0
+                ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Aucune donnée.</p>
+                : footData.map(d => (
+                    <div key={d.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '0.5px solid var(--border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <div>
+                          <span style={{ fontSize: 13, fontWeight: 600 }}>{d.joueurs?.nom} {d.joueurs?.prenom}</span>
+                          <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 6 }}>{d.joueurs?.poste}</span>
+                        </div>
+                        {d.distance_km && <span style={{ fontSize: 12, fontWeight: 700, color: THEME.primary }}>{d.distance_km} km</span>}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+                        {FOOTBAR_FIELDS.map(f => (
+                          <div key={f.key} style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: '5px 6px', textAlign: 'center' }}>
+                            <div style={{ fontSize: 12, fontWeight: 600 }}>{d[f.key] != null ? `${d[f.key]}${f.unit ? f.unit : ''}` : '—'}</div>
+                            <div style={{ fontSize: 9, color: '#9CA3AF' }}>{f.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+              }
+            </Card>
+          )}
+
           {/* SAISIE */}
           {activeTab === 'saisie' && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Saisie données Footbar</p>
-              <Select
-                label="Événement"
-                value={selectedEvent}
-                onChange={v => { setSelectedEvent(v); setSaved(false) }}
-                options={events.map(e => ({ value: e.id, label: `${e.type === 'match' ? '⚽' : '🏃'} ${e.titre}` }))}
-              />
-              <Select
-                label="Joueur"
-                value={selectedJoueur}
-                onChange={setSelectedJoueur}
-                options={joueurs.map(j => ({ value: j.id, label: `${j.nom} ${j.prenom} — ${j.poste}` }))}
-              />
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4, fontWeight: 500 }}>Joueur</label>
+                <select value={selectedJoueur} onChange={e => setSelectedJoueur(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}>
+                  {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom} — {j.poste}</option>)}
+                </select>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 {FOOTBAR_FIELDS.map(f => (
                   <div key={f.key}>
-                    <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>
+                    <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>
                       {f.label} {f.unit && <span style={{ color: '#9CA3AF' }}>({f.unit})</span>}
                     </label>
-                    <input
-                      type="number"
-                      placeholder={f.placeholder}
-                      step={f.step}
+                    <input type="number" step={f.step} placeholder={f.placeholder}
                       value={form[f.key] || ''}
                       onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                      style={{
-                        width: '100%', padding: '8px 10px',
-                        border: '0.5px solid #D1D5DB', borderRadius: 10,
-                        fontSize: 13, outline: 'none', boxSizing: 'border-box'
-                      }}
-                    />
+                      style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-card)', color: 'var(--text-primary)' }} />
                   </div>
                 ))}
               </div>
-              {saved && (
-                <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '8px 12px', marginTop: 10, fontSize: 12, color: '#3B6D11' }}>
-                  ✅ Données enregistrées avec succès !
-                </div>
-              )}
-              <Button variant="primary" style={{ width: '100%', marginTop: 12 }} onClick={handleSave} disabled={saving}>
+              {saved && <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '8px 12px', marginTop: 10, fontSize: 12, color: '#3B6D11' }}>✅ Données enregistrées !</div>}
+              <button onClick={handleSave} disabled={saving} style={{
+                width: '100%', marginTop: 12, padding: 12,
+                background: THEME.gradient, color: '#fff',
+                border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer'
+              }}>
                 {saving ? 'Enregistrement...' : '💾 Enregistrer les données Footbar'}
-              </Button>
+              </button>
             </Card>
           )}
 
-          {/* VUE ÉQUIPE */}
-          {activeTab === 'equipe' && (
-            <>
-              <Select
-                label="Événement"
-                value={selectedEvent}
-                onChange={setSelectedEvent}
-                options={events.map(e => ({ value: e.id, label: `${e.type === 'match' ? '⚽' : '🏃'} ${e.titre}` }))}
-              />
-              {teamData.length === 0
-                ? <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucune donnée Footbar pour cet événement.</p></Card>
-                : teamData.map(d => (
-                    <Card key={d.id}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          {/* MANQUANTS */}
+          {activeTab === 'manquants' && (
+            <Card>
+              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Joueurs sans données Footbar</p>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>
+                Envoie une notification pour les relancer.
+              </p>
+              {joueursSansFootbar.length === 0
+                ? <p style={{ fontSize: 13, color: '#3B6D11' }}>✅ Tous les joueurs ont rempli leur Footbar !</p>
+                : <>
+                    {joueursSansFootbar.map(j => (
+                      <div key={j.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--border)' }}>
                         <div>
-                          <p style={{ fontSize: 13, fontWeight: 600 }}>{d.joueurs?.nom} {d.joueurs?.prenom}</p>
-                          <p style={{ fontSize: 11, color: '#9CA3AF' }}>{d.joueurs?.poste}</p>
+                          <div style={{ fontSize: 13, fontWeight: 500 }}>{j.nom} {j.prenom}</div>
+                          <div style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}</div>
                         </div>
-                        <span style={{ fontSize: 11, color: '#185FA5', fontWeight: 600 }}>{d.distance_km} km</span>
+                        <span style={{ fontSize: 11, color: '#D85A30' }}>⏳ En attente</span>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
-                        {[
-                          ['Sprints', d.sprints],
-                          ['Ballons', d.ballons_touches],
-                          ['V.max', d.vitesse_max ? `${d.vitesse_max}km/h` : '—'],
-                          ['Accél.', d.accelerations],
-                          ['Dist.HI', d.distance_hi ? `${d.distance_hi}m` : '—'],
-                        ].map(([lbl, val]) => (
-                          <div key={lbl} style={{ background: '#F9FAFB', borderRadius: 8, padding: '6px 8px', textAlign: 'center' }}>
-                            <div style={{ fontSize: 13, fontWeight: 600 }}>{val ?? '—'}</div>
-                            <div style={{ fontSize: 9, color: '#9CA3AF' }}>{lbl}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </Card>
-                  ))
+                    ))}
+                    <button onClick={() => alert(`📱 Notification envoyée à ${joueursSansFootbar.length} joueur(s)`)}
+                      style={{ width: '100%', marginTop: 12, padding: 10, background: THEME.gradient, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      📱 Relancer par notification push
+                    </button>
+                  </>
               }
-            </>
-          )}
-
-          {/* STATS COMPARATIVES */}
-          {activeTab === 'stats' && (
-            <>
-              <Select
-                label="Événement"
-                value={selectedEvent}
-                onChange={setSelectedEvent}
-                options={events.map(e => ({ value: e.id, label: `${e.type === 'match' ? '⚽' : '🏃'} ${e.titre}` }))}
-              />
-              {['distance_km','sprints','ballons_touches','vitesse_max'].map(key => {
-                const field = FOOTBAR_FIELDS.find(f => f.key === key)
-                const data = teamData
-                  .filter(d => d[key])
-                  .map(d => ({
-                    label: `${d.joueurs?.nom?.split(' ')[0] || ''} ${d.joueurs?.prenom?.charAt(0) || ''}.`,
-                    value: parseFloat(d[key]),
-                    color: '#185FA5'
-                  }))
-                  .sort((a, b) => b.value - a.value)
-                if (!data.length) return null
-                return (
-                  <Card key={key}>
-                    <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>
-                      {field?.label} {field?.unit && `(${field.unit})`}
-                    </p>
-                    <BarChart data={data} maxValue={field?.max || 10} />
-                  </Card>
-                )
-              })}
-            </>
+            </Card>
           )}
         </>
       )}

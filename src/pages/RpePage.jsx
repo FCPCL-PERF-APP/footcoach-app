@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { format, parseISO } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Badge, Button, Select, Textarea, BarChart, Spinner, AlertCard } from '../components/UI'
@@ -97,7 +99,7 @@ export default function RpePage() {
         onChange={setSelectedEvent}
         options={events.map(e => ({
           value: e.id,
-          label: `${e.type === 'match' ? '⚽' : '🏃'} ${e.titre}`
+          label: `${e.type === 'match' ? '⚽' : '🏃'} ${e.titre} — ${e.date_heure ? format(parseISO(e.date_heure), 'd MMM', { locale: fr }) : ''}`
         }))}
       />
 
