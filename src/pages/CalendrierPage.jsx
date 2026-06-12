@@ -8,7 +8,7 @@ import { format, parseISO, isAfter, isBefore } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 export default function CalendrierPage() {
-  const { isCoach, isJoueur } = useAuth()
+  const { isCoach, isJoueur, profile } = useAuth()
   const navigate = useNavigate()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -126,13 +126,13 @@ export default function CalendrierPage() {
           {upcoming.length > 0 && (
             <>
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>À venir</p>
-              {upcoming.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} />)}
+              {upcoming.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} />)}
             </>
           )}
           {past.length > 0 && (
             <>
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', margin: '14px 0 8px' }}>Passés</p>
-              {past.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} past />)}
+              {past.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} past />)}
             </>
           )}
           {filtered.length === 0 && (
@@ -146,7 +146,7 @@ export default function CalendrierPage() {
   )
 }
 
-function EventCard({ ev, isCoach, isJoueur, navigate, past = false }) {
+function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile }) {
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
@@ -178,12 +178,7 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false }) {
       )}
 
       {/* Boutons JOUEUR */}
-      {isJoueur && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-          <Button size="sm" onClick={() => navigate(`/mon-rpe?event=${ev.id}`)}>❤️ Mon RPE</Button>
-          <Button size="sm" onClick={() => navigate(`/mon-footbar?event=${ev.id}`)}>📡 Mon Footbar</Button>
-        </div>
-      )}
+      {isJoueur && <JoueurEventActions ev={ev} navigate={navigate} profile={profile} />}
 
       {isCoach && (
         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #F3F4F6' }}>
@@ -193,6 +188,92 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false }) {
         </div>
       )}
     </Card>
+  )
+}
+
+
+function JoueurEventActions({ ev, navigate, profile }) {
+  const [statut, setStatut] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (profile?.id) loadStatut()
+  }, [ev.id, profile?.id])
+
+  async function loadStatut() {
+    setLoading(true)
+    const { data } = await supabase
+      .from('presences')
+      .select('statut')
+      .eq('evenement_id', ev.id)
+      .eq('joueur_id', profile?.id)
+      .maybeSingle()
+    setStatut(data?.statut || null)
+    setLoading(false)
+  }
+
+  async function handleStatut(newStatut) {
+    if (!profile?.id) return
+    setSaving(true)
+    // Supprime l'ancienne présence si elle existe
+    await supabase.from('presences').delete()
+      .eq('evenement_id', ev.id)
+      .eq('joueur_id', profile?.id)
+    // Insère la nouvelle
+    await supabase.from('presences').insert({
+      evenement_id: ev.id,
+      joueur_id: profile?.id,
+      statut: newStatut
+    })
+    setStatut(newStatut)
+    setSaving(false)
+  }
+
+  const STATUTS = [
+    { key: 'present', label: '✅ Présent',  bg: '#EAF3DE', color: '#3B6D11', border: '#3B6D11' },
+    { key: 'absent',  label: '❌ Absent',   bg: '#FCEBEB', color: '#A32D2D', border: '#A32D2D' },
+    { key: 'blesse',  label: '🤕 Blessé',   bg: '#FAEEDA', color: '#854F0B', border: '#854F0B' },
+  ]
+
+  return (
+    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid #F3F4F6' }}>
+      {/* Confirmation présence */}
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>
+        Ma présence :
+      </p>
+      {loading ? (
+        <p style={{ fontSize: 11, color: '#9CA3AF' }}>Chargement...</p>
+      ) : (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          {STATUTS.map(s => (
+            <button key={s.key} onClick={() => handleStatut(s.key)} disabled={saving}
+              style={{
+                flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11,
+                border: `1.5px solid ${statut === s.key ? s.border : '#E5E7EB'}`,
+                background: statut === s.key ? s.bg : 'transparent',
+                color: statut === s.key ? s.color : '#9CA3AF',
+                fontWeight: statut === s.key ? 600 : 400,
+                cursor: saving ? 'not-allowed' : 'pointer',
+                transition: 'all .15s'
+              }}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {/* Boutons RPE et Footbar */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button onClick={() => navigate(`/mon-rpe?event=${ev.id}`)}
+          style={{ flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
+          ❤️ Mon RPE
+        </button>
+        <button onClick={() => navigate(`/mon-footbar?event=${ev.id}`)}
+          style={{ flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
+          📡 Footbar
+        </button>
+      </div>
+    </div>
   )
 }
 
