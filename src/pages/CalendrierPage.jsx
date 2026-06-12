@@ -160,6 +160,7 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false }) {
       {isCoach && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
           {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}>📢 Convocations</Button>}
+          {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/presences/${ev.id}`)}>✅ Présences</Button>}
           {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}>📊 Stats</Button>}
           <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}>❤️ RPE</Button>
           <Button size="sm" onClick={() => navigate(`/footbar?event=${ev.id}`)}>📡 Footbar</Button>

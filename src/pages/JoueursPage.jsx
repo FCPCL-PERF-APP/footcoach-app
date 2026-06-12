@@ -73,7 +73,14 @@ export default function JoueursPage() {
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="Joueurs" />
+      <PageHeader
+        title="Joueurs"
+        action={isCoach && (
+          <Button variant="primary" size="sm" onClick={() => navigate('/joueurs/nouveau')}>
+            + Ajouter
+          </Button>
+        )}
+      />
 
       <input
         value={search}

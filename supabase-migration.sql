@@ -51,3 +51,8 @@ CREATE POLICY IF NOT EXISTS "Allow insert staff" ON staff FOR INSERT WITH CHECK 
 
 -- Ajouter colonne photo_url aux joueurs
 ALTER TABLE joueurs ADD COLUMN IF NOT EXISTS photo_url text;
+
+-- Ajouter statut blessé aux présences
+ALTER TABLE presences DROP CONSTRAINT IF EXISTS presences_statut_check;
+ALTER TABLE presences ADD CONSTRAINT presences_statut_check 
+  CHECK (statut IN ('present', 'absent', 'blesse', 'inconnu'));
