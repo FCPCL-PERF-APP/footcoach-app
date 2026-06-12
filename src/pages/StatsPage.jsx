@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { exportRapportPDF } from '../utils/exportPDF'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'

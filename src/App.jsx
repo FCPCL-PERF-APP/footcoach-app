@@ -8,7 +8,8 @@ import LoginPage from './pages/LoginPage'
 import { useState } from 'react'
 import { THEME } from './theme'
 
-import CalendrierPage      from './pages/CalendrierPage'
+import CalendrierPage          from './pages/CalendrierPage'
+import CalendrierVisuelPage    from './pages/CalendrierVisuelPage'
 import RpePage             from './pages/RpePage'
 import MonRpePage          from './pages/MonRpePage'
 import FootbarPage         from './pages/FootbarPage'
@@ -50,6 +51,7 @@ function AppContent() {
         <Routes>
           <Route path="/"                       element={<Navigate to={defaultRoute} replace />} />
           <Route path="/calendrier"             element={<CalendrierPage />} />
+          <Route path="/calendrier-visuel"       element={<CalendrierVisuelPage />} />
           <Route path="/rpe"                    element={isCoach || isAdjoint ? <RpePage /> : <Navigate to="/" />} />
           <Route path="/mon-rpe"                element={isJoueur ? <MonRpePage /> : <Navigate to="/rpe" />} />
           <Route path="/footbar"                element={isCoach || isAdjoint ? <FootbarPage /> : <Navigate to="/" />} />

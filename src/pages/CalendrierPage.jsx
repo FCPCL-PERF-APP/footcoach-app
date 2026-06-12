@@ -54,7 +54,17 @@ export default function CalendrierPage() {
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 600 }}>Calendrier</h1>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => navigate('/calendrier-visuel')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 12, cursor: 'pointer' }}>📅 Vue mois</button>
+          {isCoach && <button onClick={() => setShowRecurring(!showRecurring)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 12, cursor: 'pointer' }}>🔁</button>}
+          {isCoach && <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>+ Ajouter</button>}
+        </div>
+      </div>
+
+      {/* ANCIEN PageHeader remplacé — garde le reste */}
+      {false && <PageHeader
         title="Calendrier"
         action={isCoach && (
           <div style={{ display: 'flex', gap: 6 }}>
@@ -62,7 +72,7 @@ export default function CalendrierPage() {
             <Button variant="primary" size="sm" onClick={() => setShowAdd(!showAdd)}>+ Ajouter</Button>
           </div>
         )}
-      />
+      />}
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {['tous','match','seance'].map(f => (

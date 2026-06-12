@@ -24,6 +24,7 @@ export default function MessagesPage({ setUnreadCount }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [showNewMsg, setShowNewMsg] = useState(false)
+  const [search, setSearch] = useState('')
   const [searchContact, setSearchContact] = useState('')
   const bottomRef = useRef(null)
 
@@ -114,6 +115,14 @@ export default function MessagesPage({ setUnreadCount }) {
         }
       />
 
+      {/* Barre de recherche */}
+      <input
+        value={search || ''}
+        onChange={e => setSearch(e.target.value)}
+        placeholder="🔍 Rechercher dans les messages..."
+        style={{ width: '100%', padding: '8px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box', marginBottom: 10 }}
+      />
+
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {[['groupe','👥 Groupe'],['prives','💬 Privés']].map(([tab, lbl]) => (
           <button key={tab} onClick={() => { setActiveTab(tab); setActiveConv(null); setShowNewMsg(false) }} style={{
@@ -135,12 +144,17 @@ export default function MessagesPage({ setUnreadCount }) {
                 👥 Équipe A — Canal groupe
               </p>
               <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
+                {search && (
+                  <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', padding: 8 }}>
+                    {groupMessages.filter(m => m.contenu?.toLowerCase().includes(search.toLowerCase())).length} résultat(s) pour "{search}"
+                  </p>
+                )}
                 {groupMessages.length === 0 && (
                   <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 13, padding: 20 }}>
                     Aucun message pour l'instant. Envoie le premier message au groupe !
                   </p>
                 )}
-                {groupMessages.map(msg => (
+                {groupMessages.filter(m => !search || m.contenu?.toLowerCase().includes(search.toLowerCase())).map(msg => (
                   <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime} />
                 ))}
                 <div ref={bottomRef} />
