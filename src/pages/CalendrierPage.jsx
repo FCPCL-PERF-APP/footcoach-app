@@ -15,6 +15,7 @@ export default function CalendrierPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [showRecurring, setShowRecurring] = useState(false)
   const [filter, setFilter] = useState('tous')
+  const [editingEvent, setEditingEvent] = useState(null)
   const [form, setForm] = useState({
     type: 'match', titre: '', date: '', heure: '15:00',
     lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: ''
@@ -33,7 +34,7 @@ export default function CalendrierPage() {
   async function saveEvent() {
     if (!form.titre || !form.date) return
     setSaving(true)
-    await supabase.from('evenements').insert({
+    const payload = {
       type: form.type,
       titre: form.titre,
       date_heure: `${form.date}T${form.heure}:00`,
@@ -41,10 +42,38 @@ export default function CalendrierPage() {
       domicile: form.domicile,
       rdv_heure: form.type === 'match' ? form.rdv_heure : null,
       rdv_lieu: form.type === 'match' ? form.rdv_lieu : null,
-    })
+    }
+    if (editingEvent) {
+      await supabase.from('evenements').update(payload).eq('id', editingEvent.id)
+    } else {
+      await supabase.from('evenements').insert(payload)
+    }
     setSaving(false)
     setShowAdd(false)
+    setEditingEvent(null)
     setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '' })
+    loadEvents()
+  }
+
+  function startEdit(ev) {
+    setEditingEvent(ev)
+    setForm({
+      type: ev.type,
+      titre: ev.titre,
+      date: ev.date_heure?.split('T')[0] || '',
+      heure: ev.date_heure?.split('T')[1]?.slice(0,5) || '15:00',
+      lieu: ev.lieu || '',
+      domicile: ev.domicile !== false,
+      rdv_heure: ev.rdv_heure || '14:00',
+      rdv_lieu: ev.rdv_lieu || ''
+    })
+    setShowAdd(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function deleteEvent(ev) {
+    if (!window.confirm(`Supprimer "${ev.titre}" ? Cette action est irréversible.`)) return
+    await supabase.from('evenements').delete().eq('id', ev.id)
     loadEvents()
   }
 
@@ -57,22 +86,13 @@ export default function CalendrierPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Calendrier</h1>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => navigate('/calendrier-visuel')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 12, cursor: 'pointer' }}>📅 Vue mois</button>
-          {isCoach && <button onClick={() => setShowRecurring(!showRecurring)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 12, cursor: 'pointer' }}>🔁</button>}
-          {isCoach && <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>+ Ajouter</button>}
+          <button onClick={() => navigate('/calendrier-visuel')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📅 Vue mois</button>
+          {isCoach && <button onClick={() => setShowRecurring(!showRecurring)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>🔁</button>}
+          {isCoach && <button onClick={() => { setEditingEvent(null); setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '' }); setShowAdd(!showAdd) }} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
+            {showAdd && !editingEvent ? '✕ Annuler' : '+ Ajouter'}
+          </button>}
         </div>
       </div>
-
-      {/* ANCIEN PageHeader remplacé — garde le reste */}
-      {false && <PageHeader
-        title="Calendrier"
-        action={isCoach && (
-          <div style={{ display: 'flex', gap: 6 }}>
-            <Button size="sm" onClick={() => setShowRecurring(!showRecurring)}>🔁</Button>
-            <Button variant="primary" size="sm" onClick={() => setShowAdd(!showAdd)}>+ Ajouter</Button>
-          </div>
-        )}
-      />}
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {['tous','match','seance'].map(f => (
@@ -88,15 +108,18 @@ export default function CalendrierPage() {
         ))}
       </div>
 
+      {/* Formulaire ajout/modification */}
       {showAdd && isCoach && (
         <Card>
-          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Nouvel événement</p>
+          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+            {editingEvent ? '✏️ Modifier l\'événement' : 'Nouvel événement'}
+          </p>
           <Select label="Type" value={form.type} onChange={v => setForm(p => ({...p, type: v}))}
             options={[{value:'match',label:'⚽ Match'},{value:'seance',label:'🏃 Séance'}]} />
           <Input label="Adversaire / Intitulé" value={form.titre} onChange={v => setForm(p => ({...p, titre: v}))} placeholder="vs FC Nancy R" />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <Input label="Date" type="date" value={form.date} onChange={v => setForm(p => ({...p, date: v}))} />
-            <Input label="Heure du match" type="time" value={form.heure} onChange={v => setForm(p => ({...p, heure: v}))} />
+            <Input label="Heure" type="time" value={form.heure} onChange={v => setForm(p => ({...p, heure: v}))} />
           </div>
           <Input label="Lieu" value={form.lieu} onChange={v => setForm(p => ({...p, lieu: v}))} placeholder="Stade municipal..." />
           {form.type === 'match' && (
@@ -113,9 +136,14 @@ export default function CalendrierPage() {
               </div>
             </>
           )}
-          <Button variant="primary" style={{ width: '100%' }} onClick={saveEvent} disabled={saving}>
-            {saving ? 'Création...' : 'Créer l\'événement'}
-          </Button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button variant="primary" style={{ flex: 1 }} onClick={saveEvent} disabled={saving}>
+              {saving ? 'Enregistrement...' : editingEvent ? '💾 Modifier' : '✅ Créer l\'événement'}
+            </Button>
+            {editingEvent && (
+              <Button onClick={() => { setEditingEvent(null); setShowAdd(false) }}>Annuler</Button>
+            )}
+          </div>
         </Card>
       )}
 
@@ -126,13 +154,13 @@ export default function CalendrierPage() {
           {upcoming.length > 0 && (
             <>
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>À venir</p>
-              {upcoming.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} />)}
+              {upcoming.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={deleteEvent} />)}
             </>
           )}
           {past.length > 0 && (
             <>
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', margin: '14px 0 8px' }}>Passés</p>
-              {past.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} past />)}
+              {past.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={deleteEvent} past />)}
             </>
           )}
           {filtered.length === 0 && (
@@ -146,16 +174,44 @@ export default function CalendrierPage() {
   )
 }
 
-function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile }) {
+function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onEdit, onDelete }) {
+  const [presenceCount, setPresenceCount] = useState(null)
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
+  useEffect(() => {
+    if (isCoach) loadPresenceCount()
+  }, [ev.id])
+
+  async function loadPresenceCount() {
+    const { data } = await supabase.from('presences').select('statut').eq('evenement_id', ev.id)
+    if (data) {
+      setPresenceCount({
+        present: data.filter(p => p.statut === 'present').length,
+        absent: data.filter(p => p.statut === 'absent').length,
+        blesse: data.filter(p => p.statut === 'blesse').length,
+        total: data.length
+      })
+    }
+  }
+
   return (
     <Card style={{ opacity: past ? 0.75 : 1, marginBottom: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-        <Badge type={ev.type}>{ev.type === 'match' ? '⚽ Match' : '🏃 Séance'}</Badge>
-        <span style={{ fontSize: 13, fontWeight: 600 }}>{ev.titre}</span>
+      {/* Header carte */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+          <Badge type={ev.type}>{ev.type === 'match' ? '⚽ Match' : '🏃 Séance'}</Badge>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{ev.titre}</span>
+        </div>
+        {/* Boutons modifier/supprimer */}
+        {isCoach && (
+          <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
+            <button onClick={() => onEdit(ev)} style={{ border: 'none', background: 'rgba(24,95,165,.1)', borderRadius: 6, padding: '3px 7px', cursor: 'pointer', fontSize: 12 }}>✏️</button>
+            <button onClick={() => onDelete(ev)} style={{ border: 'none', background: 'rgba(163,45,45,.1)', borderRadius: 6, padding: '3px 7px', cursor: 'pointer', fontSize: 12 }}>🗑️</button>
+          </div>
+        )}
       </div>
+
       <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>
         📅 {dateStr}{ev.type === 'match' ? (ev.domicile ? ' · Domicile' : ' · Déplacement') : ''}
       </p>
@@ -164,6 +220,16 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile }) {
         <p style={{ fontSize: 11, color: THEME.primary, marginBottom: 8, fontWeight: 500 }}>
           🕐 RDV {ev.rdv_heure}{ev.rdv_lieu ? ` · ${ev.rdv_lieu}` : ''}
         </p>
+      )}
+
+      {/* Résumé présences coach */}
+      {isCoach && presenceCount !== null && presenceCount.total > 0 && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, padding: '6px 10px', background: '#F9FAFB', borderRadius: 8 }}>
+          <span style={{ fontSize: 11, color: '#3B6D11' }}>✅ {presenceCount.present}</span>
+          <span style={{ fontSize: 11, color: '#A32D2D' }}>❌ {presenceCount.absent}</span>
+          <span style={{ fontSize: 11, color: '#854F0B' }}>🤕 {presenceCount.blesse}</span>
+          <span style={{ fontSize: 11, color: '#9CA3AF' }}>· {presenceCount.total} réponse(s)</span>
+        </div>
       )}
 
       {/* Boutons COACH */}
@@ -191,7 +257,6 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile }) {
   )
 }
 
-
 function JoueurEventActions({ ev, navigate, profile }) {
   const [statut, setStatut] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -216,33 +281,19 @@ function JoueurEventActions({ ev, navigate, profile }) {
   async function handleStatut(newStatut) {
     if (!profile?.id) return
     setSaving(true)
-    // Supprime l'ancienne présence si elle existe
     await supabase.from('presences').delete()
-      .eq('evenement_id', ev.id)
-      .eq('joueur_id', profile?.id)
-    // Insère la nouvelle
+      .eq('evenement_id', ev.id).eq('joueur_id', profile?.id)
     await supabase.from('presences').insert({
-      evenement_id: ev.id,
-      joueur_id: profile?.id,
-      statut: newStatut
+      evenement_id: ev.id, joueur_id: profile?.id, statut: newStatut
     })
-   setStatut(newStatut)
-
-    // Notifie le coach du changement de présence
+    setStatut(newStatut)
     try {
       await fetch('/api/notif-presence-resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId: ev.id,
-          eventTitre: ev.titre,
-          coachAuthId: null
-        })
+        body: JSON.stringify({ eventId: ev.id, eventTitre: ev.titre, coachAuthId: null })
       })
-    } catch (err) {
-      console.error('Erreur notif présence:', err)
-    }
-
+    } catch (err) { console.error('Erreur notif présence:', err) }
     setSaving(false)
   }
 
@@ -254,13 +305,8 @@ function JoueurEventActions({ ev, navigate, profile }) {
 
   return (
     <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid #F3F4F6' }}>
-      {/* Confirmation présence */}
-      <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>
-        Ma présence :
-      </p>
-      {loading ? (
-        <p style={{ fontSize: 11, color: '#9CA3AF' }}>Chargement...</p>
-      ) : (
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>Ma présence :</p>
+      {loading ? <p style={{ fontSize: 11, color: '#9CA3AF' }}>Chargement...</p> : (
         <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
           {STATUTS.map(s => (
             <button key={s.key} onClick={() => handleStatut(s.key)} disabled={saving}
@@ -270,15 +316,11 @@ function JoueurEventActions({ ev, navigate, profile }) {
                 background: statut === s.key ? s.bg : 'transparent',
                 color: statut === s.key ? s.color : '#9CA3AF',
                 fontWeight: statut === s.key ? 600 : 400,
-                cursor: saving ? 'not-allowed' : 'pointer',
-                transition: 'all .15s'
-              }}>
-              {s.label}
-            </button>
+                cursor: saving ? 'not-allowed' : 'pointer', transition: 'all .15s'
+              }}>{s.label}</button>
           ))}
         </div>
       )}
-      {/* Boutons RPE et Footbar */}
       <div style={{ display: 'flex', gap: 6 }}>
         <button onClick={() => navigate(`/mon-rpe?event=${ev.id}`)}
           style={{ flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
