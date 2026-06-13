@@ -226,7 +226,23 @@ function JoueurEventActions({ ev, navigate, profile }) {
       joueur_id: profile?.id,
       statut: newStatut
     })
-    setStatut(newStatut)
+   setStatut(newStatut)
+
+    // Notifie le coach du changement de présence
+    try {
+      await fetch('/api/notif-presence-resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: ev.id,
+          eventTitre: ev.titre,
+          coachAuthId: null
+        })
+      })
+    } catch (err) {
+      console.error('Erreur notif présence:', err)
+    }
+
     setSaving(false)
   }
 

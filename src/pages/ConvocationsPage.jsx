@@ -65,11 +65,35 @@ export default function ConvocationsPage() {
     }))
     await supabase.from('convocations').insert(inserts)
 
-    // Met à jour le lieu et heure de RDV dans l'événement
+   // Met à jour le lieu et heure de RDV dans l'événement
     await supabase.from('evenements').update({
       rdv_heure: rdvHeure,
       rdv_lieu: rdvLieu || event?.lieu
     }).eq('id', eventId)
+
+    // Envoie notification push aux joueurs convoqués
+    const convoquesIds = joueurs.filter(j => selected.has(j.id)).map(j => j.id)
+    if (convoquesIds.length > 0) {
+      try {
+        const dateStr = event?.date_heure
+          ? new Date(event.date_heure).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+          : ''
+        await fetch('/api/notif-convocation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventId,
+            eventTitre: event?.titre,
+            eventDate: dateStr,
+            rdvHeure,
+            rdvLieu,
+            joueurIds: convoquesIds
+          })
+        })
+      } catch (err) {
+        console.error('Erreur notif convocation:', err)
+      }
+    }
 
     setSaving(false)
     setSent(true)

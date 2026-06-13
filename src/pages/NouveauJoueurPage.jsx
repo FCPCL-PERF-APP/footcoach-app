@@ -55,9 +55,20 @@ export default function NouveauJoueurPage() {
 
     // 2. Envoie l'invitation si email fourni
     if (inviteEmail && form.email) {
-      const { error: inviteError } = await supabase.auth.admin?.inviteUserByEmail?.(form.email)
-      // Note: inviteUserByEmail nécessite la clé service_role
-      // On continue même si ça échoue
+      try {
+        await fetch('/api/invite-joueur', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: form.email,
+            joueurId: joueur.id,
+            nom: form.nom,
+            prenom: form.prenom
+          })
+        })
+      } catch (err) {
+        console.error('Erreur invitation:', err)
+      }
     }
 
     setSaving(false)
