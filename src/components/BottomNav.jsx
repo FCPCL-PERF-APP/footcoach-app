@@ -28,13 +28,14 @@ const NAV_STAFF_MORE = [
   { path: '/ressources', icon: '📁', label: 'Ressources' },
 ]
 const NAV_JOUEUR_MAIN = [
-  { path: '/mon-rpe',    icon: '❤️', label: 'Mon RPE' },
-  { path: '/calendrier', icon: '📅', label: 'Agenda' },
-  { path: '/ma-fiche',   icon: '👤', label: 'Ma fiche' },
-  { path: '/messages',   icon: '💬', label: 'Messages' },
-  { path: '/plus',       icon: '☰',  label: 'Plus' },
+  { path: '/mon-dashboard', icon: '🏠', label: 'Dashboard' },
+  { path: '/calendrier',    icon: '📅', label: 'Agenda' },
+  { path: '/ma-fiche',      icon: '👤', label: 'Ma fiche' },
+  { path: '/messages',      icon: '💬', label: 'Messages' },
+  { path: '/plus',          icon: '☰',  label: 'Plus' },
 ]
 const NAV_JOUEUR_MORE = [
+  { path: '/mon-rpe',     icon: '❤️', label: 'Mon RPE' },
   { path: '/mon-footbar', icon: '📡', label: 'Mon Footbar' },
   { path: '/ressources',  icon: '📁', label: 'Ressources' },
 ]

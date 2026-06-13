@@ -20,6 +20,7 @@ import NouveauJoueurPage   from './pages/NouveauJoueurPage'
 import ImportJoueursPage   from './pages/ImportJoueursPage'
 import BilanSaisonPage     from './pages/BilanSaisonPage'
 import MaFichePage         from './pages/MaFichePage'
+import DashboardJoueurPage from './pages/DashboardJoueurPage'
 import MessagesPage        from './pages/MessagesPage'
 import DashboardPage       from './pages/DashboardPage'
 import RessourcesPage      from './pages/RessourcesPage'
@@ -66,6 +67,7 @@ function AppContent() {
           <Route path="/joueurs/import"         element={isCoach ? <ImportJoueursPage /> : <Navigate to="/" />} />
           <Route path="/bilan-saison"           element={isCoach ? <BilanSaisonPage /> : <Navigate to="/" />} />
           <Route path="/joueurs/:id"            element={<FicheJoueurPage />} />
+<Route path="/mon-dashboard" element={isJoueur ? <DashboardJoueurPage /> : <Navigate to="/" />} />
           <Route path="/ma-fiche"               element={isJoueur ? <MaFichePage /> : <Navigate to="/" />} />
           <Route path="/messages"               element={<MessagesPage setUnreadCount={setUnreadCount} />} />
           <Route path="/dashboard"              element={<DashboardPage />} />
