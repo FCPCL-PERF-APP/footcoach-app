@@ -15,6 +15,7 @@ const NAV_COACH_MORE = [
   { path: '/footbar',    icon: '📡', label: 'Footbar équipe' },
   { path: '/ressources', icon: '📁', label: 'Ressources' },
   { path: '/staff',      icon: '⚙️', label: 'Staff' },
+{ path: '/correlation', icon: '📈', label: 'Corrélation' },
 ]
 const NAV_STAFF_MAIN = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },

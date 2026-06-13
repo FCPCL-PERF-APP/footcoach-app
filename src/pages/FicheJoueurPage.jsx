@@ -143,6 +143,8 @@ export default function FicheJoueurPage() {
     { key: 'perf', label: '📈 Perfs' },
     { key: 'stats', label: '⚽ Stats' },
     { key: 'notes', label: '💬 Notes' },
+<button onClick={() => navigate(`/joueurs/${id}/blessures`)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', fontSize: 11, cursor: 'pointer' }}>🤕 Blessures</button>
+<button onClick={() => navigate(`/joueurs/${id}/objectifs`)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', fontSize: 11, cursor: 'pointer' }}>🎯 Objectifs</button>
   ]
 
   return (
