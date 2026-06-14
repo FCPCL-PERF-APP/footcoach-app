@@ -24,6 +24,8 @@ export default function CalendrierPage() {
     lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: ''
   })
   const [saving, setSaving] = useState(false)
+  const [showAllPast, setShowAllPast] = useState(false)
+  const NB_PAST_VISIBLE = 5
 
   useEffect(() => { loadEvents(); loadGroupes() }, [])
 
@@ -190,8 +192,21 @@ export default function CalendrierPage() {
           )}
           {past.length > 0 && (
             <>
-              <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', margin: '14px 0 8px' }}>Passés</p>
-              {past.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} past />)}
+              <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', margin: '14px 0 8px' }}>
+                Passés ({past.length})
+              </p>
+              {(showAllPast ? past : past.slice(0, NB_PAST_VISIBLE)).map(ev => (
+                <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} past />
+              ))}
+              {past.length > NB_PAST_VISIBLE && (
+                <button onClick={() => setShowAllPast(!showAllPast)} style={{
+                  width: '100%', padding: '10px', marginTop: 4,
+                  background: 'transparent', border: '0.5px solid #E5E7EB',
+                  borderRadius: 10, fontSize: 12, color: '#9CA3AF', cursor: 'pointer'
+                }}>
+                  {showAllPast ? `▲ Réduire` : `▼ Voir ${past.length - NB_PAST_VISIBLE} événement(s) de plus`}
+                </button>
+              )}
             </>
           )}
           {filtered.length === 0 && (
