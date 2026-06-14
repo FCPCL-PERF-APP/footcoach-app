@@ -21,7 +21,7 @@ const PAGE_TITLES = {
 
 export default function AppHeader() {
   const { pathname } = useLocation()
-  const { signOut, profile, isCoach } = useAuth()
+  const { signOut, profile, isCoach, isJoueur } = useAuth()
   const { darkMode, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
