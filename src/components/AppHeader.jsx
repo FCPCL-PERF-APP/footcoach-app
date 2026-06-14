@@ -53,6 +53,7 @@ export default function AppHeader() {
           background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)',
           borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14
         }}>
+<button onClick={() => navigate('/mon-profil')} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>👤</button>
           {darkMode ? '☀️' : '🌙'}
         </button>
         {/* Bilan saison (coach seulement) */}

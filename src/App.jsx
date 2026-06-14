@@ -21,6 +21,9 @@ import ImportJoueursPage   from './pages/ImportJoueursPage'
 import BilanSaisonPage     from './pages/BilanSaisonPage'
 import MaFichePage         from './pages/MaFichePage'
 import DashboardJoueurPage from './pages/DashboardJoueurPage'
+import OnboardingPage    from './pages/OnboardingPage'
+import ProfilCoachPage   from './pages/ProfilCoachPage'
+import ArchiveSaisonPage from './pages/ArchiveSaisonPage'
 import MessagesPage        from './pages/MessagesPage'
 import DashboardPage       from './pages/DashboardPage'
 import RessourcesPage      from './pages/RessourcesPage'
@@ -79,6 +82,9 @@ function AppContent() {
           <Route path="/convocations/:id"       element={isCoach ? <ConvocationsPage /> : <Navigate to="/" />} />
           <Route path="/presences/:id"          element={isCoach || isAdjoint ? <PresencesMatchPage /> : <Navigate to="/" />} />
 <Route path="/charge-hebdo"  element={isCoach ? <ChargeHebdoPage /> : <Navigate to="/" />} />
+<Route path="/onboarding"     element={<OnboardingPage />} />
+<Route path="/mon-profil"     element={isCoach ? <ProfilCoachPage /> : <Navigate to="/" />} />
+<Route path="/archive-saison" element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
 <Route path="/comparatif"    element={isCoach ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
 <Route path="/correlation"           element={isCoach ? <CorrelationPage /> : <Navigate to="/" />} />
 <Route path="/joueurs/:id/blessures" element={isCoach || isAdjoint ? <BlessuresPage /> : <Navigate to="/" />} />
