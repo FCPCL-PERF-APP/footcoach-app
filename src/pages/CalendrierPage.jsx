@@ -15,6 +15,8 @@ export default function CalendrierPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [showRecurring, setShowRecurring] = useState(false)
   const [filter, setFilter] = useState('tous')
+  const [filterGroupe, setFilterGroupe] = useState('tous')
+  const [groupes, setGroupes] = useState([])
   const [editingEvent, setEditingEvent] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [form, setForm] = useState({
@@ -23,7 +25,13 @@ export default function CalendrierPage() {
   })
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { loadEvents() }, [])
+  useEffect(() => { loadEvents(); loadGroupes() }, [])
+
+  async function loadGroupes() {
+    const { data } = await supabase.from('joueurs').select('groupe').not('groupe', 'is', null)
+    const gs = [...new Set((data || []).map(j => j.groupe).filter(Boolean))].sort()
+    setGroupes(gs)
+  }
 
   async function loadEvents() {
     setLoading(true)
@@ -69,9 +77,13 @@ export default function CalendrierPage() {
     loadEvents()
   }
 
-  const filtered = events.filter(e => filter === 'tous' || e.type === filter)
+  const filtered = events.filter(e => {
+    const matchType = filter === 'tous' || e.type === filter
+    const matchGroupe = filterGroupe === 'tous' || !e.groupe || e.groupe === filterGroupe
+    return matchType && matchGroupe
+  })
   const upcoming = filtered.filter(e => isAfter(parseISO(e.date_heure), new Date()))
-  const past = filtered.filter(e => isBefore(parseISO(e.date_heure), new Date()))
+  const past = filtered.filter(e => isBefore(parseISO(e.date_heure), new Date())).reverse()
 
   return (
     <div style={{ padding: 12 }}>
@@ -103,7 +115,7 @@ export default function CalendrierPage() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
         {['tous','match','seance'].map(f => (
           <button key={f} onClick={() => setFilter(f)} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
@@ -114,6 +126,20 @@ export default function CalendrierPage() {
           }}>{f === 'tous' ? 'Tous' : f === 'match' ? 'Matchs' : 'Séances'}</button>
         ))}
       </div>
+
+      {groupes.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>
+          {['tous', ...groupes].map(g => (
+            <button key={g} onClick={() => setFilterGroupe(g)} style={{
+              padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+              border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+              background: filterGroupe === g ? '#FAEEDA' : 'transparent',
+              color: filterGroupe === g ? '#854F0B' : '#6B7280',
+              fontWeight: filterGroupe === g ? 600 : 400
+            }}>{g === 'tous' ? '🏷️ Tous les groupes' : `Pôle ${g}`}</button>
+          ))}
+        </div>
+      )}
 
       {/* Formulaire ajout/modification */}
       {showAdd && isCoach && (
