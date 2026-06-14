@@ -28,6 +28,7 @@ export default function JoueursPage() {
   const [rpeAvgs, setRpeAvgs] = useState({})
   const [search, setSearch] = useState('')
   const [filterPoste, setFilterPoste] = useState('tous')
+  const [sortBy, setSortBy] = useState('nom') // 'nom' | 'rpe'
   const [loading, setLoading] = useState(true)
   const [confirmDelete, setConfirmDelete] = useState(null)
 
@@ -48,7 +49,7 @@ export default function JoueursPage() {
       avgs[r.joueur_id] += avg; counts[r.joueur_id]++
     }
     const result = {}
-    for (const id in avgs) result[id] = (avgs[id] / counts[id]).toFixed(1)
+    for (const id in avgs) result[id] = (avgs[id] / counts[id])
     setRpeAvgs(result)
     setLoading(false)
   }
@@ -60,11 +61,23 @@ export default function JoueursPage() {
   }
 
   const postes = ['tous', ...new Set(joueurs.map(j => j.poste).filter(Boolean))]
-  const filtered = joueurs.filter(j => {
+
+  let filtered = joueurs.filter(j => {
     const matchSearch = !search || `${j.nom} ${j.prenom}`.toLowerCase().includes(search.toLowerCase())
     const matchPoste = filterPoste === 'tous' || j.poste === filterPoste
     return matchSearch && matchPoste
   })
+
+  // Tri
+  if (sortBy === 'rpe') {
+    filtered = [...filtered].sort((a, b) => {
+      const ra = rpeAvgs[a.id] || 0
+      const rb = rpeAvgs[b.id] || 0
+      return rb - ra // Décroissant — surcharges en premier
+    })
+  }
+
+  const nbSurcharge = Object.values(rpeAvgs).filter(v => v >= 4).length
 
   return (
     <div style={{ padding: 12 }}>
@@ -78,9 +91,18 @@ export default function JoueursPage() {
         )}
       </div>
 
+      {/* Alerte surcharge */}
+      {isCoach && nbSurcharge > 0 && (
+        <div style={{ background: '#FDF1F1', border: '0.5px solid #FCA5A5', borderRadius: 10, padding: '8px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: '#A32D2D' }}>🔴 {nbSurcharge} joueur(s) avec RPE ≥ 4</span>
+          <button onClick={() => setSortBy('rpe')} style={{ fontSize: 11, color: '#A32D2D', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Voir en premier →</button>
+        </div>
+      )}
+
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Rechercher un joueur..."
         style={{ width: '100%', padding: '9px 12px', marginBottom: 10, border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
 
+      {/* Filtres + tri */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', paddingBottom: 4 }}>
         {postes.map(p => (
           <button key={p} onClick={() => setFilterPoste(p)} style={{
@@ -91,6 +113,20 @@ export default function JoueursPage() {
             fontWeight: filterPoste === p ? 600 : 400
           }}>{p === 'tous' ? 'Tous' : p}</button>
         ))}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+          <button onClick={() => setSortBy('nom')} style={{
+            padding: '4px 8px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+            border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+            background: sortBy === 'nom' ? '#E6F1FB' : 'transparent',
+            color: sortBy === 'nom' ? THEME.primary : '#6B7280',
+          }}>A→Z</button>
+          <button onClick={() => setSortBy('rpe')} style={{
+            padding: '4px 8px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+            border: `0.5px solid ${sortBy === 'rpe' ? '#A32D2D' : '#D1D5DB'}`,
+            background: sortBy === 'rpe' ? '#FCEBEB' : 'transparent',
+            color: sortBy === 'rpe' ? '#A32D2D' : '#6B7280',
+          }}>❤️ RPE</button>
+        </div>
       </div>
 
       {/* Modal confirmation suppression */}
@@ -111,13 +147,24 @@ export default function JoueursPage() {
 
       {loading ? <Spinner /> : (
         <>
-          <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>{filtered.length} joueur(s)</p>
+          <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>
+            {filtered.length} joueur(s)
+            {sortBy === 'rpe' && <span style={{ color: '#A32D2D' }}> · Trié par RPE décroissant</span>}
+          </p>
           {filtered.map((j, i) => {
             const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
             const initials = `${j.nom?.[0] || ''}${j.prenom?.[0] || ''}`
-            const rpe = rpeAvgs[j.id]
+            const rpeVal = rpeAvgs[j.id]
+            const rpe = rpeVal ? rpeVal.toFixed(1) : null
+            const enSurcharge = rpeVal >= 4
             return (
-              <div key={j.id} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 14, padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div key={j.id} style={{
+                background: '#fff',
+                border: `0.5px solid ${enSurcharge ? '#FCA5A5' : '#E5E7EB'}`,
+                borderLeft: enSurcharge ? `3px solid #A32D2D` : '3px solid transparent',
+                borderRadius: 14, padding: '12px 14px', marginBottom: 8,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+              }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)}>
                   {j.photo_url
                     ? <img src={j.photo_url} alt={j.nom} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />

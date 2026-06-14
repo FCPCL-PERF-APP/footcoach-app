@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [needsOnboarding, setNeedsOnboarding] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -18,7 +19,7 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
-      else { setProfile(null); setLoading(false) }
+      else { setProfile(null); setNeedsOnboarding(false); setLoading(false) }
     })
 
     return () => subscription.unsubscribe()
@@ -26,64 +27,53 @@ export function AuthProvider({ children }) {
 
   async function fetchProfile(userId) {
     try {
-      // Cherche dans staff avec auth_id
-      const { data: staffData, error: staffError } = await supabase
-        .from('staff')
-        .select('*')
-        .eq('auth_id', userId)
-        .maybeSingle()
+      // 1. Cherche dans staff
+      const { data: staffData } = await supabase
+        .from('staff').select('*').eq('auth_id', userId).maybeSingle()
 
-      if (staffData && !staffError) {
+      if (staffData) {
         setProfile({ ...staffData, type: 'staff' })
+        setNeedsOnboarding(false)
         setLoading(false)
         return
       }
 
-      // Cherche dans joueurs avec auth_id
-      const { data: joueurData, error: joueurError } = await supabase
-        .from('joueurs')
-        .select('*')
-        .eq('auth_id', userId)
-        .maybeSingle()
+      // 2. Cherche dans joueurs
+      const { data: joueurData } = await supabase
+        .from('joueurs').select('*').eq('auth_id', userId).maybeSingle()
 
-      if (joueurData && !joueurError) {
+      if (joueurData) {
         setProfile({ ...joueurData, type: 'joueur', role: 'joueur' })
+        // Vérifie si onboarding nécessaire
+        setNeedsOnboarding(!joueurData.onboarding_done)
         setLoading(false)
         return
       }
 
-      // Fallback — cherche par email dans auth.users
+      // 3. Fallback par email
       const { data: { user: authUser } } = await supabase.auth.getUser()
       if (authUser?.email) {
         const { data: staffByEmail } = await supabase
-          .from('staff')
-          .select('*')
-          .eq('email', authUser.email)
-          .maybeSingle()
-
+          .from('staff').select('*').eq('email', authUser.email).maybeSingle()
         if (staffByEmail) {
-          // Met à jour auth_id automatiquement
           await supabase.from('staff').update({ auth_id: userId }).eq('id', staffByEmail.id)
           setProfile({ ...staffByEmail, auth_id: userId, type: 'staff' })
+          setNeedsOnboarding(false)
           setLoading(false)
           return
         }
 
         const { data: joueurByEmail } = await supabase
-          .from('joueurs')
-          .select('*')
-          .eq('email', authUser.email)
-          .maybeSingle()
-
+          .from('joueurs').select('*').eq('email', authUser.email).maybeSingle()
         if (joueurByEmail) {
           await supabase.from('joueurs').update({ auth_id: userId }).eq('id', joueurByEmail.id)
           setProfile({ ...joueurByEmail, auth_id: userId, type: 'joueur', role: 'joueur' })
+          setNeedsOnboarding(!joueurByEmail.onboarding_done)
           setLoading(false)
           return
         }
       }
 
-      // Aucun profil trouvé
       setProfile({ type: 'joueur', role: 'joueur' })
     } catch (err) {
       console.error('fetchProfile error:', err)
@@ -101,11 +91,12 @@ export function AuthProvider({ children }) {
   async function signOut() {
     await supabase.auth.signOut()
     setProfile(null)
+    setNeedsOnboarding(false)
   }
 
   async function resetPassword(email) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`
+      redirectTo: `${window.location.origin}/`
     })
     if (error) throw error
   }
@@ -119,7 +110,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, profile, loading,
+      user, profile, loading, needsOnboarding,
       signIn, signOut, resetPassword,
       isCoach, isStaff, isAdjoint, isJoueur,
       canEdit, canComment, canViewAll: isStaff

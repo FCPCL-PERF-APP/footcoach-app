@@ -8,8 +8,8 @@ import LoginPage from './pages/LoginPage'
 import { useState } from 'react'
 import { THEME } from './theme'
 
-import CalendrierPage          from './pages/CalendrierPage'
-import CalendrierVisuelPage    from './pages/CalendrierVisuelPage'
+import CalendrierPage      from './pages/CalendrierPage'
+import CalendrierVisuelPage from './pages/CalendrierVisuelPage'
 import RpePage             from './pages/RpePage'
 import MonRpePage          from './pages/MonRpePage'
 import FootbarPage         from './pages/FootbarPage'
@@ -18,27 +18,27 @@ import JoueursPage         from './pages/JoueursPage'
 import FicheJoueurPage     from './pages/FicheJoueurPage'
 import NouveauJoueurPage   from './pages/NouveauJoueurPage'
 import ImportJoueursPage   from './pages/ImportJoueursPage'
-import BilanSaisonPage     from './pages/BilanSaisonPage'
 import MaFichePage         from './pages/MaFichePage'
-import DashboardJoueurPage from './pages/DashboardJoueurPage'
-import OnboardingPage    from './pages/OnboardingPage'
-import ProfilCoachPage   from './pages/ProfilCoachPage'
-import ArchiveSaisonPage from './pages/ArchiveSaisonPage'
 import MessagesPage        from './pages/MessagesPage'
 import DashboardPage       from './pages/DashboardPage'
+import DashboardJoueurPage from './pages/DashboardJoueurPage'
 import RessourcesPage      from './pages/RessourcesPage'
 import StaffPage           from './pages/StaffPage'
 import StatsPage           from './pages/StatsPage'
 import ConvocationsPage    from './pages/ConvocationsPage'
 import PresencesMatchPage  from './pages/PresencesMatchPage'
-import ChargeHebdoPage       from './pages/ChargeHebdoPage'
-import ComparatifJoueursPage  from './pages/ComparatifJoueursPage'
-import CorrelationPage    from './pages/CorrelationPage'
-import BlessuresPage      from './pages/BlessuresPage'
-import ObjectifsPage      from './pages/ObjectifsPage'
+import ChargeHebdoPage     from './pages/ChargeHebdoPage'
+import ComparatifJoueursPage from './pages/ComparatifJoueursPage'
+import BilanSaisonPage     from './pages/BilanSaisonPage'
+import CorrelationPage     from './pages/CorrelationPage'
+import BlessuresPage       from './pages/BlessuresPage'
+import ObjectifsPage       from './pages/ObjectifsPage'
+import OnboardingPage      from './pages/OnboardingPage'
+import ProfilCoachPage     from './pages/ProfilCoachPage'
+import ArchiveSaisonPage   from './pages/ArchiveSaisonPage'
 
 function AppContent() {
-  const { user, profile, loading, isCoach, isAdjoint, isJoueur } = useAuth()
+  const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
   usePushNotifications(user, profile)
 
@@ -53,7 +53,10 @@ function AppContent() {
 
   if (!user) return <LoginPage />
 
-  const defaultRoute = isJoueur ? '/mon-rpe' : '/calendrier'
+  // Onboarding automatique pour les nouveaux joueurs
+  if (needsOnboarding && isJoueur) return <OnboardingPage />
+
+  const defaultRoute = isJoueur ? '/mon-dashboard' : '/calendrier'
 
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: THEME.bgPage }}>
@@ -62,7 +65,7 @@ function AppContent() {
         <Routes>
           <Route path="/"                       element={<Navigate to={defaultRoute} replace />} />
           <Route path="/calendrier"             element={<CalendrierPage />} />
-          <Route path="/calendrier-visuel"       element={<CalendrierVisuelPage />} />
+          <Route path="/calendrier-visuel"      element={<CalendrierVisuelPage />} />
           <Route path="/rpe"                    element={isCoach || isAdjoint ? <RpePage /> : <Navigate to="/" />} />
           <Route path="/mon-rpe"                element={isJoueur ? <MonRpePage /> : <Navigate to="/rpe" />} />
           <Route path="/footbar"                element={isCoach || isAdjoint ? <FootbarPage /> : <Navigate to="/" />} />
@@ -70,25 +73,25 @@ function AppContent() {
           <Route path="/joueurs"                element={<JoueursPage />} />
           <Route path="/joueurs/nouveau"        element={isCoach ? <NouveauJoueurPage /> : <Navigate to="/" />} />
           <Route path="/joueurs/import"         element={isCoach ? <ImportJoueursPage /> : <Navigate to="/" />} />
-          <Route path="/bilan-saison"           element={isCoach ? <BilanSaisonPage /> : <Navigate to="/" />} />
           <Route path="/joueurs/:id"            element={<FicheJoueurPage />} />
-<Route path="/mon-dashboard" element={isJoueur ? <DashboardJoueurPage /> : <Navigate to="/" />} />
+          <Route path="/joueurs/:id/blessures"  element={<BlessuresPage />} />
+          <Route path="/joueurs/:id/objectifs"  element={<ObjectifsPage />} />
           <Route path="/ma-fiche"               element={isJoueur ? <MaFichePage /> : <Navigate to="/" />} />
           <Route path="/messages"               element={<MessagesPage setUnreadCount={setUnreadCount} />} />
           <Route path="/dashboard"              element={<DashboardPage />} />
+          <Route path="/mon-dashboard"          element={isJoueur ? <DashboardJoueurPage /> : <Navigate to="/dashboard" />} />
           <Route path="/ressources"             element={<RessourcesPage />} />
           <Route path="/staff"                  element={isCoach ? <StaffPage /> : <Navigate to="/" />} />
           <Route path="/stats/:id"              element={isCoach || isAdjoint ? <StatsPage /> : <Navigate to="/" />} />
           <Route path="/convocations/:id"       element={isCoach ? <ConvocationsPage /> : <Navigate to="/" />} />
           <Route path="/presences/:id"          element={isCoach || isAdjoint ? <PresencesMatchPage /> : <Navigate to="/" />} />
-<Route path="/charge-hebdo"  element={isCoach ? <ChargeHebdoPage /> : <Navigate to="/" />} />
-<Route path="/onboarding"     element={<OnboardingPage />} />
-<Route path="/mon-profil"     element={isCoach ? <ProfilCoachPage /> : <Navigate to="/" />} />
-<Route path="/archive-saison" element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
-<Route path="/comparatif"    element={isCoach ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
-<Route path="/correlation"           element={isCoach ? <CorrelationPage /> : <Navigate to="/" />} />
-<Route path="/joueurs/:id/blessures" element={isCoach || isAdjoint ? <BlessuresPage /> : <Navigate to="/" />} />
-<Route path="/joueurs/:id/objectifs" element={isCoach ? <ObjectifsPage /> : <Navigate to="/" />} />
+          <Route path="/charge-hebdo"           element={isCoach ? <ChargeHebdoPage /> : <Navigate to="/" />} />
+          <Route path="/comparatif"             element={isCoach ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
+          <Route path="/bilan-saison"           element={isCoach ? <BilanSaisonPage /> : <Navigate to="/" />} />
+          <Route path="/correlation"            element={isCoach ? <CorrelationPage /> : <Navigate to="/" />} />
+          <Route path="/onboarding"             element={<OnboardingPage />} />
+          <Route path="/mon-profil"             element={isCoach ? <ProfilCoachPage /> : <Navigate to="/" />} />
+          <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
           <Route path="*"                       element={<Navigate to={defaultRoute} replace />} />
         </Routes>
       </div>
