@@ -16,6 +16,8 @@ const NAV_COACH_MORE = [
   { path: '/ressources', icon: '📁', label: 'Ressources' },
   { path: '/staff',      icon: '⚙️', label: 'Staff' },
 { path: '/correlation', icon: '📈', label: 'Corrélation' },
+{ path: '/charge-hebdo', icon: '📊', label: 'Charge hebdo' },
+  { path: '/comparatif',   icon: '⚖️', label: 'Comparatif' },
 ]
 const NAV_STAFF_MAIN = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },

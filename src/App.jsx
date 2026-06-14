@@ -28,6 +28,8 @@ import StaffPage           from './pages/StaffPage'
 import StatsPage           from './pages/StatsPage'
 import ConvocationsPage    from './pages/ConvocationsPage'
 import PresencesMatchPage  from './pages/PresencesMatchPage'
+import ChargeHebdoPage       from './pages/ChargeHebdoPage'
+import ComparatifJoueursPage  from './pages/ComparatifJoueursPage'
 import CorrelationPage    from './pages/CorrelationPage'
 import BlessuresPage      from './pages/BlessuresPage'
 import ObjectifsPage      from './pages/ObjectifsPage'
@@ -76,6 +78,8 @@ function AppContent() {
           <Route path="/stats/:id"              element={isCoach || isAdjoint ? <StatsPage /> : <Navigate to="/" />} />
           <Route path="/convocations/:id"       element={isCoach ? <ConvocationsPage /> : <Navigate to="/" />} />
           <Route path="/presences/:id"          element={isCoach || isAdjoint ? <PresencesMatchPage /> : <Navigate to="/" />} />
+<Route path="/charge-hebdo"  element={isCoach ? <ChargeHebdoPage /> : <Navigate to="/" />} />
+<Route path="/comparatif"    element={isCoach ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
 <Route path="/correlation"           element={isCoach ? <CorrelationPage /> : <Navigate to="/" />} />
 <Route path="/joueurs/:id/blessures" element={isCoach || isAdjoint ? <BlessuresPage /> : <Navigate to="/" />} />
 <Route path="/joueurs/:id/objectifs" element={isCoach ? <ObjectifsPage /> : <Navigate to="/" />} />
