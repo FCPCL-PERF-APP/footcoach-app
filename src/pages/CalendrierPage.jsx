@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { Card, PageHeader, Badge, Button, Input, Select, Spinner } from '../components/UI'
+import { Card, Badge, Button, Input, Select, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO, isAfter, isBefore } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -16,6 +16,7 @@ export default function CalendrierPage() {
   const [showRecurring, setShowRecurring] = useState(false)
   const [filter, setFilter] = useState('tous')
   const [editingEvent, setEditingEvent] = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [form, setForm] = useState({
     type: 'match', titre: '', date: '', heure: '15:00',
     lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: ''
@@ -35,22 +36,16 @@ export default function CalendrierPage() {
     if (!form.titre || !form.date) return
     setSaving(true)
     const payload = {
-      type: form.type,
-      titre: form.titre,
+      type: form.type, titre: form.titre,
       date_heure: `${form.date}T${form.heure}:00`,
-      lieu: form.lieu,
-      domicile: form.domicile,
+      lieu: form.lieu, domicile: form.domicile,
       rdv_heure: form.type === 'match' ? form.rdv_heure : null,
       rdv_lieu: form.type === 'match' ? form.rdv_lieu : null,
     }
-    if (editingEvent) {
-      await supabase.from('evenements').update(payload).eq('id', editingEvent.id)
-    } else {
-      await supabase.from('evenements').insert(payload)
-    }
+    if (editingEvent) await supabase.from('evenements').update(payload).eq('id', editingEvent.id)
+    else await supabase.from('evenements').insert(payload)
     setSaving(false)
-    setShowAdd(false)
-    setEditingEvent(null)
+    setShowAdd(false); setEditingEvent(null)
     setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '' })
     loadEvents()
   }
@@ -58,22 +53,19 @@ export default function CalendrierPage() {
   function startEdit(ev) {
     setEditingEvent(ev)
     setForm({
-      type: ev.type,
-      titre: ev.titre,
+      type: ev.type, titre: ev.titre,
       date: ev.date_heure?.split('T')[0] || '',
       heure: ev.date_heure?.split('T')[1]?.slice(0,5) || '15:00',
-      lieu: ev.lieu || '',
-      domicile: ev.domicile !== false,
-      rdv_heure: ev.rdv_heure || '14:00',
-      rdv_lieu: ev.rdv_lieu || ''
+      lieu: ev.lieu || '', domicile: ev.domicile !== false,
+      rdv_heure: ev.rdv_heure || '14:00', rdv_lieu: ev.rdv_lieu || ''
     })
     setShowAdd(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function deleteEvent(ev) {
-    if (!window.confirm(`Supprimer "${ev.titre}" ? Cette action est irréversible.`)) return
     await supabase.from('evenements').delete().eq('id', ev.id)
+    setDeleteConfirm(null)
     loadEvents()
   }
 
@@ -83,13 +75,30 @@ export default function CalendrierPage() {
 
   return (
     <div style={{ padding: 12 }}>
+      {/* Modal suppression */}
+      {deleteConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Supprimer cet événement ?</p>
+            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}>
+              <strong>{deleteConfirm.titre}</strong> sera définitivement supprimé avec toutes ses données.
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: 10, border: '0.5px solid #D1D5DB', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
+              <button onClick={() => deleteEvent(deleteConfirm)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: '#A32D2D', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Calendrier</h1>
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => navigate('/calendrier-visuel')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📅 Vue mois</button>
           {isCoach && <button onClick={() => setShowRecurring(!showRecurring)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>🔁</button>}
-          {isCoach && <button onClick={() => { setEditingEvent(null); setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '' }); setShowAdd(!showAdd) }} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
-            {showAdd && !editingEvent ? '✕ Annuler' : '+ Ajouter'}
+          {isCoach && <button onClick={() => { setEditingEvent(null); setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '' }); setShowAdd(!showAdd) }}
+            style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
+            {showAdd && !editingEvent ? '✕' : '+ Ajouter'}
           </button>}
         </div>
       </div>
@@ -102,9 +111,7 @@ export default function CalendrierPage() {
             background: filter === f ? '#E6F1FB' : 'transparent',
             color: filter === f ? THEME.primary : '#6B7280',
             fontWeight: filter === f ? 600 : 400
-          }}>
-            {f === 'tous' ? 'Tous' : f === 'match' ? 'Matchs' : 'Séances'}
-          </button>
+          }}>{f === 'tous' ? 'Tous' : f === 'match' ? 'Matchs' : 'Séances'}</button>
         ))}
       </div>
 
@@ -138,11 +145,9 @@ export default function CalendrierPage() {
           )}
           <div style={{ display: 'flex', gap: 8 }}>
             <Button variant="primary" style={{ flex: 1 }} onClick={saveEvent} disabled={saving}>
-              {saving ? 'Enregistrement...' : editingEvent ? '💾 Modifier' : '✅ Créer l\'événement'}
+              {saving ? '...' : editingEvent ? '💾 Modifier' : '✅ Créer'}
             </Button>
-            {editingEvent && (
-              <Button onClick={() => { setEditingEvent(null); setShowAdd(false) }}>Annuler</Button>
-            )}
+            {editingEvent && <Button onClick={() => { setEditingEvent(null); setShowAdd(false) }}>Annuler</Button>}
           </div>
         </Card>
       )}
@@ -154,13 +159,13 @@ export default function CalendrierPage() {
           {upcoming.length > 0 && (
             <>
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>À venir</p>
-              {upcoming.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={deleteEvent} />)}
+              {upcoming.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} />)}
             </>
           )}
           {past.length > 0 && (
             <>
               <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', margin: '14px 0 8px' }}>Passés</p>
-              {past.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={deleteEvent} past />)}
+              {past.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} past />)}
             </>
           )}
           {filtered.length === 0 && (
@@ -179,31 +184,25 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
-  useEffect(() => {
-    if (isCoach) loadPresenceCount()
-  }, [ev.id])
+  useEffect(() => { if (isCoach) loadPresenceCount() }, [ev.id])
 
   async function loadPresenceCount() {
     const { data } = await supabase.from('presences').select('statut').eq('evenement_id', ev.id)
-    if (data) {
-      setPresenceCount({
-        present: data.filter(p => p.statut === 'present').length,
-        absent: data.filter(p => p.statut === 'absent').length,
-        blesse: data.filter(p => p.statut === 'blesse').length,
-        total: data.length
-      })
-    }
+    if (data) setPresenceCount({
+      present: data.filter(p => p.statut === 'present').length,
+      absent: data.filter(p => p.statut === 'absent').length,
+      blesse: data.filter(p => p.statut === 'blesse').length,
+      total: data.length
+    })
   }
 
   return (
     <Card style={{ opacity: past ? 0.75 : 1, marginBottom: 10 }}>
-      {/* Header carte */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
           <Badge type={ev.type}>{ev.type === 'match' ? '⚽ Match' : '🏃 Séance'}</Badge>
           <span style={{ fontSize: 13, fontWeight: 600 }}>{ev.titre}</span>
         </div>
-        {/* Boutons modifier/supprimer */}
         {isCoach && (
           <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
             <button onClick={() => onEdit(ev)} style={{ border: 'none', background: 'rgba(24,95,165,.1)', borderRadius: 6, padding: '3px 7px', cursor: 'pointer', fontSize: 12 }}>✏️</button>
@@ -211,7 +210,6 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
           </div>
         )}
       </div>
-
       <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>
         📅 {dateStr}{ev.type === 'match' ? (ev.domicile ? ' · Domicile' : ' · Déplacement') : ''}
       </p>
@@ -222,7 +220,7 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
         </p>
       )}
 
-      {/* Résumé présences coach */}
+      {/* Résumé présences */}
       {isCoach && presenceCount !== null && presenceCount.total > 0 && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, padding: '6px 10px', background: '#F9FAFB', borderRadius: 8 }}>
           <span style={{ fontSize: 11, color: '#3B6D11' }}>✅ {presenceCount.present}</span>
@@ -262,18 +260,12 @@ function JoueurEventActions({ ev, navigate, profile }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (profile?.id) loadStatut()
-  }, [ev.id, profile?.id])
+  useEffect(() => { if (profile?.id) loadStatut() }, [ev.id, profile?.id])
 
   async function loadStatut() {
     setLoading(true)
-    const { data } = await supabase
-      .from('presences')
-      .select('statut')
-      .eq('evenement_id', ev.id)
-      .eq('joueur_id', profile?.id)
-      .maybeSingle()
+    const { data } = await supabase.from('presences').select('statut')
+      .eq('evenement_id', ev.id).eq('joueur_id', profile?.id).maybeSingle()
     setStatut(data?.statut || null)
     setLoading(false)
   }
@@ -281,19 +273,15 @@ function JoueurEventActions({ ev, navigate, profile }) {
   async function handleStatut(newStatut) {
     if (!profile?.id) return
     setSaving(true)
-    await supabase.from('presences').delete()
-      .eq('evenement_id', ev.id).eq('joueur_id', profile?.id)
-    await supabase.from('presences').insert({
-      evenement_id: ev.id, joueur_id: profile?.id, statut: newStatut
-    })
+    await supabase.from('presences').delete().eq('evenement_id', ev.id).eq('joueur_id', profile?.id)
+    await supabase.from('presences').insert({ evenement_id: ev.id, joueur_id: profile?.id, statut: newStatut })
     setStatut(newStatut)
     try {
       await fetch('/api/notif-presence-resume', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventId: ev.id, eventTitre: ev.titre, coachAuthId: null })
       })
-    } catch (err) { console.error('Erreur notif présence:', err) }
+    } catch (err) { console.error(err) }
     setSaving(false)
   }
 
@@ -309,15 +297,14 @@ function JoueurEventActions({ ev, navigate, profile }) {
       {loading ? <p style={{ fontSize: 11, color: '#9CA3AF' }}>Chargement...</p> : (
         <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
           {STATUTS.map(s => (
-            <button key={s.key} onClick={() => handleStatut(s.key)} disabled={saving}
-              style={{
-                flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11,
-                border: `1.5px solid ${statut === s.key ? s.border : '#E5E7EB'}`,
-                background: statut === s.key ? s.bg : 'transparent',
-                color: statut === s.key ? s.color : '#9CA3AF',
-                fontWeight: statut === s.key ? 600 : 400,
-                cursor: saving ? 'not-allowed' : 'pointer', transition: 'all .15s'
-              }}>{s.label}</button>
+            <button key={s.key} onClick={() => handleStatut(s.key)} disabled={saving} style={{
+              flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11,
+              border: `1.5px solid ${statut === s.key ? s.border : '#E5E7EB'}`,
+              background: statut === s.key ? s.bg : 'transparent',
+              color: statut === s.key ? s.color : '#9CA3AF',
+              fontWeight: statut === s.key ? 600 : 400,
+              cursor: saving ? 'not-allowed' : 'pointer', transition: 'all .15s'
+            }}>{s.label}</button>
           ))}
         </div>
       )}
@@ -344,10 +331,8 @@ function RecurringModal({ onClose, onSave }) {
   async function handleSave() {
     if (!form.titre || !form.dateDebut || !form.dateFin) return
     setSaving(true)
-    const start = new Date(form.dateDebut)
-    const end = new Date(form.dateFin)
-    const jourNum = parseInt(form.jour)
-    const seances = []
+    const start = new Date(form.dateDebut), end = new Date(form.dateFin)
+    const jourNum = parseInt(form.jour), seances = []
     const current = new Date(start)
     while (current.getDay() !== jourNum) current.setDate(current.getDate() + 1)
     while (current <= end) {

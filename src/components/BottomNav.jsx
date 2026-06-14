@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../lib/supabase'
 import { THEME } from '../theme'
 
 const NAV_COACH_MAIN = [
@@ -11,14 +12,14 @@ const NAV_COACH_MAIN = [
   { path: '/plus',       icon: '☰',  label: 'Plus' },
 ]
 const NAV_COACH_MORE = [
-  { path: '/rpe',        icon: '❤️', label: 'RPE équipe' },
-  { path: '/footbar',    icon: '📡', label: 'Footbar équipe' },
-  { path: '/ressources', icon: '📁', label: 'Ressources' },
-  { path: '/staff',      icon: '⚙️', label: 'Staff' },
-{ path: '/correlation', icon: '📈', label: 'Corrélation' },
-{ path: '/charge-hebdo', icon: '📊', label: 'Charge hebdo' },
-  { path: '/comparatif',   icon: '⚖️', label: 'Comparatif' },
-{ path: '/archive-saison', icon: '📦', label: 'Archiver saison' },
+  { path: '/rpe',           icon: '❤️', label: 'RPE équipe' },
+  { path: '/footbar',       icon: '📡', label: 'Footbar équipe' },
+  { path: '/ressources',    icon: '📁', label: 'Ressources' },
+  { path: '/staff',         icon: '⚙️', label: 'Staff' },
+  { path: '/correlation',   icon: '📈', label: 'Corrélation' },
+  { path: '/charge-hebdo',  icon: '📊', label: 'Charge hebdo' },
+  { path: '/comparatif',    icon: '⚖️', label: 'Comparatif' },
+  { path: '/archive-saison',icon: '📦', label: 'Archiver saison' },
 ]
 const NAV_STAFF_MAIN = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
@@ -48,9 +49,50 @@ export default function BottomNav({ unreadCount = 0 }) {
   const navigate = useNavigate()
   const { isCoach, isAdjoint, isJoueur } = useAuth()
   const [showMore, setShowMore] = useState(false)
+  const [nbAlertes, setNbAlertes] = useState(0)
 
   const mainItems = isCoach ? NAV_COACH_MAIN : isAdjoint ? NAV_STAFF_MAIN : NAV_JOUEUR_MAIN
   const moreItems = isCoach ? NAV_COACH_MORE : isAdjoint ? NAV_STAFF_MORE : NAV_JOUEUR_MORE
+
+  // Charge le nombre d'alertes actives pour le badge
+  useEffect(() => {
+    if (isCoach) loadAlertes()
+  }, [isCoach])
+
+  async function loadAlertes() {
+    try {
+      const [{ data: rpeData }, { data: joueursData }] = await Promise.all([
+        supabase.from('rpe').select('joueur_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
+          .order('created_at', { ascending: false }).limit(100),
+        supabase.from('joueurs').select('id').order('nom')
+      ])
+
+      let count = 0
+      const joueurMap = {}
+      for (const r of (rpeData || [])) {
+        const vals = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v != null)
+        if (!vals.length) continue
+        const avg = vals.reduce((a, b) => a + b, 0) / vals.length
+        if (!joueurMap[r.joueur_id]) joueurMap[r.joueur_id] = []
+        joueurMap[r.joueur_id].push(avg)
+      }
+
+      // Surcharges individuelles
+      for (const [, sessions] of Object.entries(joueurMap)) {
+        const last3 = sessions.slice(0, 3)
+        const avg = last3.reduce((a, b) => a + b, 0) / last3.length
+        if (avg >= 4.5) count++
+      }
+
+      // Joueurs sans RPE
+      const joueursAvecRpe = new Set(Object.keys(joueurMap))
+      count += (joueursData || []).filter(j => !joueursAvecRpe.has(j.id)).length
+
+      setNbAlertes(count)
+    } catch (err) {
+      console.error('Erreur alertes:', err)
+    }
+  }
 
   function handleNav(path) {
     if (path === '/plus') { setShowMore(!showMore); return }
@@ -58,12 +100,16 @@ export default function BottomNav({ unreadCount = 0 }) {
     navigate(path)
   }
 
+  // Badge Plus = alertes actives
+  const showPlusBadge = isCoach && nbAlertes > 0
+
   return (
     <>
       {/* Menu Plus */}
       {showMore && (
         <>
-          <div onClick={() => setShowMore(false)} style={{ position: 'fixed', inset: 0, zIndex: 98, background: 'rgba(0,0,0,.4)' }} />
+          <div onClick={() => setShowMore(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 98, background: 'rgba(0,0,0,.4)' }} />
           <div style={{
             position: 'fixed', bottom: 64, left: 0, right: 0,
             background: THEME.blackSoft, zIndex: 99,
@@ -80,7 +126,9 @@ export default function BottomNav({ unreadCount = 0 }) {
               }}>
                 <span style={{ fontSize: 22 }}>{item.icon}</span>
                 <span style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{item.label}</span>
-                {pathname.startsWith(item.path) && <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>}
+                {pathname.startsWith(item.path) && (
+                  <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>
+                )}
               </button>
             ))}
           </div>
@@ -99,7 +147,9 @@ export default function BottomNav({ unreadCount = 0 }) {
         {mainItems.map(item => {
           const active = item.path !== '/plus' && pathname.startsWith(item.path)
           const isMoreOpen = item.path === '/plus' && showMore
-          const showBadge = item.path === '/messages' && unreadCount > 0
+          const showMsgBadge = item.path === '/messages' && unreadCount > 0
+          const showPlusBadgeItem = item.path === '/plus' && showPlusBadge && !showMore
+
           return (
             <button key={item.path} onClick={() => handleNav(item.path)} style={{
               flex: 1, display: 'flex', flexDirection: 'column',
@@ -110,15 +160,31 @@ export default function BottomNav({ unreadCount = 0 }) {
               borderTop: active || isMoreOpen ? `2px solid ${THEME.primaryLight}` : '2px solid transparent',
             }}>
               <span style={{ fontSize: 18 }}>{item.icon}</span>
-              {showBadge && (
+
+              {/* Badge messages non lus */}
+              {showMsgBadge && (
                 <span style={{
-                  position: 'absolute', top: 6, right: 'calc(50% - 14px)',
+                  position: 'absolute', top: 6, right: 'calc(50% - 16px)',
                   background: '#EF4444', color: '#fff',
                   fontSize: 9, fontWeight: 700,
-                  width: 15, height: 15, borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  minWidth: 15, height: 15, borderRadius: 8,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 3px'
                 }}>{unreadCount}</span>
               )}
+
+              {/* Badge alertes sur Plus */}
+              {showPlusBadgeItem && (
+                <span style={{
+                  position: 'absolute', top: 6, right: 'calc(50% - 16px)',
+                  background: '#A32D2D', color: '#fff',
+                  fontSize: 9, fontWeight: 700,
+                  minWidth: 15, height: 15, borderRadius: 8,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 3px'
+                }}>{nbAlertes}</span>
+              )}
+
               <span style={{
                 fontSize: 9,
                 color: active || isMoreOpen ? THEME.primaryLight : 'rgba(255,255,255,.5)',
