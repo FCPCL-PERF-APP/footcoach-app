@@ -63,6 +63,9 @@ export default function AppHeader() {
             borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14
           }}>🏆</button>
         )}
+        {isJoueur && (
+          <button onClick={() => navigate('/mon-bilan')} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>🏆</button>
+        )}
         {/* Déconnexion */}
         <button onClick={signOut} style={{
           background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)',

@@ -34,6 +34,7 @@ import CorrelationPage     from './pages/CorrelationPage'
 import BlessuresPage       from './pages/BlessuresPage'
 import ObjectifsPage       from './pages/ObjectifsPage'
 import OnboardingPage      from './pages/OnboardingPage'
+import MonBilanPage from './pages/MonBilanPage'
 import ProfilCoachPage     from './pages/ProfilCoachPage'
 import ArchiveSaisonPage   from './pages/ArchiveSaisonPage'
 
@@ -90,6 +91,7 @@ function AppContent() {
           <Route path="/bilan-saison"           element={isCoach ? <BilanSaisonPage /> : <Navigate to="/" />} />
           <Route path="/correlation"            element={isCoach ? <CorrelationPage /> : <Navigate to="/" />} />
           <Route path="/onboarding"             element={<OnboardingPage />} />
+<Route path="/mon-bilan" element={isJoueur ? <MonBilanPage /> : <Navigate to="/" />} />
           <Route path="/mon-profil"             element={isCoach ? <ProfilCoachPage /> : <Navigate to="/" />} />
           <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
           <Route path="*"                       element={<Navigate to={defaultRoute} replace />} />
