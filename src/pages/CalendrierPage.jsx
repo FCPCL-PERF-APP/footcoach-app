@@ -222,19 +222,24 @@ export default function CalendrierPage() {
 
 function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onEdit, onDelete }) {
   const [presenceCount, setPresenceCount] = useState(null)
+  const [presenceDetail, setPresenceDetail] = useState(null)
+  const [showPresences, setShowPresences] = useState(false)
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
   useEffect(() => { if (isCoach) loadPresenceCount() }, [ev.id])
 
   async function loadPresenceCount() {
-    const { data } = await supabase.from('presences').select('statut').eq('evenement_id', ev.id)
-    if (data) setPresenceCount({
-      present: data.filter(p => p.statut === 'present').length,
-      absent: data.filter(p => p.statut === 'absent').length,
-      blesse: data.filter(p => p.statut === 'blesse').length,
-      total: data.length
-    })
+    const { data } = await supabase.from('presences').select('statut, joueurs(id,nom,prenom,poste,photo_url)').eq('evenement_id', ev.id)
+    if (data) {
+      setPresenceCount({
+        present: data.filter(p => p.statut === 'present').length,
+        absent: data.filter(p => p.statut === 'absent').length,
+        blesse: data.filter(p => p.statut === 'blesse').length,
+        total: data.length
+      })
+      setPresenceDetail(data)
+    }
   }
 
   return (
@@ -261,13 +266,43 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
         </p>
       )}
 
-      {/* Résumé présences */}
+      {/* Résumé présences cliquable */}
       {isCoach && presenceCount !== null && presenceCount.total > 0 && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8, padding: '6px 10px', background: '#F9FAFB', borderRadius: 8 }}>
-          <span style={{ fontSize: 11, color: '#3B6D11' }}>✅ {presenceCount.present}</span>
-          <span style={{ fontSize: 11, color: '#A32D2D' }}>❌ {presenceCount.absent}</span>
-          <span style={{ fontSize: 11, color: '#854F0B' }}>🤕 {presenceCount.blesse}</span>
-          <span style={{ fontSize: 11, color: '#9CA3AF' }}>· {presenceCount.total} réponse(s)</span>
+        <div style={{ marginBottom: 8 }}>
+          <div onClick={() => setShowPresences(!showPresences)}
+            style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 10px', background: '#F9FAFB', borderRadius: showPresences ? '8px 8px 0 0' : 8, cursor: 'pointer', border: showPresences ? '0.5px solid #E5E7EB' : 'none' }}>
+            <span style={{ fontSize: 11, color: '#3B6D11' }}>✅ {presenceCount.present}</span>
+            <span style={{ fontSize: 11, color: '#A32D2D' }}>❌ {presenceCount.absent}</span>
+            <span style={{ fontSize: 11, color: '#854F0B' }}>🤕 {presenceCount.blesse}</span>
+            <span style={{ fontSize: 11, color: '#9CA3AF' }}>· {presenceCount.total} réponse(s)</span>
+            <span style={{ marginLeft: 'auto', fontSize: 10, color: '#9CA3AF' }}>{showPresences ? '▲' : '▼'} Détail</span>
+          </div>
+          {showPresences && presenceDetail && (
+            <div style={{ background: '#F9FAFB', border: '0.5px solid #E5E7EB', borderTop: 'none', borderRadius: '0 0 8px 8px', padding: '8px 10px' }}>
+              {['present','absent','blesse'].map(statut => {
+                const joueurs = presenceDetail.filter(p => p.statut === statut && p.joueurs)
+                if (!joueurs.length) return null
+                const cfg = { present: { label: '✅ Présents', color: '#3B6D11', bg: '#EAF3DE' }, absent: { label: '❌ Absents', color: '#A32D2D', bg: '#FCEBEB' }, blesse: { label: '🤕 Blessés', color: '#854F0B', bg: '#FAEEDA' } }[statut]
+                return (
+                  <div key={statut} style={{ marginBottom: 8 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: cfg.color, marginBottom: 4 }}>{cfg.label} ({joueurs.length})</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {joueurs.map(p => (
+                        <span key={p.joueurs.id} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: cfg.bg, color: cfg.color }}>
+                          {p.joueurs.prenom} {p.joueurs.nom}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+              {presenceDetail.filter(p => p.statut === 'inconnu').length > 0 && (
+                <div>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', marginBottom: 4 }}>❓ Sans réponse ({presenceDetail.filter(p => p.statut === 'inconnu').length})</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
