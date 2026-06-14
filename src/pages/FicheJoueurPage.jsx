@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { Card, Button, Input, Select, Textarea, BarChart, Spinner, Avatar, Badge } from '../components/UI'
+import { Card, Button, Input, Select, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, differenceInDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 const RPE_ITEMS = [
@@ -16,14 +16,6 @@ const RPE_ITEMS = [
   { key: 'perf_collective', label: 'Perf. coll.' },
 ]
 
-const AVATAR_COLORS = [
-  { bg: '#B5D4F4', color: '#0C447C' },
-  { bg: '#9FE1CB', color: '#085041' },
-  { bg: '#F5C4B3', color: '#712B13' },
-  { bg: '#CECBF6', color: '#3C3489' },
-  { bg: '#FAC775', color: '#633806' },
-]
-
 function rpeColor(v) {
   if (v >= 4.5) return '#A32D2D'
   if (v >= 4) return '#D85A30'
@@ -31,10 +23,15 @@ function rpeColor(v) {
   return '#3B6D11'
 }
 
+const AVATAR_COLORS = [
+  { bg: '#B5D4F4', color: '#0C447C' },
+  { bg: '#9FE1CB', color: '#085041' },
+]
+
 export default function FicheJoueurPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isCoach, canComment, canEdit } = useAuth()
+  const { isCoach, canComment } = useAuth()
   const [joueur, setJoueur] = useState(null)
   const [activeTab, setActiveTab] = useState('identite')
   const [rpeHistory, setRpeHistory] = useState([])
@@ -43,42 +40,81 @@ export default function FicheJoueurPage() {
   const [tests, setTests] = useState([])
   const [poidsHistory, setPoidsHistory] = useState([])
   const [commentaires, setCommentaires] = useState([])
+  const [blessures, setBlessures] = useState([])
+  const [objectifs, setObjectifs] = useState([])
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({})
   const [photoUploading, setPhotoUploading] = useState(false)
-  const [showAddTest, setShowAddTest] = useState(false)
-  const [testForm, setTestForm] = useState({ date_test: '', protocole: 'Vameval', vma: '', fc_max_atteinte: '', conditions: '' })
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [newPoids, setNewPoids] = useState('')
+  const [showInvite, setShowInvite] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [inviteResult, setInviteResult] = useState(null)
 
   useEffect(() => { loadAll() }, [id])
 
   async function loadAll() {
     setLoading(true)
-    const [{ data: j }, { data: rpe }, { data: foot }, { data: stats }, { data: t }, { data: poids }, { data: comms }] = await Promise.all([
+    const [{ data: j }, { data: rpe }, { data: foot }, { data: stats },
+           { data: t }, { data: poids }, { data: comms }, { data: bless }, { data: obj }] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', id).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
       supabase.from('footbar').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
       supabase.from('stats_match').select('*, evenements(titre,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(15),
       supabase.from('tests_physiques').select('*').eq('joueur_id', id).order('date_test', { ascending: false }),
       supabase.from('suivi_poids').select('*').eq('joueur_id', id).order('date_mesure', { ascending: true }).limit(12),
-      supabase.from('commentaires_joueurs').select('*').eq('joueur_id', id).order('created_at', { ascending: false })
+      supabase.from('commentaires_joueurs').select('*').eq('joueur_id', id).order('created_at', { ascending: false }),
+      supabase.from('blessures').select('*').eq('joueur_id', id).order('date_debut', { ascending: false }),
+      supabase.from('objectifs').select('*').eq('joueur_id', id).order('created_at', { ascending: false }),
     ])
-    setJoueur(j); setForm(j || {})
+    setJoueur(j)
+    setForm({ ...j })
     setRpeHistory(rpe || [])
     setFootHistory(foot || [])
     setStatsHistory(stats || [])
     setTests(t || [])
     setPoidsHistory(poids || [])
     setCommentaires(comms || [])
+    setBlessures(bless || [])
+    setObjectifs(obj || [])
     setLoading(false)
   }
 
   async function saveIdentite() {
-    await supabase.from('joueurs').update(form).eq('id', id)
-    setJoueur(form)
-    setEditing(false)
+    setSaving(true)
+    const payload = {
+      nom: form.nom,
+      prenom: form.prenom,
+      poste: form.poste,
+      numero: form.numero ? parseInt(form.numero) : null,
+      groupe: form.groupe,
+      date_naissance: form.date_naissance || null,
+      licence: form.licence,
+      pied: form.pied,
+      telephone: form.telephone,
+      email: form.email,
+      adresse: form.adresse,
+      contact_urgence_nom: form.contact_urgence_nom,
+      contact_urgence_tel: form.contact_urgence_tel,
+      taille: form.taille ? parseInt(form.taille) : null,
+      poids: form.poids ? parseFloat(form.poids) : null,
+      fc_max: form.fc_max ? parseInt(form.fc_max) : null,
+      fc_repos: form.fc_repos ? parseInt(form.fc_repos) : null,
+      points_forts: form.points_forts,
+      points_faibles: form.points_faibles,
+    }
+    const { error } = await supabase.from('joueurs').update(payload).eq('id', id)
+    setSaving(false)
+    if (!error) {
+      setSaved(true)
+      setEditing(false)
+      setJoueur({ ...joueur, ...payload })
+      setTimeout(() => setSaved(false), 3000)
+    }
   }
 
   async function uploadPhoto(file) {
@@ -97,14 +133,8 @@ export default function FicheJoueurPage() {
   async function savePoids() {
     if (!newPoids) return
     await supabase.from('suivi_poids').insert({ joueur_id: id, poids: parseFloat(newPoids), date_mesure: new Date().toISOString().split('T')[0] })
-    setNewPoids(''); loadAll()
-  }
-
-  async function saveTest() {
-    await supabase.from('tests_physiques').insert({ joueur_id: id, ...testForm, vma: parseFloat(testForm.vma), fc_max_atteinte: parseInt(testForm.fc_max_atteinte) })
-    if (testForm.vma) await supabase.from('joueurs').update({ vma: parseFloat(testForm.vma) }).eq('id', id)
-    setTestForm({ date_test: '', protocole: 'Vameval', vma: '', fc_max_atteinte: '', conditions: '' })
-    setShowAddTest(false); loadAll()
+    setNewPoids('')
+    loadAll()
   }
 
   async function addComment() {
@@ -117,52 +147,95 @@ export default function FicheJoueurPage() {
       auteur_role: staff?.role || 'staff',
       contenu: newComment
     })
-    setNewComment(''); loadAll()
+    setNewComment('')
+    loadAll()
+  }
+
+  async function handleInvite() {
+    if (!inviteEmail) return
+    setInviting(true)
+    setInviteResult(null)
+    try {
+      const res = await fetch('/api/invite-joueur', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail, joueurId: id, nom: joueur?.nom, prenom: joueur?.prenom })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setInviteResult({ success: true, message: `✅ Invitation envoyée à ${inviteEmail}` })
+        setShowInvite(false)
+        setInviteEmail('')
+      } else {
+        setInviteResult({ success: false, message: `❌ Erreur : ${data.error}` })
+      }
+    } catch (err) {
+      setInviteResult({ success: false, message: '❌ Erreur réseau. Réessaie.' })
+    }
+    setInviting(false)
   }
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
   if (!joueur) return <div style={{ padding: 12 }}>Joueur introuvable.</div>
 
   const initials = `${joueur.nom?.[0] || ''}${joueur.prenom?.[0] || ''}`
-  const col = AVATAR_COLORS[0]
   const imc = joueur.taille && joueur.poids ? (joueur.poids / ((joueur.taille / 100) ** 2)).toFixed(1) : '—'
   const fcReserve = joueur.fc_max && joueur.fc_repos ? joueur.fc_max - joueur.fc_repos : null
   const totalButs = statsHistory.reduce((s, r) => s + (r.buts || 0), 0)
   const totalPD = statsHistory.reduce((s, r) => s + (r.passes_decisives || 0), 0)
-  const totalMin = statsHistory.reduce((s, r) => s + (r.temps_jeu || 0), 0)
   const noteMoy = statsHistory.length ? (statsHistory.reduce((s, r) => s + (r.note || 0), 0) / statsHistory.length).toFixed(1) : '—'
-  const rpeAvg = RPE_ITEMS.map(item => {
-    const vals = rpeHistory.map(r => r[item.key]).filter(v => v !== null && v !== undefined)
-    const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
-    return { label: item.label, value: parseFloat(avg.toFixed(1)), color: rpeColor(avg) }
-  })
+  const blessureActive = blessures.find(b => !b.date_retour_effective)
 
   const tabs = [
     { key: 'identite', label: '👤 Identité' },
-    { key: 'physio', label: '❤️ Physio' },
-    { key: 'perf', label: '📈 Perfs' },
-    { key: 'stats', label: '⚽ Stats' },
-    { key: 'notes', label: '💬 Notes' },
-<button onClick={() => navigate(`/joueurs/${id}/blessures`)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', fontSize: 11, cursor: 'pointer' }}>🤕 Blessures</button>
-<button onClick={() => navigate(`/joueurs/${id}/objectifs`)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', fontSize: 11, cursor: 'pointer' }}>🎯 Objectifs</button>
+    { key: 'physio',   label: '❤️ Physio' },
+    { key: 'perf',     label: '📈 Perfs' },
+    { key: 'stats',    label: '⚽ Stats' },
+    { key: 'notes',    label: '💬 Notes' },
   ]
+
+  const inputStyle = (disabled) => ({
+    width: '100%', padding: '8px 10px',
+    border: `0.5px solid ${disabled ? '#F3F4F6' : '#D1D5DB'}`,
+    borderRadius: 10, fontSize: 13, outline: 'none',
+    boxSizing: 'border-box',
+    background: disabled ? '#FAFAFA' : '#fff',
+    color: disabled ? '#9CA3AF' : '#111'
+  })
+
+  function Field({ label, field, type = 'text', disabled = false, options = null, step }) {
+    if (options) return (
+      <div style={{ marginBottom: 8 }}>
+        <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>{label}</label>
+        <select value={form[field] || ''} onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
+          disabled={disabled} style={inputStyle(disabled)}>
+          {options.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </div>
+    )
+    return (
+      <div style={{ marginBottom: 8 }}>
+        <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>{label}</label>
+        <input type={type} step={step} value={form[field] || ''} disabled={disabled}
+          onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
+          style={inputStyle(disabled)} />
+      </div>
+    )
+  }
 
   return (
     <div style={{ padding: 12 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
         <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
-        {/* Photo ou avatar */}
         <div style={{ position: 'relative' }}>
-          {joueur.photo_url ? (
-            <img src={joueur.photo_url} alt={joueur.nom}
-              style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${THEME.primary}` }} />
-          ) : (
-            <Avatar initials={initials} bg={col.bg} color={col.color} size={52} />
-          )}
+          {joueur.photo_url
+            ? <img src={joueur.photo_url} alt={joueur.nom} style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${THEME.primary}` }} />
+            : <Avatar initials={initials} bg={AVATAR_COLORS[0].bg} color={AVATAR_COLORS[0].color} size={52} />
+          }
           {isCoach && (
             <div onClick={() => document.getElementById(`photo-${id}`).click()}
-              style={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18, background: THEME.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 10 }}>
+              style={{ position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, background: THEME.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 11 }}>
               📷
             </div>
           )}
@@ -172,17 +245,74 @@ export default function FicheJoueurPage() {
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 16, fontWeight: 700 }}>{joueur.nom} {joueur.prenom}</p>
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>
-            {joueur.poste} {joueur.numero ? `· N°${joueur.numero}` : ''} {joueur.groupe ? `· Groupe ${joueur.groupe}` : ''}
+            {joueur.poste} {joueur.numero ? `· N°${joueur.numero}` : ''} {joueur.groupe ? `· Pôle ${joueur.groupe}` : ''}
           </p>
+          {blessureActive && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 6, background: '#FCEBEB', color: '#A32D2D' }}>🤕 {blessureActive.zone}</span>}
         </div>
-        {canEdit && (
-          <Button size="sm" variant={editing ? 'success' : 'default'} onClick={() => editing ? saveIdentite() : setEditing(true)}>
-            {editing ? '💾' : '✏️'}
-          </Button>
+        {isCoach && (
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={() => { if (editing) saveIdentite(); else setEditing(true) }}
+              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: editing ? '#EAF3DE' : '#E6F1FB', color: editing ? '#3B6D11' : THEME.primary, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+              {saving ? '...' : editing ? '💾' : '✏️'}
+            </button>
+            {editing && <button onClick={() => { setEditing(false); setForm({...joueur}) }}
+              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#6B7280', fontSize: 12, cursor: 'pointer' }}>✕</button>}
+          </div>
         )}
       </div>
 
       {photoUploading && <div style={{ background: '#E6F1FB', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.primary }}>📷 Upload en cours...</div>}
+      {saved && <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#3B6D11' }}>✅ Modifications enregistrées !</div>}
+
+      {/* Invitation email */}
+      {isCoach && !joueur.auth_id && (
+        <Card style={{ marginBottom: 14, background: '#FDF5EE', border: '0.5px solid #F5C4B3' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#854F0B' }}>📧 Joueur sans accès à l'app</p>
+              <p style={{ fontSize: 11, color: '#9CA3AF' }}>Inviter par email pour créer son compte</p>
+            </div>
+            <button onClick={() => setShowInvite(!showInvite)}
+              style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#854F0B', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
+              {showInvite ? '✕' : '📧 Inviter'}
+            </button>
+          </div>
+          {showInvite && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                  placeholder="email@joueur.com"
+                  style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none' }} />
+                <button onClick={handleInvite} disabled={inviting || !inviteEmail}
+                  style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+                  {inviting ? '...' : 'Envoyer'}
+                </button>
+              </div>
+              {inviteResult && (
+                <p style={{ fontSize: 12, marginTop: 6, color: inviteResult.success ? '#3B6D11' : '#A32D2D' }}>
+                  {inviteResult.message}
+                </p>
+              )}
+            </div>
+          )}
+        </Card>
+      )}
+
+      {isCoach && joueur.auth_id && (
+        <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: '#3B6D11' }}>
+          ✅ Compte actif — joueur connecté à l'app
+        </div>
+      )}
+
+      {/* Stats rapides */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
+        {[['Matchs', statsHistory.length], ['Buts', totalButs], ['PD', totalPD], ['Note', noteMoy]].map(([l, v]) => (
+          <div key={l} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 10, padding: 8, textAlign: 'center' }}>
+            <div style={{ fontSize: 17, fontWeight: 700 }}>{v}</div>
+            <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{l}</div>
+          </div>
+        ))}
+      </div>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
@@ -197,46 +327,64 @@ export default function FicheJoueurPage() {
         ))}
       </div>
 
+      {/* Liens rapides blessures/objectifs */}
+      {isCoach && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+          <button onClick={() => navigate(`/joueurs/${id}/blessures`)}
+            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: blessureActive ? '#FCEBEB' : 'transparent', color: blessureActive ? '#A32D2D' : '#6B7280', fontSize: 11, cursor: 'pointer', fontWeight: blessureActive ? 600 : 400 }}>
+            🤕 Blessures {blessureActive ? '· 1 active' : ''}
+          </button>
+          <button onClick={() => navigate(`/joueurs/${id}/objectifs`)}
+            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', color: '#6B7280', fontSize: 11, cursor: 'pointer' }}>
+            🎯 Objectifs · {objectifs.filter(o => o.statut === 'en_cours').length} en cours
+          </button>
+        </div>
+      )}
+
       {/* IDENTITÉ */}
       {activeTab === 'identite' && (
         <>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Informations personnelles</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Input label="Nom" value={form.nom || ''} onChange={v => setForm(p => ({ ...p, nom: v }))} disabled={!editing} />
-              <Input label="Prénom" value={form.prenom || ''} onChange={v => setForm(p => ({ ...p, prenom: v }))} disabled={!editing} />
-              <Input label="Date de naissance" type="date" value={form.date_naissance || ''} onChange={v => setForm(p => ({ ...p, date_naissance: v }))} disabled={!editing} />
-              <Input label="N° Licence" value={form.licence || ''} onChange={v => setForm(p => ({ ...p, licence: v }))} disabled={!editing} />
-              <Select label="Pied fort" value={form.pied || 'Droit'} onChange={v => setForm(p => ({ ...p, pied: v }))}
-                options={['Droit','Gauche','Les deux']} disabled={!editing} />
-              <Input label="Poste" value={form.poste || ''} onChange={v => setForm(p => ({ ...p, poste: v }))} disabled={!editing} />
-              <Input label="Numéro" type="number" value={form.numero || ''} onChange={v => setForm(p => ({ ...p, numero: v }))} disabled={!editing} />
-              <Select label="Pôle / Groupe" value={form.groupe || 'A'} onChange={v => setForm(p => ({ ...p, groupe: v }))}
-                options={['A','B','C','D','E']} disabled={!editing} />
+              <Field label="Nom" field="nom" disabled={!editing} />
+              <Field label="Prénom" field="prenom" disabled={!editing} />
+              <Field label="Date de naissance" field="date_naissance" type="date" disabled={!editing} />
+              <Field label="N° Licence" field="licence" disabled={!editing} />
+              <Field label="Pied fort" field="pied" disabled={!editing} options={['Droit','Gauche','Les deux']} />
+              <Field label="Poste" field="poste" disabled={!editing} />
+              <Field label="Numéro" field="numero" type="number" disabled={!editing} />
+              <Field label="Pôle / Groupe" field="groupe" disabled={!editing} options={['A','B','C','D','E']} />
             </div>
           </Card>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Coordonnées</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Input label="Téléphone" value={form.telephone || ''} onChange={v => setForm(p => ({ ...p, telephone: v }))} disabled={!editing} />
-              <Input label="Email" value={form.email || ''} onChange={v => setForm(p => ({ ...p, email: v }))} disabled={!editing} />
+              <Field label="Téléphone" field="telephone" disabled={!editing} />
+              <Field label="Email" field="email" disabled={!editing} />
             </div>
-            <Input label="Adresse" value={form.adresse || ''} onChange={v => setForm(p => ({ ...p, adresse: v }))} disabled={!editing} />
+            <Field label="Adresse" field="adresse" disabled={!editing} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Input label="Contact urgence" value={form.contact_urgence_nom || ''} onChange={v => setForm(p => ({ ...p, contact_urgence_nom: v }))} disabled={!editing} />
-              <Input label="Tél. urgence" value={form.contact_urgence_tel || ''} onChange={v => setForm(p => ({ ...p, contact_urgence_tel: v }))} disabled={!editing} />
+              <Field label="Contact urgence" field="contact_urgence_nom" disabled={!editing} />
+              <Field label="Tél. urgence" field="contact_urgence_tel" disabled={!editing} />
             </div>
-            {editing && <Button variant="primary" style={{ width: '100%', marginTop: 8 }} onClick={saveIdentite}>💾 Enregistrer</Button>}
           </Card>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Morphologie</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              <Input label="Taille (cm)" type="number" value={form.taille || ''} onChange={v => setForm(p => ({ ...p, taille: v }))} disabled={!editing} />
-              <Input label="Poids (kg)" type="number" value={form.poids || ''} onChange={v => setForm(p => ({ ...p, poids: v }))} disabled={!editing} />
-              <Input label="IMC" value={imc} disabled />
+              <Field label="Taille (cm)" field="taille" type="number" disabled={!editing} />
+              <Field label="Poids (kg)" field="poids" type="number" step="0.1" disabled={!editing} />
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>IMC</label>
+                <input value={imc} disabled style={inputStyle(true)} />
+              </div>
             </div>
-            {editing && <Button variant="primary" style={{ width: '100%', marginTop: 8 }} onClick={saveIdentite}>💾 Enregistrer</Button>}
           </Card>
+          {editing && (
+            <Button variant="primary" style={{ width: '100%' }} onClick={saveIdentite} disabled={saving}>
+              {saving ? 'Enregistrement...' : '💾 Enregistrer toutes les modifications'}
+            </Button>
+          )}
         </>
       )}
 
@@ -246,14 +394,18 @@ export default function FicheJoueurPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Fréquence cardiaque</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
-              <Input label="FC max" type="number" value={form.fc_max || ''} onChange={v => setForm(p => ({ ...p, fc_max: v }))} disabled={!canEdit} />
-              <Input label="FC repos" type="number" value={form.fc_repos || ''} onChange={v => setForm(p => ({ ...p, fc_repos: v }))} disabled={!canEdit} />
-              <Input label="FC réserve" value={fcReserve || '—'} disabled />
+              <Field label="FC max" field="fc_max" type="number" disabled={!editing} />
+              <Field label="FC repos" field="fc_repos" type="number" disabled={!editing} />
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>FC réserve</label>
+                <input value={fcReserve || '—'} disabled style={inputStyle(true)} />
+              </div>
             </div>
             {fcReserve && (
               <>
                 <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 8 }}>Zones FC (Karvonen)</p>
-                {[['Zone 1 — Récupération', 0.5, 0.6, '#E6F1FB', '#185FA5'],
+                {[
+                  ['Zone 1 — Récupération', 0.5, 0.6, '#E6F1FB', '#185FA5'],
                   ['Zone 2 — Aérobie', 0.6, 0.7, '#EAF3DE', '#3B6D11'],
                   ['Zone 3 — Seuil', 0.7, 0.8, '#FAEEDA', '#854F0B'],
                   ['Zone 4 — Haute intensité', 0.8, 0.9, '#FCEBEB', '#A32D2D'],
@@ -268,55 +420,8 @@ export default function FicheJoueurPage() {
                 ))}
               </>
             )}
-            {canEdit && <Button variant="primary" style={{ width: '100%', marginTop: 10 }} onClick={saveIdentite}>💾 Enregistrer FC</Button>}
+            {editing && <Button variant="primary" style={{ width: '100%', marginTop: 10 }} onClick={saveIdentite} disabled={saving}>💾 Enregistrer FC</Button>}
           </Card>
-
-          <Card>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <p style={{ fontSize: 13, fontWeight: 600 }}>Tests VMA</p>
-              {canEdit && <Button size="sm" onClick={() => setShowAddTest(!showAddTest)}>+ Ajouter</Button>}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-              <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 10, textAlign: 'center' }}>
-                <div style={{ fontSize: 20, fontWeight: 700, color: THEME.primary }}>{joueur.vma || '—'}</div>
-                <div style={{ fontSize: 10, color: '#9CA3AF' }}>VMA actuelle (km/h)</div>
-              </div>
-              <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 10, textAlign: 'center' }}>
-                <div style={{ fontSize: 20, fontWeight: 700, color: '#3B6D11' }}>
-                  {tests.length >= 2 ? `+${(parseFloat(tests[0]?.vma) - parseFloat(tests[tests.length-1]?.vma)).toFixed(1)}` : '—'}
-                </div>
-                <div style={{ fontSize: 10, color: '#9CA3AF' }}>Progression</div>
-              </div>
-            </div>
-            {showAddTest && canEdit && (
-              <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 10, marginBottom: 10 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  <Input label="Date" type="date" value={testForm.date_test} onChange={v => setTestForm(p => ({ ...p, date_test: v }))} />
-                  <Select label="Protocole" value={testForm.protocole} onChange={v => setTestForm(p => ({ ...p, protocole: v }))}
-                    options={['Vameval','Cooper','Yo-Yo','Navette 20m','Terrain perso']} />
-                  <Input label="VMA (km/h)" type="number" step="0.1" value={testForm.vma} onChange={v => setTestForm(p => ({ ...p, vma: v }))} />
-                  <Input label="FC max atteinte" type="number" value={testForm.fc_max_atteinte} onChange={v => setTestForm(p => ({ ...p, fc_max_atteinte: v }))} />
-                </div>
-                <Input label="Conditions" value={testForm.conditions} onChange={v => setTestForm(p => ({ ...p, conditions: v }))} placeholder="Terrain sec, bonne météo..." />
-                <Button variant="primary" style={{ width: '100%' }} onClick={saveTest}>Enregistrer le test</Button>
-              </div>
-            )}
-            {tests.map(t => (
-              <div key={t.id} style={{ padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: 600 }}>{t.protocole} — {t.date_test}</p>
-                    {t.conditions && <p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.conditions}</p>}
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: THEME.primary }}>{t.vma} km/h</p>
-                    {t.fc_max_atteinte && <p style={{ fontSize: 10, color: '#9CA3AF' }}>FC max: {t.fc_max_atteinte}</p>}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </Card>
-
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Suivi du poids</p>
             {poidsHistory.length > 1 && (
@@ -325,24 +430,29 @@ export default function FicheJoueurPage() {
                   const min = Math.min(...poidsHistory.map(x => x.poids))
                   const max = Math.max(...poidsHistory.map(x => x.poids))
                   const h = max === min ? 50 : ((p.poids - min) / (max - min)) * 50 + 10
-                  return <div key={p.id} title={`${p.poids} kg`}
-                    style={{ flex: 1, background: THEME.primary, borderRadius: '3px 3px 0 0', height: `${h}px`, opacity: 0.5 + (i / poidsHistory.length) * 0.5 }} />
+                  return <div key={p.id} style={{ flex: 1, background: THEME.primary, borderRadius: '3px 3px 0 0', height: `${h}px`, opacity: 0.5 + (i / poidsHistory.length) * 0.5 }} />
                 })}
               </div>
             )}
             <div style={{ display: 'flex', gap: 8 }}>
-              <Input label="Nouvelle pesée (kg)" type="number" step="0.1" value={newPoids} onChange={setNewPoids} style={{ marginBottom: 0 }} />
-              <Button variant="primary" onClick={savePoids} style={{ marginTop: 16, flexShrink: 0 }}>+ Ajouter</Button>
+              <input type="number" step="0.1" placeholder="Nouvelle pesée (kg)" value={newPoids} onChange={e => setNewPoids(e.target.value)}
+                style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none' }} />
+              <button onClick={savePoids} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>+ Ajouter</button>
             </div>
           </Card>
-
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Points forts / axes de travail</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Textarea label="✅ Points forts" value={form.points_forts || ''} onChange={v => setForm(p => ({ ...p, points_forts: v }))} rows={4} />
-              <Textarea label="⚠️ Axes de travail" value={form.points_faibles || ''} onChange={v => setForm(p => ({ ...p, points_faibles: v }))} rows={4} />
+              {['points_forts','points_faibles'].map((field, i) => (
+                <div key={field}>
+                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>{i === 0 ? '✅ Points forts' : '⚠️ Axes de travail'}</label>
+                  <textarea value={form[field] || ''} onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
+                    disabled={!editing} rows={4}
+                    style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${editing ? '#D1D5DB' : '#F3F4F6'}`, borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', background: editing ? '#fff' : '#FAFAFA' }} />
+                </div>
+              ))}
             </div>
-            {canEdit && <Button variant="primary" style={{ width: '100%' }} onClick={saveIdentite}>💾 Enregistrer</Button>}
+            {editing && <Button variant="primary" style={{ width: '100%' }} onClick={saveIdentite} disabled={saving}>💾 Enregistrer</Button>}
           </Card>
         </>
       )}
@@ -354,19 +464,35 @@ export default function FicheJoueurPage() {
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>RPE moyen — toutes sessions</p>
             {rpeHistory.length === 0
               ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucune donnée RPE.</p>
-              : <BarChart data={rpeAvg} maxValue={5} />}
+              : <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {RPE_ITEMS.map(item => {
+                    const vals = rpeHistory.map(r => r[item.key]).filter(v => v != null)
+                    const avg = vals.length ? vals.reduce((a,b) => a+b,0)/vals.length : 0
+                    return (
+                      <div key={item.key}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#6B7280', marginBottom: 2 }}>
+                          <span>{item.label}</span><span style={{ color: rpeColor(avg), fontWeight: 600 }}>{avg.toFixed(1)}/5</span>
+                        </div>
+                        <div style={{ height: 6, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', borderRadius: 4, background: rpeColor(avg), width: `${avg/5*100}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+            }
           </Card>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Footbar — historique</p>
             {footHistory.length === 0
               ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucune donnée Footbar.</p>
               : footHistory.map(f => (
-                  <div key={f.id} style={{ marginBottom: 8, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
-                    <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>{f.evenements?.titre}</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 4 }}>
-                      {[['Distance',f.distance_km?`${f.distance_km}km`:'—'],['Sprint max',f.sprint_max?`${f.sprint_max}km/h`:'—'],['Sprints',f.sprints??'—'],['Dist.HI',f.distance_hi?`${f.distance_hi}m`:'—'],['Tps jeu',f.temps_jeu?`${f.temps_jeu}min`:'—'],['Ballons',f.ballons_touches??'—'],['Passes',f.nb_passes??'—'],['Tirs',f.nb_tirs??'—']].map(([l,v]) => (
-                        <div key={l} style={{ background: '#F9FAFB', borderRadius: 6, padding: '4px 6px', textAlign: 'center' }}>
-                          <div style={{ fontSize: 12, fontWeight: 600 }}>{v ?? '—'}</div>
+                  <div key={f.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '0.5px solid #F3F4F6' }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>{f.evenements?.titre} — {f.evenements?.date_heure ? format(parseISO(f.evenements.date_heure), 'd MMM', { locale: fr }) : ''}</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 4 }}>
+                      {[['Distance',f.distance_km?`${f.distance_km}km`:'—'],['V.max',f.sprint_max?`${f.sprint_max}km/h`:'—'],['Sprints',f.sprints??'—'],['Ballons',f.ballons_touches??'—'],['Passes',f.nb_passes??'—'],['Tirs',f.nb_tirs??'—'],['HI',f.distance_hi?`${f.distance_hi}m`:'—'],['Tps jeu',f.temps_jeu?`${f.temps_jeu}min`:'—']].map(([l,v]) => (
+                        <div key={l} style={{ background: '#F9FAFB', borderRadius: 6, padding: '4px', textAlign: 'center' }}>
+                          <div style={{ fontSize: 11, fontWeight: 600 }}>{v}</div>
                           <div style={{ fontSize: 9, color: '#9CA3AF' }}>{l}</div>
                         </div>
                       ))}
@@ -382,7 +508,7 @@ export default function FicheJoueurPage() {
       {activeTab === 'stats' && (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
-            {[['Matchs',statsHistory.length],['Buts',totalButs],['PD',totalPD],['Min.',totalMin],['Note',noteMoy],['Cartons 🟡',statsHistory.filter(s=>s.carton_jaune).length]].map(([l,v]) => (
+            {[['Matchs',statsHistory.length],['Buts',totalButs],['PD',totalPD],['Min.',statsHistory.reduce((s,r)=>s+(r.temps_jeu||0),0)],['Note',noteMoy],['🟡',statsHistory.filter(s=>s.carton_jaune).length]].map(([l,v]) => (
               <div key={l} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{v}</div>
                 <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{l}</div>
@@ -390,7 +516,6 @@ export default function FicheJoueurPage() {
             ))}
           </div>
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Historique matchs</p>
             {statsHistory.length === 0
               ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucune statistique.</p>
               : statsHistory.map(s => (
@@ -400,8 +525,8 @@ export default function FicheJoueurPage() {
                       <p style={{ fontSize: 10, color: '#9CA3AF' }}>{s.temps_jeu}min · {s.titulaire ? 'Titu.' : 'Rempl.'} {s.carton_jaune ? '🟡' : ''}{s.carton_rouge ? '🔴' : ''}</p>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note || '—'}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Note</div></div>
-                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Buts</div></div>
+                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note||'—'}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Note</div></div>
+                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11' }}>{s.buts||0}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Buts</div></div>
                     </div>
                   </div>
                 ))
@@ -410,13 +535,15 @@ export default function FicheJoueurPage() {
         </>
       )}
 
-      {/* NOTES STAFF */}
+      {/* NOTES */}
       {activeTab === 'notes' && (
         <>
           {canComment && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Ajouter une note</p>
-              <Textarea value={newComment} onChange={setNewComment} placeholder="Observation technique, tactique, comportementale..." rows={3} />
+              <textarea value={newComment} onChange={e => setNewComment(e.target.value)}
+                placeholder="Observation technique, tactique, comportementale..." rows={3}
+                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }} />
               <Button variant="primary" style={{ width: '100%' }} onClick={addComment}>Publier</Button>
             </Card>
           )}
@@ -425,7 +552,7 @@ export default function FicheJoueurPage() {
             : commentaires.map(c => (
                 <Card key={c.id}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <Avatar initials={(c.auteur_nom || 'S').slice(0, 2).toUpperCase()} size={28} />
+                    <Avatar initials={(c.auteur_nom || 'S').slice(0,2).toUpperCase()} size={28} />
                     <div>
                       <p style={{ fontSize: 12, fontWeight: 600 }}>{c.auteur_nom}</p>
                       <p style={{ fontSize: 10, color: '#9CA3AF' }}>{c.auteur_role} · {c.created_at ? format(parseISO(c.created_at), 'd MMM HH:mm', { locale: fr }) : ''}</p>
