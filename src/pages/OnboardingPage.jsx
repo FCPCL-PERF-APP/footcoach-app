@@ -59,10 +59,13 @@ export default function OnboardingPage() {
   const { profile } = useAuth()
   const navigate = useNavigate()
 
-  async function finish() {
-    // Marque l'onboarding comme complété
-    if (profile?.id) {
-      await supabase.from('joueurs').update({ onboarding_done: true }).eq('id', profile.id)
+ async function finish() {
+    try {
+      if (profile?.id) {
+        await supabase.from('joueurs').update({ onboarding_done: true }).eq('id', profile.id)
+      }
+    } catch (err) {
+      console.error('Erreur onboarding:', err)
     }
     navigate('/mon-dashboard')
   }
