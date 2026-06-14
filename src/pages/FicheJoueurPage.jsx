@@ -338,6 +338,10 @@ export default function FicheJoueurPage() {
             style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', color: '#6B7280', fontSize: 11, cursor: 'pointer' }}>
             🎯 Objectifs · {objectifs.filter(o => o.statut === 'en_cours').length} en cours
           </button>
+<button onClick={() => navigate(`/joueurs/${id}/radar`)}
+  style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', color: '#6B7280', fontSize: 11, cursor: 'pointer' }}>
+  🕸️ Radar RPE
+</button>
         </div>
       )}
 

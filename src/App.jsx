@@ -38,6 +38,8 @@ import MonBilanPage from './pages/MonBilanPage'
 import ProfilCoachPage     from './pages/ProfilCoachPage'
 import ArchiveSaisonPage   from './pages/ArchiveSaisonPage'
 import ClassementButeursPage from './pages/ClassementButeursPage'
+import ExportDonneesPage   from './pages/ExportDonneesPage'
+import RadarJoueurPage     from './pages/RadarJoueurPage'
 
 function AppContent() {
   const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
@@ -96,7 +98,9 @@ function AppContent() {
           <Route path="/mon-profil"             element={isCoach ? <ProfilCoachPage /> : <Navigate to="/" />} />
           <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
 <Route path="/classement" element={isCoach ? <ClassementButeursPage /> : <Navigate to="/" />} />
-          <Route path="*"                       element={<Navigate to={defaultRoute} replace />} />
+<Route path="/export" element={isCoach ? <ExportDonneesPage /> : <Navigate to="/" />} />
+<Route path="/joueurs/:id/radar" element={isCoach ? <RadarJoueurPage /> : <Navigate to="/" />} />
+<Route path="*" element={<Navigate to={defaultRoute} replace />} />
         </Routes>
       </div>
       <BottomNav unreadCount={unreadCount} />

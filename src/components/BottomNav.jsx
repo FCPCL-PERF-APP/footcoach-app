@@ -21,6 +21,7 @@ const NAV_COACH_MORE = [
   { path: '/comparatif',    icon: '⚖️', label: 'Comparatif' },
   { path: '/archive-saison',icon: '📦', label: 'Archiver saison' },
 { path: '/classement', icon: '🏆', label: 'Classement' },
+{ path: '/export', icon: '📥', label: 'Export données' },
 ]
 const NAV_STAFF_MAIN = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
