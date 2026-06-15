@@ -13,10 +13,14 @@ const PAGE_TITLES = {
   '/joueurs': 'Joueurs',
   '/messages': 'Messages',
   '/dashboard': 'Dashboard',
+  '/mon-dashboard': 'Dashboard',
   '/ressources': 'Ressources',
   '/staff': 'Staff technique',
   '/ma-fiche': 'Ma fiche',
   '/bilan-saison': 'Bilan de saison',
+  '/mon-bilan': 'Mon bilan',
+  '/mon-profil': 'Mon profil',
+  '/mon-profil-joueur': 'Mon profil',
 }
 
 export default function AppHeader() {
@@ -25,8 +29,17 @@ export default function AppHeader() {
   const { darkMode, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
-  const title = PAGE_TITLES[pathname] || 
+  const title = PAGE_TITLES[pathname] ||
     (pathname.startsWith('/joueurs/') ? 'Fiche joueur' : 'FC PCL')
+
+  const btnStyle = {
+    background: 'rgba(255,255,255,.15)',
+    border: '1px solid rgba(255,255,255,.2)',
+    borderRadius: 8,
+    padding: '5px 8px',
+    cursor: 'pointer',
+    fontSize: 14
+  }
 
   return (
     <header style={{
@@ -39,7 +52,7 @@ export default function AppHeader() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <img src="/icons/logo.jpg" alt="FC PCL"
           style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.4)', objectFit: 'cover', cursor: 'pointer' }}
-          onClick={() => navigate(isCoach ? '/calendrier' : '/mon-rpe')} />
+          onClick={() => navigate(isCoach ? '/calendrier' : '/mon-dashboard')} />
         <div>
           <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{title}</p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>
@@ -47,34 +60,40 @@ export default function AppHeader() {
           </p>
         </div>
       </div>
+
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
         {/* Mode sombre */}
-        <button onClick={toggleTheme} style={{
-          background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)',
-          borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14
-        }}>
-<button onClick={() => navigate('/mon-profil')} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>👤</button>
+        <button onClick={toggleTheme} style={btnStyle}>
           {darkMode ? '☀️' : '🌙'}
         </button>
-        {/* Bilan saison (coach seulement) */}
+
+        {/* Profil coach */}
         {isCoach && (
-          <button onClick={() => navigate('/bilan-saison')} style={{
-            background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)',
-            borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14
-{isJoueur && (
-  <button onClick={() => navigate('/mon-profil-joueur')} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>👤</button>
-)}
-{isJoueur && (
-  <button onClick={() => navigate('/mon-bilan')} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>🏆</button>
-)}
-        {isJoueur && (
-          <button onClick={() => navigate('/mon-bilan')} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>🏆</button>
+          <button onClick={() => navigate('/mon-profil')} style={btnStyle}>👤</button>
         )}
+
+        {/* Bilan saison coach */}
+        {isCoach && (
+          <button onClick={() => navigate('/bilan-saison')} style={btnStyle}>🏆</button>
+        )}
+
+        {/* Profil joueur */}
+        {isJoueur && (
+          <button onClick={() => navigate('/mon-profil-joueur')} style={btnStyle}>👤</button>
+        )}
+
+        {/* Bilan saison joueur */}
+        {isJoueur && (
+          <button onClick={() => navigate('/mon-bilan')} style={btnStyle}>🏆</button>
+        )}
+
         {/* Déconnexion */}
         <button onClick={signOut} style={{
-          background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)',
-          borderRadius: 8, padding: '5px 10px', cursor: 'pointer',
-          fontSize: 12, color: '#fff', fontWeight: 600
+          background: 'rgba(255,255,255,.15)',
+          border: '1px solid rgba(255,255,255,.2)',
+          borderRadius: 8, padding: '5px 10px',
+          cursor: 'pointer', fontSize: 12,
+          color: '#fff', fontWeight: 600
         }}>
           Déconnexion
         </button>
