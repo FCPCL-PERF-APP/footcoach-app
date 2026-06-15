@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { THEME } from '../theme'
 
@@ -12,11 +13,16 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false)
   const [logoLoaded, setLogoLoaded] = useState(false)
 
-  async function handleLogin(e) {
+  async function handleReset(e) {
     e.preventDefault()
-    setLoading(true); setError('')
-    try { await signIn(email, password) }
-    catch { setError('Email ou mot de passe incorrect.') }
+    setLoading(true)
+    try {
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://footcoach-fcpcl.vercel.app/set-password'
+      })
+      setResetSent(true)
+    }
+    catch { setError('Erreur lors de l\'envoi.') }
     finally { setLoading(false) }
   }
 
