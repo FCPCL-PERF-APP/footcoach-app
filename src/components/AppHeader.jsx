@@ -64,8 +64,9 @@ export default function AppHeader() {
 {isJoueur && (
   <button onClick={() => navigate('/mon-profil-joueur')} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>👤</button>
 )}
-          }}>🏆</button>
-        )}
+{isJoueur && (
+  <button onClick={() => navigate('/mon-bilan')} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>🏆</button>
+)}
         {isJoueur && (
           <button onClick={() => navigate('/mon-bilan')} style={{ background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>🏆</button>
         )}
