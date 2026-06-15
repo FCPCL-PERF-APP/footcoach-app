@@ -36,6 +36,7 @@ import ObjectifsPage       from './pages/ObjectifsPage'
 import OnboardingPage      from './pages/OnboardingPage'
 import MonBilanPage from './pages/MonBilanPage'
 import MonProfilJoueurPage from './pages/MonProfilJoueurPage'
+import SetPasswordPage from './pages/SetPasswordPage'
 import ProfilCoachPage     from './pages/ProfilCoachPage'
 import ArchiveSaisonPage   from './pages/ArchiveSaisonPage'
 import ClassementButeursPage from './pages/ClassementButeursPage'
@@ -97,6 +98,7 @@ function AppContent() {
           <Route path="/onboarding"             element={<OnboardingPage />} />
 <Route path="/mon-bilan" element={isJoueur ? <MonBilanPage /> : <Navigate to="/" />} />
 <Route path="/mon-profil-joueur" element={isJoueur ? <MonProfilJoueurPage /> : <Navigate to="/" />} />
+<Route path="/set-password" element={<SetPasswordPage />} />
           <Route path="/mon-profil"             element={isCoach ? <ProfilCoachPage /> : <Navigate to="/" />} />
           <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
 <Route path="/classement" element={isCoach ? <ClassementButeursPage /> : <Navigate to="/" />} />
