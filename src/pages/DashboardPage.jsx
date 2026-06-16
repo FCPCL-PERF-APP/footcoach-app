@@ -70,6 +70,20 @@ export default function DashboardPage() {
   const [presenceEvolution, setPresenceEvolution] = useState([])
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
+  const [alertesTraitees, setAlertesTraitees] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('fcpcl-alertes-traitees') || '[]') } catch { return [] }
+  })
+
+  function marquerTraite(alerteKey) {
+    const newList = [...alertesTraitees, alerteKey]
+    setAlertesTraitees(newList)
+    localStorage.setItem('fcpcl-alertes-traitees', JSON.stringify(newList))
+  }
+
+  function resetAlertes() {
+    setAlertesTraitees([])
+    localStorage.removeItem('fcpcl-alertes-traitees')
+  }
 
   useEffect(() => { loadDashboard() }, [])
 
