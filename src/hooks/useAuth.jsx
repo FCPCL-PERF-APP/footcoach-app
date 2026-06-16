@@ -106,7 +106,7 @@ export function AuthProvider({ children }) {
   const isCoach   = profile?.role === 'coach'
   const isAdjoint = profile?.role === 'adjoint' || profile?.role === 'gardien'
   const isStaff   = isCoach || isAdjoint
-  const isJoueur  = profile?.type === 'joueur' || (!isCoach && !isAdjoint)
+  const isJoueur = profile?.type === 'joueur' && !isCoach && !isAdjoint
   const canEdit    = isCoach
   const canComment = isStaff
 
