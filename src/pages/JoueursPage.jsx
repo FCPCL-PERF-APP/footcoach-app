@@ -61,11 +61,14 @@ export default function JoueursPage() {
   }
 
   const postes = ['tous', ...new Set(joueurs.map(j => j.poste).filter(Boolean))]
+  const groupes = ['tous', ...new Set(joueurs.map(j => j.groupe).filter(Boolean)).values()].sort()
+  const [filterGroupe, setFilterGroupe] = useState('tous')
 
   let filtered = joueurs.filter(j => {
     const matchSearch = !search || `${j.nom} ${j.prenom}`.toLowerCase().includes(search.toLowerCase())
     const matchPoste = filterPoste === 'tous' || j.poste === filterPoste
-    return matchSearch && matchPoste
+    const matchGroupe = filterGroupe === 'tous' || j.groupe === filterGroupe
+    return matchSearch && matchPoste && matchGroupe
   })
 
   // Tri
@@ -101,6 +104,21 @@ export default function JoueursPage() {
 
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Rechercher un joueur..."
         style={{ width: '100%', padding: '9px 12px', marginBottom: 10, border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
+
+      {/* Filtre groupe */}
+      {groupes.length > 2 && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8, overflowX: 'auto' }}>
+          {groupes.map(g => (
+            <button key={g} onClick={() => setFilterGroupe(g)} style={{
+              padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+              border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+              background: filterGroupe === g ? '#FAEEDA' : 'transparent',
+              color: filterGroupe === g ? '#854F0B' : '#6B7280',
+              fontWeight: filterGroupe === g ? 600 : 400
+            }}>{g === 'tous' ? '🏷️ Tous les groupes' : `Pôle ${g}`}</button>
+          ))}
+        </div>
+      )}
 
       {/* Filtres + tri */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', paddingBottom: 4 }}>

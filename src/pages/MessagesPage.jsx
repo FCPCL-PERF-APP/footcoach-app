@@ -15,7 +15,7 @@ const AVATAR_COLORS = [
 ]
 
 export default function MessagesPage({ setUnreadCount }) {
-  const { profile, isJoueur } = useAuth()
+  const { profile, isCoach } = useAuth()
   const [activeTab, setActiveTab] = useState('groupe')
   const [groupMessages, setGroupMessages] = useState([])
   const [contacts, setContacts] = useState([])
@@ -26,6 +26,7 @@ export default function MessagesPage({ setUnreadCount }) {
   const [showNewMsg, setShowNewMsg] = useState(false)
   const [searchContact, setSearchContact] = useState('')
   const [search, setSearch] = useState('')
+  const [deletingId, setDeletingId] = useState(null)
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -34,6 +35,8 @@ export default function MessagesPage({ setUnreadCount }) {
     const sub = supabase.channel('group-msgs')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'groupe=eq.true' },
         payload => setGroupMessages(p => [...p, payload.new]))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' },
+        payload => setGroupMessages(p => p.filter(m => m.id !== payload.old.id)))
       .subscribe()
     return () => supabase.removeChannel(sub)
   }, [])
@@ -89,7 +92,6 @@ export default function MessagesPage({ setUnreadCount }) {
     }
     await supabase.from('messages').insert(msg)
 
-    // Notification push pour les messages privés
     if (!groupe && activeConv?.auth_id) {
       try {
         await fetch('/api/notif-message-prive', {
@@ -107,6 +109,13 @@ export default function MessagesPage({ setUnreadCount }) {
     setInput('')
     if (groupe) loadGroupMessages()
     else openConv(activeConv)
+  }
+
+  async function deleteMessage(msgId) {
+    if (!window.confirm('Supprimer ce message ?')) return
+    await supabase.from('messages').delete().eq('id', msgId)
+    setGroupMessages(p => p.filter(m => m.id !== msgId))
+    setDeletingId(null)
   }
 
   function formatTime(ts) {
@@ -154,7 +163,7 @@ export default function MessagesPage({ setUnreadCount }) {
           {activeTab === 'groupe' && (
             <Card style={{ display: 'flex', flexDirection: 'column', height: '68vh' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
-                <p style={{ fontSize: 13, fontWeight: 600 }}>👥 Équipe A — Canal groupe</p>
+                <p style={{ fontSize: 13, fontWeight: 600 }}>👥 Canal groupe</p>
                 <input value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="🔍 Rechercher..."
                   style={{ padding: '4px 8px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 11, outline: 'none', width: 120 }} />
@@ -166,7 +175,9 @@ export default function MessagesPage({ setUnreadCount }) {
                   </p>
                 )}
                 {filteredGroupMessages.map(msg => (
-                  <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime} />
+                  <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime}
+                    canDelete={isMe(msg) || isCoach}
+                    onDelete={() => deleteMessage(msg.id)} />
                 ))}
                 <div ref={bottomRef} />
               </div>
@@ -177,7 +188,6 @@ export default function MessagesPage({ setUnreadCount }) {
           {/* PRIVÉS */}
           {activeTab === 'prives' && (
             <>
-              {/* Nouveau message */}
               {showNewMsg && (
                 <Card>
                   <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Choisir un destinataire</p>
@@ -206,7 +216,6 @@ export default function MessagesPage({ setUnreadCount }) {
                 </Card>
               )}
 
-              {/* Conversation active */}
               {activeConv ? (
                 <Card style={{ display: 'flex', flexDirection: 'column', height: '65vh' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
@@ -222,7 +231,11 @@ export default function MessagesPage({ setUnreadCount }) {
                       <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 13, padding: 20 }}>Début de la conversation.</p>
                     )}
                     {convMessages.map(msg => (
-                      <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime} />
+                      <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime}
+                        canDelete={isMe(msg)} onDelete={async () => {
+                          await supabase.from('messages').delete().eq('id', msg.id)
+                          openConv(activeConv)
+                        }} />
                     ))}
                     <div ref={bottomRef} />
                   </div>
@@ -231,7 +244,7 @@ export default function MessagesPage({ setUnreadCount }) {
               ) : !showNewMsg && (
                 <Card style={{ padding: 0 }}>
                   <div style={{ padding: '12px 14px', borderBottom: '0.5px solid #F3F4F6' }}>
-                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>{contacts.length} contact(s) disponible(s)</p>
+                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>{contacts.length} contact(s)</p>
                   </div>
                   {contacts.length === 0 ? (
                     <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 24 }}>
@@ -262,13 +275,34 @@ export default function MessagesPage({ setUnreadCount }) {
   )
 }
 
-function MsgBubble({ msg, isMe, formatTime }) {
+function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete }) {
+  const [showDelete, setShowDelete] = useState(false)
+
   return (
-    <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: 8 }}>
-      <div style={{ maxWidth: '82%', padding: '8px 12px', borderRadius: isMe ? '12px 12px 3px 12px' : '12px 12px 12px 3px', background: isMe ? THEME.gradient : '#F3F4F6', color: isMe ? '#fff' : '#111' }}>
-        {!isMe && msg.expediteur_nom && <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 3, color: THEME.primary }}>{msg.expediteur_nom}</p>}
-        <p style={{ fontSize: 13, lineHeight: 1.4 }}>{msg.contenu}</p>
-        <p style={{ fontSize: 9, opacity: .6, marginTop: 3, textAlign: 'right' }}>{formatTime(msg.created_at)}</p>
+    <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: 8 }}
+      onClick={() => canDelete && setShowDelete(!showDelete)}>
+      <div style={{ maxWidth: '82%' }}>
+        <div style={{
+          padding: '8px 12px',
+          borderRadius: isMe ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
+          background: isMe ? THEME.gradient : '#F3F4F6',
+          color: isMe ? '#fff' : '#111',
+          cursor: canDelete ? 'pointer' : 'default'
+        }}>
+          {!isMe && msg.expediteur_nom && (
+            <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 3, color: THEME.primary }}>{msg.expediteur_nom}</p>
+          )}
+          <p style={{ fontSize: 13, lineHeight: 1.4 }}>{msg.contenu}</p>
+          <p style={{ fontSize: 9, opacity: .6, marginTop: 3, textAlign: 'right' }}>{formatTime(msg.created_at)}</p>
+        </div>
+        {showDelete && canDelete && (
+          <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginTop: 4 }}>
+            <button onClick={(e) => { e.stopPropagation(); onDelete() }}
+              style={{ fontSize: 11, color: '#A32D2D', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer' }}>
+              🗑️ Supprimer
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
