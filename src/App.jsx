@@ -24,6 +24,7 @@ import DashboardPage       from './pages/DashboardPage'
 import DashboardJoueurPage from './pages/DashboardJoueurPage'
 import RessourcesPage      from './pages/RessourcesPage'
 import StaffPage           from './pages/StaffPage'
+import StatsConnexionPage from './pages/StatsConnexionPage'
 import StatsPage           from './pages/StatsPage'
 import ConvocationsPage    from './pages/ConvocationsPage'
 import PresencesMatchPage  from './pages/PresencesMatchPage'
@@ -102,6 +103,7 @@ function AppContent() {
           <Route path="/mon-profil"             element={isCoach ? <ProfilCoachPage /> : <Navigate to="/" />} />
           <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
 <Route path="/classement" element={isCoach ? <ClassementButeursPage /> : <Navigate to="/" />} />
+<Route path="/stats-connexion" element={isCoach ? <StatsConnexionPage /> : <Navigate to="/" />} />
 <Route path="/export" element={isCoach ? <ExportDonneesPage /> : <Navigate to="/" />} />
 <Route path="/joueurs/:id/radar" element={isCoach ? <RadarJoueurPage /> : <Navigate to="/" />} />
 <Route path="*" element={<Navigate to={defaultRoute} replace />} />

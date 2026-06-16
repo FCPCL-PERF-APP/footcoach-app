@@ -67,6 +67,9 @@ export default function MaFichePage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [activeTab, setActiveTab] = useState('infos')
+  const [pwd, setPwd] = useState({ new: '', confirm: '' })
+  const [pwdMsg, setPwdMsg] = useState(null)
+  const [pwdSaving, setPwdSaving] = useState(false)
 
   useEffect(() => { if (profile?.id) loadData() }, [profile])
 
@@ -86,6 +89,21 @@ export default function MaFichePage() {
   }
 
   const f = (key) => form[key] || ''
+
+  async function changePassword() {
+    if (!pwd.new || !pwd.confirm) { setPwdMsg({ ok: false, text: 'Remplis les deux champs.' }); return }
+    if (pwd.new.length < 6) { setPwdMsg({ ok: false, text: 'Au moins 6 caractères.' }); return }
+    if (pwd.new !== pwd.confirm) { setPwdMsg({ ok: false, text: 'Les mots de passe ne correspondent pas.' }); return }
+    setPwdSaving(true)
+    const { error } = await supabase.auth.updateUser({ password: pwd.new })
+    setPwdSaving(false)
+    if (error) setPwdMsg({ ok: false, text: 'Erreur : ' + error.message })
+    else {
+      setPwdMsg({ ok: true, text: '✅ Mot de passe modifié !' })
+      setPwd({ new: '', confirm: '' })
+      setTimeout(() => setPwdMsg(null), 3000)
+    }
+  }
   const s = (key) => (v) => setForm(p => ({ ...p, [key]: v }))
 
   async function saveForm() {
@@ -155,6 +173,7 @@ export default function MaFichePage() {
     { key: 'rpe',    label: '📊 Mon RPE' },
     { key: 'stats',  label: '⚽ Mes stats' },
     { key: 'poids',  label: '⚖️ Mon poids' },
+    { key: 'compte', label: '🔐 Compte' },
   ]
 
   return (
@@ -383,6 +402,54 @@ export default function MaFichePage() {
               ))
           }
         </Card>
+      )}
+
+      {/* COMPTE */}
+      {activeTab === 'compte' && (
+        <>
+          <Card>
+            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>🔐 Changer mon mot de passe</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>
+              Choisis un mot de passe sécurisé d'au moins 6 caractères.
+            </p>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Nouveau mot de passe</label>
+              <input type="password" value={pwd.new} onChange={e => setPwd(p => ({...p, new: e.target.value}))}
+                placeholder="Au moins 6 caractères"
+                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Confirmer le mot de passe</label>
+              <input type="password" value={pwd.confirm} onChange={e => setPwd(p => ({...p, confirm: e.target.value}))}
+                placeholder="Répète le mot de passe"
+                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            {pwdMsg && (
+              <div style={{ background: pwdMsg.ok ? '#EAF3DE' : '#FCEBEB', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: pwdMsg.ok ? '#3B6D11' : '#A32D2D' }}>
+                {pwdMsg.text}
+              </div>
+            )}
+            <Button variant="primary" style={{ width: '100%' }} onClick={changePassword} disabled={pwdSaving}>
+              {pwdSaving ? 'Enregistrement...' : '💾 Modifier mon mot de passe'}
+            </Button>
+          </Card>
+
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Informations du compte</p>
+            {[
+              ['Nom', `${joueur?.nom} ${joueur?.prenom}`],
+              ['Poste', joueur?.poste || '—'],
+              ['Numéro', joueur?.numero ? `N°${joueur.numero}` : '—'],
+              ['Groupe', joueur?.groupe ? `Pôle ${joueur.groupe}` : '—'],
+              ['Email', joueur?.email || '—'],
+            ].map(([label, value]) => (
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                <span style={{ fontSize: 12, color: '#6B7280' }}>{label}</span>
+                <span style={{ fontSize: 12, fontWeight: 500 }}>{value}</span>
+              </div>
+            ))}
+          </Card>
+        </>
       )}
 
       {/* MON POIDS */}
