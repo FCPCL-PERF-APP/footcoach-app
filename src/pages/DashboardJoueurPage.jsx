@@ -50,11 +50,11 @@ export default function DashboardJoueurPage() {
     ] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', joueurId).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)')
-        .eq('joueur_id', joueurId).order('created_at', { ascending: false }).limit(8),
-      supabase.from('footbar').select('*, evenements(titre,date_heure)')
-        .eq('joueur_id', joueurId).order('created_at', { ascending: false }).limit(5),
-      supabase.from('presences').select('*, evenements(titre,date_heure,type)')
         .eq('joueur_id', joueurId).order('created_at', { ascending: false }).limit(20),
+      supabase.from('footbar').select('*, evenements(titre,type,date_heure)')
+        .eq('joueur_id', joueurId).order('created_at', { ascending: false }).limit(20),
+      supabase.from('presences').select('*, evenements(titre,date_heure,type)')
+        .eq('joueur_id', joueurId).order('created_at', { ascending: false }).limit(50),
       supabase.from('stats_match').select('*, evenements(titre,date_heure)')
         .eq('joueur_id', joueurId).order('created_at', { ascending: false }).limit(15),
       supabase.from('objectifs').select('*')
@@ -77,7 +77,6 @@ export default function DashboardJoueurPage() {
     setObjectifs(obj || [])
     setBlessures(bless || [])
 
-    // Calcule événements sans RPE ou Footbar
     const rpeIds = new Set((rpesFaits || []).map(r => r.evenement_id))
     const footIds = new Set((footFaits || []).map(f => f.evenement_id))
     const aFaire = (evs || []).filter(e => !rpeIds.has(e.id) || !footIds.has(e.id))
@@ -88,31 +87,57 @@ export default function DashboardJoueurPage() {
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
 
-  // Calculs
-  const rpeMoySaison = rpeHistory.length ? (() => {
-    const vals = rpeHistory.map(r => {
-      const items = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v != null)
-      return items.length ? items.reduce((a,b) => a+b, 0) / items.length : null
-    }).filter(v => v !== null)
-    return vals.length ? (vals.reduce((a,b) => a+b, 0) / vals.length).toFixed(1) : '—'
-  })() : '—'
+  // ===== CALCULS =====
 
-  const totalMatchs = statsHistory.length
-  const totalButs = statsHistory.reduce((s, r) => s + (r.buts || 0), 0)
-  const totalPD = statsHistory.reduce((s, r) => s + (r.passes_decisives || 0), 0)
-  const presentsCount = presences.filter(p => p.statut === 'present').length
-  const tauxPresence = presences.length ? Math.round(presentsCount / presences.length * 100) : 0
-
-  const blessureActive = blessures.find(b => !b.date_retour_effective)
-  const rpeParSession = rpeHistory.slice(0, 6).reverse().map(r => {
+  // RPE moyen saison
+  const rpeVals = rpeHistory.map(r => {
     const items = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v != null)
-    const avg = items.length ? items.reduce((a,b) => a+b, 0) / items.length : 0
-    return { value: parseFloat(avg.toFixed(1)), label: r.evenements?.date_heure ? format(parseISO(r.evenements.date_heure), 'd/M', { locale: fr }) : '' }
+    return items.length ? items.reduce((a,b) => a+b,0)/items.length : null
+  }).filter(v => v !== null)
+  const rpeMoySaison = rpeVals.length ? (rpeVals.reduce((a,b) => a+b,0)/rpeVals.length).toFixed(1) : '—'
+
+  // Stats match
+  const totalMatchs = statsHistory.length
+  const totalButs = statsHistory.reduce((s,r) => s+(r.buts||0), 0)
+  const totalPD = statsHistory.reduce((s,r) => s+(r.passes_decisives||0), 0)
+
+  // Temps de jeu moyen (matchs uniquement)
+  const tempsJeuVals = statsHistory.map(s => s.temps_jeu).filter(v => v != null && v > 0)
+  const tempsJeuMoy = tempsJeuVals.length ? Math.round(tempsJeuVals.reduce((a,b) => a+b,0)/tempsJeuVals.length) : '—'
+
+  // Présences sur ENTRAÎNEMENTS uniquement
+  const presencesEntrainement = presences.filter(p => p.evenements?.type === 'seance')
+  const presentsEntrainement = presencesEntrainement.filter(p => p.statut === 'present').length
+  const tauxPresenceEntrainement = presencesEntrainement.length
+    ? Math.round(presentsEntrainement / presencesEntrainement.length * 100)
+    : '—'
+
+  // Distance moyenne entraînement vs match
+  const footEntrainement = footHistory.filter(f => f.evenements?.type === 'seance')
+  const footMatch = footHistory.filter(f => f.evenements?.type === 'match')
+  const distMoyEntrainement = footEntrainement.length
+    ? (footEntrainement.reduce((s,f) => s+(f.distance_km||0), 0)/footEntrainement.length).toFixed(1)
+    : '—'
+  const distMoyMatch = footMatch.length
+    ? (footMatch.reduce((s,f) => s+(f.distance_km||0), 0)/footMatch.length).toFixed(1)
+    : '—'
+
+  // Courbe RPE 6 dernières sessions
+  const rpeParSession = rpeHistory.slice(0,6).reverse().map(r => {
+    const items = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v != null)
+    const avg = items.length ? items.reduce((a,b) => a+b,0)/items.length : 0
+    return {
+      value: parseFloat(avg.toFixed(1)),
+      label: r.evenements?.date_heure ? format(parseISO(r.evenements.date_heure), 'd/M', { locale: fr }) : '',
+      type: r.evenements?.type
+    }
   })
 
   const W = 280, H = 80, PAD = 16
-  function xPos(i, total) { return PAD + (i / Math.max(total - 1, 1)) * (W - PAD * 2) }
-  function yPos(v) { return H - PAD - ((v / 5) * (H - PAD * 2)) }
+  function xPos(i, total) { return PAD + (i/Math.max(total-1,1))*(W-PAD*2) }
+  function yPos(v) { return H - PAD - ((v/5)*(H-PAD*2)) }
+
+  const blessureActive = blessures.find(b => !b.date_retour_effective)
 
   return (
     <div style={{ padding: 12 }}>
@@ -133,7 +158,7 @@ export default function DashboardJoueurPage() {
             </p>
             {blessureActive && (
               <div style={{ marginTop: 4, background: 'rgba(163,45,45,.3)', borderRadius: 6, padding: '2px 8px', display: 'inline-block' }}>
-                <span style={{ fontSize: 11, color: '#FCA5A5' }}>🤕 Blessure en cours — {blessureActive.zone}</span>
+                <span style={{ fontSize: 11, color: '#FCA5A5' }}>🤕 {blessureActive.zone}</span>
               </div>
             )}
           </div>
@@ -141,41 +166,62 @@ export default function DashboardJoueurPage() {
       </div>
 
       {/* ALERTES */}
-      {(eventsAFaire.length > 0 || blessureActive || objectifs.some(o => o.date_echeance && new Date(o.date_echeance) < new Date(Date.now() + 7*24*60*60*1000))) && (
+      {(eventsAFaire.length > 0 || blessureActive) && (
         <Card style={{ marginBottom: 14, background: '#FDF5EE', border: '0.5px solid #F5C4B3' }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#854F0B', marginBottom: 8 }}>⚠️ À faire</p>
           {eventsAFaire.length > 0 && (
-            <div onClick={() => navigate('/mon-rpe')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '0.5px solid #F3F4F6', cursor: 'pointer' }}>
+            <div onClick={() => navigate('/mon-rpe')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: blessureActive ? '0.5px solid #F3F4F6' : 'none', cursor: 'pointer' }}>
               <span style={{ fontSize: 12 }}>📝 {eventsAFaire.length} RPE / Footbar à remplir</span>
               <span style={{ fontSize: 11, color: THEME.primary }}>→</span>
             </div>
           )}
           {blessureActive && (
-            <div style={{ padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-              <span style={{ fontSize: 12 }}>🤕 Blessure en cours — {blessureActive.zone} ({blessureActive.type_blessure})</span>
+            <div style={{ padding: '6px 0' }}>
+              <span style={{ fontSize: 12 }}>🤕 Blessure en cours — {blessureActive.zone}</span>
             </div>
           )}
-          {objectifs.filter(o => o.date_echeance && new Date(o.date_echeance) < new Date(Date.now() + 7*24*60*60*1000)).map(o => (
-            <div key={o.id} style={{ padding: '6px 0' }}>
-              <span style={{ fontSize: 12 }}>🎯 Objectif proche : {o.titre}</span>
-            </div>
-          ))}
         </Card>
       )}
 
-      {/* STATS RAPIDES */}
+      {/* STATS RAPIDES — sans RPE moyen, avec temps de jeu */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
         {[
           { label: 'Matchs', value: totalMatchs, color: THEME.primary },
           { label: 'Buts', value: totalButs, color: '#3B6D11' },
-          { label: 'Présence', value: `${tauxPresence}%`, color: tauxPresence >= 80 ? '#3B6D11' : '#D85A30' },
-          { label: 'RPE moy.', value: rpeMoySaison, color: rpeColor(parseFloat(rpeMoySaison)) },
+          { label: 'Tps jeu moy.', value: tempsJeuMoy !== '—' ? `${tempsJeuMoy}\'` : '—', color: THEME.primary },
+          { label: 'Présence entr.', value: tauxPresenceEntrainement !== '—' ? `${tauxPresenceEntrainement}%` : '—', color: tauxPresenceEntrainement >= 80 ? '#3B6D11' : '#D85A30' },
         ].map(s => (
           <div key={s.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: '10px 6px', textAlign: 'center' }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{s.label}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* RACCOURCIS RPE + FOOTBAR */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+        <div onClick={() => navigate('/mon-rpe')} style={{
+          background: THEME.gradient, borderRadius: 14, padding: '12px 14px',
+          cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>❤️ Mon RPE</p>
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>
+              {eventsAFaire.length > 0 ? `${eventsAFaire.length} en attente` : 'À jour ✅'}
+            </p>
+          </div>
+          <span style={{ fontSize: 18, color: '#fff' }}>→</span>
+        </div>
+        <div onClick={() => navigate('/mon-footbar')} style={{
+          background: '#1A3A6B', borderRadius: 14, padding: '12px 14px',
+          cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>📡 Footbar</p>
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>Mes données GPS</p>
+          </div>
+          <span style={{ fontSize: 18, color: '#fff' }}>→</span>
+        </div>
       </div>
 
       {/* COURBE RPE */}
@@ -185,27 +231,45 @@ export default function DashboardJoueurPage() {
           <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 80 }}>
             <line x1={PAD} y1={yPos(2.5)} x2={W-PAD} y2={yPos(2.5)} stroke="#F3F4F6" strokeWidth="1" strokeDasharray="4,4" />
             <polyline
-              points={rpeParSession.map((d,i) => `${xPos(i, rpeParSession.length)},${yPos(d.value)}`).join(' ')}
+              points={rpeParSession.map((d,i) => `${xPos(i,rpeParSession.length)},${yPos(d.value)}`).join(' ')}
               fill="none" stroke={rpeColor(parseFloat(rpeMoySaison))} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             {rpeParSession.map((d,i) => (
               <g key={i}>
-                <circle cx={xPos(i, rpeParSession.length)} cy={yPos(d.value)} r="4" fill={rpeColor(d.value)} />
-                <text x={xPos(i, rpeParSession.length)} y={yPos(d.value)-8} textAnchor="middle" fontSize="9" fill="#6B7280">{d.value}</text>
+                <circle cx={xPos(i,rpeParSession.length)} cy={yPos(d.value)} r="4"
+                  fill={d.type === 'match' ? '#1A3A6B' : rpeColor(d.value)} />
+                <text x={xPos(i,rpeParSession.length)} y={yPos(d.value)-8} textAnchor="middle" fontSize="9" fill="#6B7280">{d.value}</text>
               </g>
             ))}
           </svg>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
-            {rpeParSession.map((d,i) => <span key={i}>{d.label}</span>)}
+            {rpeParSession.map((d,i) => <span key={i}>{d.label} {d.type === 'match' ? '⚽' : ''}</span>)}
           </div>
         </Card>
       )}
 
-      {/* PRÉSENCES RÉCENTES */}
-      {presences.length > 0 && (
+      {/* FOOTBAR — km moyen entraînement vs match */}
+      {footHistory.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📅 Mes présences récentes</p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {presences.slice(0,10).map((p, i) => (
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📡 Distance parcourue</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <div style={{ background: '#EAF3DE', borderRadius: 12, padding: '12px 10px', textAlign: 'center' }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#3B6D11' }}>{distMoyEntrainement} <span style={{ fontSize: 12 }}>km</span></div>
+              <div style={{ fontSize: 10, color: '#3B6D11', marginTop: 2 }}>🏃 Moy. entraînement</div>
+            </div>
+            <div style={{ background: '#E6F1FB', borderRadius: 12, padding: '12px 10px', textAlign: 'center' }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: THEME.primary }}>{distMoyMatch} <span style={{ fontSize: 12 }}>km</span></div>
+              <div style={{ fontSize: 10, color: THEME.primary, marginTop: 2 }}>⚽ Moy. match</div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* PRÉSENCES ENTRAÎNEMENTS */}
+      {presencesEntrainement.length > 0 && (
+        <Card>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📅 Présences entraînements</p>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+            {presencesEntrainement.slice(0,10).map((p,i) => (
               <div key={i} style={{ textAlign: 'center' }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
@@ -219,52 +283,21 @@ export default function DashboardJoueurPage() {
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 10, paddingTop: 8, borderTop: '0.5px solid #F3F4F6', display: 'flex', gap: 12, fontSize: 11 }}>
-            <span style={{ color: '#3B6D11' }}>✅ {presences.filter(p => p.statut === 'present').length}</span>
-            <span style={{ color: '#A32D2D' }}>❌ {presences.filter(p => p.statut === 'absent').length}</span>
-            <span style={{ color: '#854F0B' }}>🤕 {presences.filter(p => p.statut === 'blesse').length}</span>
-            <span style={{ color: '#9CA3AF' }}>· {tauxPresence}% de présence</span>
+          <div style={{ display: 'flex', gap: 12, fontSize: 11, borderTop: '0.5px solid #F3F4F6', paddingTop: 8 }}>
+            <span style={{ color: '#3B6D11' }}>✅ {presentsEntrainement}</span>
+            <span style={{ color: '#A32D2D' }}>❌ {presencesEntrainement.filter(p => p.statut === 'absent').length}</span>
+            <span style={{ color: '#9CA3AF' }}>· {tauxPresenceEntrainement}% de présence</span>
           </div>
         </Card>
       )}
 
-      {/* FOOTBAR DERNIERS */}
-      {footHistory.length > 0 && (
-        <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📡 Mon Footbar — dernières données</p>
-          {footHistory.slice(0,3).map(f => (
-            <div key={f.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '0.5px solid #F3F4F6' }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', marginBottom: 6 }}>
-                {f.evenements?.titre} · {f.evenements?.date_heure ? format(parseISO(f.evenements.date_heure), 'd MMM', { locale: fr }) : ''}
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 4 }}>
-                {[
-                  ['Distance', f.distance_km ? `${f.distance_km}km` : '—'],
-                  ['V.max', f.sprint_max ? `${f.sprint_max}km/h` : '—'],
-                  ['Sprints', f.sprints ?? '—'],
-                  ['Ballons', f.ballons_touches ?? '—'],
-                ].map(([lbl, val]) => (
-                  <div key={lbl} style={{ background: '#F9FAFB', borderRadius: 8, padding: '5px 4px', textAlign: 'center' }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: THEME.primary }}>{val}</div>
-                    <div style={{ fontSize: 9, color: '#9CA3AF' }}>{lbl}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-          <button onClick={() => navigate('/mon-footbar')} style={{ width: '100%', padding: 8, background: 'transparent', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 12, color: THEME.primary, cursor: 'pointer', fontWeight: 500 }}>
-            Voir tout mon Footbar →
-          </button>
-        </Card>
-      )}
-
-      {/* OBJECTIFS EN COURS */}
+      {/* OBJECTIFS */}
       {objectifs.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>🎯 Mes objectifs en cours</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>🎯 Mes objectifs</p>
           {objectifs.slice(0,3).map(o => {
             const progress = o.valeur_cible && o.valeur_actuelle
-              ? Math.min(100, Math.round(o.valeur_actuelle / o.valeur_cible * 100))
+              ? Math.min(100, Math.round(o.valeur_actuelle/o.valeur_cible*100))
               : null
             return (
               <div key={o.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '0.5px solid #F3F4F6' }}>
@@ -277,85 +310,18 @@ export default function DashboardJoueurPage() {
                     <div style={{ height: '100%', borderRadius: 4, background: progress >= 100 ? '#3B6D11' : THEME.primary, width: `${progress}%` }} />
                   </div>
                 )}
-                {o.date_echeance && (
-                  <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 3 }}>
-                    Échéance : {format(parseISO(o.date_echeance), 'd MMM yyyy', { locale: fr })}
-                  </p>
-                )}
               </div>
             )
           })}
         </Card>
       )}
 
-      {/* STATS MATCH */}
-      {statsHistory.length > 0 && (
-        <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>⚽ Mes stats match</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 10 }}>
-            {[
-              ['Matchs joués', totalMatchs],
-              ['Buts', totalButs],
-              ['Passes déc.', totalPD],
-              ['Note moy.', statsHistory.length ? (statsHistory.reduce((s,r) => s+(r.note||0),0)/statsHistory.length).toFixed(1) : '—'],
-              ['Minutes', statsHistory.reduce((s,r) => s+(r.temps_jeu||0),0)],
-              ['Cartons 🟡', statsHistory.filter(s=>s.carton_jaune).length],
-            ].map(([lbl, val]) => (
-              <div key={lbl} style={{ background: '#F9FAFB', borderRadius: 10, padding: 8, textAlign: 'center' }}>
-                <div style={{ fontSize: 16, fontWeight: 700 }}>{val}</div>
-                <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 1 }}>{lbl}</div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* BLESSURES */}
-      {blessures.length > 0 && (
-        <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>🤕 Historique blessures</p>
-          {blessures.slice(0,3).map(b => (
-            <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-              <div>
-                <p style={{ fontSize: 12, fontWeight: 500 }}>{b.zone} · {b.type_blessure}</p>
-                <p style={{ fontSize: 10, color: '#9CA3AF' }}>
-                  {format(parseISO(b.date_debut), 'd MMM yyyy', { locale: fr })}
-                  {b.date_retour_effective ? ` → ${format(parseISO(b.date_retour_effective), 'd MMM', { locale: fr })}` : ' · En cours'}
-                </p>
-              </div>
-              <span style={{
-                fontSize: 10, padding: '2px 8px', borderRadius: 8, alignSelf: 'center',
-                background: b.date_retour_effective ? '#EAF3DE' : '#FCEBEB',
-                color: b.date_retour_effective ? '#3B6D11' : '#A32D2D'
-              }}>
-                {b.date_retour_effective ? 'Guéri' : 'En cours'}
-              </span>
-            </div>
-          ))}
-        </Card>
-      )}
-
-      {/* Raccourci RPE prominent */}
-      <div onClick={() => navigate('/mon-rpe')} style={{
-        background: THEME.gradient, borderRadius: 14, padding: '14px 16px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        cursor: 'pointer', marginTop: 4, marginBottom: 8
-      }}>
-        <div>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>❤️ Remplir mon RPE</p>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>
-            {eventsAFaire.length > 0 ? `${eventsAFaire.length} session(s) en attente` : 'À jour ✅'}
-          </p>
-        </div>
-        <span style={{ fontSize: 24, color: '#fff' }}>→</span>
-      </div>
-
       {/* Navigation rapide */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 4 }}>
         {[
-          { label: '📡 Footbar', path: '/mon-footbar' },
           { label: '📅 Agenda', path: '/calendrier' },
           { label: '👤 Ma fiche', path: '/ma-fiche' },
+          { label: '💬 Messages', path: '/messages' },
         ].map(item => (
           <button key={item.path} onClick={() => navigate(item.path)} style={{
             padding: 10, background: '#fff', border: '0.5px solid #E5E7EB',

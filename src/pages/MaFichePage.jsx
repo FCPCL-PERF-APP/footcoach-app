@@ -170,7 +170,6 @@ export default function MaFichePage() {
   const tabs = [
     { key: 'infos',  label: '👤 Mes infos' },
     { key: 'physio', label: '❤️ Physio & FC' },
-    { key: 'rpe',    label: '📊 Mon RPE' },
     { key: 'stats',  label: '⚽ Mes stats' },
     { key: 'poids',  label: '⚖️ Mon poids' },
     { key: 'compte', label: '🔐 Compte' },
