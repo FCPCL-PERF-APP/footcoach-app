@@ -88,11 +88,13 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  async function signOut() {
+ async function signOut() {
     await supabase.auth.signOut()
     setProfile(null)
     setNeedsOnboarding(false)
+    window.location.href = '/'
   }
+
 
   async function resetPassword(email) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
