@@ -266,23 +266,53 @@ export default function DashboardPage() {
           )}
 
           {/* ALERTES */}
-          {totalAlertes > 0 ? (
-            <div style={{ background: '#FDF1F1', border: '0.5px solid #FCA5A5', borderRadius: 14, padding: 12, marginBottom: 14 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D', marginBottom: 10 }}>🚨 {totalAlertes} point(s) à surveiller</p>
-              {alertesCollectives.length > 0 && <>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
-                {alertesCollectives.map((a, i) => <AlertCard key={`col-${i}`} {...a} navigate={navigate} />)}
-              </>}
-              {alertes.length > 0 && <>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollectives.length > 0 ? 10 : 0 }}>Individuel</p>
-                {alertes.map((a, i) => <AlertCard key={`ind-${i}`} {...a} navigate={navigate} />)}
-              </>}
-            </div>
-          ) : (
-            <div style={{ background: '#EAF3DE', border: '0.5px solid #3B6D11', borderRadius: 12, padding: 12, marginBottom: 14, textAlign: 'center' }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#3B6D11' }}>✅ Aucune alerte — tout va bien !</p>
-            </div>
-          )}
+          {(() => {
+            const alertesCollFiltrees = alertesCollectives.filter((a, i) => !alertesTraitees.includes(`col-${i}-${a.title}`))
+            const alertesFiltrees = alertes.filter((a, i) => !alertesTraitees.includes(`ind-${i}-${a.title}`))
+            const totalVisible = alertesCollFiltrees.length + alertesFiltrees.length
+
+            return totalVisible > 0 ? (
+              <div style={{ background: '#FDF1F1', border: '0.5px solid #FCA5A5', borderRadius: 14, padding: 12, marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D' }}>🚨 {totalVisible} point(s) à surveiller</p>
+                  {alertesTraitees.length > 0 && (
+                    <button onClick={resetAlertes}
+                      style={{ fontSize: 10, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                      Tout réafficher
+                    </button>
+                  )}
+                </div>
+                {alertesCollFiltrees.length > 0 && <>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
+                  {alertesCollectives.map((a, i) => {
+                    const key = `col-${i}-${a.title}`
+                    if (alertesTraitees.includes(key)) return null
+                    return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
+                  })}
+                </>}
+                {alertesFiltrees.length > 0 && <>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
+                  {alertes.map((a, i) => {
+                    const key = `ind-${i}-${a.title}`
+                    if (alertesTraitees.includes(key)) return null
+                    return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
+                  })}
+                </>}
+              </div>
+            ) : (
+              <div style={{ background: '#EAF3DE', border: '0.5px solid #3B6D11', borderRadius: 12, padding: 12, marginBottom: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#3B6D11' }}>✅ Aucune alerte — tout va bien !</p>
+                  {alertesTraitees.length > 0 && (
+                    <button onClick={resetAlertes}
+                      style={{ fontSize: 10, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                      Voir alertes traitées
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Métriques */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 12 }}>
