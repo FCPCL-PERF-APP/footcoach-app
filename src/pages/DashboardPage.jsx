@@ -208,6 +208,23 @@ export default function DashboardPage() {
 
       {loading ? <Spinner /> : (
         <>
+          {/* STAT RPE MANQUANTS */}
+          {nbAlertes > 0 && (
+            <div onClick={() => navigate('/rpe')} style={{
+              background: '#FDF1F1', border: '0.5px solid #FCA5A5',
+              borderRadius: 12, padding: '10px 14px', marginBottom: 12,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer'
+            }}>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D' }}>
+                  ⚠️ {nbAlertes} point(s) à surveiller cette semaine
+                </p>
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>Dont joueurs sans RPE et surcharges</p>
+              </div>
+              <span style={{ color: '#A32D2D', fontSize: 18 }}>→</span>
+            </div>
+          )}
+
           {/* RACCOURCIS RAPIDES */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 14 }}>
             {[
