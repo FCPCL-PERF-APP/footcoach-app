@@ -62,15 +62,15 @@ export default function StaffPage() {
     // 2. Envoie l'invitation email
     setInviting(true)
     try {
-      const res = await fetch('/api/invite-joueur', {
+      const res = await fetch('/api/invite-staff', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: form.email,
-          joueurId: newStaff.id,
+          staffId: newStaff.id,
           nom: form.nom,
           prenom: form.prenom,
-          type: 'staff'
+          role: form.role
         })
       })
       const data = await res.json()
@@ -88,6 +88,21 @@ export default function StaffPage() {
     setForm({ nom: '', prenom: '', email: '', role: 'adjoint', telephone: '', diplome: '' })
     setShowAdd(false)
     loadStaff()
+  }
+
+  async function renvoyerInvitation(s) {
+    try {
+      const res = await fetch('/api/invite-staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: s.email, staffId: s.id, nom: s.nom, prenom: s.prenom, role: s.role })
+      })
+      const data = await res.json()
+      if (data.success) alert(`✅ Invitation renvoyée à ${s.email}`)
+      else alert(`❌ Erreur : ${data.error}`)
+    } catch (err) {
+      alert('Erreur réseau.')
+    }
   }
 
   async function updateRole(staffId, newRole) {
@@ -206,9 +221,17 @@ export default function StaffPage() {
                   {s.email && <p style={{ fontSize: 11, color: '#6B7280' }}>📧 {s.email}</p>}
                   {s.telephone && <p style={{ fontSize: 11, color: '#6B7280' }}>📱 {s.telephone}</p>}
                   {s.diplome && <p style={{ fontSize: 11, color: '#6B7280' }}>🎓 {s.diplome}</p>}
-                  <p style={{ fontSize: 10, color: s.auth_id ? '#3B6D11' : '#9CA3AF', marginTop: 4 }}>
-                    {s.auth_id ? '✅ Compte actif' : '⏳ Invitation en attente'}
-                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                    <p style={{ fontSize: 10, color: s.auth_id ? '#3B6D11' : '#9CA3AF' }}>
+                      {s.auth_id ? '✅ Compte actif' : '⏳ Invitation en attente'}
+                    </p>
+                    {!s.auth_id && isCoach && (
+                      <button onClick={() => renvoyerInvitation(s)}
+                        style={{ fontSize: 10, color: '#185FA5', background: '#E6F1FB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
+                        📧 Renvoyer l'invitation
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Modifier le rôle */}

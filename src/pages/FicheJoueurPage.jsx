@@ -272,10 +272,12 @@ export default function FicheJoueurPage() {
               <p style={{ fontSize: 12, fontWeight: 600, color: '#854F0B' }}>📧 Joueur sans accès à l'app</p>
               <p style={{ fontSize: 11, color: '#9CA3AF' }}>Inviter par email pour créer son compte</p>
             </div>
-            <button onClick={() => setShowInvite(!showInvite)}
-              style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#854F0B', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
-              {showInvite ? '✕' : '📧 Inviter'}
-            </button>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => setShowInvite(!showInvite)}
+                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#854F0B', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
+                {showInvite ? '✕' : '📧 Inviter'}
+              </button>
+            </div>
           </div>
           {showInvite && (
             <div style={{ marginTop: 10 }}>
@@ -299,8 +301,18 @@ export default function FicheJoueurPage() {
       )}
 
       {isCoach && joueur.auth_id && (
-        <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: '#3B6D11' }}>
-          ✅ Compte actif — joueur connecté à l'app
+        <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: '#3B6D11', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>✅ Compte actif — joueur connecté à l'app</span>
+        </div>
+      )}
+
+      {isCoach && !joueur.auth_id && joueur.email && !showInvite && inviteResult?.success && (
+        <div style={{ background: '#E6F1FB', borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: '#185FA5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>📧 Invitation envoyée — lien valable 24h</span>
+          <button onClick={() => { setShowInvite(true); setInviteResult(null) }}
+            style={{ fontSize: 10, color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
+            Renvoyer
+          </button>
         </div>
       )}
 
@@ -338,10 +350,6 @@ export default function FicheJoueurPage() {
             style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', color: '#6B7280', fontSize: 11, cursor: 'pointer' }}>
             🎯 Objectifs · {objectifs.filter(o => o.statut === 'en_cours').length} en cours
           </button>
-<button onClick={() => navigate(`/joueurs/${id}/radar`)}
-  style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', color: '#6B7280', fontSize: 11, cursor: 'pointer' }}>
-  🕸️ Radar RPE
-</button>
         </div>
       )}
 

@@ -335,17 +335,31 @@ export default function DashboardJoueurPage() {
         </Card>
       )}
 
+      {/* Raccourci RPE prominent */}
+      <div onClick={() => navigate('/mon-rpe')} style={{
+        background: THEME.gradient, borderRadius: 14, padding: '14px 16px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        cursor: 'pointer', marginTop: 4, marginBottom: 8
+      }}>
+        <div>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>❤️ Remplir mon RPE</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>
+            {eventsAFaire.length > 0 ? `${eventsAFaire.length} session(s) en attente` : 'À jour ✅'}
+          </p>
+        </div>
+        <span style={{ fontSize: 24, color: '#fff' }}>→</span>
+      </div>
+
       {/* Navigation rapide */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 4 }}>
         {[
-          { label: '❤️ Mon RPE', path: '/mon-rpe' },
-          { label: '📡 Mon Footbar', path: '/mon-footbar' },
+          { label: '📡 Footbar', path: '/mon-footbar' },
           { label: '📅 Agenda', path: '/calendrier' },
           { label: '👤 Ma fiche', path: '/ma-fiche' },
         ].map(item => (
           <button key={item.path} onClick={() => navigate(item.path)} style={{
-            padding: 12, background: '#fff', border: '0.5px solid #E5E7EB',
-            borderRadius: 12, fontSize: 13, color: THEME.primary,
+            padding: 10, background: '#fff', border: '0.5px solid #E5E7EB',
+            borderRadius: 12, fontSize: 12, color: THEME.primary,
             fontWeight: 500, cursor: 'pointer', textAlign: 'center'
           }}>{item.label}</button>
         ))}
