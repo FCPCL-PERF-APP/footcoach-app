@@ -367,6 +367,9 @@ function JoueurEventActions({ ev, navigate, profile }) {
     { key: 'blesse',  label: '🤕 Blessé',   bg: '#FAEEDA', color: '#854F0B', border: '#854F0B' },
   ]
 
+  const estBlesse = statut === 'blesse'
+  const isMatch = ev.type === 'match'
+
   return (
     <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid #F3F4F6' }}>
       <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>Ma présence :</p>
@@ -384,16 +387,36 @@ function JoueurEventActions({ ev, navigate, profile }) {
           ))}
         </div>
       )}
-      <div style={{ display: 'flex', gap: 6 }}>
-        <button onClick={() => navigate(`/mon-rpe?event=${ev.id}`)}
-          style={{ flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
-          ❤️ Mon RPE
-        </button>
-        <button onClick={() => navigate(`/mon-footbar?event=${ev.id}`)}
-          style={{ flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
-          📡 Footbar
-        </button>
-      </div>
+
+      {/* Si blessé — message d'info */}
+      {estBlesse && (
+        <div style={{ background: '#FAEEDA', borderRadius: 8, padding: '7px 10px', marginBottom: 8 }}>
+          <p style={{ fontSize: 11, color: '#854F0B' }}>🤕 Tu es blessé — RPE et Footbar ne sont pas requis.</p>
+        </div>
+      )}
+
+      {/* Boutons RPE et Footbar — masqués si blessé */}
+      {!estBlesse && (
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => navigate(`/mon-rpe?event=${ev.id}`)}
+            style={{ flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
+            ❤️ Mon RPE
+          </button>
+          <button onClick={() => navigate(`/mon-footbar?event=${ev.id}`)}
+            style={{
+              flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+              border: `0.5px solid ${isMatch ? '#1A3A6B' : '#D1D5DB'}`,
+              background: isMatch ? '#E6F1FB' : 'transparent',
+              color: isMatch ? '#1A3A6B' : '#9CA3AF',
+              fontWeight: isMatch ? 600 : 400
+            }}>
+            📡 Footbar{isMatch ? ' *' : ' (optionnel)'}
+          </button>
+        </div>
+      )}
+      {!estBlesse && isMatch && (
+        <p style={{ fontSize: 9, color: '#9CA3AF', marginTop: 4 }}>* Footbar recommandé pour les matchs</p>
+      )}
     </div>
   )
 }
