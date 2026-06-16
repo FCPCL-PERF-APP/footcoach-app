@@ -14,9 +14,9 @@ export default function CalendrierPage() {
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [showRecurring, setShowRecurring] = useState(false)
-  const [filter, setFilter] = useState('tous')
-  const [filterGroupe, setFilterGroupe] = useState('tous')
-  const [groupes, setGroupes] = useState([])
+  const [filterType, setFilterType] = useState('tous')
+  const [filterPeriode, setFilterPeriode] = useState('avenir')
+  const [selectedPastEvent, setSelectedPastEvent] = useState('')
   const [editingEvent, setEditingEvent] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [form, setForm] = useState({
@@ -24,16 +24,8 @@ export default function CalendrierPage() {
     lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: ''
   })
   const [saving, setSaving] = useState(false)
-  const [showAllPast, setShowAllPast] = useState(false)
-  const NB_PAST_VISIBLE = 5
 
-  useEffect(() => { loadEvents(); loadGroupes() }, [])
-
-  async function loadGroupes() {
-    const { data } = await supabase.from('joueurs').select('groupe').not('groupe', 'is', null)
-    const gs = [...new Set((data || []).map(j => j.groupe).filter(Boolean))].sort()
-    setGroupes(gs)
-  }
+  useEffect(() => { loadEvents() }, [])
 
   async function loadEvents() {
     setLoading(true)
@@ -75,17 +67,25 @@ export default function CalendrierPage() {
 
   async function deleteEvent(ev) {
     await supabase.from('evenements').delete().eq('id', ev.id)
-    setDeleteConfirm(null)
-    loadEvents()
+    setDeleteConfirm(null); loadEvents()
   }
 
-  const filtered = events.filter(e => {
-    const matchType = filter === 'tous' || e.type === filter
-    const matchGroupe = filterGroupe === 'tous' || !e.groupe || e.groupe === filterGroupe
-    return matchType && matchGroupe
-  })
+  const filtered = events.filter(e => filterType === 'tous' || e.type === filterType)
   const upcoming = filtered.filter(e => isAfter(parseISO(e.date_heure), new Date()))
   const past = filtered.filter(e => isBefore(parseISO(e.date_heure), new Date())).reverse()
+
+  // Initialiser l'événement passé sélectionné
+  useEffect(() => {
+    if (past.length > 0 && !selectedPastEvent) setSelectedPastEvent(past[0].id)
+  }, [past.length])
+
+  const selectedPastEventData = past.find(e => e.id === selectedPastEvent)
+
+  function formatEventLabel(ev) {
+    if (!ev) return ''
+    const dateStr = ev.date_heure ? format(parseISO(ev.date_heure), 'd MMM yyyy', { locale: fr }) : ''
+    return `${ev.type === 'match' ? '⚽' : '🏃'} ${ev.titre} — ${dateStr}`
+  }
 
   return (
     <div style={{ padding: 12 }}>
@@ -94,9 +94,7 @@ export default function CalendrierPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
             <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Supprimer cet événement ?</p>
-            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}>
-              <strong>{deleteConfirm.titre}</strong> sera définitivement supprimé avec toutes ses données.
-            </p>
+            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}><strong>{deleteConfirm.titre}</strong> sera définitivement supprimé.</p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: 10, border: '0.5px solid #D1D5DB', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
               <button onClick={() => deleteEvent(deleteConfirm)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: '#A32D2D', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
@@ -106,44 +104,44 @@ export default function CalendrierPage() {
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600 }}>Calendrier</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600 }}>Agenda</h1>
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => navigate('/calendrier-visuel')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📅 Vue mois</button>
           {isCoach && <button onClick={() => setShowRecurring(!showRecurring)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>🔁</button>}
-          {isCoach && <button onClick={() => { setEditingEvent(null); setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '' }); setShowAdd(!showAdd) }}
+          {isCoach && <button onClick={() => { setEditingEvent(null); setShowAdd(!showAdd) }}
             style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
             {showAdd && !editingEvent ? '✕' : '+ Ajouter'}
           </button>}
         </div>
       </div>
 
+      {/* Filtres type */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
         {['tous','match','seance'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{
+          <button key={f} onClick={() => setFilterType(f)} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: filter === f ? '#E6F1FB' : 'transparent',
-            color: filter === f ? THEME.primary : '#6B7280',
-            fontWeight: filter === f ? 600 : 400
-          }}>{f === 'tous' ? 'Tous' : f === 'match' ? 'Matchs' : 'Séances'}</button>
+            background: filterType === f ? '#E6F1FB' : 'transparent',
+            color: filterType === f ? THEME.primary : '#6B7280',
+            fontWeight: filterType === f ? 600 : 400
+          }}>{f === 'tous' ? 'Tous' : f === 'match' ? '⚽ Matchs' : '🏃 Séances'}</button>
         ))}
       </div>
 
-      {groupes.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>
-          {['tous', ...groupes].map(g => (
-            <button key={g} onClick={() => setFilterGroupe(g)} style={{
-              padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-              border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-              background: filterGroupe === g ? '#FAEEDA' : 'transparent',
-              color: filterGroupe === g ? '#854F0B' : '#6B7280',
-              fontWeight: filterGroupe === g ? 600 : 400
-            }}>{g === 'tous' ? '🏷️ Tous les groupes' : `Pôle ${g}`}</button>
-          ))}
-        </div>
-      )}
+      {/* Filtres période */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        {[['avenir','📅 À venir'],['passes','⏮️ Passés']].map(([p, lbl]) => (
+          <button key={p} onClick={() => setFilterPeriode(p)} style={{
+            padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+            border: `0.5px solid ${filterPeriode === p ? THEME.primary : '#D1D5DB'}`,
+            background: filterPeriode === p ? '#E6F1FB' : 'transparent',
+            color: filterPeriode === p ? THEME.primary : '#6B7280',
+            fontWeight: filterPeriode === p ? 600 : 400
+          }}>{lbl} ({p === 'avenir' ? upcoming.length : past.length})</button>
+        ))}
+      </div>
 
-      {/* Formulaire ajout/modification */}
+      {/* Formulaire coach */}
       {showAdd && isCoach && (
         <Card>
           <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
@@ -184,35 +182,41 @@ export default function CalendrierPage() {
 
       {loading ? <Spinner /> : (
         <>
-          {upcoming.length > 0 && (
-            <>
-              <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>À venir</p>
-              {upcoming.map(ev => <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} />)}
-            </>
+          {/* À VENIR — liste ordonnée */}
+          {filterPeriode === 'avenir' && (
+            upcoming.length === 0 ? (
+              <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucun événement à venir.{isCoach && ' Clique sur "+ Ajouter".'}</p></Card>
+            ) : (
+              upcoming.map(ev => (
+                <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur}
+                  navigate={navigate} profile={profile}
+                  onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} />
+              ))
+            )
           )}
-          {past.length > 0 && (
-            <>
-              <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', margin: '14px 0 8px' }}>
-                Passés ({past.length})
-              </p>
-              {(showAllPast ? past : past.slice(0, NB_PAST_VISIBLE)).map(ev => (
-                <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur} navigate={navigate} profile={profile} onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} past />
-              ))}
-              {past.length > NB_PAST_VISIBLE && (
-                <button onClick={() => setShowAllPast(!showAllPast)} style={{
-                  width: '100%', padding: '10px', marginTop: 4,
-                  background: 'transparent', border: '0.5px solid #E5E7EB',
-                  borderRadius: 10, fontSize: 12, color: '#9CA3AF', cursor: 'pointer'
-                }}>
-                  {showAllPast ? `▲ Réduire` : `▼ Voir ${past.length - NB_PAST_VISIBLE} événement(s) de plus`}
-                </button>
-              )}
-            </>
-          )}
-          {filtered.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 40, color: '#9CA3AF', fontSize: 13 }}>
-              Aucun événement.{isCoach && ' Clique sur "+ Ajouter".'}
-            </div>
+
+          {/* PASSÉS — menu déroulant */}
+          {filterPeriode === 'passes' && (
+            past.length === 0 ? (
+              <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucun événement passé.</p></Card>
+            ) : (
+              <>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Choisir un événement</label>
+                  <select value={selectedPastEvent} onChange={e => setSelectedPastEvent(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+                    {past.map(ev => (
+                      <option key={ev.id} value={ev.id}>{formatEventLabel(ev)}</option>
+                    ))}
+                  </select>
+                </div>
+                {selectedPastEventData && (
+                  <EventCard ev={selectedPastEventData} isCoach={isCoach} isJoueur={isJoueur}
+                    navigate={navigate} profile={profile}
+                    onEdit={startEdit} onDelete={() => setDeleteConfirm(selectedPastEventData)} past />
+                )}
+              </>
+            )
           )}
         </>
       )}
@@ -222,32 +226,50 @@ export default function CalendrierPage() {
 
 function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onEdit, onDelete }) {
   const [presenceCount, setPresenceCount] = useState(null)
-  const [presenceDetail, setPresenceDetail] = useState(null)
-  const [showPresences, setShowPresences] = useState(false)
+  const [convoque, setConvoque] = useState(null)
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
-  useEffect(() => { if (isCoach) loadPresenceCount() }, [ev.id])
+  useEffect(() => {
+    if (isCoach) loadPresenceCount()
+    if (isJoueur && profile?.id) checkConvocation()
+  }, [ev.id])
 
   async function loadPresenceCount() {
-    const { data } = await supabase.from('presences').select('statut, joueurs(id,nom,prenom,poste,photo_url)').eq('evenement_id', ev.id)
-    if (data) {
-      setPresenceCount({
-        present: data.filter(p => p.statut === 'present').length,
-        absent: data.filter(p => p.statut === 'absent').length,
-        blesse: data.filter(p => p.statut === 'blesse').length,
-        total: data.length
-      })
-      setPresenceDetail(data)
-    }
+    const { data } = await supabase.from('presences').select('statut, joueurs(nom,prenom,photo_url)').eq('evenement_id', ev.id)
+    if (data) setPresenceCount({
+      present: data.filter(p => p.statut === 'present').length,
+      absent: data.filter(p => p.statut === 'absent').length,
+      blesse: data.filter(p => p.statut === 'blesse').length,
+      exterieur: data.filter(p => p.statut === 'exterieur').length,
+      total: data.length,
+      detail: data
+    })
+  }
+
+  async function checkConvocation() {
+    if (ev.type !== 'match') { setConvoque(null); return }
+    const { data } = await supabase.from('convocations').select('convoque')
+      .eq('evenement_id', ev.id).eq('joueur_id', profile.id).maybeSingle()
+    setConvoque(data?.convoque || false)
   }
 
   return (
-    <Card style={{ opacity: past ? 0.75 : 1, marginBottom: 10 }}>
+    <Card style={{ opacity: past ? 0.85 : 1, marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, flexWrap: 'wrap' }}>
           <Badge type={ev.type}>{ev.type === 'match' ? '⚽ Match' : '🏃 Séance'}</Badge>
           <span style={{ fontSize: 13, fontWeight: 600 }}>{ev.titre}</span>
+          {/* Badge convocation joueur */}
+          {isJoueur && ev.type === 'match' && convoque !== null && (
+            <span style={{
+              fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+              background: convoque ? '#E6F1FB' : '#F3F4F6',
+              color: convoque ? '#185FA5' : '#9CA3AF'
+            }}>
+              {convoque ? '📢 Convoqué' : '⏳ Non convoqué'}
+            </span>
+          )}
         </div>
         {isCoach && (
           <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
@@ -256,6 +278,7 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
           </div>
         )}
       </div>
+
       <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>
         📅 {dateStr}{ev.type === 'match' ? (ev.domicile ? ' · Domicile' : ' · Déplacement') : ''}
       </p>
@@ -266,43 +289,14 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
         </p>
       )}
 
-      {/* Résumé présences cliquable */}
+      {/* Résumé présences coach */}
       {isCoach && presenceCount !== null && presenceCount.total > 0 && (
-        <div style={{ marginBottom: 8 }}>
-          <div onClick={() => setShowPresences(!showPresences)}
-            style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 10px', background: '#F9FAFB', borderRadius: showPresences ? '8px 8px 0 0' : 8, cursor: 'pointer', border: showPresences ? '0.5px solid #E5E7EB' : 'none' }}>
-            <span style={{ fontSize: 11, color: '#3B6D11' }}>✅ {presenceCount.present}</span>
-            <span style={{ fontSize: 11, color: '#A32D2D' }}>❌ {presenceCount.absent}</span>
-            <span style={{ fontSize: 11, color: '#854F0B' }}>🤕 {presenceCount.blesse}</span>
-            <span style={{ fontSize: 11, color: '#9CA3AF' }}>· {presenceCount.total} réponse(s)</span>
-            <span style={{ marginLeft: 'auto', fontSize: 10, color: '#9CA3AF' }}>{showPresences ? '▲' : '▼'} Détail</span>
-          </div>
-          {showPresences && presenceDetail && (
-            <div style={{ background: '#F9FAFB', border: '0.5px solid #E5E7EB', borderTop: 'none', borderRadius: '0 0 8px 8px', padding: '8px 10px' }}>
-              {['present','absent','blesse'].map(statut => {
-                const joueurs = presenceDetail.filter(p => p.statut === statut && p.joueurs)
-                if (!joueurs.length) return null
-                const cfg = { present: { label: '✅ Présents', color: '#3B6D11', bg: '#EAF3DE' }, absent: { label: '❌ Absents', color: '#A32D2D', bg: '#FCEBEB' }, blesse: { label: '🤕 Blessés', color: '#854F0B', bg: '#FAEEDA' } }[statut]
-                return (
-                  <div key={statut} style={{ marginBottom: 8 }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: cfg.color, marginBottom: 4 }}>{cfg.label} ({joueurs.length})</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                      {joueurs.map(p => (
-                        <span key={p.joueurs.id} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: cfg.bg, color: cfg.color }}>
-                          {p.joueurs.prenom} {p.joueurs.nom}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-              {presenceDetail.filter(p => p.statut === 'inconnu').length > 0 && (
-                <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', marginBottom: 4 }}>❓ Sans réponse ({presenceDetail.filter(p => p.statut === 'inconnu').length})</p>
-                </div>
-              )}
-            </div>
-          )}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, padding: '6px 10px', background: '#F9FAFB', borderRadius: 8, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 11, color: '#3B6D11' }}>✅ {presenceCount.present}</span>
+          <span style={{ fontSize: 11, color: '#A32D2D' }}>❌ {presenceCount.absent}</span>
+          <span style={{ fontSize: 11, color: '#854F0B' }}>🤕 {presenceCount.blesse}</span>
+          {presenceCount.exterieur > 0 && <span style={{ fontSize: 11, color: '#185FA5' }}>🔄 {presenceCount.exterieur}</span>}
+          <span style={{ fontSize: 11, color: '#9CA3AF' }}>· {presenceCount.total} réponse(s)</span>
         </div>
       )}
 
@@ -317,21 +311,13 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
         </div>
       )}
 
-      {/* Boutons JOUEUR */}
-      {isJoueur && <JoueurEventActions ev={ev} navigate={navigate} profile={profile} />}
-
-      {isCoach && (
-        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #F3F4F6' }}>
-          <span style={{ fontSize: 10, color: '#9CA3AF' }}>
-            📱 Notif J-2 {past ? '✅' : '⏳'} · Notif J-1 {past ? '✅' : '⏳'} · RPE {past ? '✅' : '⏳'}
-          </span>
-        </div>
-      )}
+      {/* Actions JOUEUR */}
+      {isJoueur && <JoueurEventActions ev={ev} navigate={navigate} profile={profile} convoque={convoque} />}
     </Card>
   )
 }
 
-function JoueurEventActions({ ev, navigate, profile }) {
+function JoueurEventActions({ ev, navigate, profile, convoque }) {
   const [statut, setStatut] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -361,61 +347,98 @@ function JoueurEventActions({ ev, navigate, profile }) {
     setSaving(false)
   }
 
-  const STATUTS = [
+  const isMatch = ev.type === 'match'
+
+  // Statuts selon le type d'événement
+  const STATUTS_SEANCE = [
+    { key: 'present',   label: '✅ Présent',   bg: '#EAF3DE', color: '#3B6D11', border: '#3B6D11' },
+    { key: 'exterieur', label: '🔄 Extérieur', bg: '#E6F1FB', color: '#185FA5', border: '#185FA5' },
+    { key: 'absent',    label: '❌ Absent',    bg: '#FCEBEB', color: '#A32D2D', border: '#A32D2D' },
+    { key: 'blesse',    label: '🤕 Blessé',    bg: '#FAEEDA', color: '#854F0B', border: '#854F0B' },
+  ]
+  const STATUTS_MATCH = [
     { key: 'present', label: '✅ Présent',  bg: '#EAF3DE', color: '#3B6D11', border: '#3B6D11' },
     { key: 'absent',  label: '❌ Absent',   bg: '#FCEBEB', color: '#A32D2D', border: '#A32D2D' },
     { key: 'blesse',  label: '🤕 Blessé',   bg: '#FAEEDA', color: '#854F0B', border: '#854F0B' },
   ]
 
-  const estBlesse = statut === 'blesse'
-  const isMatch = ev.type === 'match'
+  const STATUTS = isMatch ? STATUTS_MATCH : STATUTS_SEANCE
+
+  // Le joueur peut remplir RPE/Footbar si présent ou extérieur
+  const peutRemplir = statut === 'present' || statut === 'exterieur'
+  const estEmpêche = statut === 'absent' || statut === 'blesse'
+
+  // Si c'est un match et pas convoqué → message informatif
+  if (isMatch && convoque === false) {
+    return (
+      <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid #F3F4F6' }}>
+        <div style={{ background: '#F3F4F6', borderRadius: 8, padding: '7px 10px', fontSize: 11, color: '#9CA3AF', textAlign: 'center' }}>
+          ⏳ Tu n'es pas convoqué pour ce match
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid #F3F4F6' }}>
-      <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>Ma présence :</p>
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>
+        {isMatch ? 'Ma présence au match :' : 'Ma présence à l\'entraînement :'}
+      </p>
+
       {loading ? <p style={{ fontSize: 11, color: '#9CA3AF' }}>Chargement...</p> : (
-        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        <div style={{ display: 'flex', gap: 5, marginBottom: 10, flexWrap: isMatch ? 'nowrap' : 'wrap' }}>
           {STATUTS.map(s => (
             <button key={s.key} onClick={() => handleStatut(s.key)} disabled={saving} style={{
-              flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11,
+              flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: isMatch ? 10 : 11,
               border: `1.5px solid ${statut === s.key ? s.border : '#E5E7EB'}`,
               background: statut === s.key ? s.bg : 'transparent',
               color: statut === s.key ? s.color : '#9CA3AF',
               fontWeight: statut === s.key ? 600 : 400,
-              cursor: saving ? 'not-allowed' : 'pointer', transition: 'all .15s'
+              cursor: saving ? 'not-allowed' : 'pointer', transition: 'all .15s',
+              whiteSpace: 'nowrap'
             }}>{s.label}</button>
           ))}
         </div>
       )}
 
-      {/* Si blessé — message d'info */}
-      {estBlesse && (
-        <div style={{ background: '#FAEEDA', borderRadius: 8, padding: '7px 10px', marginBottom: 8 }}>
-          <p style={{ fontSize: 11, color: '#854F0B' }}>🤕 Tu es blessé — RPE et Footbar ne sont pas requis.</p>
+      {/* Extérieur info */}
+      {statut === 'exterieur' && (
+        <div style={{ background: '#E6F1FB', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: '#185FA5' }}>
+          🔄 Entraînement extérieur — RPE et Footbar disponibles
         </div>
       )}
 
-      {/* Boutons RPE et Footbar — masqués si blessé */}
-      {!estBlesse && (
+      {/* Bloqué si absent/blessé */}
+      {estEmpêche && (
+        <div style={{ background: statut === 'blesse' ? '#FAEEDA' : '#FCEBEB', borderRadius: 8, padding: '7px 10px', fontSize: 11,
+          color: statut === 'blesse' ? '#854F0B' : '#A32D2D' }}>
+          {statut === 'blesse' ? '🤕 Tu es blessé — pas de RPE ni Footbar requis.' : '❌ Tu es absent — pas de RPE ni Footbar requis.'}
+        </div>
+      )}
+
+      {/* Boutons RPE + Footbar si présent ou extérieur */}
+      {peutRemplir && (
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => navigate(`/mon-rpe?event=${ev.id}`)}
-            style={{ flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
+            style={{ flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
             ❤️ Mon RPE
           </button>
           <button onClick={() => navigate(`/mon-footbar?event=${ev.id}`)}
-            style={{
-              flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+            style={{ flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: 11,
               border: `0.5px solid ${isMatch ? '#1A3A6B' : '#D1D5DB'}`,
               background: isMatch ? '#E6F1FB' : 'transparent',
-              color: isMatch ? '#1A3A6B' : '#9CA3AF',
-              fontWeight: isMatch ? 600 : 400
-            }}>
-            📡 Footbar{isMatch ? ' *' : ' (optionnel)'}
+              color: isMatch ? '#1A3A6B' : '#9CA3AF', cursor: 'pointer',
+              fontWeight: isMatch ? 600 : 400 }}>
+            📡 Footbar{isMatch ? '' : ' (opt.)'}
           </button>
         </div>
       )}
-      {!estBlesse && isMatch && (
-        <p style={{ fontSize: 9, color: '#9CA3AF', marginTop: 4 }}>* Footbar recommandé pour les matchs</p>
+
+      {/* Pas encore répondu */}
+      {!statut && !loading && (
+        <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', marginTop: 4 }}>
+          Indique ta présence pour accéder au RPE et Footbar
+        </p>
       )}
     </div>
   )
