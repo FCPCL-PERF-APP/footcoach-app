@@ -242,10 +242,10 @@ export default function DashboardPage() {
           {/* RACCOURCIS RAPIDES */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 14 }}>
             {[
-              { icon: '📅', label: 'Ajouter événement', action: () => navigate('/calendrier') },
-              { icon: '📢', label: 'Convoquer', action: () => navigate('/calendrier') },
+              { icon: '📅', label: 'Agenda', action: () => navigate('/calendrier') },
               { icon: '👥', label: 'Joueurs', action: () => navigate('/joueurs') },
-              { icon: '📊', label: 'Stats match', action: () => navigate('/calendrier') },
+              { icon: '📊', label: 'Stats matchs', action: () => navigate('/stats-matchs') },
+              { icon: '❤️', label: 'RPE équipe', action: () => navigate('/rpe') },
             ].map(({ icon, label, action }) => (
               <button key={label} onClick={action} style={{
                 background: '#fff', border: '0.5px solid #E5E7EB',
