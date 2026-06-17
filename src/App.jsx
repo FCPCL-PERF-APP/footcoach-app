@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
-import { usePushNotifications } from './hooks/usePush'
+import { usePush } from './hooks/usePush'
 import { Spinner } from './components/UI'
 import BottomNav from './components/BottomNav'
 import AppHeader from './components/AppHeader'
@@ -51,7 +51,7 @@ import SondagePage from './pages/SondagePage'
 function AppContent() {
   const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
-  usePushNotifications(user, profile)
+  usePush(user, profile)
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: THEME.gradient }}>
