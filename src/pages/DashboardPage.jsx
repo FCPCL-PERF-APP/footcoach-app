@@ -359,7 +359,7 @@ export default function DashboardPage() {
               { label: 'RPE moyen équipe', value: `${metrics.rpeMoy}/5`, sub: 'Toutes sessions', color: rpeColor(parseFloat(metrics.rpeMoy)) },
               { label: 'Présence moy.', value: `${metrics.presence}%`, sub: 'Ce mois', color: metrics.presence >= 80 ? '#3B6D11' : '#D85A30' },
               { label: 'Dist. moy. match', value: `${metrics.distMoy} km`, sub: 'Footbar', color: THEME.primary },
-              { label: 'Buts / match', value: metrics.butsMoy, sub: 'Saison', color: THEME.primary },
+              { label: 'Buts / match', value: metrics.butsMoy, sub: '2026/2027', color: THEME.primary },
             ].map(m => (
               <div key={m.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 12 }}>
                 <div style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 4 }}>{m.label}</div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { THEME } from '../theme'
 
@@ -74,8 +75,16 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={handleReset}>
             {resetSent ? (
-              <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, fontSize: 13, color: '#3B6D11', marginBottom: 12 }}>
-                ✅ Email envoyé ! Vérifie ta boîte mail.
+              <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11', marginBottom: 6 }}>✅ Email envoyé !</p>
+                <p style={{ fontSize: 12, color: '#3B6D11', marginBottom: 8 }}>Vérifie ta boîte mail (et les spams) — le lien est valable 24h.</p>
+                <p style={{ fontSize: 11, color: '#6B7280' }}>
+                  📱 Ouvre le lien depuis Safari sur ton iPhone pour créer ton nouveau mot de passe.
+                </p>
+                <div style={{ marginTop: 10, padding: '8px 10px', background: '#FAEEDA', borderRadius: 8 }}>
+                  <p style={{ fontSize: 11, color: '#854F0B', fontWeight: 600 }}>Email non reçu après 5 minutes ?</p>
+                  <p style={{ fontSize: 11, color: '#854F0B' }}>Contacte ton coach directement — il peut te renvoyer un lien depuis l'app.</p>
+                </div>
               </div>
             ) : (
               <>

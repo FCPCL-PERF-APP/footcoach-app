@@ -56,7 +56,7 @@ export default function AppHeader() {
         <div>
           <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{title}</p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>
-            FC PCL · {profile?.role || 'joueur'}
+            FC PCL · Saison 2026/2027
           </p>
         </div>
       </div>

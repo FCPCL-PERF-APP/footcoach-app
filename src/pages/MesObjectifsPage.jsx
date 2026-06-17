@@ -177,7 +177,7 @@ export default function MesObjectifsPage() {
           {/* Objectifs personnels */}
           <Card>
             <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>🏆 Mes objectifs personnels</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>3 objectifs pour cette saison</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>3 objectifs pour la saison 2026/2027</p>
             {[1,2,3].map(i => (
               <div key={i} style={{ marginBottom: 10 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Objectif {i}</label>
@@ -192,7 +192,7 @@ export default function MesObjectifsPage() {
           {/* Objectifs collectifs */}
           <Card>
             <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>⚽ Mes objectifs collectifs</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>3 objectifs d'équipe pour cette saison</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>3 objectifs d'équipe pour la saison 2026/2027</p>
             {[1,2,3].map(i => (
               <div key={i} style={{ marginBottom: 10 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Objectif {i}</label>
@@ -212,7 +212,7 @@ export default function MesObjectifsPage() {
           {/* Stats match */}
           {stats && (
             <Card>
-              <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>📊 Mes statistiques saison</p>
+              <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>📊 Mes statistiques — Saison 2026/2027</p>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                   <thead>
@@ -294,7 +294,7 @@ export default function MesObjectifsPage() {
             <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>💬 Commentaire général</p>
             <textarea value={data.bilan_commentaire || ''}
               onChange={e => setField('bilan_commentaire', e.target.value)}
-              placeholder="Bilan général de ma saison..."
+              placeholder="Bilan général de ma saison 2026/2027..."
               rows={4} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
           </Card>
         </>
