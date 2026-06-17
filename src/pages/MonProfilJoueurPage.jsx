@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import PushToggle from '../components/PushToggle'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Button } from '../components/UI'
 import { THEME } from '../theme'
@@ -101,6 +102,12 @@ export default function MonProfilJoueurPage() {
         <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 10 }}>
           Pour modifier ces informations, va dans <strong>Ma fiche</strong>.
         </p>
+      </Card>
+
+      {/* Notifications */}
+      <Card>
+        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Notifications</p>
+        <PushToggle />
       </Card>
 
       {/* Déconnexion */}
