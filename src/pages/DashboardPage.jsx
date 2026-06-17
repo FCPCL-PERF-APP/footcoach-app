@@ -71,7 +71,20 @@ export default function DashboardPage() {
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
   const [alertesTraitees, setAlertesTraitees] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('fcpcl-alertes-traitees') || '[]') } catch { return [] }
+    try {
+      // Reset automatique le lundi
+      const lastReset = localStorage.getItem('fcpcl-alertes-last-reset')
+      const now = new Date()
+      const lastMonday = new Date(now)
+      lastMonday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+      lastMonday.setHours(0, 0, 0, 0)
+      if (!lastReset || new Date(lastReset) < lastMonday) {
+        localStorage.removeItem('fcpcl-alertes-traitees')
+        localStorage.setItem('fcpcl-alertes-last-reset', now.toISOString())
+        return []
+      }
+      return JSON.parse(localStorage.getItem('fcpcl-alertes-traitees') || '[]')
+    } catch { return [] }
   })
 
   function marquerTraite(alerteKey) {
@@ -83,6 +96,7 @@ export default function DashboardPage() {
   function resetAlertes() {
     setAlertesTraitees([])
     localStorage.removeItem('fcpcl-alertes-traitees')
+    localStorage.setItem('fcpcl-alertes-last-reset', new Date().toISOString())
   }
 
   useEffect(() => { loadDashboard() }, [])
@@ -90,14 +104,19 @@ export default function DashboardPage() {
   async function loadDashboard() {
     setLoading(true)
     const [{ data: rpeData }, { data: footData }, { data: statsData },
-           { data: joueursData }, { data: presencesData }, { data: eventsData }] = await Promise.all([
+           { data: joueursData }, { data: presencesData }, { data: eventsData },
+           { data: absencesData }] = await Promise.all([
       supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure)').order('created_at', { ascending: false }).limit(300),
       supabase.from('footbar').select('distance_km, joueurs(nom,prenom)').order('created_at', { ascending: false }).limit(100),
       supabase.from('stats_collectives').select('*, evenements(date_heure,titre)').order('created_at', { ascending: false }).limit(20),
       supabase.from('joueurs').select('id,nom,prenom').order('nom'),
       supabase.from('presences').select('*, evenements(date_heure)').order('created_at', { ascending: false }).limit(500),
       supabase.from('evenements').select('*').gte('date_heure', new Date().toISOString()).order('date_heure', { ascending: true }).limit(1),
+      supabase.from('presences').select('joueur_id, statut, evenement_id').in('statut', ['absent','blesse']),
     ])
+
+    // Set des joueurs absents/blessés sur au moins un événement récent
+    const joueursAbsentsBlessesSurEvenement = new Set((absencesData || []).map(p => p.joueur_id))
 
     // Prochain événement
     setProchainEvent(eventsData?.[0] || null)
@@ -180,6 +199,9 @@ export default function DashboardPage() {
     const totalJoueurs = (joueursData || []).length
 
     for (const [id, j] of Object.entries(joueurMap)) {
+      // Ne pas alerter les joueurs absents ou blessés
+      if (joueursAbsentsBlessesSurEvenement.has(id)) continue
+
       const last3 = j.sessions.slice(0, 3)
       const avgLast3 = last3.length ? last3.reduce((a, b) => a + b, 0) / last3.length : 0
       const avgFatLast3 = j.fatigue.slice(0, 3).filter(v => v !== null)
@@ -197,7 +219,10 @@ export default function DashboardPage() {
     }
     const joueursAvecRpe = new Set(Object.keys(joueurMap))
     for (const j of (joueursData || [])) {
-      if (!joueursAvecRpe.has(j.id)) alertList.push({ type: 'yellow', title: `${j.nom} ${j.prenom} — RPE manquant`, message: `Aucune donnée RPE.`, joueurId: j.id })
+      // Ne pas alerter si le joueur est absent ou blessé
+      if (!joueursAvecRpe.has(j.id) && !joueursAbsentsBlessesSurEvenement.has(j.id)) {
+        alertList.push({ type: 'yellow', title: `${j.nom} ${j.prenom} — RPE manquant`, message: `Aucune donnée RPE.`, joueurId: j.id })
+      }
     }
     if (parseFloat(rpeMoy) >= 4.2) collAlertes.push({ type: 'red', title: 'Surcharge collective', message: `RPE moyen : ${rpeMoy.toFixed(1)}/5.` })
     const allMotiv = (rpeData || []).map(r => r.motivation).filter(v => v !== null && v !== undefined)
