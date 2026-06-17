@@ -37,6 +37,7 @@ export default function FicheJoueurPage() {
   const [rpeHistory, setRpeHistory] = useState([])
   const [footHistory, setFootHistory] = useState([])
   const [statsHistory, setStatsHistory] = useState([])
+  const [footbarFiche, setFootbarFiche] = useState([])
   const [tests, setTests] = useState([])
   const [poidsHistory, setPoidsHistory] = useState([])
   const [commentaires, setCommentaires] = useState([])
@@ -519,8 +520,9 @@ export default function FicheJoueurPage() {
       {/* STATS */}
       {activeTab === 'stats' && (
         <>
+          {/* Stats enrichies */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
-            {[['Matchs',statsHistory.length],['Buts',totalButs],['PD',totalPD],['Min.',statsHistory.reduce((s,r)=>s+(r.temps_jeu||0),0)],['Note',noteMoy],['🟡',statsHistory.filter(s=>s.carton_jaune).length]].map(([l,v]) => (
+            {[['Matchs',statsHistory.length],['Titu.',statsHistory.filter(s=>s.titulaire).length],['Rempl.',statsHistory.filter(s=>!s.titulaire).length],['Buts',totalButs],['PD',totalPD],['Note moy.',noteMoy],['Tps jeu moy.',statsHistory.filter(s=>s.temps_jeu>0).length ? Math.round(statsHistory.filter(s=>s.temps_jeu>0).reduce((a,b)=>a+b.temps_jeu,0)/statsHistory.filter(s=>s.temps_jeu>0).length)+"'" : '—'],['🟡',statsHistory.filter(s=>s.carton_jaune).length],['🔴',statsHistory.filter(s=>s.carton_rouge).length]].map(([l,v]) => (
               <div key={l} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{v}</div>
                 <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{l}</div>

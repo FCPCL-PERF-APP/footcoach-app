@@ -18,41 +18,46 @@ export default function DashboardStatsPage() {
     setLoading(true)
     const { data } = await supabase
       .from('stats_collectives')
-      .select('*, evenements(titre, date_heure)')
+      .select('*, evenements(titre, date_heure, match_type)')
       .order('created_at', { ascending: false })
 
+    // Filtrer les matchs de préparation pour les stats globales
+    const dataOfficiels = (data || []).filter(m => m.evenements?.match_type !== 'preparation')
+    const dataPrepa = (data || []).filter(m => m.evenements?.match_type === 'preparation')
     setMatchs(data || [])
 
-    if (data?.length) {
-      const nbMatchs = data.length
-      const victoires = data.filter(s => (s.buts_marques || 0) > (s.buts_encaisses || 0)).length
-      const nuls = data.filter(s => (s.buts_marques || 0) === (s.buts_encaisses || 0)).length
-      const defaites = data.filter(s => (s.buts_marques || 0) < (s.buts_encaisses || 0)).length
-      const totalButs = data.reduce((s,r) => s+(r.buts_marques||0), 0)
-      const totalEnc = data.reduce((s,r) => s+(r.buts_encaisses||0), 0)
+    if (dataOfficiels.length || data?.length) {
+      const useData = dataOfficiels.length ? dataOfficiels : data
+      const nbMatchs = useData.length
+      const victoires = useData.filter(s => (s.buts_marques || 0) > (s.buts_encaisses || 0)).length
+      const nuls = useData.filter(s => (s.buts_marques || 0) === (s.buts_encaisses || 0)).length
+      const defaites = useData.filter(s => (s.buts_marques || 0) < (s.buts_encaisses || 0)).length
+      const totalButs = useData.reduce((s,r) => s+(r.buts_marques||0), 0)
+      const totalEnc = useData.reduce((s,r) => s+(r.buts_encaisses||0), 0)
       const pts = victoires * 3 + nuls
+      const nbPrepa = dataPrepa.length
 
       // Buts marqués par type
-      const butMarqueAP = data.reduce((s,r) => s+(r.but_marque_attaque_placee||0), 0)
-      const butMarqueCA = data.reduce((s,r) => s+(r.but_marque_contre_attaque||0), 0)
-      const butMarqueCorner = data.reduce((s,r) => s+(r.but_marque_corner||0), 0)
-      const butMarquePen = data.reduce((s,r) => s+(r.but_marque_penalty||0), 0)
-      const butMarqueCF = data.reduce((s,r) => s+(r.but_marque_coup_franc||0), 0)
+      const butMarqueAP = useData.reduce((s,r) => s+(r.but_marque_attaque_placee||0), 0)
+      const butMarqueCA = useData.reduce((s,r) => s+(r.but_marque_contre_attaque||0), 0)
+      const butMarqueCorner = useData.reduce((s,r) => s+(r.but_marque_corner||0), 0)
+      const butMarquePen = useData.reduce((s,r) => s+(r.but_marque_penalty||0), 0)
+      const butMarqueCF = useData.reduce((s,r) => s+(r.but_marque_coup_franc||0), 0)
 
       // Buts encaissés par type
-      const butEncAP = data.reduce((s,r) => s+(r.but_enc_attaque_placee||0), 0)
-      const butEncCA = data.reduce((s,r) => s+(r.but_enc_contre_attaque||0), 0)
-      const butEncCorner = data.reduce((s,r) => s+(r.but_enc_corner||0), 0)
-      const butEncPen = data.reduce((s,r) => s+(r.but_enc_penalty||0), 0)
-      const butEncCF = data.reduce((s,r) => s+(r.but_enc_coup_franc||0), 0)
+      const butEncAP = useData.reduce((s,r) => s+(r.but_enc_attaque_placee||0), 0)
+      const butEncCA = useData.reduce((s,r) => s+(r.but_enc_contre_attaque||0), 0)
+      const butEncCorner = useData.reduce((s,r) => s+(r.but_enc_corner||0), 0)
+      const butEncPen = useData.reduce((s,r) => s+(r.but_enc_penalty||0), 0)
+      const butEncCF = useData.reduce((s,r) => s+(r.but_enc_coup_franc||0), 0)
 
       // Buts par période (marqués)
       const periodes = ['0_15','15_30','30_45','45_60','60_75','75_90']
-      const butsParPeriode = periodes.map(p => data.reduce((s,r) => s+(r[`buts_${p}`]||0), 0))
-      const butsEncParPeriode = periodes.map(p => data.reduce((s,r) => s+(r[`buts_enc_${p}`]||0), 0))
+      const butsParPeriode = periodes.map(p => useData.reduce((s,r) => s+(r[`buts_${p}`]||0), 0))
+      const butsEncParPeriode = periodes.map(p => useData.reduce((s,r) => s+(r[`buts_enc_${p}`]||0), 0))
 
       setStats({
-        nbMatchs, victoires, nuls, defaites, pts, totalButs, totalEnc,
+        nbMatchs, victoires, nuls, defaites, pts, totalButs, totalEnc, nbPrepa,
         butMarqueAP, butMarqueCA, butMarqueCorner, butMarquePen, butMarqueCF,
         butEncAP, butEncCA, butEncCorner, butEncPen, butEncCF,
         butsParPeriode, butsEncParPeriode
@@ -74,7 +79,7 @@ export default function DashboardStatsPage() {
           {/* Résultats globaux */}
           <div style={{ background: THEME.gradient, borderRadius: 16, padding: '14px', marginBottom: 14 }}>
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,.7)', textAlign: 'center', marginBottom: 10 }}>
-              {stats.nbMatchs} matchs disputés
+              {stats.nbMatchs} matchs officiels{stats.nbPrepa > 0 ? ` · ${stats.nbPrepa} prépa. (non comptés)` : ''}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
               {[
@@ -181,7 +186,11 @@ export default function DashboardStatsPage() {
                 <div key={m.id} onClick={() => navigate(`/stats/${m.evenement_id}`)}
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6', cursor: 'pointer' }}>
                   <div>
-                    <p style={{ fontSize: 12, fontWeight: 600 }}>{m.evenements?.titre}</p>
+                    <p style={{ fontSize: 12, fontWeight: 600 }}>
+                  {m.evenements?.match_type === 'preparation' && <span style={{ fontSize: 9, background: '#E6F1FB', color: '#185FA5', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Prépa</span>}
+                  {m.evenements?.match_type === 'coupe' && <span style={{ fontSize: 9, background: '#FAEEDA', color: '#854F0B', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Coupe</span>}
+                  {m.evenements?.titre}
+                </p>
                     <p style={{ fontSize: 10, color: '#9CA3AF' }}>{m.evenements?.date_heure ? format(parseISO(m.evenements.date_heure), 'd MMM yyyy', { locale: fr }) : ''}</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

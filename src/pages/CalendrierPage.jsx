@@ -21,7 +21,8 @@ export default function CalendrierPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [form, setForm] = useState({
     type: 'match', titre: '', date: '', heure: '15:00',
-    lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: ''
+    lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '',
+    match_type: 'championnat'
   })
   const [saving, setSaving] = useState(false)
 
@@ -43,6 +44,7 @@ export default function CalendrierPage() {
       lieu: form.lieu, domicile: form.domicile,
       rdv_heure: form.type === 'match' ? form.rdv_heure : null,
       rdv_lieu: form.type === 'match' ? form.rdv_lieu : null,
+      match_type: form.type === 'match' ? form.match_type : null,
     }
     if (editingEvent) await supabase.from('evenements').update(payload).eq('id', editingEvent.id)
     else await supabase.from('evenements').insert(payload)
@@ -59,7 +61,8 @@ export default function CalendrierPage() {
       date: ev.date_heure?.split('T')[0] || '',
       heure: ev.date_heure?.split('T')[1]?.slice(0,5) || '15:00',
       lieu: ev.lieu || '', domicile: ev.domicile !== false,
-      rdv_heure: ev.rdv_heure || '14:00', rdv_lieu: ev.rdv_lieu || ''
+      rdv_heure: ev.rdv_heure || '14:00', rdv_lieu: ev.rdv_lieu || '',
+      match_type: ev.match_type || 'championnat'
     })
     setShowAdd(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -160,6 +163,13 @@ export default function CalendrierPage() {
               <Select label="Domicile / Déplacement" value={form.domicile ? 'dom' : 'dep'}
                 onChange={v => setForm(p => ({...p, domicile: v === 'dom'}))}
                 options={[{value:'dom',label:'🏠 Domicile'},{value:'dep',label:'🚌 Déplacement'}]} />
+              <Select label="Type de match" value={form.match_type || 'championnat'}
+                onChange={v => setForm(p => ({...p, match_type: v}))}
+                options={[
+                  {value:'championnat',label:'🏆 Championnat'},
+                  {value:'coupe',label:'🥇 Coupe'},
+                  {value:'preparation',label:'🔵 Préparation'},
+                ]} />
               <div style={{ background: '#F0F4FF', borderRadius: 10, padding: 10, marginBottom: 10 }}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: THEME.primary, marginBottom: 8 }}>📍 Rendez-vous joueurs</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>

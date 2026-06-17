@@ -4,160 +4,160 @@ import { supabase } from '../lib/supabase'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 
+const MEDALS = ['🥇', '🥈', '🥉']
+
+function Top5({ title, data, valueKey, valueLabel, valueSuffix = '' }) {
+  const top5 = data.slice(0, 5)
+  const max = top5[0]?.[valueKey] || 1
+  return (
+    <Card>
+      <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>{title}</p>
+      {top5.length === 0 ? (
+        <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Pas encore de données.</p>
+      ) : (
+        top5.map((item, i) => (
+          <div key={item.joueur_id} style={{ marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: i < 3 ? 18 : 14, width: 24, textAlign: 'center' }}>
+                  {i < 3 ? MEDALS[i] : `${i+1}.`}
+                </span>
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 600 }}>{item.nom} {item.prenom}</p>
+                  <p style={{ fontSize: 10, color: '#9CA3AF' }}>{item.poste || '—'}</p>
+                </div>
+              </div>
+              <span style={{ fontSize: 14, fontWeight: 800, color: THEME.primary }}>
+                {typeof item[valueKey] === 'number' ? item[valueKey].toFixed(item[valueKey] % 1 !== 0 ? 1 : 0) : item[valueKey]}{valueSuffix}
+              </span>
+            </div>
+            <div style={{ height: 6, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 4, background: i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : THEME.primary, width: `${item[valueKey]/max*100}%` }} />
+            </div>
+          </div>
+        ))
+      )}
+    </Card>
+  )
+}
+
 export default function ClassementButeursPage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
-  const [classement, setClassement] = useState([])
-  const [classementPD, setClassementPD] = useState([])
-  const [activeTab, setActiveTab] = useState('buteurs')
+  const [activeTab, setActiveTab] = useState('buts')
+  const [classements, setClassements] = useState({
+    buteurs: [], passeurs: [], titularisations: [],
+    tempsJeu: [], matchsJoues: [], distanceMoyMatch: []
+  })
 
-  useEffect(() => { loadClassement() }, [])
+  useEffect(() => { loadData() }, [])
 
-  async function loadClassement() {
+  async function loadData() {
     setLoading(true)
-    const { data } = await supabase
-      .from('stats_match')
-      .select('joueur_id, buts, passes_decisives, joueurs(nom, prenom, poste, photo_url)')
-      .order('created_at', { ascending: false })
+    const [{ data: stats }, { data: footbar }, { data: joueurs }] = await Promise.all([
+      supabase.from('stats_match')
+        .select('*, joueurs(id,nom,prenom,poste), evenements(match_type)'),
+      supabase.from('footbar')
+        .select('joueur_id, distance_km, evenements(type)'),
+      supabase.from('joueurs').select('id,nom,prenom,poste'),
+    ])
 
-    // Classement buteurs
-    const butsMap = {}
-    const passesMap = {}
-    for (const s of (data || [])) {
-      if (!s.joueurs) continue
-      const nom = `${s.joueurs.nom} ${s.joueurs.prenom}`
-      if (!butsMap[nom]) butsMap[nom] = { nom, poste: s.joueurs.poste, photo_url: s.joueurs.photo_url, buts: 0, matchs: 0, joueur_id: s.joueur_id }
-      butsMap[nom].buts += (s.buts || 0)
-      butsMap[nom].matchs++
-      if (!passesMap[nom]) passesMap[nom] = { nom, poste: s.joueurs.poste, photo_url: s.joueurs.photo_url, passes: 0, matchs: 0 }
-      passesMap[nom].passes += (s.passes_decisives || 0)
-      passesMap[nom].matchs++
-    }
+    const jMap = {}
+    ;(joueurs || []).forEach(j => { jMap[j.id] = j })
 
-    const buteurs = Object.values(butsMap)
-      .filter(j => j.buts > 0)
-      .sort((a, b) => b.buts - a.buts)
+    // Filtrer matchs officiels (pas prépa)
+    const statsOfficiels = (stats || []).filter(s => s.evenements?.match_type !== 'preparation')
 
-    const passeurs = Object.values(passesMap)
-      .filter(j => j.passes > 0)
-      .sort((a, b) => b.passes - a.passes)
+    // Agrégation par joueur
+    const agg = {}
+    statsOfficiels.forEach(s => {
+      const id = s.joueur_id
+      if (!agg[id]) agg[id] = { joueur_id: id, ...jMap[id], buts: 0, pd: 0, titularisations: 0, tempsTotal: 0, nbMatchs: 0, tempsJeuVals: [] }
+      agg[id].buts += s.buts || 0
+      agg[id].pd += s.passes_decisives || 0
+      if (s.titulaire) agg[id].titularisations++
+      if (s.temps_jeu > 0) { agg[id].tempsTotal += s.temps_jeu; agg[id].tempsJeuVals.push(s.temps_jeu) }
+      agg[id].nbMatchs++
+    })
 
-    setClassement(buteurs)
-    setClassementPD(passeurs)
+    // Distance moyenne en match (footbar)
+    const distAgg = {}
+    ;(footbar || []).filter(f => f.evenements?.type === 'match').forEach(f => {
+      const id = f.joueur_id
+      if (!distAgg[id]) distAgg[id] = { joueur_id: id, ...jMap[id], distances: [] }
+      if (f.distance_km > 0) distAgg[id].distances.push(f.distance_km)
+    })
+
+    const sort = (arr, key) => [...arr].sort((a, b) => b[key] - a[key])
+    const aggArr = Object.values(agg)
+
+    setClassements({
+      buteurs: sort(aggArr.filter(a => a.buts > 0), 'buts').map(a => ({...a, buts: a.buts})),
+      passeurs: sort(aggArr.filter(a => a.pd > 0), 'pd').map(a => ({...a, pd: a.pd})),
+      titularisations: sort(aggArr.filter(a => a.titularisations > 0), 'titularisations'),
+      tempsJeu: sort(
+        aggArr.filter(a => a.tempsJeuVals.length > 0).map(a => ({
+          ...a, tempsMoy: Math.round(a.tempsTotal / a.tempsJeuVals.length)
+        })),
+        'tempsMoy'
+      ),
+      matchsJoues: sort(aggArr.filter(a => a.nbMatchs > 0), 'nbMatchs'),
+      distanceMoyMatch: sort(
+        Object.values(distAgg).filter(d => d.distances.length > 0).map(d => ({
+          ...d, distMoy: parseFloat((d.distances.reduce((a,b) => a+b,0)/d.distances.length).toFixed(1))
+        })),
+        'distMoy'
+      )
+    })
+
     setLoading(false)
   }
 
-  function Medal({ rank }) {
-    if (rank === 1) return <span style={{ fontSize: 20 }}>🥇</span>
-    if (rank === 2) return <span style={{ fontSize: 20 }}>🥈</span>
-    if (rank === 3) return <span style={{ fontSize: 20 }}>🥉</span>
-    return <span style={{ fontSize: 13, fontWeight: 700, color: '#9CA3AF', width: 24, textAlign: 'center', display: 'inline-block' }}>{rank}</span>
-  }
-
-  const displayed = activeTab === 'buteurs' ? classement : classementPD
-  const maxVal = displayed.length > 0 ? (activeTab === 'buteurs' ? displayed[0].buts : displayed[0].passes) : 1
+  const tabs = [
+    { key: 'buts',     label: '⚽ Buteurs' },
+    { key: 'pd',       label: '🎯 Passeurs' },
+    { key: 'stats',    label: '📊 Stats' },
+  ]
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="🏆 Classement saison" />
+      <PageHeader title="🏆 Classements" />
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-        {[['buteurs','⚽ Buteurs'],['passeurs','🅰️ Passeurs']].map(([tab, lbl]) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} style={{
-            padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+        {tabs.map(t => (
+          <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
+            flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === tab ? '#E6F1FB' : 'transparent',
-            color: activeTab === tab ? THEME.primary : '#6B7280',
-            fontWeight: activeTab === tab ? 600 : 400
-          }}>{lbl}</button>
+            background: activeTab === t.key ? '#E6F1FB' : 'transparent',
+            color: activeTab === t.key ? THEME.primary : '#6B7280',
+            fontWeight: activeTab === t.key ? 600 : 400
+          }}>{t.label}</button>
         ))}
       </div>
 
+      <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10 }}>
+        * Matchs de championnat et de coupe uniquement (préparation exclus)
+      </p>
+
       {loading ? <Spinner /> : (
         <>
-          {/* Podium top 3 */}
-          {displayed.length >= 3 && (
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
-              {/* 2ème */}
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px', fontSize: 14, fontWeight: 700, color: '#6B7280', overflow: 'hidden' }}>
-                  {displayed[1].photo_url ? <img src={displayed[1].photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : displayed[1].nom[0]}
-                </div>
-                <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 2 }}>{displayed[1].nom.split(' ')[0]}</p>
-                <div style={{ background: '#9CA3AF', borderRadius: '6px 6px 0 0', padding: '8px 4px', marginTop: 4 }}>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>{activeTab === 'buteurs' ? displayed[1].buts : displayed[1].passes}</span>
-                  <div style={{ fontSize: 9, color: 'rgba(255,255,255,.8)' }}>{activeTab === 'buteurs' ? 'buts' : 'passes'}</div>
-                </div>
-                <div style={{ background: '#6B7280', height: 4 }} />
-                <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>🥈</p>
-              </div>
-              {/* 1er */}
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ width: 54, height: 54, borderRadius: '50%', background: '#FEF3C7', border: '2px solid #F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px', fontSize: 18, fontWeight: 700, color: '#854F0B', overflow: 'hidden' }}>
-                  {displayed[0].photo_url ? <img src={displayed[0].photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : displayed[0].nom[0]}
-                </div>
-                <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 2 }}>{displayed[0].nom.split(' ')[0]}</p>
-                <div style={{ background: THEME.primary, borderRadius: '6px 6px 0 0', padding: '12px 4px', marginTop: 4 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>{activeTab === 'buteurs' ? displayed[0].buts : displayed[0].passes}</span>
-                  <div style={{ fontSize: 9, color: 'rgba(255,255,255,.8)' }}>{activeTab === 'buteurs' ? 'buts' : 'passes'}</div>
-                </div>
-                <div style={{ background: THEME.primaryDark, height: 4 }} />
-                <p style={{ fontSize: 10, color: '#F59E0B', marginTop: 2 }}>🥇</p>
-              </div>
-              {/* 3ème */}
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 6px', fontSize: 13, fontWeight: 700, color: '#854F0B', overflow: 'hidden' }}>
-                  {displayed[2].photo_url ? <img src={displayed[2].photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : displayed[2].nom[0]}
-                </div>
-                <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 2 }}>{displayed[2].nom.split(' ')[0]}</p>
-                <div style={{ background: '#CD7F32', borderRadius: '6px 6px 0 0', padding: '6px 4px', marginTop: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{activeTab === 'buteurs' ? displayed[2].buts : displayed[2].passes}</span>
-                  <div style={{ fontSize: 9, color: 'rgba(255,255,255,.8)' }}>{activeTab === 'buteurs' ? 'buts' : 'passes'}</div>
-                </div>
-                <div style={{ background: '#A0522D', height: 4 }} />
-                <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>🥉</p>
-              </div>
-            </div>
+          {activeTab === 'buts' && (
+            <>
+              <Top5 title="⚽ Top buteurs" data={classements.buteurs} valueKey="buts" valueSuffix=" but(s)" />
+              <Top5 title="🎯 Top passeurs" data={classements.passeurs} valueKey="pd" valueSuffix=" PD" />
+            </>
           )}
-
-          {/* Liste complète */}
-          <Card>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
-              {activeTab === 'buteurs' ? '⚽ Classement des buteurs' : '🅰️ Classement des passeurs'} — {displayed.length} joueur(s)
-            </p>
-            {displayed.length === 0 ? (
-              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 16 }}>
-                Aucune donnée pour l'instant. Les statistiques s'alimentent depuis les fiches de match.
-              </p>
-            ) : (
-              displayed.map((j, i) => {
-                const val = activeTab === 'buteurs' ? j.buts : j.passes
-                const pct = Math.round((val / maxVal) * 100)
-                return (
-                  <div key={j.nom} style={{ marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                      <Medal rank={i + 1} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <p style={{ fontSize: 13, fontWeight: i < 3 ? 700 : 500 }}>{j.nom}</p>
-                          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                            <span style={{ fontSize: 15, fontWeight: 800, color: i === 0 ? THEME.primary : '#374151' }}>{val}</span>
-                            <span style={{ fontSize: 10, color: '#9CA3AF' }}>{activeTab === 'buteurs' ? 'buts' : 'passes'}</span>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ flex: 1, height: 5, background: '#F3F4F6', borderRadius: 3, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', borderRadius: 3, background: i === 0 ? THEME.primary : i === 1 ? '#9CA3AF' : i === 2 ? '#CD7F32' : '#D1D5DB', width: `${pct}%`, transition: 'width .5s' }} />
-                          </div>
-                          <span style={{ fontSize: 10, color: '#9CA3AF' }}>{j.matchs} matchs</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </Card>
+          {activeTab === 'pd' && (
+            <Top5 title="🎯 Top passeurs décisifs" data={classements.passeurs} valueKey="pd" valueSuffix=" PD" />
+          )}
+          {activeTab === 'stats' && (
+            <>
+              <Top5 title="📋 Titularisations" data={classements.titularisations} valueKey="titularisations" valueSuffix=" tit." />
+              <Top5 title="⏱️ Temps de jeu moyen" data={classements.tempsJeu} valueKey="tempsMoy" valueSuffix="'" />
+              <Top5 title="🏃 Distance moy. en match" data={classements.distanceMoyMatch} valueKey="distMoy" valueSuffix=" km" />
+              <Top5 title="🎮 Matchs joués" data={classements.matchsJoues} valueKey="nbMatchs" valueSuffix=" match(s)" />
+            </>
+          )}
         </>
       )}
     </div>
