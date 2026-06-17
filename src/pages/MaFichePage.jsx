@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Button, Spinner } from '../components/UI'
@@ -57,6 +58,7 @@ function ZoneFC({ label, pct, fcRepos, fcReserve, color }) {
 
 export default function MaFichePage() {
   const { profile } = useAuth()
+  const navigate = useNavigate()
   const [joueur, setJoueur] = useState(null)
   const [form, setForm] = useState({})
   const [rpeHistory, setRpeHistory] = useState([])
@@ -168,11 +170,12 @@ export default function MaFichePage() {
   })
 
   const tabs = [
-    { key: 'infos',  label: '👤 Mes infos' },
-    { key: 'physio', label: '❤️ Physio & FC' },
-    { key: 'stats',  label: '⚽ Mes stats' },
-    { key: 'poids',  label: '⚖️ Mon poids' },
-    { key: 'compte', label: '🔐 Compte' },
+    { key: 'infos',    label: '👤 Mes infos' },
+    { key: 'physio',   label: '❤️ Physio & FC' },
+    { key: 'stats',    label: '⚽ Mes stats' },
+    { key: 'poids',    label: '⚖️ Mon poids' },
+    { key: 'objectifs',label: '🎯 Objectifs' },
+    { key: 'compte',   label: '🔐 Compte' },
   ]
 
   return (
@@ -401,6 +404,24 @@ export default function MaFichePage() {
               ))
           }
         </Card>
+      )}
+
+      {/* OBJECTIFS */}
+      {activeTab === 'objectifs' && (
+        <div style={{ textAlign: 'center', padding: 20 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+          <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Mes objectifs & bilan</p>
+          <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 20 }}>
+            Points forts, axes d'amélioration, objectifs saison et bilan de fin de saison.
+          </p>
+          <button onClick={() => navigate('/mes-objectifs')} style={{
+            width: '100%', padding: 14, background: THEME.gradient,
+            color: '#fff', border: 'none', borderRadius: 12,
+            fontSize: 14, fontWeight: 700, cursor: 'pointer'
+          }}>
+            Accéder à mes objectifs →
+          </button>
+        </div>
       )}
 
       {/* COMPTE */}

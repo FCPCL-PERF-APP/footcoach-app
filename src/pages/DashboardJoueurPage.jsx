@@ -27,6 +27,8 @@ export default function DashboardJoueurPage() {
   const [objectifs, setObjectifs] = useState([])
   const [blessures, setBlessures] = useState([])
   const [eventsAFaire, setEventsAFaire] = useState([])
+  const [nbRpeAFaire, setNbRpeAFaire] = useState(0)
+  const [nbFootAFaire, setNbFootAFaire] = useState(0)
 
   const joueurId = profile?.id
 
@@ -81,6 +83,8 @@ export default function DashboardJoueurPage() {
     const footIds = new Set((footFaits || []).map(f => f.evenement_id))
     const aFaire = (evs || []).filter(e => !rpeIds.has(e.id) || !footIds.has(e.id))
     setEventsAFaire(aFaire)
+    setNbRpeAFaire((evs || []).filter(e => new Date(e.date_heure) < new Date() && !rpeIds.has(e.id)).length)
+    setNbFootAFaire((evs || []).filter(e => new Date(e.date_heure) < new Date() && !footIds.has(e.id)).length)
 
     setLoading(false)
   }
@@ -207,7 +211,7 @@ export default function DashboardJoueurPage() {
           <div>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>❤️ Mon RPE</p>
             <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>
-              {eventsAFaire.length > 0 ? `${eventsAFaire.length} en attente` : 'À jour ✅'}
+              {nbRpeAFaire > 0 ? `${nbRpeAFaire} à compléter` : 'À jour ✅'}
             </p>
           </div>
           <span style={{ fontSize: 18, color: '#fff' }}>→</span>
@@ -218,7 +222,9 @@ export default function DashboardJoueurPage() {
         }}>
           <div>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>📡 Footbar</p>
-            <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>Mes données GPS</p>
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>
+              {nbFootAFaire > 0 ? `${nbFootAFaire} à compléter` : 'À jour ✅'}
+            </p>
           </div>
           <span style={{ fontSize: 18, color: '#fff' }}>→</span>
         </div>

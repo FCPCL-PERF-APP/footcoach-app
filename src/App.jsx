@@ -19,6 +19,7 @@ import FicheJoueurPage     from './pages/FicheJoueurPage'
 import NouveauJoueurPage   from './pages/NouveauJoueurPage'
 import ImportJoueursPage   from './pages/ImportJoueursPage'
 import MaFichePage         from './pages/MaFichePage'
+import MesObjectifsPage from './pages/MesObjectifsPage'
 import MessagesPage        from './pages/MessagesPage'
 import DashboardPage       from './pages/DashboardPage'
 import DashboardJoueurPage from './pages/DashboardJoueurPage'
@@ -84,6 +85,7 @@ function AppContent() {
           <Route path="/joueurs/:id/blessures"  element={<BlessuresPage />} />
           <Route path="/joueurs/:id/objectifs"  element={<ObjectifsPage />} />
           <Route path="/ma-fiche"               element={isJoueur ? <MaFichePage /> : <Navigate to="/" />} />
+<Route path="/mes-objectifs" element={isJoueur ? <MesObjectifsPage /> : <Navigate to="/" />} />
           <Route path="/messages"               element={<MessagesPage setUnreadCount={setUnreadCount} />} />
           <Route path="/dashboard"              element={<DashboardPage />} />
           <Route path="/mon-dashboard"          element={isJoueur ? <DashboardJoueurPage /> : <Navigate to="/dashboard" />} />
