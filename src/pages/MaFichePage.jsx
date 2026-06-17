@@ -175,6 +175,7 @@ export default function MaFichePage() {
     { key: 'stats',    label: '⚽ Mes stats' },
     { key: 'poids',    label: '⚖️ Mon poids' },
     { key: 'objectifs',label: '🎯 Objectifs' },
+    { key: 'blessures',label: '🤕 Blessures' },
     { key: 'compte',   label: '🔐 Compte' },
   ]
 
@@ -182,12 +183,17 @@ export default function MaFichePage() {
     <div style={{ padding: 12 }}>
       {/* Hero */}
       <div style={{ background: THEME.gradient, borderRadius: 16, padding: '16px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
-        {joueur?.photo_url
-          ? <img src={joueur.photo_url} alt={joueur.nom} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,.4)' }} />
-          : <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff' }}>
-              {joueur?.nom?.[0]}{joueur?.prenom?.[0]}
-            </div>
-        }
+        <label htmlFor="photo-upload-fiche" style={{ cursor: 'pointer', position: 'relative', display: 'block' }}>
+          {joueur?.photo_url
+            ? <img src={joueur.photo_url} alt={joueur.nom} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,.4)' }} />
+            : <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff' }}>
+                {joueur?.nom?.[0]}{joueur?.prenom?.[0]}
+              </div>
+          }
+          <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'rgba(0,0,0,.5)', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>📷</div>
+          <input id="photo-upload-fiche" type="file" accept="image/*" style={{ display: 'none' }}
+            onChange={e => uploadPhoto(e.target.files[0])} />
+        </label>
         <div>
           <p style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{joueur?.nom} {joueur?.prenom}</p>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,.75)' }}>
@@ -422,6 +428,57 @@ export default function MaFichePage() {
             Accéder à mes objectifs →
           </button>
         </div>
+      )}
+
+      {/* BLESSURES */}
+      {activeTab === 'blessures' && (
+        <>
+          {blessuresData.length === 0 ? (
+            <Card>
+              <div style={{ textAlign: 'center', padding: 20 }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>💪</div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: '#3B6D11' }}>Aucune blessure enregistrée</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>Continue comme ça !</p>
+              </div>
+            </Card>
+          ) : (
+            blessuresData.map(b => (
+              <Card key={b.id} style={{ marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700 }}>{b.zone || b.type}</p>
+                    <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{b.type}</p>
+                  </div>
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                    background: !b.date_retour_effective ? '#FCEBEB' : '#EAF3DE',
+                    color: !b.date_retour_effective ? '#A32D2D' : '#3B6D11'
+                  }}>
+                    {!b.date_retour_effective ? '🤕 En cours' : '✅ Guéri'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 11, color: '#6B7280' }}>
+                  <span>📅 Début : {b.date_debut ? new Date(b.date_debut).toLocaleDateString('fr-FR') : '—'}</span>
+                  {b.date_retour_prevue && <span>🎯 Retour prévu : {new Date(b.date_retour_prevue).toLocaleDateString('fr-FR')}</span>}
+                </div>
+                {b.date_retour_effective && (
+                  <p style={{ fontSize: 11, color: '#3B6D11', marginTop: 4 }}>
+                    ✅ Retour effectif : {new Date(b.date_retour_effective).toLocaleDateString('fr-FR')}
+                  </p>
+                )}
+                {b.description && (
+                  <p style={{ fontSize: 11, color: '#6B7280', marginTop: 6, fontStyle: 'italic' }}>{b.description}</p>
+                )}
+                <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                  <span style={{ fontSize: 10, background: '#F3F4F6', padding: '2px 8px', borderRadius: 6 }}>
+                    {b.gravite === 'legere' ? '🟡 Légère' : b.gravite === 'moderee' ? '🟠 Modérée' : b.gravite === 'grave' ? '🔴 Grave' : '—'}
+                  </span>
+                  {b.duree_estimee && <span style={{ fontSize: 10, color: '#9CA3AF' }}>~{b.duree_estimee} jours</span>}
+                </div>
+              </Card>
+            ))
+          )}
+        </>
       )}
 
       {/* COMPTE */}

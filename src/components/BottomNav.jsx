@@ -20,10 +20,6 @@ const NAV_COACH_MORE = [
   { path: '/charge-hebdo',  icon: '📊', label: 'Charge hebdo' },
   { path: '/comparatif',    icon: '⚖️', label: 'Comparatif' },
   { path: '/archive-saison',icon: '📦', label: 'Archiver saison' },
-{ path: '/classement', icon: '🏆', label: 'Classement' },
-{ path: '/export', icon: '📥', label: 'Export données' },
-{ path: '/stats-connexion', icon: '📱', label: 'Connexions' },
-{ path: '/stats-matchs', icon: '📊', label: 'Stats matchs' },
 ]
 const NAV_STAFF_MAIN = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
