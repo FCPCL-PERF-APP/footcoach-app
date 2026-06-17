@@ -20,6 +20,7 @@ const NAV_COACH_MORE = [
   { path: '/charge-hebdo',  icon: '📊', label: 'Charge hebdo' },
   { path: '/comparatif',    icon: '⚖️', label: 'Comparatif' },
   { path: '/archive-saison',icon: '📦', label: 'Archiver saison' },
+  { path: '/sondages',      icon: '📊', label: 'Sondages' },
 ]
 const NAV_STAFF_MAIN = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
@@ -41,6 +42,8 @@ const NAV_JOUEUR_MAIN = [
 const NAV_JOUEUR_MORE = [
   { path: '/mon-rpe',     icon: '❤️', label: 'Mon RPE' },
   { path: '/mon-footbar', icon: '📡', label: 'Mon Footbar' },
+  { path: '/mes-badges',  icon: '🏅', label: 'Mes badges' },
+  { path: '/sondages',    icon: '📊', label: 'Sondages' },
   { path: '/ressources',  icon: '📁', label: 'Ressources' },
 ]
 

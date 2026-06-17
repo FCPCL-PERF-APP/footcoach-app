@@ -45,6 +45,8 @@ import ArchiveSaisonPage   from './pages/ArchiveSaisonPage'
 import ClassementButeursPage from './pages/ClassementButeursPage'
 import ExportDonneesPage   from './pages/ExportDonneesPage'
 import RadarJoueurPage     from './pages/RadarJoueurPage'
+import BadgesJoueurPage from './pages/BadgesJoueurPage'
+import SondagePage from './pages/SondagePage'
 
 function AppContent() {
   const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
@@ -99,6 +101,9 @@ function AppContent() {
           <Route path="/comparatif"             element={isCoach ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
           <Route path="/bilan-saison"           element={isCoach ? <BilanSaisonPage /> : <Navigate to="/" />} />
           <Route path="/correlation"            element={isCoach ? <CorrelationPage /> : <Navigate to="/" />} />
+<Route path="/mes-objectifs" element={isJoueur ? <MesObjectifsPage /> : <Navigate to="/" />} />
+<Route path="/mes-badges" element={isJoueur ? <BadgesJoueurPage /> : <Navigate to="/" />} />
+<Route path="/sondages" element={<SondagePage />} />
           <Route path="/onboarding"             element={<OnboardingPage />} />
 <Route path="/mon-bilan" element={isJoueur ? <MonBilanPage /> : <Navigate to="/" />} />
 <Route path="/mon-profil-joueur" element={isJoueur ? <MonProfilJoueurPage /> : <Navigate to="/" />} />

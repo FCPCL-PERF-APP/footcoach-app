@@ -169,6 +169,19 @@ export default function DashboardJoueurPage() {
         </div>
       </div>
 
+      {/* BADGES */}
+      <div onClick={() => navigate('/mes-badges')} style={{
+        background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)',
+        borderRadius: 12, padding: '10px 14px', marginBottom: 14,
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer'
+      }}>
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#FFD700' }}>🏅 Mes badges</p>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>Voir mes récompenses et défis</p>
+        </div>
+        <span style={{ fontSize: 18, color: '#FFD700' }}>→</span>
+      </div>
+
       {/* ALERTES */}
       {(eventsAFaire.length > 0 || blessureActive) && (
         <Card style={{ marginBottom: 14, background: '#FDF5EE', border: '0.5px solid #F5C4B3' }}>
