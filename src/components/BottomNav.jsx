@@ -87,9 +87,22 @@ export default function BottomNav({ unreadCount = 0 }) {
         if (avg >= 4.5) count++
       }
 
-      // Joueurs sans RPE
-      const joueursAvecRpe = new Set(Object.keys(joueurMap))
-      count += (joueursData || []).filter(j => !joueursAvecRpe.has(j.id)).length
+      // Joueurs sans RPE — seulement s'il y a eu des événements récents (14 derniers jours)
+      const { data: recentEvents } = await supabase.from('evenements')
+        .select('id').lte('date_heure', new Date().toISOString())
+        .gte('date_heure', new Date(Date.now() - 14*24*60*60*1000).toISOString())
+        .limit(1)
+
+      if (recentEvents?.length > 0) {
+        const joueursAvecRpe = new Set(Object.keys(joueurMap))
+        // Ne compter que les joueurs qui n'ont JAMAIS eu de RPE (pas juste cette semaine)
+        const nouveauxSansRpe = (joueursData || []).filter(j => !joueursAvecRpe.has(j.id)).length
+        count += Math.min(nouveauxSansRpe, 3) // Limiter à 3 max pour éviter le spam
+      }
+
+      // Soustraire les alertes déjà traitées dans localStorage
+      const traitees = JSON.parse(localStorage.getItem('fcpcl-alertes-traitees') || '[]')
+      count = Math.max(0, count - traitees.length)
 
       setNbAlertes(count)
     } catch (err) {

@@ -62,7 +62,7 @@ export default function FicheJoueurPage() {
   async function loadAll() {
     setLoading(true)
     const [{ data: j }, { data: rpe }, { data: foot }, { data: stats },
-           { data: t }, { data: poids }, { data: comms }, { data: bless }, { data: obj }] = await Promise.all([
+           { data: t }, { data: poids }, { data: comms }, { data: bless }, { data: obj }, { data: objJoueur }] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', id).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
       supabase.from('footbar').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),

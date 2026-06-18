@@ -72,7 +72,6 @@ export default function DashboardPage() {
   const [nbAlertes, setNbAlertes] = useState(0)
   const [alertesTraitees, setAlertesTraitees] = useState(() => {
     try {
-      // Reset automatique le lundi
       const lastReset = localStorage.getItem('fcpcl-alertes-last-reset')
       const now = new Date()
       const lastMonday = new Date(now)
