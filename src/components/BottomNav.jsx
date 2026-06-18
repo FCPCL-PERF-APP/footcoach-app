@@ -21,6 +21,7 @@ const NAV_COACH_MORE = [
   { path: '/comparatif',    icon: '⚖️', label: 'Comparatif' },
   { path: '/archive-saison',icon: '📦', label: 'Archiver saison' },
   { path: '/sondages',      icon: '📊', label: 'Sondages' },
+  { path: '/cpa',           icon: '📐', label: 'CPA' },
 ]
 const NAV_STAFF_MAIN = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
@@ -44,6 +45,7 @@ const NAV_JOUEUR_MORE = [
   { path: '/mon-footbar', icon: '📡', label: 'Mon Footbar' },
   { path: '/mes-badges',  icon: '🏅', label: 'Mes badges' },
   { path: '/sondages',    icon: '📊', label: 'Sondages' },
+  { path: '/cpa',         icon: '📐', label: 'CPA' },
   { path: '/ressources',  icon: '📁', label: 'Ressources' },
 ]
 

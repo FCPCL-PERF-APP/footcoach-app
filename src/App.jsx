@@ -47,6 +47,7 @@ import ExportDonneesPage   from './pages/ExportDonneesPage'
 import RadarJoueurPage     from './pages/RadarJoueurPage'
 import BadgesJoueurPage from './pages/BadgesJoueurPage'
 import SondagePage from './pages/SondagePage'
+import CPAPage from './pages/CPAPage'
 
 function AppContent() {
   const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
@@ -79,6 +80,7 @@ function AppContent() {
           <Route path="/calendrier-visuel"      element={<CalendrierVisuelPage />} />
           <Route path="/rpe"                    element={isCoach || isAdjoint ? <RpePage /> : <Navigate to="/" />} />
           <Route path="/mon-rpe"                element={isJoueur ? <MonRpePage /> : <Navigate to="/rpe" />} />
+<Route path="/cpa" element={<CPAPage />} />
           <Route path="/footbar"                element={isCoach || isAdjoint ? <FootbarPage /> : <Navigate to="/" />} />
           <Route path="/mon-footbar"            element={isJoueur ? <MonFootbarPage /> : <Navigate to="/footbar" />} />
           <Route path="/joueurs"                element={<JoueursPage />} />
