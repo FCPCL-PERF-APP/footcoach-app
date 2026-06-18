@@ -64,6 +64,7 @@ export default function MaFichePage() {
   const [rpeHistory, setRpeHistory] = useState([])
   const [statsHistory, setStatsHistory] = useState([])
   const [poidsHistory, setPoidsHistory] = useState([])
+  const [blessuresData, setBlessuresData] = useState([])
   const [newPoids, setNewPoids] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

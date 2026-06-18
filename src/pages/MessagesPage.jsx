@@ -111,6 +111,22 @@ export default function MessagesPage({ setUnreadCount }) {
     else openConv(activeConv)
   }
 
+  async function reactToMessage(msgId, emoji) {
+    const myAuthId = profile?.auth_id || profile?.id
+    // Récupérer le message
+    const msg = groupMessages.find(m => m.id === msgId)
+    if (!msg) return
+    const reactions = msg.reactions || {}
+    // Toggle : si même emoji déjà mis, on l'enlève
+    if (reactions[myAuthId] === emoji) {
+      delete reactions[myAuthId]
+    } else {
+      reactions[myAuthId] = emoji
+    }
+    await supabase.from('messages').update({ reactions }).eq('id', msgId)
+    setGroupMessages(p => p.map(m => m.id === msgId ? { ...m, reactions } : m))
+  }
+
   async function deleteMessage(msgId) {
     if (!window.confirm('Supprimer ce message ?')) return
     await supabase.from('messages').delete().eq('id', msgId)
@@ -177,7 +193,9 @@ export default function MessagesPage({ setUnreadCount }) {
                 {filteredGroupMessages.map(msg => (
                   <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime}
                     canDelete={isMe(msg) || isCoach}
-                    onDelete={() => deleteMessage(msg.id)} />
+                    onDelete={() => deleteMessage(msg.id)}
+                    onReact={reactToMessage}
+                    myId={profile?.auth_id || profile?.id} />
                 ))}
                 <div ref={bottomRef} />
               </div>
@@ -235,7 +253,18 @@ export default function MessagesPage({ setUnreadCount }) {
                         canDelete={isMe(msg)} onDelete={async () => {
                           await supabase.from('messages').delete().eq('id', msg.id)
                           openConv(activeConv)
-                        }} />
+                        }}
+                    onReact={async (msgId, emoji) => {
+                          const msg = convMessages.find(m => m.id === msgId)
+                          if (!msg) return
+                          const reactions = msg.reactions || {}
+                          const myAuthId = profile?.auth_id || profile?.id
+                          if (reactions[myAuthId] === emoji) delete reactions[myAuthId]
+                          else reactions[myAuthId] = emoji
+                          await supabase.from('messages').update({ reactions }).eq('id', msgId)
+                          openConv(activeConv)
+                        }}
+                    myId={profile?.auth_id || profile?.id} />
                     ))}
                     <div ref={bottomRef} />
                   </div>
@@ -275,32 +304,58 @@ export default function MessagesPage({ setUnreadCount }) {
   )
 }
 
-function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete }) {
-  const [showDelete, setShowDelete] = useState(false)
+function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }) {
+  const [showActions, setShowActions] = useState(false)
+  const reactions = msg.reactions || {}
+  const nbUp = Object.values(reactions).filter(r => r === '👍').length
+  const nbDown = Object.values(reactions).filter(r => r === '👎').length
+  const myReaction = reactions[myId]
 
   return (
-    <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: 8 }}
-      onClick={() => canDelete && setShowDelete(!showDelete)}>
+    <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: 8 }}>
       <div style={{ maxWidth: '82%' }}>
         <div style={{
           padding: '8px 12px',
           borderRadius: isMe ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
           background: isMe ? THEME.gradient : '#F3F4F6',
           color: isMe ? '#fff' : '#111',
-          cursor: canDelete ? 'pointer' : 'default'
-        }}>
+          cursor: 'pointer'
+        }} onClick={() => setShowActions(!showActions)}>
           {!isMe && msg.expediteur_nom && (
             <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 3, color: THEME.primary }}>{msg.expediteur_nom}</p>
           )}
           <p style={{ fontSize: 13, lineHeight: 1.4 }}>{msg.contenu}</p>
           <p style={{ fontSize: 9, opacity: .6, marginTop: 3, textAlign: 'right' }}>{formatTime(msg.created_at)}</p>
         </div>
-        {showDelete && canDelete && (
-          <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginTop: 4 }}>
-            <button onClick={(e) => { e.stopPropagation(); onDelete() }}
-              style={{ fontSize: 11, color: '#A32D2D', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer' }}>
-              🗑️ Supprimer
-            </button>
+
+        {/* Réactions affichées */}
+        {(nbUp > 0 || nbDown > 0) && (
+          <div style={{ display: 'flex', gap: 4, marginTop: 3, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
+            {nbUp > 0 && <span style={{ fontSize: 11, background: '#F3F4F6', borderRadius: 20, padding: '1px 6px' }}>👍 {nbUp}</span>}
+            {nbDown > 0 && <span style={{ fontSize: 11, background: '#F3F4F6', borderRadius: 20, padding: '1px 6px' }}>👎 {nbDown}</span>}
+          </div>
+        )}
+
+        {/* Actions au clic */}
+        {showActions && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 4, justifyContent: isMe ? 'flex-end' : 'flex-start', flexWrap: 'wrap' }}>
+            {/* Réagir */}
+            {['👍', '👎'].map(emoji => (
+              <button key={emoji} onClick={(e) => { e.stopPropagation(); onReact(msg.id, emoji); setShowActions(false) }}
+                style={{
+                  fontSize: 16, padding: '3px 8px', border: `1.5px solid ${myReaction === emoji ? '#185FA5' : '#E5E7EB'}`,
+                  borderRadius: 20, background: myReaction === emoji ? '#E6F1FB' : '#fff', cursor: 'pointer'
+                }}>
+                {emoji}
+              </button>
+            ))}
+            {/* Supprimer */}
+            {canDelete && (
+              <button onClick={(e) => { e.stopPropagation(); onDelete(); setShowActions(false) }}
+                style={{ fontSize: 11, color: '#A32D2D', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}>
+                🗑️ Supprimer
+              </button>
+            )}
           </div>
         )}
       </div>

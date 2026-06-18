@@ -38,6 +38,7 @@ export default function FicheJoueurPage() {
   const [footHistory, setFootHistory] = useState([])
   const [statsHistory, setStatsHistory] = useState([])
   const [footbarFiche, setFootbarFiche] = useState([])
+  const [objJoueurData, setObjJoueurData] = useState(null)
   const [tests, setTests] = useState([])
   const [poidsHistory, setPoidsHistory] = useState([])
   const [commentaires, setCommentaires] = useState([])
@@ -550,6 +551,109 @@ export default function FicheJoueurPage() {
       )}
 
       {/* NOTES */}
+      {/* OBJECTIFS JOUEUR — lecture seule pour coach */}
+      {activeTab === 'objectifs' && (
+        <>
+          {!objJoueurData ? (
+            <Card>
+              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>
+                Ce joueur n'a pas encore rempli ses objectifs.
+              </p>
+            </Card>
+          ) : (
+            <>
+              {/* Points forts */}
+              {objJoueurData.points_forts && Object.values(objJoueurData.points_forts).some(v => v) && (
+                <Card>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11', marginBottom: 10 }}>✅ Points forts</p>
+                  {[
+                    { key: 'athletique', label: '💪 Athlétique' },
+                    { key: 'tactique',   label: '🧠 Tactique' },
+                    { key: 'technique',  label: '⚽ Technique' },
+                    { key: 'mental',     label: '🎯 Mental' },
+                  ].map(n => objJoueurData.points_forts[n.key] ? (
+                    <div key={n.key} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                      <span style={{ fontSize: 11, color: '#6B7280', width: 80 }}>{n.label}</span>
+                      <span style={{ fontSize: 12, fontWeight: 500 }}>{objJoueurData.points_forts[n.key]}</span>
+                    </div>
+                  ) : null)}
+                </Card>
+              )}
+
+              {/* Axes amélioration */}
+              {objJoueurData.axes_amelioration && Object.values(objJoueurData.axes_amelioration).some(v => v) && (
+                <Card>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#854F0B', marginBottom: 10 }}>⚠️ Axes d'amélioration</p>
+                  {[
+                    { key: 'athletique', label: '💪 Athlétique' },
+                    { key: 'tactique',   label: '🧠 Tactique' },
+                    { key: 'technique',  label: '⚽ Technique' },
+                    { key: 'mental',     label: '🎯 Mental' },
+                  ].map(n => objJoueurData.axes_amelioration[n.key] ? (
+                    <div key={n.key} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                      <span style={{ fontSize: 11, color: '#6B7280', width: 80 }}>{n.label}</span>
+                      <span style={{ fontSize: 12, fontWeight: 500 }}>{objJoueurData.axes_amelioration[n.key]}</span>
+                    </div>
+                  ) : null)}
+                </Card>
+              )}
+
+              {/* Objectifs personnels */}
+              {(objJoueurData.obj_perso_1 || objJoueurData.obj_perso_2 || objJoueurData.obj_perso_3) && (
+                <Card>
+                  <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>🏆 Objectifs personnels</p>
+                  {[objJoueurData.obj_perso_1, objJoueurData.obj_perso_2, objJoueurData.obj_perso_3].filter(Boolean).map((obj, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                      <span style={{ fontSize: 11, color: '#9CA3AF' }}>{i+1}.</span>
+                      <span style={{ fontSize: 12 }}>{obj}</span>
+                    </div>
+                  ))}
+                </Card>
+              )}
+
+              {/* Objectifs collectifs */}
+              {(objJoueurData.obj_collectif_1 || objJoueurData.obj_collectif_2 || objJoueurData.obj_collectif_3) && (
+                <Card>
+                  <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>⚽ Objectifs collectifs</p>
+                  {[objJoueurData.obj_collectif_1, objJoueurData.obj_collectif_2, objJoueurData.obj_collectif_3].filter(Boolean).map((obj, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                      <span style={{ fontSize: 11, color: '#9CA3AF' }}>{i+1}.</span>
+                      <span style={{ fontSize: 12 }}>{obj}</span>
+                    </div>
+                  ))}
+                </Card>
+              )}
+
+              {/* Bilan — coach peut modifier */}
+              <Card>
+                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>📋 Bilan saison</p>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
+                  <div style={{ flex: 1, textAlign: 'center', padding: 10, borderRadius: 10,
+                    background: objJoueurData.bilan_obj_perso_atteints === true ? '#EAF3DE' : objJoueurData.bilan_obj_perso_atteints === false ? '#FCEBEB' : '#F9FAFB' }}>
+                    <p style={{ fontSize: 10, color: '#6B7280' }}>Obj. perso atteints</p>
+                    <p style={{ fontSize: 14, fontWeight: 700 }}>
+                      {objJoueurData.bilan_obj_perso_atteints === true ? '✅ Oui' : objJoueurData.bilan_obj_perso_atteints === false ? '❌ Non' : '—'}
+                    </p>
+                  </div>
+                  <div style={{ flex: 1, textAlign: 'center', padding: 10, borderRadius: 10,
+                    background: objJoueurData.bilan_obj_collectifs_atteints === true ? '#EAF3DE' : objJoueurData.bilan_obj_collectifs_atteints === false ? '#FCEBEB' : '#F9FAFB' }}>
+                    <p style={{ fontSize: 10, color: '#6B7280' }}>Obj. collectifs atteints</p>
+                    <p style={{ fontSize: 14, fontWeight: 700 }}>
+                      {objJoueurData.bilan_obj_collectifs_atteints === true ? '✅ Oui' : objJoueurData.bilan_obj_collectifs_atteints === false ? '❌ Non' : '—'}
+                    </p>
+                  </div>
+                </div>
+                {objJoueurData.bilan_commentaire && (
+                  <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 10px' }}>
+                    <p style={{ fontSize: 11, color: '#6B7280', fontStyle: 'italic' }}>💬 {objJoueurData.bilan_commentaire}</p>
+                  </div>
+                )}
+              </Card>
+            </>
+          )}
+        </>
+      )}
+
       {activeTab === 'notes' && (
         <>
           {canComment && (
