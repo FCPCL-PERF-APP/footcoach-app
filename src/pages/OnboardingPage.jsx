@@ -59,13 +59,33 @@ export default function OnboardingPage() {
   const { profile } = useAuth()
   const navigate = useNavigate()
 
- async function finish() {
-    try {
-      if (profile?.id) {
-        await supabase.from('joueurs').update({ onboarding_done: true }).eq('id', profile.id)
+  async function finish() {
+    // Marque l'onboarding comme complété
+    if (profile?.id) {
+      await supabase.from('joueurs').update({ onboarding_done: true }).eq('id', profile.id)
+
+      // Message de bienvenue automatique dans la messagerie privée
+      try {
+        // Trouver le coach principal
+        const { data: coach } = await supabase.from('staff')
+          .select('auth_id, nom, prenom')
+          .eq('role', 'coach')
+          .maybeSingle()
+
+        if (coach?.auth_id) {
+          const myAuthId = profile?.auth_id || profile?.id
+          await supabase.from('messages').insert({
+            expediteur_id: coach.auth_id,
+            expediteur_nom: `${coach.nom} ${coach.prenom}`,
+            expediteur_role: 'coach',
+            destinataire_id: myAuthId,
+            groupe: false,
+            contenu: `⚽ Bienvenue sur l'app FC PCL ${profile.prenom} ! Tu peux dès maintenant indiquer tes présences, remplir ton RPE après chaque séance et suivre tes stats. N'hésite pas à me contacter ici si tu as des questions. Bonne saison ! 💪`
+          })
+        }
+      } catch (err) {
+        console.error('Erreur message bienvenue:', err)
       }
-    } catch (err) {
-      console.error('Erreur onboarding:', err)
     }
     navigate('/mon-dashboard')
   }

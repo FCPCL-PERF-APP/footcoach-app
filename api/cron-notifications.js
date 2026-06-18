@@ -1,7 +1,3 @@
-// Vercel Cron Job — Notifications automatiques
-// S'exécute tous les jours à 8h00
-// Configurer dans vercel.json : { "crons": [{ "path": "/api/cron-notifications", "schedule": "0 8 * * *" }] }
-
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
 
@@ -10,112 +6,110 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 )
 
-webpush.setVapidDetails(
-  'mailto:contact@fcpcl.fr',
-  process.env.VITE_VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-)
-
-async function sendPush(subscriptions, title, body, url = '/') {
-  const payload = JSON.stringify({ title, body, url, tag: 'fcpcl' })
-  const results = await Promise.allSettled(
-    subscriptions.map(sub => webpush.sendNotification(JSON.parse(sub.subscription), payload))
-  )
-  return results.filter(r => r.status === 'fulfilled').length
-}
-
 export default async function handler(req, res) {
-  // Vérifie que c'est bien Vercel qui appelle
-  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Vérifier le secret cron
+  const authHeader = req.headers['authorization']
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
+  const vapidPublic = process.env.VITE_VAPID_PUBLIC_KEY
+  const vapidPrivate = process.env.VAPID_PRIVATE_KEY
+  const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:contact@fcpcl.fr'
+
+  if (!vapidPublic || !vapidPrivate) {
+    return res.status(500).json({ error: 'Clés VAPID manquantes' })
+  }
+
+  webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate)
+
   const now = new Date()
-  const today = now.toISOString().split('T')[0]
+  const aujourd = now.toISOString().split('T')[0]
+  const dans1j = new Date(now.getTime() + 24*60*60*1000).toISOString().split('T')[0]
+  const dans2j = new Date(now.getTime() + 2*24*60*60*1000).toISOString().split('T')[0]
 
-  // Date J+1 et J+2
-  const tomorrow = new Date(now)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  const tomorrowStr = tomorrow.toISOString().split('T')[0]
+  let sent = 0
+  const errors = []
 
-  const dayAfter = new Date(now)
-  dayAfter.setDate(dayAfter.getDate() + 2)
-  const dayAfterStr = dayAfter.toISOString().split('T')[0]
+  try {
+    // 1. Rappels événements J-1 et J-2
+    const { data: events } = await supabase.from('evenements').select('*')
+      .in('date_heure', [`${dans1j}T00:00:00`, `${dans2j}T00:00:00`])
+      .gte('date_heure', `${dans1j}T00:00:00`)
+      .lte('date_heure', `${dans2j}T23:59:59`)
 
-  const stats = { rappel_j2: 0, rappel_j1: 0, invitation_rpe: 0 }
+    if (events?.length) {
+      const { data: subs } = await supabase.from('push_subscriptions').select('*')
+      for (const ev of events) {
+        const dateStr = new Date(ev.date_heure).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+        const isJ1 = ev.date_heure.startsWith(dans1j)
+        const title = `${isJ1 ? '⏰ Demain' : '📅 Dans 2 jours'} — ${ev.titre}`
+        const body = `${ev.type === 'match' ? '⚽ Match' : '🏃 Séance'} · ${dateStr}${ev.lieu ? ` · ${ev.lieu}` : ''}`
 
-  // Récupère tous les abonnements push
-  const { data: allSubs } = await supabase.from('push_subscriptions').select('*')
-  const joueurSubs = (allSubs || []).filter(s => s.user_role === 'joueur')
-
-  // ============ RAPPEL J-2 ============
-  const { data: eventsJ2 } = await supabase
-    .from('evenements')
-    .select('*')
-    .gte('date_heure', `${dayAfterStr}T00:00:00`)
-    .lte('date_heure', `${dayAfterStr}T23:59:59`)
-
-  for (const ev of (eventsJ2 || [])) {
-    const isMatch = ev.type === 'match'
-    const title = isMatch ? `⚽ Match dans 2 jours — ${ev.titre}` : `🏃 Entraînement dans 2 jours`
-    const body = `${new Date(ev.date_heure).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} · ${ev.lieu || ''}`
-    stats.rappel_j2 += await sendPush(joueurSubs, title, body, '/calendrier')
-  }
-
-  // ============ RAPPEL J-1 ============
-  const { data: eventsJ1 } = await supabase
-    .from('evenements')
-    .select('*')
-    .gte('date_heure', `${tomorrowStr}T00:00:00`)
-    .lte('date_heure', `${tomorrowStr}T23:59:59`)
-
-  for (const ev of (eventsJ1 || [])) {
-    const isMatch = ev.type === 'match'
-    const heure = new Date(ev.date_heure).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-    const rdv = ev.rdv_heure ? ` · RDV ${ev.rdv_heure}` : ''
-    const title = isMatch ? `📢 Match demain — ${ev.titre}` : `📢 Entraînement demain`
-    const body = `${heure}${rdv} · ${ev.lieu || ''}`
-    stats.rappel_j1 += await sendPush(joueurSubs, title, body, '/calendrier')
-  }
-
-  // ============ INVITATION RPE (événements d'hier) ============
-  const yesterday = new Date(now)
-  yesterday.setDate(yesterday.getDate() - 1)
-  const yesterdayStr = yesterday.toISOString().split('T')[0]
-
-  const { data: eventsYesterday } = await supabase
-    .from('evenements')
-    .select('*')
-    .gte('date_heure', `${yesterdayStr}T00:00:00`)
-    .lte('date_heure', `${yesterdayStr}T23:59:59`)
-
-  for (const ev of (eventsYesterday || [])) {
-    // Trouve les joueurs qui n'ont pas encore rempli leur RPE
-    const { data: rpes } = await supabase
-      .from('rpe')
-      .select('joueur_id')
-      .eq('evenement_id', ev.id)
-    const rpeJoueurIds = new Set((rpes || []).map(r => r.joueur_id))
-
-    // Récupère les joueurs convoqués sans RPE
-    const { data: convocs } = await supabase
-      .from('convocations')
-      .select('joueur_id, joueurs(auth_id)')
-      .eq('evenement_id', ev.id)
-      .eq('convoque', true)
-
-    const authIdsManquants = (convocs || [])
-      .filter(c => !rpeJoueurIds.has(c.joueur_id) && c.joueurs?.auth_id)
-      .map(c => c.joueurs.auth_id)
-
-    const subsManquants = joueurSubs.filter(s => authIdsManquants.includes(s.user_id))
-
-    if (subsManquants.length > 0) {
-      const title = `📝 RPE à remplir — ${ev.titre}`
-      const body = 'Prends 2 minutes pour évaluer ta séance/match d\'hier'
-      stats.invitation_rpe += await sendPush(subsManquants, title, body, '/mon-rpe')
+        for (const sub of (subs || [])) {
+          try {
+            await webpush.sendNotification(
+              { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+              JSON.stringify({ title, body, url: '/calendrier', icon: '/icons/logo.jpg' })
+            )
+            sent++
+          } catch (err) {
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              await supabase.from('push_subscriptions').delete().eq('id', sub.id)
+            }
+            errors.push(err.message)
+          }
+        }
+      }
     }
-  }
 
-  res.status(200).json({ success: true, date: today, stats })
+    // 2. Rappel RPE — joueurs avec événements sans RPE dans les 3 derniers jours
+    const il3j = new Date(now.getTime() - 3*24*60*60*1000).toISOString()
+    const { data: eventsRecents } = await supabase.from('evenements').select('id')
+      .lte('date_heure', now.toISOString())
+      .gte('date_heure', il3j)
+
+    if (eventsRecents?.length) {
+      const eventIds = eventsRecents.map(e => e.id)
+      const { data: joueurs } = await supabase.from('joueurs').select('id, auth_id, prenom').not('auth_id', 'is', null)
+
+      for (const joueur of (joueurs || [])) {
+        const { data: rpes } = await supabase.from('rpe').select('evenement_id')
+          .eq('joueur_id', joueur.id).in('evenement_id', eventIds)
+
+        const rpeIds = new Set((rpes || []).map(r => r.evenement_id))
+        const manquants = eventIds.filter(id => !rpeIds.has(id)).length
+
+        if (manquants > 0) {
+          const { data: sub } = await supabase.from('push_subscriptions').select('*')
+            .eq('user_id', joueur.auth_id).maybeSingle()
+
+          if (sub) {
+            try {
+              await webpush.sendNotification(
+                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+                JSON.stringify({
+                  title: `❤️ RPE à compléter`,
+                  body: `${joueur.prenom}, tu as ${manquants} RPE en attente — ça prend 1 minute !`,
+                  url: '/mon-rpe',
+                  icon: '/icons/logo.jpg'
+                })
+              )
+              sent++
+            } catch (err) {
+              if (err.statusCode === 410 || err.statusCode === 404) {
+                await supabase.from('push_subscriptions').delete().eq('id', sub.id)
+              }
+              errors.push(err.message)
+            }
+          }
+        }
+      }
+    }
+
+    res.status(200).json({ success: true, sent, errors: errors.length })
+  } catch (err) {
+    console.error('Cron error:', err)
+    res.status(500).json({ error: err.message })
+  }
 }

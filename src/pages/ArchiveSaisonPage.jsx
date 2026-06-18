@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { Card, PageHeader, Button, Spinner } from '../components/UI'
+import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 
 export default function ArchiveSaisonPage() {
@@ -8,15 +8,17 @@ export default function ArchiveSaisonPage() {
   const [stats, setStats] = useState(null)
   const [archiving, setArchiving] = useState(false)
   const [archived, setArchived] = useState(false)
-  const [confirmed, setConfirmed] = useState(false)
+  const [step, setStep] = useState(0) // 0=aperçu, 1=confirmation, 2=terminé
+  const [error, setError] = useState(null)
   const [saisonLabel, setSaisonLabel] = useState('')
 
   useEffect(() => { loadStats() }, [])
 
   async function loadStats() {
     setLoading(true)
-    const year = new Date().getFullYear()
-    setSaisonLabel(`${year-1}/${year}`)
+    const now = new Date()
+    const year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1
+    setSaisonLabel(`${year}/${year+1}`)
 
     const [
       { count: nbMatchs },
@@ -36,21 +38,21 @@ export default function ArchiveSaisonPage() {
 
     const totalButs = (statsData || []).reduce((s, r) => s + (r.buts_marques || 0), 0)
     const totalEnc = (statsData || []).reduce((s, r) => s + (r.buts_encaisses || 0), 0)
-    const victoires = (statsData || []).filter(s => s.buts_marques > s.buts_encaisses).length
-    const nuls = (statsData || []).filter(s => s.buts_marques === s.buts_encaisses).length
-    const defaites = (statsData || []).filter(s => s.buts_marques < s.buts_encaisses).length
+    const victoires = (statsData || []).filter(s => (s.buts_marques||0) > (s.buts_encaisses||0)).length
+    const nuls = (statsData || []).filter(s => (s.buts_marques||0) === (s.buts_encaisses||0) && s.buts_marques !== null).length
+    const defaites = (statsData || []).filter(s => (s.buts_marques||0) < (s.buts_encaisses||0)).length
 
-    setStats({ nbMatchs, nbSeances, nbJoueurs, nbRpe, nbFootbar, totalButs, totalEnc, victoires, nuls, defaites })
+    setStats({ nbMatchs: nbMatchs||0, nbSeances: nbSeances||0, nbJoueurs: nbJoueurs||0, nbRpe: nbRpe||0, nbFootbar: nbFootbar||0, totalButs, totalEnc, victoires, nuls, defaites })
     setLoading(false)
   }
 
   async function archiverSaison() {
-    if (!confirmed) { setConfirmed(true); return }
     setArchiving(true)
+    setError(null)
 
     try {
-      // 1. Sauvegarde les stats dans une table archives
-      await supabase.from('archives_saisons').insert({
+      // 1. Sauvegarder le résumé dans archives_saisons
+      const { error: archErr } = await supabase.from('archives_saisons').insert({
         saison: saisonLabel,
         nb_matchs: stats.nbMatchs,
         nb_seances: stats.nbSeances,
@@ -63,23 +65,25 @@ export default function ArchiveSaisonPage() {
         nb_rpe: stats.nbRpe,
         archived_at: new Date().toISOString()
       })
+      if (archErr) throw new Error('Erreur sauvegarde archive : ' + archErr.message)
 
-      // 2. Supprime les événements passés
-      const debutSaison = `${new Date().getFullYear()-1}-07-01`
-      await supabase.from('evenements').delete().lte('date_heure', new Date().toISOString()).gte('date_heure', debutSaison)
+      // 2. Supprimer les données de la saison (sans filtre de date problématique)
+      const tables = ['rpe', 'footbar', 'stats_match', 'stats_collectives', 'presences', 'convocations', 'rapports_match', 'sondage_votes', 'sondages']
+      for (const table of tables) {
+        const { error: delErr } = await supabase.from(table).delete().gt('id', '00000000-0000-0000-0000-000000000000')
+        if (delErr) console.warn(`Erreur suppression ${table}:`, delErr.message)
+      }
 
-      // 3. Réinitialise les données de la saison (RPE, Footbar, stats, présences)
-      await supabase.from('rpe').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-      await supabase.from('footbar').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-      await supabase.from('stats_match').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-      await supabase.from('stats_collectives').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-      await supabase.from('presences').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-      await supabase.from('convocations').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-      await supabase.from('objectifs').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      // 3. Supprimer les événements passés
+      const { error: evErr } = await supabase.from('evenements').delete().lt('date_heure', new Date().toISOString())
+      if (evErr) console.warn('Erreur suppression événements:', evErr.message)
 
-      setArchived(true)
+      // 4. Remettre les blessures actives à zéro (garder l'historique)
+      // On garde les blessures — elles ont leur propre historique
+
+      setStep(2)
     } catch (err) {
-      alert('Erreur lors de l\'archivage : ' + err.message)
+      setError(err.message)
     }
     setArchiving(false)
   }
@@ -90,87 +94,106 @@ export default function ArchiveSaisonPage() {
     <div style={{ padding: 12 }}>
       <PageHeader title="📦 Archiver la saison" />
 
-      {archived ? (
+      {step === 2 ? (
         <Card>
-          <div style={{ textAlign: 'center', padding: 24 }}>
+          <div style={{ textAlign: 'center', padding: 20 }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#3B6D11' }}>Saison {saisonLabel} archivée !</p>
-            <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 8 }}>
-              L'app est prête pour la nouvelle saison. Les joueurs et leurs fiches sont conservés.
+            <p style={{ fontSize: 16, fontWeight: 700, color: '#3B6D11', marginBottom: 8 }}>
+              Saison {saisonLabel} archivée !
             </p>
+            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}>
+              Les données ont été sauvegardées et l'app est prête pour la nouvelle saison.
+            </p>
+            <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, textAlign: 'left' }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#3B6D11', marginBottom: 6 }}>✅ Ce qui a été fait :</p>
+              <p style={{ fontSize: 11, color: '#3B6D11' }}>• Résumé de la saison sauvegardé</p>
+              <p style={{ fontSize: 11, color: '#3B6D11' }}>• RPE, Footbar, Stats, Présences effacés</p>
+              <p style={{ fontSize: 11, color: '#3B6D11' }}>• Événements passés supprimés</p>
+              <p style={{ fontSize: 11, color: '#3B6D11' }}>• Joueurs et fiches conservés</p>
+            </div>
           </div>
         </Card>
       ) : (
         <>
           {/* Résumé saison */}
-          <Card>
-            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>📊 Bilan saison {saisonLabel}</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
+          <div style={{ background: THEME.gradient, borderRadius: 14, padding: 14, marginBottom: 14 }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 12 }}>
+              📊 Bilan saison {saisonLabel}
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
               {[
-                ['Matchs', stats?.nbMatchs],
-                ['Séances', stats?.nbSeances],
-                ['Joueurs', stats?.nbJoueurs],
-                ['V', stats?.victoires, '#3B6D11'],
-                ['N', stats?.nuls, '#BA7517'],
-                ['D', stats?.defaites, '#A32D2D'],
-                ['Buts +', stats?.totalButs, '#3B6D11'],
-                ['Buts -', stats?.totalEnc, '#A32D2D'],
-                ['RPE saisis', stats?.nbRpe],
-              ].map(([lbl, val, color]) => (
-                <div key={lbl} style={{ background: '#F9FAFB', borderRadius: 10, padding: 8, textAlign: 'center' }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: color || THEME.primary }}>{val ?? '—'}</div>
-                  <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{lbl}</div>
+                ['Matchs', stats.nbMatchs],
+                ['Séances', stats.nbSeances],
+                ['Joueurs', stats.nbJoueurs],
+                ['Victoires', stats.victoires],
+                ['Nuls', stats.nuls],
+                ['Défaites', stats.defaites],
+                ['Buts ⚽', stats.totalButs],
+                ['Enc. 🥅', stats.totalEnc],
+                ['RPE', stats.nbRpe],
+              ].map(([label, val]) => (
+                <div key={label} style={{ background: 'rgba(255,255,255,.15)', borderRadius: 10, padding: '8px 4px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{val}</div>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>{label}</div>
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Avertissement */}
+          <Card style={{ background: '#FDFAEE', border: '0.5px solid #F5C4B3', marginBottom: 14 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#854F0B', marginBottom: 8 }}>⚠️ Action irréversible</p>
+            <p style={{ fontSize: 12, color: '#854F0B', marginBottom: 6 }}>Cette action va :</p>
+            {[
+              '✓ Sauvegarder le résumé de la saison',
+              '✓ Conserver les fiches joueurs et leur historique',
+              '✗ Effacer tous les RPE, Footbar, Stats, Présences',
+              '✗ Supprimer les événements passés',
+              '✗ Remettre les sondages à zéro',
+            ].map(item => (
+              <p key={item} style={{ fontSize: 11, color: item.startsWith('✓') ? '#3B6D11' : '#A32D2D', marginBottom: 3 }}>{item}</p>
+            ))}
           </Card>
 
-          {/* Ce qui sera conservé / supprimé */}
-          <Card>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Que se passe-t-il lors de l'archivage ?</p>
-            <div style={{ marginBottom: 8 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#3B6D11', marginBottom: 4 }}>✅ Conservé</p>
-              {['Fiches joueurs (nom, poste, contacts...)', 'Photos joueurs', 'Historique blessures', 'Données archivées de cette saison'].map(item => (
-                <p key={item} style={{ fontSize: 12, color: '#6B7280', paddingLeft: 8, marginBottom: 2 }}>· {item}</p>
-              ))}
-            </div>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#A32D2D', marginBottom: 4 }}>🗑️ Réinitialisé</p>
-              {['Calendrier des événements', 'Données RPE', 'Données Footbar', 'Stats de matchs', 'Présences et convocations', 'Objectifs individuels'].map(item => (
-                <p key={item} style={{ fontSize: 12, color: '#6B7280', paddingLeft: 8, marginBottom: 2 }}>· {item}</p>
-              ))}
-            </div>
-          </Card>
-
-          {/* Confirmation */}
-          {confirmed && (
-            <div style={{ background: '#FCEBEB', border: '0.5px solid #FCA5A5', borderRadius: 12, padding: 14, marginBottom: 12 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D', marginBottom: 6 }}>⚠️ Dernière confirmation</p>
-              <p style={{ fontSize: 12, color: '#6B7280' }}>
-                Cette action est <strong>irréversible</strong>. Toutes les données de la saison seront supprimées. Les fiches joueurs sont conservées.
-              </p>
-            </div>
+          {error && (
+            <Card style={{ background: '#FCEBEB', marginBottom: 14 }}>
+              <p style={{ fontSize: 12, color: '#A32D2D' }}>❌ {error}</p>
+            </Card>
           )}
 
-          <Button
-            onClick={archiverSaison}
-            disabled={archiving}
-            style={{
-              width: '100%', padding: 14,
-              background: confirmed ? '#A32D2D' : THEME.gradient,
-              color: '#fff', border: 'none', borderRadius: 12,
-              fontSize: 14, fontWeight: 700, cursor: 'pointer'
+          {step === 0 && (
+            <button onClick={() => setStep(1)} style={{
+              width: '100%', padding: 14, borderRadius: 12,
+              background: '#854F0B', color: '#fff',
+              border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer'
             }}>
-            {archiving ? 'Archivage en cours...' :
-             confirmed ? '🗑️ Confirmer et archiver définitivement' :
-             '📦 Archiver la saison ' + saisonLabel}
-          </Button>
-
-          {confirmed && (
-            <button onClick={() => setConfirmed(false)}
-              style={{ width: '100%', padding: 10, marginTop: 8, background: 'transparent', border: '0.5px solid #D1D5DB', borderRadius: 12, fontSize: 13, color: '#6B7280', cursor: 'pointer' }}>
-              Annuler
+              📦 Archiver la saison {saisonLabel}
             </button>
+          )}
+
+          {step === 1 && (
+            <Card style={{ background: '#FCEBEB', border: '1px solid #A32D2D' }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#A32D2D', marginBottom: 8, textAlign: 'center' }}>
+                ⚠️ Confirmer l'archivage ?
+              </p>
+              <p style={{ fontSize: 12, color: '#A32D2D', marginBottom: 14, textAlign: 'center' }}>
+                Cette action est définitive. Es-tu sûr de vouloir archiver la saison {saisonLabel} ?
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setStep(0)} style={{
+                  flex: 1, padding: 12, borderRadius: 10,
+                  border: '0.5px solid #D1D5DB', background: '#fff',
+                  fontSize: 13, cursor: 'pointer'
+                }}>Annuler</button>
+                <button onClick={archiverSaison} disabled={archiving} style={{
+                  flex: 1, padding: 12, borderRadius: 10,
+                  background: '#A32D2D', color: '#fff',
+                  border: 'none', fontSize: 13, fontWeight: 700, cursor: archiving ? 'not-allowed' : 'pointer'
+                }}>
+                  {archiving ? '⏳ Archivage...' : '✅ Confirmer'}
+                </button>
+              </div>
+            </Card>
           )}
         </>
       )}
