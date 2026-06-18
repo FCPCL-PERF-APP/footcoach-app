@@ -190,11 +190,12 @@ export default function FicheJoueurPage() {
   const blessureActive = blessures.find(b => !b.date_retour_effective)
 
   const tabs = [
-    { key: 'identite', label: '👤 Identité' },
-    { key: 'physio',   label: '❤️ Physio' },
-    { key: 'perf',     label: '📈 Perfs' },
-    { key: 'stats',    label: '⚽ Stats' },
-    { key: 'notes',    label: '💬 Notes' },
+    { key: 'identite',  label: '👤 Identité' },
+    { key: 'physio',    label: '❤️ Physio' },
+    { key: 'perf',      label: '📈 Perfs' },
+    { key: 'stats',     label: '⚽ Stats' },
+    { key: 'objectifs', label: '🎯 Objectifs' },
+    { key: 'notes',     label: '💬 Notes' },
   ]
 
   const inputStyle = (disabled) => ({

@@ -305,8 +305,8 @@ export default function DashboardPage() {
 
           {/* ALERTES */}
           {(() => {
-            const alertesCollFiltrees = alertesCollectives.filter((a, i) => !alertesTraitees.includes(`col-${i}-${a.title}`))
-            const alertesFiltrees = alertes.filter((a, i) => !alertesTraitees.includes(`ind-${i}-${a.title}`))
+            const alertesCollFiltrees = alertesCollectives.filter((a) => !alertesTraitees.includes(`col-${a.title?.replace(/\s/g,'_')}`))
+            const alertesFiltrees = alertes.filter((a, i) => !alertesTraitees.includes(`ind-${a.joueurId || i}-${a.title?.replace(/\s/g,'_')}`))
             const totalVisible = alertesCollFiltrees.length + alertesFiltrees.length
 
             return totalVisible > 0 ? (
@@ -315,8 +315,8 @@ export default function DashboardPage() {
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D' }}>🚨 {totalVisible} point(s) à surveiller</p>
                   <button onClick={() => {
                     const allKeys = [
-                      ...alertesCollectives.map((a,i) => `col-${i}-${a.title}`),
-                      ...alertes.map((a,i) => `ind-${i}-${a.title}`)
+                      ...alertesCollectives.map((a) => `col-${a.title?.replace(/\s/g,'_')}`),
+                      ...alertes.map((a,i) => `ind-${a.joueurId || i}-${a.title?.replace(/\s/g,'_')}`)
                     ]
                     allKeys.forEach(k => marquerTraite(k))
                   }} style={{ fontSize: 10, color: '#A32D2D', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
@@ -326,7 +326,7 @@ export default function DashboardPage() {
                 {alertesCollFiltrees.length > 0 && <>
                   <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
                   {alertesCollectives.map((a, i) => {
-                    const key = `col-${i}-${a.title}`
+                    const key = `col-${a.title?.replace(/\s/g,'_')}`
                     if (alertesTraitees.includes(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
                   })}
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                 {alertesFiltrees.length > 0 && <>
                   <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
                   {alertes.map((a, i) => {
-                    const key = `ind-${i}-${a.title}`
+                    const key = `ind-${a.joueurId || i}-${a.title?.replace(/\s/g,'_')}`
                     if (alertesTraitees.includes(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
                   })}
