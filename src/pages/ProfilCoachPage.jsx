@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect
+import { useNavigate } from 'react-router-dom', useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import PushToggle from '../components/PushToggle'
 import { useAuth } from '../hooks/useAuth'
@@ -6,6 +7,7 @@ import { Card, PageHeader, Input, Button, Spinner, Avatar } from '../components/
 import { THEME } from '../theme'
 
 export default function ProfilCoachPage() {
+  const navigate = useNavigate() {
   const { profile, signOut } = useAuth()
   const [form, setForm] = useState({})
   const [loading, setLoading] = useState(true)

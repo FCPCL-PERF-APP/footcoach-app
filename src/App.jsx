@@ -48,6 +48,9 @@ import RadarJoueurPage     from './pages/RadarJoueurPage'
 import BadgesJoueurPage from './pages/BadgesJoueurPage'
 import SondagePage from './pages/SondagePage'
 import CPAPage from './pages/CPAPage'
+import ExportFicheJoueurPage from './pages/ExportFicheJoueurPage'
+import OnboardingCoachPage from './pages/OnboardingCoachPage'
+import SearchPage from './pages/SearchPage'
 
 function AppContent() {
   const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
@@ -89,6 +92,9 @@ function AppContent() {
           <Route path="/joueurs/:id"            element={<FicheJoueurPage />} />
           <Route path="/joueurs/:id/blessures"  element={<BlessuresPage />} />
           <Route path="/joueurs/:id/objectifs"  element={<ObjectifsPage />} />
+<Route path="/export-fiche/:id" element={isCoach ? <ExportFicheJoueurPage /> : <Navigate to="/" />} />
+<Route path="/onboarding-coach" element={<OnboardingCoachPage />} />
+<Route path="/search" element={<SearchPage />} />
           <Route path="/ma-fiche"               element={isJoueur ? <MaFichePage /> : <Navigate to="/" />} />
 <Route path="/mes-objectifs" element={isJoueur ? <MesObjectifsPage /> : <Navigate to="/" />} />
           <Route path="/messages"               element={<MessagesPage setUnreadCount={setUnreadCount} />} />

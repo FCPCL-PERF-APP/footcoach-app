@@ -62,6 +62,9 @@ export default function AppHeader() {
       </div>
 
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        {/* Recherche */}
+        <button onClick={() => navigate('/search')} style={btnStyle}>🔍</button>
+
         {/* Mode sombre */}
         <button onClick={toggleTheme} style={btnStyle}>
           {darkMode ? '☀️' : '🌙'}
