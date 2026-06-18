@@ -313,12 +313,15 @@ export default function DashboardPage() {
               <div style={{ background: '#FDF1F1', border: '0.5px solid #FCA5A5', borderRadius: 14, padding: 12, marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D' }}>🚨 {totalVisible} point(s) à surveiller</p>
-                  {alertesTraitees.length > 0 && (
-                    <button onClick={resetAlertes}
-                      style={{ fontSize: 10, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                      Tout réafficher
-                    </button>
-                  )}
+                  <button onClick={() => {
+                    const allKeys = [
+                      ...alertesCollectives.map((a,i) => `col-${i}-${a.title}`),
+                      ...alertes.map((a,i) => `ind-${i}-${a.title}`)
+                    ]
+                    allKeys.forEach(k => marquerTraite(k))
+                  }} style={{ fontSize: 10, color: '#A32D2D', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
+                    ✓ Tout traiter
+                  </button>
                 </div>
                 {alertesCollFiltrees.length > 0 && <>
                   <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>

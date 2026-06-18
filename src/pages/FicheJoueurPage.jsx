@@ -72,6 +72,7 @@ export default function FicheJoueurPage() {
       supabase.from('commentaires_joueurs').select('*').eq('joueur_id', id).order('created_at', { ascending: false }),
       supabase.from('blessures').select('*').eq('joueur_id', id).order('date_debut', { ascending: false }),
       supabase.from('objectifs').select('*').eq('joueur_id', id).order('created_at', { ascending: false }),
+      supabase.from('objectifs_joueur').select('*').eq('joueur_id', id).maybeSingle(),
     ])
     setJoueur(j)
     setForm({ ...j })
