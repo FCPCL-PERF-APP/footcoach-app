@@ -101,6 +101,23 @@ export default function FicheJoueurPage() {
     setLoading(false)
   }
 
+  async function saveBilan() {
+    if (!joueur?.id) return
+    setSavingBilan(true)
+    const payload = { ...bilanForm, joueur_id: joueur.id }
+    const { data: existing } = await supabase.from('objectifs_joueur').select('id').eq('joueur_id', joueur.id).maybeSingle()
+    if (existing?.id) {
+      await supabase.from('objectifs_joueur').update(payload).eq('id', existing.id)
+    } else {
+      await supabase.from('objectifs_joueur').insert(payload)
+    }
+    setSavingBilan(false)
+    setBilanSaved(true)
+    setTimeout(() => setBilanSaved(false), 2000)
+    const { data: updated } = await supabase.from('objectifs_joueur').select('*').eq('joueur_id', joueur.id).maybeSingle()
+    if (updated) setObjJoueurData(updated)
+  }
+
   async function saveIdentite() {
     setSaving(true)
     const payload = {

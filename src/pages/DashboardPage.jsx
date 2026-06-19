@@ -70,33 +70,10 @@ export default function DashboardPage() {
   const [presenceEvolution, setPresenceEvolution] = useState([])
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
-  const [alertesTraitees, setAlertesTraitees] = useState(() => {
-    try {
-      const now = new Date()
-      // Reset le lundi
-      const lastMonday = new Date(now)
-      lastMonday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
-      lastMonday.setHours(0, 0, 0, 0)
-      const lastReset = localStorage.getItem('fcpcl-alertes-last-reset')
-      // Reset aussi si expiry dépassée
-      const expiry = localStorage.getItem('fcpcl-alertes-expiry')
-      if (!lastReset || new Date(lastReset) < lastMonday || (expiry && new Date(expiry) < now)) {
-        localStorage.removeItem('fcpcl-alertes-traitees')
-        localStorage.removeItem('fcpcl-alertes-expiry')
-        localStorage.setItem('fcpcl-alertes-last-reset', now.toISOString())
-        return []
-      }
-      return JSON.parse(localStorage.getItem('fcpcl-alertes-traitees') || '[]')
-    } catch { return [] }
-  })
+  const [alertesTraitees, setAlertesTraitees] = useState(new Set()))
 
   function marquerTraite(alerteKey) {
-    const newList = [...alertesTraitees, alerteKey]
-    setAlertesTraitees(newList)
-    localStorage.setItem('fcpcl-alertes-traitees', JSON.stringify(newList))
-    // Reset automatique dans 7 jours
-    const expiry = new Date(Date.now() + 7*24*60*60*1000).toISOString()
-    localStorage.setItem('fcpcl-alertes-expiry', expiry)
+    setAlertesTraitees(prev => new Set([...prev, alerteKey]))
   }
 
   function resetAlertes() {
