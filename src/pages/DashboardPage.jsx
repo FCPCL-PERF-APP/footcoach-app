@@ -72,13 +72,17 @@ export default function DashboardPage() {
   const [nbAlertes, setNbAlertes] = useState(0)
   const [alertesTraitees, setAlertesTraitees] = useState(() => {
     try {
-      const lastReset = localStorage.getItem('fcpcl-alertes-last-reset')
       const now = new Date()
+      // Reset le lundi
       const lastMonday = new Date(now)
       lastMonday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
       lastMonday.setHours(0, 0, 0, 0)
-      if (!lastReset || new Date(lastReset) < lastMonday) {
+      const lastReset = localStorage.getItem('fcpcl-alertes-last-reset')
+      // Reset aussi si expiry dépassée
+      const expiry = localStorage.getItem('fcpcl-alertes-expiry')
+      if (!lastReset || new Date(lastReset) < lastMonday || (expiry && new Date(expiry) < now)) {
         localStorage.removeItem('fcpcl-alertes-traitees')
+        localStorage.removeItem('fcpcl-alertes-expiry')
         localStorage.setItem('fcpcl-alertes-last-reset', now.toISOString())
         return []
       }
@@ -90,6 +94,9 @@ export default function DashboardPage() {
     const newList = [...alertesTraitees, alerteKey]
     setAlertesTraitees(newList)
     localStorage.setItem('fcpcl-alertes-traitees', JSON.stringify(newList))
+    // Reset automatique dans 7 jours
+    const expiry = new Date(Date.now() + 7*24*60*60*1000).toISOString()
+    localStorage.setItem('fcpcl-alertes-expiry', expiry)
   }
 
   function resetAlertes() {

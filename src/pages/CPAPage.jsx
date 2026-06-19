@@ -351,43 +351,51 @@ export default function CPAPage() {
 }
 
 function TerrainSVG({ placements = [], ballonPos = { x: 50, y: 50 }, fleches = [], mini = false }) {
-  const W = 100, H = 160
-  const scale = mini ? 0.5 : 1
+  // Demi-terrain : viewBox 100x80
+  const W = 100, H = 80
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', display: 'block' }}>
-      {/* Terrain */}
+      {/* Fond */}
       <rect width={W} height={H} fill="#2d7a27" />
-      {/* Lignes */}
-      <rect x="5" y="5" width="90" height="150" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth=".8" />
-      {/* Mi-terrain */}
-      <line x1="5" y1="80" x2="95" y2="80" stroke="rgba(255,255,255,.4)" strokeWidth=".6" />
-      <circle cx="50" cy="80" r="12" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".6" />
-      {/* Surface haut */}
-      <rect x="22" y="5" width="56" height="22" fill="none" stroke="rgba(255,255,255,.4)" strokeWidth=".6" />
-      <rect x="33" y="5" width="34" height="10" fill="none" stroke="rgba(255,255,255,.4)" strokeWidth=".6" />
-      {/* Buts */}
-      <rect x="40" y="2" width="20" height="5" fill="none" stroke="rgba(255,255,255,.6)" strokeWidth=".8" />
-      <rect x="40" y="153" width="20" height="5" fill="none" stroke="rgba(255,255,255,.6)" strokeWidth=".8" />
-      {/* Surface bas */}
-      <rect x="22" y="133" width="56" height="22" fill="none" stroke="rgba(255,255,255,.4)" strokeWidth=".6" />
+      {/* Bordure terrain */}
+      <rect x="3" y="3" width="94" height="74" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth=".7" />
+      {/* Ligne médiane */}
+      <line x1="3" y1="3" x2="97" y2="3" stroke="rgba(255,255,255,.5)" strokeWidth=".7" />
+      {/* Surface de réparation */}
+      <rect x="22" y="58" width="56" height="18" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth=".7" />
+      {/* Petit surface */}
+      <rect x="35" y="68" width="30" height="9" fill="none" stroke="rgba(255,255,255,.4)" strokeWidth=".5" />
+      {/* But */}
+      <rect x="42" y="74" width="16" height="6" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth=".8" />
+      {/* Point de pénalty */}
+      <circle cx="50" cy="63" r=".8" fill="rgba(255,255,255,.7)" />
+      {/* Arc surface */}
+      <path d="M 33 58 A 13 13 0 0 0 67 58" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".5" />
+      {/* Coins */}
+      <path d="M 3 73 Q 3 77 7 77" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".5" />
+      <path d="M 97 73 Q 97 77 93 77" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".5" />
 
       {/* Ballon */}
-      <circle cx={ballonPos.x} cy={ballonPos.y * 1.6} r={mini ? 3 : 4} fill="#fff" stroke="#000" strokeWidth=".5" />
-      <text x={ballonPos.x} y={ballonPos.y * 1.6 + 1.2} textAnchor="middle" fontSize={mini ? 2.5 : 3.5} fill="#000">⚽</text>
+      <text x={ballonPos.x} y={ballonPos.y * 0.78 + 2} textAnchor="middle"
+        fontSize={mini ? 4 : 6} style={{ userSelect: 'none' }}>⚽</text>
 
-      {/* Joueurs */}
+      {/* Joueurs - pastilles plus petites */}
       {placements.map((pl, i) => (
         <g key={pl.joueurId}>
-          <circle cx={pl.x} cy={pl.y * 1.6} r={mini ? 4 : 6}
-            fill={pl.couleur || '#FFDD57'} stroke="#fff" strokeWidth=".8" />
-          <text x={pl.x} y={pl.y * 1.6 + (mini ? 1.5 : 2)} textAnchor="middle"
-            fontSize={mini ? 3 : 4} fontWeight="700" fill="#111">
+          <circle cx={pl.x} cy={pl.y * 0.78}
+            r={mini ? 3 : 4.5}
+            fill={pl.couleur || '#FFDD57'}
+            stroke="#fff" strokeWidth=".7" />
+          <text x={pl.x} y={pl.y * 0.78 + (mini ? 1.2 : 1.8)}
+            textAnchor="middle" fontSize={mini ? 2.5 : 3.5}
+            fontWeight="700" fill="#111">
             {pl.numero || (i + 1)}
           </text>
           {!mini && (
-            <text x={pl.x} y={pl.y * 1.6 + 10} textAnchor="middle" fontSize="3" fill="rgba(255,255,255,.9)">
-              {pl.nom?.slice(0, 6)}
+            <text x={pl.x} y={pl.y * 0.78 + 8}
+              textAnchor="middle" fontSize="2.8" fill="rgba(255,255,255,.9)">
+              {pl.nom?.slice(0, 7)}
             </text>
           )}
         </g>

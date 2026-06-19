@@ -84,6 +84,7 @@ export default function FicheJoueurPage() {
     setCommentaires(comms || [])
     setBlessures(bless || [])
     setObjectifs(obj || [])
+    if (objJoueur) setObjJoueurData(objJoueur)
     setLoading(false)
   }
 
