@@ -7,7 +7,7 @@ import { Card, PageHeader, Input, Button, Spinner, Avatar } from '../components/
 import { THEME } from '../theme'
 
 export default function ProfilCoachPage() {
-  const navigate = useNavigate() {
+  const navigate = useNavigate()
   const { profile, signOut } = useAuth()
   const [form, setForm] = useState({})
   const [loading, setLoading] = useState(true)
