@@ -39,6 +39,9 @@ export default function FicheJoueurPage() {
   const [statsHistory, setStatsHistory] = useState([])
   const [footbarFiche, setFootbarFiche] = useState([])
   const [objJoueurData, setObjJoueurData] = useState(null)
+  const [bilanForm, setBilanForm] = useState({})
+  const [savingBilan, setSavingBilan] = useState(false)
+  const [bilanSaved, setBilanSaved] = useState(false)
   const [tests, setTests] = useState([])
   const [poidsHistory, setPoidsHistory] = useState([])
   const [commentaires, setCommentaires] = useState([])
@@ -84,7 +87,17 @@ export default function FicheJoueurPage() {
     setCommentaires(comms || [])
     setBlessures(bless || [])
     setObjectifs(obj || [])
-    if (objJoueur) setObjJoueurData(objJoueur)
+    if (objJoueur) {
+      setObjJoueurData(objJoueur)
+      setBilanForm({
+        bilan_obj_perso_atteints: objJoueur.bilan_obj_perso_atteints,
+        bilan_obj_perso_comment: objJoueur.bilan_obj_perso_comment || '',
+        bilan_obj_collectifs_atteints: objJoueur.bilan_obj_collectifs_atteints,
+        bilan_axes_saison_prochaine: objJoueur.bilan_axes_saison_prochaine || '',
+        bilan_projection: objJoueur.bilan_projection || '',
+        bilan_commentaire: objJoueur.bilan_commentaire || '',
+      })
+    }
     setLoading(false)
   }
 
@@ -629,28 +642,60 @@ export default function FicheJoueurPage() {
 
               {/* Bilan — coach peut modifier */}
               <Card>
-                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>📋 Bilan saison</p>
-                <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
-                  <div style={{ flex: 1, textAlign: 'center', padding: 10, borderRadius: 10,
-                    background: objJoueurData.bilan_obj_perso_atteints === true ? '#EAF3DE' : objJoueurData.bilan_obj_perso_atteints === false ? '#FCEBEB' : '#F9FAFB' }}>
-                    <p style={{ fontSize: 10, color: '#6B7280' }}>Obj. perso atteints</p>
-                    <p style={{ fontSize: 14, fontWeight: 700 }}>
-                      {objJoueurData.bilan_obj_perso_atteints === true ? '✅ Oui' : objJoueurData.bilan_obj_perso_atteints === false ? '❌ Non' : '—'}
-                    </p>
-                  </div>
-                  <div style={{ flex: 1, textAlign: 'center', padding: 10, borderRadius: 10,
-                    background: objJoueurData.bilan_obj_collectifs_atteints === true ? '#EAF3DE' : objJoueurData.bilan_obj_collectifs_atteints === false ? '#FCEBEB' : '#F9FAFB' }}>
-                    <p style={{ fontSize: 10, color: '#6B7280' }}>Obj. collectifs atteints</p>
-                    <p style={{ fontSize: 14, fontWeight: 700 }}>
-                      {objJoueurData.bilan_obj_collectifs_atteints === true ? '✅ Oui' : objJoueurData.bilan_obj_collectifs_atteints === false ? '❌ Non' : '—'}
-                    </p>
-                  </div>
+                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>📋 Bilan saison — à remplir par le coach</p>
+
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>1. Objectifs personnels atteints ?</p>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  {['Oui', 'Non'].map(v => (
+                    <button key={v} onClick={() => setBilanForm(p => ({...p, bilan_obj_perso_atteints: v === 'Oui'}))}
+                      style={{ flex: 1, padding: 8, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                        border: `1.5px solid ${bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#E5E7EB'}`,
+                        background: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
+                        color: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#6B7280' }}>
+                      {v === 'Oui' ? '✅ Oui' : '❌ Non'}
+                    </button>
+                  ))}
                 </div>
-                {objJoueurData.bilan_commentaire && (
-                  <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 10px' }}>
-                    <p style={{ fontSize: 11, color: '#6B7280', fontStyle: 'italic' }}>💬 {objJoueurData.bilan_commentaire}</p>
-                  </div>
-                )}
+
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Comment y remédier :</label>
+                  <textarea value={bilanForm.bilan_obj_perso_comment || ''} onChange={e => setBilanForm(p => ({...p, bilan_obj_perso_comment: e.target.value}))}
+                    placeholder="Commentaire..." rows={2}
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
+                </div>
+
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>2. Objectifs collectifs atteints ?</p>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  {['Oui', 'Non'].map(v => (
+                    <button key={v} onClick={() => setBilanForm(p => ({...p, bilan_obj_collectifs_atteints: v === 'Oui'}))}
+                      style={{ flex: 1, padding: 8, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                        border: `1.5px solid ${bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#E5E7EB'}`,
+                        background: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
+                        color: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#6B7280' }}>
+                      {v === 'Oui' ? '✅ Oui' : '❌ Non'}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>3. Axes saison prochaine :</label>
+                  <textarea value={bilanForm.bilan_axes_saison_prochaine || ''} onChange={e => setBilanForm(p => ({...p, bilan_axes_saison_prochaine: e.target.value}))}
+                    placeholder="Ce qu'il doit améliorer..." rows={2}
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
+                </div>
+
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>4. Commentaire général :</label>
+                  <textarea value={bilanForm.bilan_commentaire || ''} onChange={e => setBilanForm(p => ({...p, bilan_commentaire: e.target.value}))}
+                    placeholder="Bilan général du joueur..." rows={2}
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
+                </div>
+
+                {bilanSaved && <p style={{ fontSize: 12, color: '#3B6D11', marginBottom: 8 }}>✅ Bilan sauvegardé !</p>}
+                <button onClick={saveBilan} disabled={savingBilan}
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: 'none', background: THEME.gradient, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  {savingBilan ? 'Enregistrement...' : '💾 Sauvegarder le bilan'}
+                </button>
               </Card>
             </>
           )}

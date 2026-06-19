@@ -312,37 +312,32 @@ export default function DashboardPage() {
 
           {/* ALERTES */}
           {(() => {
-            const alertesCollFiltrees = alertesCollectives.filter((a) => !alertesTraitees.includes(`col-${a.title?.replace(/\s/g,'_')}`))
-            const alertesFiltrees = alertes.filter((a, i) => !alertesTraitees.includes(`ind-${a.joueurId || i}-${a.title?.replace(/\s/g,'_')}`))
+            const alertesCollFiltrees = alertesCollectives.filter(a => !alertesTraitees.has(`col-${a.title}`))
+            const alertesFiltrees = alertes.filter(a => !alertesTraitees.has(`ind-${a.joueurId}-${a.title}`))
             const totalVisible = alertesCollFiltrees.length + alertesFiltrees.length
 
             return totalVisible > 0 ? (
               <div style={{ background: '#FDF1F1', border: '0.5px solid #FCA5A5', borderRadius: 14, padding: 12, marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D' }}>🚨 {totalVisible} point(s) à surveiller</p>
-                  <button onClick={() => {
-                    const allKeys = [
-                      ...alertesCollectives.map((a) => `col-${a.title?.replace(/\s/g,'_')}`),
-                      ...alertes.map((a,i) => `ind-${a.joueurId || i}-${a.title?.replace(/\s/g,'_')}`)
-                    ]
-                    allKeys.forEach(k => marquerTraite(k))
-                  }} style={{ fontSize: 10, color: '#A32D2D', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
+                  <button onClick={() => marquerToutTraite(alertesCollectives, alertes)}
+                    style={{ fontSize: 10, color: '#A32D2D', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
                     ✓ Tout traiter
                   </button>
                 </div>
                 {alertesCollFiltrees.length > 0 && <>
                   <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
                   {alertesCollectives.map((a, i) => {
-                    const key = `col-${a.title?.replace(/\s/g,'_')}`
-                    if (alertesTraitees.includes(key)) return null
+                    const key = `col-${a.title}`
+                    if (alertesTraitees.has(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
                   })}
                 </>}
                 {alertesFiltrees.length > 0 && <>
                   <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
                   {alertes.map((a, i) => {
-                    const key = `ind-${a.joueurId || i}-${a.title?.replace(/\s/g,'_')}`
-                    if (alertesTraitees.includes(key)) return null
+                    const key = `ind-${a.joueurId}-${a.title}`
+                    if (alertesTraitees.has(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
                   })}
                 </>}
@@ -351,12 +346,7 @@ export default function DashboardPage() {
               <div style={{ background: '#EAF3DE', border: '0.5px solid #3B6D11', borderRadius: 12, padding: 12, marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#3B6D11' }}>✅ Aucune alerte — tout va bien !</p>
-                  {alertesTraitees.length > 0 && (
-                    <button onClick={resetAlertes}
-                      style={{ fontSize: 10, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                      Voir alertes traitées
-                    </button>
-                  )}
+
                 </div>
               </div>
             )
