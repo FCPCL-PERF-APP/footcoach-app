@@ -473,7 +473,8 @@ export default function FicheJoueurPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Suivi du poids</p>
             {poidsHistory.length > 1 && (
-              {/* Dernière valeur */}
+  <>
+    {/* Dernière valeur */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: 11, color: '#6B7280' }}>Dernier : <strong style={{ color: THEME.primary }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
                 <span style={{ fontSize: 11, color: '#6B7280' }}>
@@ -502,6 +503,7 @@ export default function FicheJoueurPage() {
                 <span>{poidsHistory[Math.floor(poidsHistory.length/2)]?.poids} kg</span>
                 <span>{poidsHistory[poidsHistory.length-1]?.poids} kg</span>
               </div>
+</>
             )}
             <div style={{ display: 'flex', gap: 8 }}>
               <input type="number" step="0.1" placeholder="Nouvelle pesée (kg)" value={newPoids} onChange={e => setNewPoids(e.target.value)}
