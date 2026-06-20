@@ -75,16 +75,47 @@ export default function DashboardPage() {
   const [presenceEvolution, setPresenceEvolution] = useState([])
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
-  const [alertesTraitees, setAlertesTraitees] = useState([])
+  const [alertesTraitees, setAlertesTraitees] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('fcpcl-alertes-v2') || '{}')
+      const now = new Date()
+      const lundi = new Date(now)
+      lundi.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+      lundi.setHours(0, 0, 0, 0)
+      if (!stored.resetDate || new Date(stored.resetDate) < lundi) {
+        localStorage.setItem('fcpcl-alertes-v2', JSON.stringify({ keys: [], resetDate: now.toISOString() }))
+        return []
+      }
+      return stored.keys || []
+    } catch { return [] }
+  })
 
   function marquerTraite(alerteKey) {
-    setAlertesTraitees(prev => [...prev, alerteKey])
+    setAlertesTraitees(prev => {
+      const next = [...prev, alerteKey]
+      try {
+        const stored = JSON.parse(localStorage.getItem('fcpcl-alertes-v2') || '{}')
+        localStorage.setItem('fcpcl-alertes-v2', JSON.stringify({ ...stored, keys: next }))
+      } catch {}
+      return next
+    })
+  }
+
+  function marquerToutTraite(alertesC, alertesI) {
+    const next = [
+      ...alertesC.map(a => `col-${a.title}`),
+      ...alertesI.map(a => `ind-${a.joueurId}-${a.title}`)
+    ]
+    setAlertesTraitees(next)
+    try {
+      const stored = JSON.parse(localStorage.getItem('fcpcl-alertes-v2') || '{}')
+      localStorage.setItem('fcpcl-alertes-v2', JSON.stringify({ ...stored, keys: next }))
+    } catch {}
   }
 
   function resetAlertes() {
     setAlertesTraitees([])
-    localStorage.removeItem('fcpcl-alertes-traitees')
-    localStorage.setItem('fcpcl-alertes-last-reset', new Date().toISOString())
+    localStorage.removeItem('fcpcl-alertes-v2')
   }
 
   useEffect(() => { loadDashboard() }, [])
@@ -244,7 +275,7 @@ export default function DashboardPage() {
             }}>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D' }}>
-                  ⚠️ {nbAlertes} point(s) à surveiller cette semaine
+                  ⚠️ {Math.max(0, (alertes.length + alertesCollectives.length) - alertesTraitees.length)} point(s) à surveiller
                 </p>
                 <p style={{ fontSize: 11, color: '#9CA3AF' }}>Dont joueurs sans RPE et surcharges</p>
               </div>
