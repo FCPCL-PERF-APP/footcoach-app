@@ -70,7 +70,7 @@ export default function DashboardPage() {
   const [presenceEvolution, setPresenceEvolution] = useState([])
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
-  const [alertesTraitees, setAlertesTraitees] = useState([]))
+  const [alertesTraitees, setAlertesTraitees] = useState([])
 
   function marquerTraite(alerteKey) {
     setAlertesTraitees(prev => [...prev, alerteKey])
