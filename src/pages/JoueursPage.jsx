@@ -189,7 +189,10 @@ export default function JoueursPage() {
                     : <Avatar initials={initials} bg={col.bg} color={col.color} size={40} />
                   }
                   <div>
-                    <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
+                    <p style={{ fontSize: 13, fontWeight: 600 }}>
+                      {j.nom} {j.prenom}
+                      {blessuresActives[j.id] && <span style={{ marginLeft: 6, fontSize: 11, background: '#FAEEDA', color: '#854F0B', borderRadius: 10, padding: '1px 6px' }}>🤕 Blessé</span>}
+                    </p>
                     <p style={{ fontSize: 11, color: '#9CA3AF' }}>
                       {j.poste || '—'}{j.numero ? ` · N°${j.numero}` : ''}{j.groupe ? ` · Pôle ${j.groupe}` : ''}
                     </p>

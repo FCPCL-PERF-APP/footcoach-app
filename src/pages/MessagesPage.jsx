@@ -47,7 +47,7 @@ export default function MessagesPage({ setUnreadCount }) {
 
   async function loadGroupMessages() {
     const { data } = await supabase.from('messages').select('*')
-      .eq('groupe', true).order('created_at', { ascending: true }).limit(100)
+      .eq('groupe', true).order('created_at', { ascending: true }).limit(300)
     setGroupMessages(data || [])
     setLoading(false)
   }
@@ -74,6 +74,7 @@ export default function MessagesPage({ setUnreadCount }) {
       .eq('groupe', false)
       .or(`and(expediteur_id.eq.${myAuthId},destinataire_id.eq.${theirAuthId}),and(expediteur_id.eq.${theirAuthId},destinataire_id.eq.${myAuthId})`)
       .order('created_at', { ascending: true })
+      .limit(200)
     setConvMessages(data || [])
     await supabase.from('messages').update({ lu: true })
       .eq('destinataire_id', myAuthId).eq('expediteur_id', theirAuthId)
@@ -193,7 +194,7 @@ export default function MessagesPage({ setUnreadCount }) {
                 {filteredGroupMessages.map(msg => (
                   <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime}
                     canDelete={isMe(msg) || isCoach}
-                    onDelete={() => deleteMessage(msg.id)}
+                    onDelete={() => { if (window.confirm('Supprimer ce message ?')) deleteMessage(msg.id) }}
                     onReact={reactToMessage}
                     myId={profile?.auth_id || profile?.id} />
                 ))}
