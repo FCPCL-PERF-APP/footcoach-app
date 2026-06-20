@@ -101,6 +101,7 @@ export default function FicheJoueurPage() {
     setLoading(false)
   }
 
+  // saveBilan v87
   async function saveBilan() {
     if (!joueur?.id) return
     setSavingBilan(true)
