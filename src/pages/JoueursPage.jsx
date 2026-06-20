@@ -26,6 +26,7 @@ export default function JoueursPage() {
   const navigate = useNavigate()
   const [joueurs, setJoueurs] = useState([])
   const [rpeAvgs, setRpeAvgs] = useState({})
+  const [blessuresActives, setBlessuresActives] = useState({})
   const [search, setSearch] = useState('')
   const [filterPoste, setFilterPoste] = useState('tous')
   const [sortBy, setSortBy] = useState('nom') // 'nom' | 'rpe'
