@@ -70,10 +70,10 @@ export default function DashboardPage() {
   const [presenceEvolution, setPresenceEvolution] = useState([])
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
-  const [alertesTraitees, setAlertesTraitees] = useState(new Set()))
+  const [alertesTraitees, setAlertesTraitees] = useState([]))
 
   function marquerTraite(alerteKey) {
-    setAlertesTraitees(prev => new Set([...prev, alerteKey]))
+    setAlertesTraitees(prev => [...prev, alerteKey])
   }
 
   function resetAlertes() {
@@ -289,8 +289,8 @@ export default function DashboardPage() {
 
           {/* ALERTES */}
           {(() => {
-            const alertesCollFiltrees = alertesCollectives.filter(a => !alertesTraitees.has(`col-${a.title}`))
-            const alertesFiltrees = alertes.filter(a => !alertesTraitees.has(`ind-${a.joueurId}-${a.title}`))
+            const alertesCollFiltrees = alertesCollectives.filter(a => !alertesTraitees.includes(`col-${a.title}`))
+            const alertesFiltrees = alertes.filter(a => !alertesTraitees.includes(`ind-${a.joueurId}-${a.title}`))
             const totalVisible = alertesCollFiltrees.length + alertesFiltrees.length
 
             return totalVisible > 0 ? (
@@ -306,7 +306,7 @@ export default function DashboardPage() {
                   <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
                   {alertesCollectives.map((a, i) => {
                     const key = `col-${a.title}`
-                    if (alertesTraitees.has(key)) return null
+                    if (alertesTraitees.includes(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
                   })}
                 </>}
@@ -314,7 +314,7 @@ export default function DashboardPage() {
                   <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
                   {alertes.map((a, i) => {
                     const key = `ind-${a.joueurId}-${a.title}`
-                    if (alertesTraitees.has(key)) return null
+                    if (alertesTraitees.includes(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
                   })}
                 </>}
