@@ -7,7 +7,7 @@ import { THEME } from '../theme'
 import { format, parseISO, subWeeks } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
-function AlertCard({ type, title, message, joueurId, navigate }) {
+function AlertCard({ type, title, message, joueurId, navigate, onTraite }) {
   const colors = {
     red:    { border: '#A32D2D', bg: '#FDF1F1', icon: '🔴' },
     orange: { border: '#D85A30', bg: '#FDF5EE', icon: '🟠' },
@@ -15,11 +15,16 @@ function AlertCard({ type, title, message, joueurId, navigate }) {
   }
   const c = colors[type] || colors.yellow
   return (
-    <div onClick={() => joueurId && navigate(`/joueurs/${joueurId}`)}
-      style={{ borderLeft: `3px solid ${c.border}`, borderRadius: 8, padding: '10px 12px', marginBottom: 8, background: c.bg, cursor: joueurId ? 'pointer' : 'default' }}>
-      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{c.icon} {title}</div>
-      <div style={{ fontSize: 11, color: '#555' }}>{message}</div>
-      {joueurId && <div style={{ fontSize: 10, color: THEME.primary, marginTop: 4 }}>Voir la fiche →</div>}
+    <div style={{ borderLeft: `3px solid ${c.border}`, borderRadius: 8, padding: '10px 12px', marginBottom: 8, background: c.bg, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+      <div style={{ flex: 1, cursor: joueurId ? 'pointer' : 'default' }} onClick={() => joueurId && navigate(`/joueurs/${joueurId}`)}>
+        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{c.icon} {title}</div>
+        <div style={{ fontSize: 11, color: '#555' }}>{message}</div>
+        {joueurId && <div style={{ fontSize: 10, color: THEME.primary, marginTop: 4 }}>Voir la fiche →</div>}
+      </div>
+      <button onClick={(e) => { e.stopPropagation(); onTraite && onTraite() }}
+        style={{ flexShrink: 0, border: 'none', background: 'rgba(0,0,0,.08)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 10, color: '#555', fontWeight: 600, whiteSpace: 'nowrap' }}>
+        ✓ Traité
+      </button>
     </div>
   )
 }
@@ -70,7 +75,7 @@ export default function DashboardPage() {
   const [presenceEvolution, setPresenceEvolution] = useState([])
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
-  const [alertesTraitees, setAlertesTraitees] = useState([])
+  const [alertesTraitees, setAlertesTraitees] = useState([]))
 
   function marquerTraite(alerteKey) {
     setAlertesTraitees(prev => [...prev, alerteKey])
