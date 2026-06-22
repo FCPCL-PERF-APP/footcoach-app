@@ -116,6 +116,7 @@ export default function PresencesMatchPage() {
         {[
           ['Tous', 'tous', convocations.length, '#185FA5', '#E6F1FB'],
           ['Présents', 'present', nbPresents, '#3B6D11', '#EAF3DE'],
+const nbExterieurs = Object.values(presences).filter(s => s === 'exterieur').length
           ['Extérieur', 'exterieur', nbExterieurs, '#185FA5', '#E6F1FB'],
           ['Absents', 'absent', nbAbsents, '#A32D2D', '#FCEBEB'],
           ['Blessés', 'blesse', nbBlesses, '#854F0B', '#FAEEDA'],
