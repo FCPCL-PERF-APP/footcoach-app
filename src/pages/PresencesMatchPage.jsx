@@ -15,10 +15,11 @@ const AVATAR_COLORS = [
 ]
 
 const STATUTS = {
-  present:  { label: '✅ Présent',  bg: '#EAF3DE', color: '#3B6D11', border: '#3B6D11' },
-  absent:   { label: '❌ Absent',   bg: '#FCEBEB', color: '#A32D2D', border: '#A32D2D' },
-  blesse:   { label: '🤕 Blessé',   bg: '#FAEEDA', color: '#854F0B', border: '#854F0B' },
-  inconnu:  { label: '❓ Inconnu',  bg: '#F3F4F6', color: '#6B7280', border: '#D1D5DB' },
+  present:   { label: '✅ Présent',   bg: '#EAF3DE', color: '#3B6D11', border: '#3B6D11' },
+  exterieur: { label: '🔄 Extérieur', bg: '#E6F1FB', color: '#185FA5', border: '#185FA5' },
+  absent:    { label: '❌ Absent',    bg: '#FCEBEB', color: '#A32D2D', border: '#A32D2D' },
+  blesse:    { label: '🤕 Blessé',    bg: '#FAEEDA', color: '#854F0B', border: '#854F0B' },
+  inconnu:   { label: '❓ Inconnu',   bg: '#F3F4F6', color: '#6B7280', border: '#D1D5DB' },
 }
 
 export default function PresencesMatchPage() {
@@ -37,17 +38,31 @@ export default function PresencesMatchPage() {
 
   async function loadData() {
     setLoading(true)
-    const [{ data: ev }, { data: convocs }, { data: pres }] = await Promise.all([
+    const [{ data: ev }, { data: convocs }, { data: pres }, { data: tousJoueurs }] = await Promise.all([
       supabase.from('evenements').select('*').eq('id', eventId).single(),
       supabase.from('convocations').select('*, joueurs(*)').eq('evenement_id', eventId).eq('convoque', true),
-      supabase.from('presences').select('*').eq('evenement_id', eventId)
+      supabase.from('presences').select('*').eq('evenement_id', eventId),
+      supabase.from('joueurs').select('id, nom, prenom, poste, numero, photo_url').order('nom'),
     ])
     setEvent(ev)
-    setConvocations(convocs || [])
     const presMap = {}
     for (const p of (pres || [])) presMap[p.joueur_id] = p.statut
-    for (const c of (convocs || [])) {
-      if (!presMap[c.joueur_id]) presMap[c.joueur_id] = 'inconnu'
+
+    // Pour les séances : afficher tous les joueurs. Pour les matchs : seulement les convoqués
+    if (ev?.type === 'seance') {
+      const joueursAvecStatut = (tousJoueurs || []).map(j => ({
+        id: j.id, convoque: true,
+        joueurs: j
+      }))
+      setConvocations(joueursAvecStatut)
+      for (const j of (tousJoueurs || [])) {
+        if (!presMap[j.id]) presMap[j.id] = 'inconnu'
+      }
+    } else {
+      setConvocations(convocs || [])
+      for (const c of (convocs || [])) {
+        if (!presMap[c.joueur_id]) presMap[c.joueur_id] = 'inconnu'
+      }
     }
     setPresences(presMap)
     setLoading(false)
@@ -100,6 +115,7 @@ export default function PresencesMatchPage() {
         {[
           ['Tous', 'tous', convocations.length, '#185FA5', '#E6F1FB'],
           ['Présents', 'present', nbPresents, '#3B6D11', '#EAF3DE'],
+          ['Extérieur', 'exterieur', nbExterieurs, '#185FA5', '#E6F1FB'],
           ['Absents', 'absent', nbAbsents, '#A32D2D', '#FCEBEB'],
           ['Blessés', 'blesse', nbBlesses, '#854F0B', '#FAEEDA'],
         ].map(([lbl, key, val, color, bg]) => (
