@@ -38,6 +38,7 @@ export default function PresencesMatchPage() {
 
   async function loadData() {
     setLoading(true)
+    try {
     const [{ data: ev }, { data: convocs }, { data: pres }, { data: tousJoueurs }] = await Promise.all([
       supabase.from('evenements').select('*').eq('id', eventId).single(),
       supabase.from('convocations').select('*, joueurs(*)').eq('evenement_id', eventId).eq('convoque', true),

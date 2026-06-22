@@ -246,7 +246,7 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
   }, [ev.id])
 
   async function loadPresenceCount() {
-    const { data } = await supabase.from('presences').select('statut, joueurs(nom,prenom,photo_url)').eq('evenement_id', ev.id)
+    const { data } = await supabase.from('presences').select('statut').eq('evenement_id', ev.id)
     if (data) setPresenceCount({
       present: data.filter(p => p.statut === 'present').length,
       absent: data.filter(p => p.statut === 'absent').length,
@@ -300,12 +300,12 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
       )}
 
       {/* Résumé présences coach */}
-      {isCoach && presenceCount !== null && presenceCount.total > 0 && (
+      {isCoach && presenceCount !== null && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, padding: '6px 10px', background: '#F9FAFB', borderRadius: 8, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, color: '#3B6D11' }}>✅ {presenceCount.present}</span>
+          {presenceCount.exterieur > 0 && <span style={{ fontSize: 11, color: '#185FA5' }}>🔄 {presenceCount.exterieur}</span>}
           <span style={{ fontSize: 11, color: '#A32D2D' }}>❌ {presenceCount.absent}</span>
           <span style={{ fontSize: 11, color: '#854F0B' }}>🤕 {presenceCount.blesse}</span>
-          {presenceCount.exterieur > 0 && <span style={{ fontSize: 11, color: '#185FA5' }}>🔄 {presenceCount.exterieur}</span>}
           <span style={{ fontSize: 11, color: '#9CA3AF' }}>· {presenceCount.total} réponse(s)</span>
         </div>
       )}
