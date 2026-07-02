@@ -118,7 +118,7 @@ export default function FicheJoueurPage() {
         alert(`✅ Invitation renvoyée à ${joueur.email}`)
       } else {
         const err = await res.json()
-        alert('Erreur : ' + (err.error || 'Impossible d'envoyer l'invitation'))
+        alert('Erreur : ' + (err.error || "Impossible d'envoyer l'invitation"))
       }
     } catch(e) {
       alert('Erreur réseau : ' + e.message)
