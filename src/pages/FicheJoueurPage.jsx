@@ -501,6 +501,7 @@ export default function FicheJoueurPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Suivi du poids</p>
             {poidsHistory.length > 1 && (
+  <>
               {/* Dernière valeur */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: 11, color: '#6B7280' }}>Dernier : <strong style={{ color: THEME.primary }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
@@ -508,7 +509,8 @@ export default function FicheJoueurPage() {
                   {poidsHistory.length >= 2 && (() => {
                     const diff = (poidsHistory[poidsHistory.length-1].poids - poidsHistory[0].poids).toFixed(1)
                     return <span style={{ color: parseFloat(diff) > 0 ? '#A32D2D' : '#3B6D11', fontWeight: 600 }}>{parseFloat(diff) > 0 ? '+' : ''}{diff} kg depuis début</span>
-                  })()}
+                 </>
+)}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 70, marginBottom: 4 }}>
