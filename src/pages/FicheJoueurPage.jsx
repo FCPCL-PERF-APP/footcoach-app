@@ -102,6 +102,29 @@ export default function FicheJoueurPage() {
   }
 
   // saveBilan v87
+  async function renvoyerInvitation() {
+    if (!joueur?.email) { alert('Aucun email pour ce joueur.'); return }
+    const { error } = await supabase.auth.admin ? 
+      { error: null } : // fallback
+      { error: null }
+    // Utiliser l'API d'invitation via notre endpoint
+    try {
+      const res = await fetch('/api/invite-joueur', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ joueurId: joueur.id, email: joueur.email, nom: joueur.nom, prenom: joueur.prenom })
+      })
+      if (res.ok) {
+        alert(`✅ Invitation renvoyée à ${joueur.email}`)
+      } else {
+        const err = await res.json()
+        alert('Erreur : ' + (err.error || 'Impossible d'envoyer l'invitation'))
+      }
+    } catch(e) {
+      alert('Erreur réseau : ' + e.message)
+    }
+  }
+
   async function saveBilan() {
     if (!joueur?.id) return
     setSavingBilan(true)
@@ -291,6 +314,11 @@ export default function FicheJoueurPage() {
               style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: editing ? '#EAF3DE' : '#E6F1FB', color: editing ? '#3B6D11' : THEME.primary, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
               {saving ? '...' : editing ? '💾' : '✏️'}
             </button>
+            <button onClick={renvoyerInvitation}
+              title="Renvoyer l'invitation par email"
+              style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: 'pointer', fontSize: 12 }}>
+              📧
+            </button>
             {editing && <button onClick={() => { setEditing(false); setForm({...joueur}) }}
               style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#6B7280', fontSize: 12, cursor: 'pointer' }}>✕</button>}
           </div>
@@ -473,8 +501,7 @@ export default function FicheJoueurPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Suivi du poids</p>
             {poidsHistory.length > 1 && (
-  <>
-    {/* Dernière valeur */}
+              {/* Dernière valeur */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <span style={{ fontSize: 11, color: '#6B7280' }}>Dernier : <strong style={{ color: THEME.primary }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
                 <span style={{ fontSize: 11, color: '#6B7280' }}>
@@ -503,7 +530,6 @@ export default function FicheJoueurPage() {
                 <span>{poidsHistory[Math.floor(poidsHistory.length/2)]?.poids} kg</span>
                 <span>{poidsHistory[poidsHistory.length-1]?.poids} kg</span>
               </div>
-</>
             )}
             <div style={{ display: 'flex', gap: 8 }}>
               <input type="number" step="0.1" placeholder="Nouvelle pesée (kg)" value={newPoids} onChange={e => setNewPoids(e.target.value)}
