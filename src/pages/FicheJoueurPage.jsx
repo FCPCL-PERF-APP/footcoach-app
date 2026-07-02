@@ -118,7 +118,7 @@ export default function FicheJoueurPage() {
         alert(`✅ Invitation renvoyée à ${joueur.email}`)
       } else {
         const err = await res.json()
-        alert('Erreur : ' + (err.error || "Impossible d'envoyer l'invitation"))
+        alert('Erreur : ' + (err.error || 'Impossible d'envoyer l'invitation'))
       }
     } catch(e) {
       alert('Erreur réseau : ' + e.message)
@@ -501,37 +501,33 @@ export default function FicheJoueurPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Suivi du poids</p>
             {poidsHistory.length > 1 && (
-  <>
-              {/* Dernière valeur */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 11, color: '#6B7280' }}>Dernier : <strong style={{ color: THEME.primary }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
-                <span style={{ fontSize: 11, color: '#6B7280' }}>
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, color: '#6B7280' }}>Dernier : <strong style={{ color: THEME.primary }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
                   {poidsHistory.length >= 2 && (() => {
                     const diff = (poidsHistory[poidsHistory.length-1].poids - poidsHistory[0].poids).toFixed(1)
-                    return <span style={{ color: parseFloat(diff) > 0 ? '#A32D2D' : '#3B6D11', fontWeight: 600 }}>{parseFloat(diff) > 0 ? '+' : ''}{diff} kg depuis début</span>
-                 </>
-)}
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 70, marginBottom: 4 }}>
-                {poidsHistory.map((p, i) => {
-                  const min = Math.min(...poidsHistory.map(x => x.poids))
-                  const max = Math.max(...poidsHistory.map(x => x.poids))
-                  const h = max === min ? 50 : ((p.poids - min) / (max - min)) * 50 + 10
-                  const isLast = i === poidsHistory.length - 1
-                  return (
-                    <div key={p.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      {isLast && <span style={{ fontSize: 9, color: THEME.primary, fontWeight: 700, marginBottom: 2 }}>{p.poids}</span>}
-                      <div style={{ width: '100%', background: isLast ? THEME.primary : '#B5D4F4', borderRadius: '3px 3px 0 0', height: `${h}px` }} />
-                    </div>
-                  )
-                })}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#9CA3AF', marginBottom: 8 }}>
-                <span>{poidsHistory[0]?.poids} kg</span>
-                <span>{poidsHistory[Math.floor(poidsHistory.length/2)]?.poids} kg</span>
-                <span>{poidsHistory[poidsHistory.length-1]?.poids} kg</span>
-              </div>
+                    return <span style={{ fontSize: 11, color: parseFloat(diff) > 0 ? '#A32D2D' : '#3B6D11', fontWeight: 600 }}>{parseFloat(diff) > 0 ? '+' : ''}{diff} kg</span>
+                  })()}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 70, marginBottom: 4 }}>
+                  {poidsHistory.map((p, i) => {
+                    const min = Math.min(...poidsHistory.map(x => x.poids))
+                    const max = Math.max(...poidsHistory.map(x => x.poids))
+                    const h = max === min ? 50 : ((p.poids - min) / (max - min)) * 50 + 10
+                    const isLast = i === poidsHistory.length - 1
+                    return (
+                      <div key={p.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        {isLast && <span style={{ fontSize: 9, color: THEME.primary, fontWeight: 700, marginBottom: 2 }}>{p.poids}</span>}
+                        <div style={{ width: '100%', background: isLast ? THEME.primary : '#B5D4F4', borderRadius: '3px 3px 0 0', height: `${h}px` }} />
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#9CA3AF', marginBottom: 8 }}>
+                  <span>{poidsHistory[0]?.poids} kg</span>
+                  <span>{poidsHistory[poidsHistory.length-1]?.poids} kg</span>
+                </div>
+              </>
             )}
             <div style={{ display: 'flex', gap: 8 }}>
               <input type="number" step="0.1" placeholder="Nouvelle pesée (kg)" value={newPoids} onChange={e => setNewPoids(e.target.value)}
