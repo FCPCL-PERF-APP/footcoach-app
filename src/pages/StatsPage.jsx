@@ -125,7 +125,35 @@ export default function StatsPage() {
     const payload = { evenement_id: eventId, ...formCollectif }
     if (statsCollectives) await supabase.from('stats_collectives').update(payload).eq('id', statsCollectives.id)
     else await supabase.from('stats_collectives').insert(payload)
+
+    // Calculer automatiquement les points pronostics
+    await calculerPointsPronostics(parseInt(formCollectif.buts_marques) || 0, parseInt(formCollectif.buts_encaisses) || 0)
+
     setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2000); loadData()
+  }
+
+  async function calculerPointsPronostics(scoreReel_dom, scoreReel_ext) {
+    // Récupérer tous les pronostics pour ce match
+    const { data: pronos } = await supabase.from('pronostics')
+      .select('*').eq('evenement_id', eventId)
+    if (!pronos?.length) return
+
+    const tendanceReelle = scoreReel_dom > scoreReel_ext ? 'V' : scoreReel_dom < scoreReel_ext ? 'D' : 'N'
+
+    for (const prono of pronos) {
+      const dom = prono.score_domicile
+      const ext = prono.score_exterieur
+      let pts = 0
+
+      if (dom === scoreReel_dom && ext === scoreReel_ext) {
+        pts = 3 // Score exact
+      } else {
+        const tendanceProno = dom > ext ? 'V' : dom < ext ? 'D' : 'N'
+        if (tendanceProno === tendanceReelle) pts = 1 // Bonne tendance
+      }
+
+      await supabase.from('pronostics').update({ score_points: pts }).eq('id', prono.id)
+    }
   }
 
   async function saveStatsJoueur() {
