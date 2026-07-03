@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { Card, PageHeader, Spinner } from '../components/UI'
+import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
-import { format, parseISO, differenceInDays } from 'date-fns'
+import { format, parseISO, differenceInDays, differenceInHours } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 export default function StatsConnexionPage() {
@@ -16,116 +16,149 @@ export default function StatsConnexionPage() {
 
   async function loadData() {
     setLoading(true)
-
-    // Récupère les joueurs avec leur auth_id
-    const { data: joueursData } = await supabase
-      .from('joueurs').select('id, nom, prenom, poste, groupe, auth_id, email').order('nom')
-
-    // Récupère les users Supabase Auth pour avoir last_sign_in
-    const { data: { users } } = await supabase.auth.admin.listUsers()
-
-    // Croise les données
-    const enriched = (joueursData || []).map(j => {
-      const authUser = (users || []).find(u => u.id === j.auth_id)
-      return {
-        ...j,
-        lastSignIn: authUser?.last_sign_in_at || null,
-        createdAt: authUser?.created_at || null,
-        confirmed: !!authUser?.email_confirmed_at,
-        hasAccount: !!j.auth_id,
-        joursInactif: authUser?.last_sign_in_at
-          ? differenceInDays(new Date(), new Date(authUser.last_sign_in_at))
-          : null
-      }
-    })
-
-    setJoueurs(enriched)
+    const { data } = await supabase
+      .from('joueurs')
+      .select('id, nom, prenom, poste, groupe, auth_id, email, last_seen, onboarding_done')
+      .order('nom')
+    setJoueurs(data || [])
     setLoading(false)
   }
 
-  const filtered = joueurs.filter(j => {
-    if (filter === 'actifs') return j.hasAccount && j.joursInactif !== null && j.joursInactif <= 7
-    if (filter === 'inactifs') return j.hasAccount && (j.joursInactif === null || j.joursInactif > 7)
-    if (filter === 'sans_compte') return !j.hasAccount
-    return true
-  })
-
-  const nbActifs = joueurs.filter(j => j.hasAccount && j.joursInactif !== null && j.joursInactif <= 7).length
-  const nbInactifs = joueurs.filter(j => j.hasAccount && (j.joursInactif === null || j.joursInactif > 7)).length
-  const nbSansCompte = joueurs.filter(j => !j.hasAccount).length
-
-  function getStatutStyle(j) {
-    if (!j.hasAccount) return { color: '#9CA3AF', bg: '#F3F4F6', label: '❌ Pas de compte' }
-    if (j.joursInactif === null) return { color: '#854F0B', bg: '#FAEEDA', label: '⚠️ Jamais connecté' }
-    if (j.joursInactif <= 2) return { color: '#3B6D11', bg: '#EAF3DE', label: `✅ Actif (${j.joursInactif}j)` }
-    if (j.joursInactif <= 7) return { color: '#185FA5', bg: '#E6F1FB', label: `🟢 Actif (${j.joursInactif}j)` }
-    if (j.joursInactif <= 30) return { color: '#BA7517', bg: '#FDFAEE', label: `🟡 Inactif (${j.joursInactif}j)` }
-    return { color: '#A32D2D', bg: '#FCEBEB', label: `🔴 Inactif (${j.joursInactif}j)` }
+  function getStatut(j) {
+    if (!j.auth_id) return 'non_invite'
+    if (!j.last_seen) return 'invite_jamais_connecte'
+    const heures = differenceInHours(new Date(), new Date(j.last_seen))
+    const jours = differenceInDays(new Date(), new Date(j.last_seen))
+    if (heures < 24) return 'actif_aujourd_hui'
+    if (jours <= 7) return 'actif_semaine'
+    if (jours <= 30) return 'actif_mois'
+    return 'inactif'
   }
+
+  const STATUTS = {
+    actif_aujourd_hui:       { label: '🟢 Actif aujourd'hui', color: '#3B6D11', bg: '#EAF3DE' },
+    actif_semaine:           { label: '🟡 Cette semaine',      color: '#BA7517', bg: '#FDFAEE' },
+    actif_mois:              { label: '🔵 Ce mois',            color: '#185FA5', bg: '#E6F1FB' },
+    inactif:                 { label: '🔴 Inactif +30j',       color: '#A32D2D', bg: '#FCEBEB' },
+    invite_jamais_connecte:  { label: '⚪ Jamais connecté',    color: '#6B7280', bg: '#F3F4F6' },
+    non_invite:              { label: '⬛ Non invité',          color: '#374151', bg: '#F9FAFB' },
+  }
+
+  const enriched = joueurs.map(j => ({ ...j, statut: getStatut(j) }))
+
+  const filtered = filter === 'tous' ? enriched : enriched.filter(j => j.statut === filter)
+
+  const counts = {
+    actif_aujourd_hui: enriched.filter(j => j.statut === 'actif_aujourd_hui').length,
+    actif_semaine: enriched.filter(j => j.statut === 'actif_semaine').length,
+    actif_mois: enriched.filter(j => j.statut === 'actif_mois').length,
+    inactif: enriched.filter(j => j.statut === 'inactif').length,
+    invite_jamais_connecte: enriched.filter(j => j.statut === 'invite_jamais_connecte').length,
+    non_invite: enriched.filter(j => j.statut === 'non_invite').length,
+  }
+
+  if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="📱 Connexions joueurs" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
+        <h1 style={{ fontSize: 18, fontWeight: 600 }}>📱 Adoption de l'app</h1>
+      </div>
 
       {/* Résumé */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
         {[
-          { label: 'Total', value: joueurs.length, color: THEME.primary, bg: '#E6F1FB', key: 'tous' },
-          { label: 'Actifs 7j', value: nbActifs, color: '#3B6D11', bg: '#EAF3DE', key: 'actifs' },
-          { label: 'Inactifs', value: nbInactifs, color: '#BA7517', bg: '#FDFAEE', key: 'inactifs' },
-          { label: 'Sans compte', value: nbSansCompte, color: '#A32D2D', bg: '#FCEBEB', key: 'sans_compte' },
-        ].map(m => (
-          <button key={m.key} onClick={() => setFilter(m.key)} style={{
-            background: filter === m.key ? m.bg : '#fff',
-            border: `1.5px solid ${filter === m.key ? m.color : '#E5E7EB'}`,
-            borderRadius: 12, padding: '8px 4px', cursor: 'pointer', textAlign: 'center'
-          }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: m.color }}>{m.value}</div>
-            <div style={{ fontSize: 9, color: m.color, marginTop: 2 }}>{m.label}</div>
-          </button>
+          ['Actifs aujourd'hui', counts.actif_aujourd_hui, '#3B6D11', '#EAF3DE'],
+          ['Cette semaine', counts.actif_semaine, '#BA7517', '#FDFAEE'],
+          ['Ce mois', counts.actif_mois, '#185FA5', '#E6F1FB'],
+          ['Inactifs +30j', counts.inactif, '#A32D2D', '#FCEBEB'],
+          ['Jamais connectés', counts.invite_jamais_connecte, '#6B7280', '#F3F4F6'],
+          ['Non invités', counts.non_invite, '#374151', '#F9FAFB'],
+        ].map(([label, val, color, bg]) => (
+          <div key={label} style={{ background: bg, borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
+            <p style={{ fontSize: 22, fontWeight: 800, color }}>{val}</p>
+            <p style={{ fontSize: 9, color, lineHeight: 1.3 }}>{label}</p>
+          </div>
         ))}
       </div>
 
-      {loading ? <Spinner /> : (
-        <>
-          <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>{filtered.length} joueur(s)</p>
-          {filtered.map((j, i) => {
-            const statut = getStatutStyle(j)
-            return (
-              <div key={j.id} onClick={() => navigate(`/joueurs/${j.id}`)}
-                style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: '10px 14px', marginBottom: 8, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>
-                    {j.poste || '—'}{j.groupe ? ` · Pôle ${j.groupe}` : ''}
-                  </p>
-                  {j.lastSignIn && (
-                    <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>
-                      Dernière connexion : {format(parseISO(j.lastSignIn), 'd MMM à HH:mm', { locale: fr })}
-                    </p>
-                  )}
+      {/* Taux d'adoption */}
+      <Card style={{ marginBottom: 14 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', marginBottom: 8 }}>📊 Taux d'adoption</p>
+        {(() => {
+          const connectes = enriched.filter(j => j.last_seen).length
+          const invites = enriched.filter(j => j.auth_id).length
+          const total = enriched.length
+          const tauxInvit = total ? Math.round(invites/total*100) : 0
+          const tauxConnex = invites ? Math.round(connectes/invites*100) : 0
+          return (
+            <>
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+                  <span>Invités</span><span style={{ fontWeight: 700 }}>{invites}/{total} ({tauxInvit}%)</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: statut.color, background: statut.bg, padding: '3px 8px', borderRadius: 20 }}>
-                    {statut.label}
-                  </span>
-                  {!j.hasAccount && j.email && (
-                    <span style={{ fontSize: 9, color: '#9CA3AF' }}>📧 {j.email}</span>
-                  )}
+                <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${tauxInvit}%`, height: '100%', background: THEME.primary, borderRadius: 4 }} />
                 </div>
               </div>
-            )
-          })}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+                  <span>Connectés au moins une fois</span><span style={{ fontWeight: 700 }}>{connectes}/{invites} ({tauxConnex}%)</span>
+                </div>
+                <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${tauxConnex}%`, height: '100%', background: '#3B6D11', borderRadius: 4 }} />
+                </div>
+              </div>
+            </>
+          )
+        })()}
+      </Card>
 
-          {filtered.length === 0 && (
-            <Card>
-              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 16 }}>
-                Aucun joueur dans cette catégorie.
-              </p>
-            </Card>
-          )}
-        </>
-      )}
+      {/* Filtres */}
+      <div style={{ display: 'flex', gap: 5, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
+        <button onClick={() => setFilter('tous')} style={{
+          padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
+          border: `0.5px solid ${filter === 'tous' ? THEME.primary : '#E5E7EB'}`,
+          background: filter === 'tous' ? '#E6F1FB' : 'transparent',
+          color: filter === 'tous' ? THEME.primary : '#6B7280', fontWeight: filter === 'tous' ? 600 : 400
+        }}>Tous ({enriched.length})</button>
+        {Object.entries(STATUTS).map(([key, val]) => (
+          <button key={key} onClick={() => setFilter(key)} style={{
+            padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
+            border: `0.5px solid ${filter === key ? val.color : '#E5E7EB'}`,
+            background: filter === key ? val.bg : 'transparent',
+            color: filter === key ? val.color : '#6B7280', fontWeight: filter === key ? 600 : 400
+          }}>{val.label} ({counts[key]})</button>
+        ))}
+      </div>
+
+      {/* Liste */}
+      <Card>
+        {filtered.map(j => {
+          const st = STATUTS[j.statut]
+          const joursInactif = j.last_seen ? differenceInDays(new Date(), new Date(j.last_seen)) : null
+          return (
+            <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
+                  {j.onboarding_done && <span style={{ fontSize: 9, background: '#EAF3DE', color: '#3B6D11', borderRadius: 6, padding: '1px 5px' }}>✓ App installée</span>}
+                </div>
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                  {j.poste || '—'}
+                  {j.last_seen && ` · Vu il y a ${joursInactif === 0 ? 'moins de 24h' : `${joursInactif}j`}`}
+                  {!j.last_seen && j.auth_id && ' · Invitation envoyée'}
+                  {!j.auth_id && j.email && ` · ${j.email}`}
+                </p>
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 600, color: st.color, background: st.bg, padding: '3px 8px', borderRadius: 8, whiteSpace: 'nowrap' }}>
+                {st.label}
+              </span>
+            </div>
+          )
+        })}
+      </Card>
     </div>
   )
 }

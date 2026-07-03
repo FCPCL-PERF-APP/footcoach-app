@@ -27,6 +27,11 @@ export function AuthProvider({ children }) {
 
   async function fetchProfile(userId) {
     try {
+      // Mise à jour last_seen + onboarding_done dans joueurs
+      await supabase.from('joueurs').update({
+        last_seen: new Date().toISOString()
+      }).eq('auth_id', userId)
+
       // 1. Cherche dans staff
       const { data: staffData } = await supabase
         .from('staff').select('*').eq('auth_id', userId).maybeSingle()
@@ -88,13 +93,11 @@ export function AuthProvider({ children }) {
     return data
   }
 
- async function signOut() {
+  async function signOut() {
     await supabase.auth.signOut()
     setProfile(null)
     setNeedsOnboarding(false)
-    window.location.href = '/'
   }
-
 
   async function resetPassword(email) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -106,7 +109,7 @@ export function AuthProvider({ children }) {
   const isCoach   = profile?.role === 'coach'
   const isAdjoint = profile?.role === 'adjoint' || profile?.role === 'gardien'
   const isStaff   = isCoach || isAdjoint
-  const isJoueur = profile?.type === 'joueur' && !isCoach && !isAdjoint
+  const isJoueur  = profile?.type === 'joueur' || (!isCoach && !isAdjoint)
   const canEdit    = isCoach
   const canComment = isStaff
 
