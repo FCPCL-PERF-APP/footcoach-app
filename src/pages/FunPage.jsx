@@ -6,19 +6,74 @@ import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
-const POSTES_11 = [
-  { key: 'gb',  label: 'Gardien',        emoji: '🧤', zone: 'top' },
-  { key: 'dd',  label: 'Défenseur D',    emoji: '🛡️', zone: 'def' },
-  { key: 'dc1', label: 'Défenseur C',    emoji: '🛡️', zone: 'def' },
-  { key: 'dc2', label: 'Défenseur C',    emoji: '🛡️', zone: 'def' },
-  { key: 'dg',  label: 'Défenseur G',    emoji: '🛡️', zone: 'def' },
-  { key: 'md',  label: 'Milieu D',       emoji: '⚙️', zone: 'mid' },
-  { key: 'mc',  label: 'Milieu C',       emoji: '⚙️', zone: 'mid' },
-  { key: 'mg',  label: 'Milieu G',       emoji: '⚙️', zone: 'mid' },
-  { key: 'ad',  label: 'Attaquant D',    emoji: '⚡', zone: 'att' },
-  { key: 'ac',  label: 'Attaquant C',    emoji: '⚡', zone: 'att' },
-  { key: 'ag',  label: 'Attaquant G',    emoji: '⚡', zone: 'att' },
-]
+const FORMATIONS = {
+  '4-4-2': {
+    label: '4-4-2',
+    postes: [
+      { key: 'gb',  label: 'GB',  zone: 1, col: 3 },
+      { key: 'dd',  label: 'DD',  zone: 2, col: 5 },
+      { key: 'dc1', label: 'DC',  zone: 2, col: 4 },
+      { key: 'dc2', label: 'DC',  zone: 2, col: 2 },
+      { key: 'dg',  label: 'DG',  zone: 2, col: 1 },
+      { key: 'md',  label: 'MD',  zone: 3, col: 5 },
+      { key: 'mc1', label: 'MC',  zone: 3, col: 4 },
+      { key: 'mc2', label: 'MC',  zone: 3, col: 2 },
+      { key: 'mg',  label: 'MG',  zone: 3, col: 1 },
+      { key: 'ad',  label: 'ATT', zone: 4, col: 4 },
+      { key: 'ag',  label: 'ATT', zone: 4, col: 2 },
+    ]
+  },
+  '4-3-3': {
+    label: '4-3-3',
+    postes: [
+      { key: 'gb',  label: 'GB',  zone: 1, col: 3 },
+      { key: 'dd',  label: 'DD',  zone: 2, col: 5 },
+      { key: 'dc1', label: 'DC',  zone: 2, col: 4 },
+      { key: 'dc2', label: 'DC',  zone: 2, col: 2 },
+      { key: 'dg',  label: 'DG',  zone: 2, col: 1 },
+      { key: 'md',  label: 'MID', zone: 3, col: 5 },
+      { key: 'mc',  label: 'MID', zone: 3, col: 3 },
+      { key: 'mg',  label: 'MID', zone: 3, col: 1 },
+      { key: 'ad',  label: 'AD',  zone: 4, col: 5 },
+      { key: 'ac',  label: 'AC',  zone: 4, col: 3 },
+      { key: 'ag',  label: 'AG',  zone: 4, col: 1 },
+    ]
+  },
+  '4-2-3-1': {
+    label: '4-2-3-1',
+    postes: [
+      { key: 'gb',  label: 'GB',  zone: 1, col: 3 },
+      { key: 'dd',  label: 'DD',  zone: 2, col: 5 },
+      { key: 'dc1', label: 'DC',  zone: 2, col: 4 },
+      { key: 'dc2', label: 'DC',  zone: 2, col: 2 },
+      { key: 'dg',  label: 'DG',  zone: 2, col: 1 },
+      { key: 'mdp1',label: 'MDP', zone: 3, col: 4 },
+      { key: 'mdp2',label: 'MDP', zone: 3, col: 2 },
+      { key: 'mod', label: 'MOD', zone: 4, col: 5 },
+      { key: 'moc', label: 'MOC', zone: 4, col: 3 },
+      { key: 'mog', label: 'MOG', zone: 4, col: 1 },
+      { key: 'buts',label: 'BT',  zone: 5, col: 3 },
+    ]
+  },
+  '3-5-2': {
+    label: '3-5-2',
+    postes: [
+      { key: 'gb',  label: 'GB',  zone: 1, col: 3 },
+      { key: 'dc1', label: 'DC',  zone: 2, col: 5 },
+      { key: 'dc2', label: 'DC',  zone: 2, col: 3 },
+      { key: 'dc3', label: 'DC',  zone: 2, col: 1 },
+      { key: 'pdd', label: 'PD',  zone: 3, col: 6 },
+      { key: 'mc1', label: 'MC',  zone: 3, col: 4 },
+      { key: 'mc2', label: 'MC',  zone: 3, col: 3 },
+      { key: 'mc3', label: 'MC',  zone: 3, col: 2 },
+      { key: 'pdg', label: 'PG',  zone: 3, col: 0 },
+      { key: 'att1',label: 'ATT', zone: 4, col: 4 },
+      { key: 'att2',label: 'ATT', zone: 4, col: 2 },
+    ]
+  },
+}
+
+const COULEURS = ['#FFDD57','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD','#F0B27A','#BB8FCE','#85C1E9','#F8C471','#82E0AA']
 
 export default function FunPage() {
   const { profile, isCoach } = useAuth()
@@ -27,18 +82,21 @@ export default function FunPage() {
   const [loading, setLoading] = useState(true)
 
   // 11 idéal
+  const [formation, setFormation] = useState('4-4-2')
   const [monOnze, setMonOnze] = useState({})
   const [onzeSaved, setOnzeSaved] = useState(false)
   const [selectingPoste, setSelectingPoste] = useState(null)
   const [statsOnze, setStatsOnze] = useState({})
+  const [tousLesOnze, setTousLesOnze] = useState([])
 
   // Pronostics
   const [matchs, setMatchs] = useState([])
-  const [pronostics, setPronostics] = useState({})
   const [mesPronostics, setMesPronostics] = useState({})
+  const [scoreInputs, setScoreInputs] = useState({})
+  const [savingProno, setSavingProno] = useState(null)
   const [classementPronos, setClassementPronos] = useState([])
 
-  useEffect(() => { loadAll() }, [profile])
+  useEffect(() => { loadAll() }, [profile?.id])
 
   async function loadAll() {
     if (!profile?.id) return
@@ -47,32 +105,39 @@ export default function FunPage() {
       supabase.from('joueurs').select('id, nom, prenom, poste, photo_url').order('nom'),
       supabase.from('evenements').select('*').eq('type', 'match').gte('date_heure', new Date().toISOString()).order('date_heure').limit(5),
       supabase.from('onze_ideal').select('*').eq('joueur_id', profile.id).maybeSingle(),
-      supabase.from('onze_ideal').select('selections'),
+      supabase.from('onze_ideal').select('selections, formation, joueur_id'),
       supabase.from('pronostics').select('*').eq('joueur_id', profile.id),
       supabase.from('pronostics').select('*, joueurs(nom,prenom)'),
     ])
     setJoueurs(jrs || [])
     setMatchs(evs || [])
+    setTousLesOnze(tousOnze || [])
 
-    // Mon 11
-    if (mesOnzeData?.selections) setMonOnze(mesOnzeData.selections)
+    if (mesOnzeData?.selections) {
+      setMonOnze(mesOnzeData.selections)
+      if (mesOnzeData.formation) setFormation(mesOnzeData.formation)
+    }
 
     // Stats 11 agrégé
     const counts = {}
     for (const onze of (tousOnze || [])) {
       if (!onze.selections) continue
       for (const [poste, joueurId] of Object.entries(onze.selections)) {
-        if (!counts[joueurId]) counts[joueurId] = { total: 0, postes: {} }
+        if (!counts[joueurId]) counts[joueurId] = { total: 0 }
         counts[joueurId].total++
-        counts[joueurId].postes[poste] = (counts[joueurId].postes[poste] || 0) + 1
       }
     }
     setStatsOnze(counts)
 
     // Mes pronostics
     const myProMap = {}
-    for (const p of (mesPronos || [])) myProMap[p.evenement_id] = p
+    const inputMap = {}
+    for (const p of (mesPronos || [])) {
+      myProMap[p.evenement_id] = p
+      inputMap[p.evenement_id] = { dom: p.score_domicile?.toString() || '', ext: p.score_exterieur?.toString() || '' }
+    }
     setMesPronostics(myProMap)
+    setScoreInputs(inputMap)
 
     // Classement pronostics
     const scoreMap = {}
@@ -83,40 +148,77 @@ export default function FunPage() {
       scoreMap[jId].pts += p.score_points
       scoreMap[jId].nb++
     }
-    const classement = Object.values(scoreMap).sort((a, b) => b.pts - a.pts)
-    setClassementPronos(classement)
-
+    setClassementPronos(Object.values(scoreMap).sort((a, b) => b.pts - a.pts))
     setLoading(false)
   }
 
   async function saveOnze() {
-    if (Object.keys(monOnze).length < 11) return
-    const existing = await supabase.from('onze_ideal').select('id').eq('joueur_id', profile.id).maybeSingle()
-    if (existing.data?.id) {
-      await supabase.from('onze_ideal').update({ selections: monOnze }).eq('id', existing.data.id)
+    const postes = FORMATIONS[formation].postes
+    if (Object.keys(monOnze).length < postes.length) return
+    const { data: existing } = await supabase.from('onze_ideal').select('id').eq('joueur_id', profile.id).maybeSingle()
+    const payload = { joueur_id: profile.id, selections: monOnze, formation }
+    if (existing?.id) {
+      await supabase.from('onze_ideal').update(payload).eq('id', existing.id)
     } else {
-      await supabase.from('onze_ideal').insert({ joueur_id: profile.id, selections: monOnze })
+      await supabase.from('onze_ideal').insert(payload)
     }
     setOnzeSaved(true)
     setTimeout(() => setOnzeSaved(false), 2000)
     loadAll()
   }
 
-  async function saveProno(eventId, domicile, exterieur) {
+  async function saveProno(eventId) {
+    const input = scoreInputs[eventId] || {}
+    if (input.dom === '' || input.ext === '') return
+    setSavingProno(eventId)
+    const payload = {
+      joueur_id: profile.id,
+      evenement_id: eventId,
+      score_domicile: parseInt(input.dom),
+      score_exterieur: parseInt(input.ext)
+    }
     const existing = mesPronostics[eventId]
-    const payload = { joueur_id: profile.id, evenement_id: eventId, score_domicile: domicile, score_exterieur: exterieur }
     if (existing?.id) {
       await supabase.from('pronostics').update(payload).eq('id', existing.id)
     } else {
       await supabase.from('pronostics').insert(payload)
     }
-    setMesPronostics(p => ({ ...p, [eventId]: { ...payload } }))
+    setMesPronostics(p => ({ ...p, [eventId]: payload }))
+    setSavingProno(null)
   }
 
-  const jTop = joueurs.filter(j => j.id !== profile?.id) // exclure soi-même optionnel
-  const topChoisis = Object.values(statsOnze).length > 0
-    ? joueurs.filter(j => statsOnze[j.id]).sort((a, b) => (statsOnze[b.id]?.total || 0) - (statsOnze[a.id]?.total || 0)).slice(0, 5)
-    : []
+  const formationConfig = FORMATIONS[formation]
+  const zones = [...new Set(formationConfig.postes.map(p => p.zone))].sort((a, b) => b - a)
+  const nbPostes = formationConfig.postes.length
+  const topChoisis = joueurs.filter(j => statsOnze[j.id]).sort((a, b) => (statsOnze[b.id]?.total || 0) - (statsOnze[a.id]?.total || 0)).slice(0, 5)
+
+  // 11 le plus populaire pour le coach
+  const onzePopulaire = (() => {
+    if (tousLesOnze.length === 0) return null
+    const scoreMap = {}
+    for (const onze of tousLesOnze) {
+      if (!onze.selections) continue
+      for (const [poste, joueurId] of Object.entries(onze.selections)) {
+        const key = `${poste}-${joueurId}`
+        scoreMap[key] = (scoreMap[key] || 0) + 1
+      }
+    }
+    // Pour chaque poste, prendre le joueur le plus voté
+    const best = {}
+    const formRef = tousLesOnze.find(o => o.formation)?.formation || '4-4-2'
+    const postes = FORMATIONS[formRef]?.postes || FORMATIONS['4-4-2'].postes
+    for (const p of postes) {
+      let max = 0; let bestJ = null
+      for (const onze of tousLesOnze) {
+        const jId = onze.selections?.[p.key]
+        if (!jId) continue
+        const count = scoreMap[`${p.key}-${jId}`] || 0
+        if (count > max) { max = count; bestJ = jId }
+      }
+      if (bestJ) best[p.key] = bestJ
+    }
+    return { selections: best, formation: formRef }
+  })()
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
 
@@ -124,33 +226,25 @@ export default function FunPage() {
     <div style={{ padding: 12 }}>
       <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 14 }}>🎮 Fun & Jeux</h1>
 
-      {/* VUE COACH - résumé agrégé */}
-      {isCoach && (
-        <div style={{ background: '#E6F1FB', borderRadius: 12, padding: 12, marginBottom: 14 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: THEME.primary, marginBottom: 10 }}>👁️ Vue coach — résultats agrégés</p>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1, background: '#fff', borderRadius: 10, padding: 10, textAlign: 'center' }}>
-              <p style={{ fontSize: 22, fontWeight: 800, color: THEME.primary }}>{Object.values(statsOnze).reduce((s, v) => s + v.total, 0)}</p>
-              <p style={{ fontSize: 10, color: '#6B7280' }}>11 complétés</p>
-            </div>
-            <div style={{ flex: 1, background: '#fff', borderRadius: 10, padding: 10, textAlign: 'center' }}>
-              <p style={{ fontSize: 22, fontWeight: 800, color: '#3B6D11' }}>{Object.keys(mesPronostics).length}</p>
-              <p style={{ fontSize: 10, color: '#6B7280' }}>Mes pronostics</p>
-            </div>
-          </div>
+      {/* VUE COACH */}
+      {isCoach && tousLesOnze.length > 0 && (
+        <Card style={{ background: '#E6F1FB', border: `1px solid ${THEME.primary}`, marginBottom: 14 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: THEME.primary, marginBottom: 10 }}>
+            👁️ Vue coach — {tousLesOnze.length} joueur(s) ont composé leur 11
+          </p>
           {topChoisis.length > 0 && (
-            <div style={{ marginTop: 10 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>🏅 Top 3 les plus choisis en 11 idéal :</p>
-              {topChoisis.slice(0,3).map((j, i) => (
-                <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 14 }}>{['🥇','🥈','🥉'][i]}</span>
+            <>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 8 }}>🏅 Les plus sélectionnés par le groupe :</p>
+              {topChoisis.map((j, i) => (
+                <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                  <span style={{ fontSize: 14 }}>{['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span>
                   <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{j.nom} {j.prenom}</span>
-                  <span style={{ fontSize: 11, color: THEME.primary, fontWeight: 700 }}>{statsOnze[j.id]?.total} sélections</span>
+                  <span style={{ fontSize: 11, color: THEME.primary, fontWeight: 700 }}>{statsOnze[j.id]?.total} sél.</span>
                 </div>
               ))}
-            </div>
+            </>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Tabs */}
@@ -170,59 +264,71 @@ export default function FunPage() {
         <>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>🏆 Mon 11 idéal FC PCL</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Compose ton équipe de rêve parmi les joueurs du groupe. Clique sur un poste pour choisir.</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Choisis ta formation et compose ton 11 de rêve.</p>
+
+            {/* Choix formation */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+              {Object.keys(FORMATIONS).map(f => (
+                <button key={f} onClick={() => { setFormation(f); setMonOnze({}) }} style={{
+                  padding: '5px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontWeight: 600,
+                  border: `1.5px solid ${formation === f ? THEME.primary : '#E5E7EB'}`,
+                  background: formation === f ? '#E6F1FB' : 'transparent',
+                  color: formation === f ? THEME.primary : '#6B7280',
+                }}>{f}</button>
+              ))}
+            </div>
 
             {/* Terrain */}
-            <div style={{ background: 'linear-gradient(180deg, #2d7a27 0%, #3a9e32 100%)', borderRadius: 12, padding: 12, marginBottom: 12 }}>
-              {[
-                { zone: 'att', postes: ['ag', 'ac', 'ad'] },
-                { zone: 'mid', postes: ['mg', 'mc', 'md'] },
-                { zone: 'def', postes: ['dg', 'dc1', 'dc2', 'dd'] },
-                { zone: 'top', postes: ['gb'] },
-              ].map(({ zone, postes }) => (
-                <div key={zone} style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 10 }}>
-                  {postes.map(posteKey => {
-                    const poste = POSTES_11.find(p => p.key === posteKey)
-                    const joueurId = monOnze[posteKey]
-                    const joueur = joueurs.find(j => j.id === joueurId)
-                    return (
-                      <div key={posteKey} onClick={() => setSelectingPoste(posteKey)}
-                        style={{ width: 60, textAlign: 'center', cursor: 'pointer' }}>
-                        <div style={{
-                          width: 44, height: 44, borderRadius: '50%', margin: '0 auto 4px',
-                          background: joueur ? THEME.primary : 'rgba(255,255,255,.2)',
-                          border: selectingPoste === posteKey ? '2px solid #FFD700' : '2px solid rgba(255,255,255,.4)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          overflow: 'hidden'
-                        }}>
-                          {joueur?.photo_url
-                            ? <img src={joueur.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            : <span style={{ fontSize: joueur ? 10 : 16 }}>{joueur ? `${joueur.nom[0]}${joueur.prenom[0]}` : '+'}</span>
-                          }
+            <div style={{ background: 'linear-gradient(180deg, #2d7a27 0%, #3a9e32 100%)', borderRadius: 12, padding: '12px 8px', marginBottom: 12, minHeight: 280 }}>
+              {zones.map(zone => {
+                const postesZone = formationConfig.postes.filter(p => p.zone === zone)
+                return (
+                  <div key={zone} style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 10 }}>
+                    {postesZone.map(poste => {
+                      const joueurId = monOnze[poste.key]
+                      const joueur = joueurs.find(j => j.id === joueurId)
+                      const isSelecting = selectingPoste === poste.key
+                      return (
+                        <div key={poste.key} onClick={() => setSelectingPoste(isSelecting ? null : poste.key)}
+                          style={{ width: 58, textAlign: 'center', cursor: 'pointer' }}>
+                          <div style={{
+                            width: 42, height: 42, borderRadius: '50%', margin: '0 auto 3px',
+                            background: joueur ? THEME.primary : 'rgba(255,255,255,.2)',
+                            border: isSelecting ? '2.5px solid #FFD700' : '2px solid rgba(255,255,255,.4)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            overflow: 'hidden', boxShadow: isSelecting ? '0 0 8px #FFD700' : 'none'
+                          }}>
+                            {joueur?.photo_url
+                              ? <img src={joueur.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              : <span style={{ fontSize: joueur ? 9 : 18, color: '#fff', fontWeight: 700 }}>
+                                  {joueur ? `${joueur.nom[0]}${joueur.prenom[0]}` : '+'}
+                                </span>
+                            }
+                          </div>
+                          <p style={{ fontSize: 8, color: '#fff', fontWeight: joueur ? 600 : 400, lineHeight: 1.2 }}>
+                            {joueur ? joueur.nom.slice(0, 7) : poste.label}
+                          </p>
                         </div>
-                        <p style={{ fontSize: 9, color: '#fff', fontWeight: joueur ? 600 : 400 }}>
-                          {joueur ? joueur.nom.slice(0, 8) : poste?.label}
-                        </p>
-                      </div>
-                    )
-                  })}
-                </div>
-              ))}
+                      )
+                    })}
+                  </div>
+                )
+              })}
             </div>
 
             {/* Sélecteur joueur */}
             {selectingPoste && (
               <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 10, marginBottom: 12 }}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 8 }}>
-                  Choisir pour : {POSTES_11.find(p => p.key === selectingPoste)?.label}
+                  Choisir : {formationConfig.postes.find(p => p.key === selectingPoste)?.label}
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, maxHeight: 150, overflowY: 'auto' }}>
                   {joueurs.map(j => (
                     <button key={j.id} onClick={() => {
                       setMonOnze(p => ({ ...p, [selectingPoste]: j.id }))
                       setSelectingPoste(null)
                     }} style={{
-                      padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+                      padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                       border: `1px solid ${monOnze[selectingPoste] === j.id ? THEME.primary : '#E5E7EB'}`,
                       background: monOnze[selectingPoste] === j.id ? '#E6F1FB' : '#fff',
                       color: monOnze[selectingPoste] === j.id ? THEME.primary : '#374151',
@@ -234,29 +340,29 @@ export default function FunPage() {
                     <button onClick={() => {
                       setMonOnze(p => { const n = {...p}; delete n[selectingPoste]; return n })
                       setSelectingPoste(null)
-                    }} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', border: '1px solid #FCEBEB', background: '#FCEBEB', color: '#A32D2D' }}>
-                      ✕ Effacer
+                    }} style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', border: '1px solid #FCEBEB', background: '#FCEBEB', color: '#A32D2D' }}>
+                      ✕ Retirer
                     </button>
                   )}
                 </div>
               </div>
             )}
 
-            <button onClick={saveOnze} disabled={Object.keys(monOnze).length < 11}
+            <button onClick={saveOnze} disabled={Object.keys(monOnze).length < nbPostes}
               style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none',
-                background: Object.keys(monOnze).length >= 11 ? THEME.gradient : '#E5E7EB',
-                color: Object.keys(monOnze).length >= 11 ? '#fff' : '#9CA3AF',
-                fontSize: 13, fontWeight: 700, cursor: Object.keys(monOnze).length >= 11 ? 'pointer' : 'not-allowed' }}>
-              {onzeSaved ? '✅ Sauvegardé !' : `💾 Valider mon 11 (${Object.keys(monOnze).length}/11)`}
+                background: Object.keys(monOnze).length >= nbPostes ? THEME.gradient : '#E5E7EB',
+                color: Object.keys(monOnze).length >= nbPostes ? '#fff' : '#9CA3AF',
+                fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              {onzeSaved ? '✅ Sauvegardé !' : `💾 Valider mon 11 (${Object.keys(monOnze).length}/${nbPostes})`}
             </button>
           </Card>
 
-          {/* Top joueurs les plus choisis */}
+          {/* Top joueurs */}
           {topChoisis.length > 0 && (
             <Card>
-              <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>🏅 Les plus choisis par le groupe</p>
+              <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>🏅 Les plus choisis dans le groupe</p>
               {topChoisis.map((j, i) => (
-                <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '0.5px solid #F3F4F6' }}>
                   <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span>
                   <p style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
                   <span style={{ fontSize: 12, color: THEME.primary, fontWeight: 700 }}>{statsOnze[j.id]?.total} votes</span>
@@ -273,71 +379,65 @@ export default function FunPage() {
           {matchs.length === 0 ? (
             <Card>
               <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>
-                Aucun match à venir pour pronostiquer.
+                Aucun match à venir pour l'instant.
               </p>
             </Card>
-          ) : (
-            matchs.map(match => {
-              const monProno = mesPronostics[match.id]
-              const titre = match.titre || 'Match'
-              const parts = titre.split(' - ')
-              const domicile = parts[0] || 'FC PCL'
-              const exterieur = parts[1] || 'Adversaire'
-              const [scoreDom, setScoreDom] = useState(monProno?.score_domicile ?? '')
-              const [scoreExt, setScoreExt] = useState(monProno?.score_exterieur ?? '')
-
-              return (
-                <Card key={match.id}>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 6 }}>
-                    {format(parseISO(match.date_heure), 'EEEE d MMMM', { locale: fr })}
-                  </p>
-                  <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, textAlign: 'center' }}>{titre}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                    <div style={{ flex: 1, textAlign: 'center' }}>
-                      <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 6 }}>{domicile}</p>
-                      <input type="number" min="0" max="20" value={scoreDom}
-                        onChange={e => setScoreDom(e.target.value)}
-                        style={{ width: 60, padding: '10px 8px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 22, fontWeight: 700, textAlign: 'center', outline: 'none' }} />
-                    </div>
-                    <span style={{ fontSize: 20, color: '#9CA3AF', fontWeight: 700 }}>—</span>
-                    <div style={{ flex: 1, textAlign: 'center' }}>
-                      <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 6 }}>{exterieur}</p>
-                      <input type="number" min="0" max="20" value={scoreExt}
-                        onChange={e => setScoreExt(e.target.value)}
-                        style={{ width: 60, padding: '10px 8px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 22, fontWeight: 700, textAlign: 'center', outline: 'none' }} />
-                    </div>
+          ) : matchs.map(match => {
+            const monProno = mesPronostics[match.id]
+            const input = scoreInputs[match.id] || { dom: '', ext: '' }
+            const titre = match.titre || 'Match'
+            const parts = titre.split(' - ')
+            const domicile = parts[0] || 'FC PCL'
+            const exterieur = parts[1] || 'Adversaire'
+            return (
+              <Card key={match.id}>
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 4 }}>
+                  {format(parseISO(match.date_heure), 'EEEE d MMMM', { locale: fr })}
+                </p>
+                <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, textAlign: 'center' }}>{titre}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 6 }}>{domicile}</p>
+                    <input type="number" min="0" max="20" value={input.dom}
+                      onChange={e => setScoreInputs(p => ({ ...p, [match.id]: { ...p[match.id], dom: e.target.value } }))}
+                      style={{ width: 64, padding: '10px 8px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 24, fontWeight: 700, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
-                  <button onClick={() => saveProno(match.id, parseInt(scoreDom), parseInt(scoreExt))}
-                    disabled={scoreDom === '' || scoreExt === ''}
-                    style={{ width: '100%', padding: 10, borderRadius: 10, border: 'none',
-                      background: scoreDom !== '' && scoreExt !== '' ? THEME.gradient : '#E5E7EB',
-                      color: scoreDom !== '' && scoreExt !== '' ? '#fff' : '#9CA3AF',
-                      fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                    {monProno ? '✏️ Modifier mon pronostic' : '🎯 Valider mon pronostic'}
-                  </button>
-                  {monProno && (
-                    <p style={{ fontSize: 11, color: '#3B6D11', textAlign: 'center', marginTop: 6 }}>
-                      Mon prono : {monProno.score_domicile} — {monProno.score_exterieur}
-                    </p>
-                  )}
-                </Card>
-              )
-            })
-          )}
+                  <span style={{ fontSize: 20, color: '#9CA3AF', fontWeight: 700 }}>—</span>
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 6 }}>{exterieur}</p>
+                    <input type="number" min="0" max="20" value={input.ext}
+                      onChange={e => setScoreInputs(p => ({ ...p, [match.id]: { ...p[match.id], ext: e.target.value } }))}
+                      style={{ width: 64, padding: '10px 8px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 24, fontWeight: 700, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
+                </div>
+                <button onClick={() => saveProno(match.id)} disabled={input.dom === '' || input.ext === '' || savingProno === match.id}
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: 'none',
+                    background: input.dom !== '' && input.ext !== '' ? THEME.gradient : '#E5E7EB',
+                    color: input.dom !== '' && input.ext !== '' ? '#fff' : '#9CA3AF',
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  {savingProno === match.id ? '⏳...' : monProno ? '✏️ Modifier mon pronostic' : '🎯 Valider mon pronostic'}
+                </button>
+                {monProno && (
+                  <p style={{ fontSize: 11, color: '#3B6D11', textAlign: 'center', marginTop: 6, fontWeight: 600 }}>
+                    Mon prono actuel : {monProno.score_domicile} — {monProno.score_exterieur}
+                  </p>
+                )}
+              </Card>
+            )
+          })}
 
-          {/* Classement pronostics */}
           {classementPronos.length > 0 && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>🏆 Classement pronostics</p>
               {classementPronos.map((j, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '0.5px solid #F3F4F6' }}>
                   <span style={{ fontSize: 16, width: 24 }}>{i < 3 ? ['🥇','🥈','🥉'][i] : `${i+1}.`}</span>
                   <p style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
                   <span style={{ fontSize: 12, color: THEME.primary, fontWeight: 700 }}>{j.pts} pts</span>
                 </div>
               ))}
               <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 8 }}>
-                Exact : 3pts · Bonne tendance : 1pt · Faux : 0pt
+                Score exact = 3pts · Bonne tendance = 1pt · Mauvais = 0pt
               </p>
             </Card>
           )}
