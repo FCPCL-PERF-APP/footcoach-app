@@ -36,12 +36,12 @@ export default function StatsConnexionPage() {
   }
 
   const STATUTS = {
-    actif_aujourd_hui:       { label: '🟢 Actif aujourd'hui', color: '#3B6D11', bg: '#EAF3DE' },
-    actif_semaine:           { label: '🟡 Cette semaine',      color: '#BA7517', bg: '#FDFAEE' },
-    actif_mois:              { label: '🔵 Ce mois',            color: '#185FA5', bg: '#E6F1FB' },
-    inactif:                 { label: '🔴 Inactif +30j',       color: '#A32D2D', bg: '#FCEBEB' },
-    invite_jamais_connecte:  { label: '⚪ Jamais connecté',    color: '#6B7280', bg: '#F3F4F6' },
-    non_invite:              { label: '⬛ Non invité',          color: '#374151', bg: '#F9FAFB' },
+    actif_aujourd_hui:       { label: "🟢 Actif aujourd'hui", color: '#3B6D11', bg: '#EAF3DE' },
+    actif_semaine:           { label: "🟡 Cette semaine",      color: '#BA7517', bg: '#FDFAEE' },
+    actif_mois:              { label: "🔵 Ce mois",            color: '#185FA5', bg: '#E6F1FB' },
+    inactif:                 { label: "🔴 Inactif +30j",       color: '#A32D2D', bg: '#FCEBEB' },
+    invite_jamais_connecte:  { label: "⚪ Jamais connecté",    color: '#6B7280', bg: '#F3F4F6' },
+    non_invite:              { label: "⬛ Non invité",          color: '#374151', bg: '#F9FAFB' },
   }
 
   const enriched = joueurs.map(j => ({ ...j, statut: getStatut(j) }))
