@@ -51,6 +51,7 @@ import CPAPage from './pages/CPAPage'
 import ExportFicheJoueurPage from './pages/ExportFicheJoueurPage'
 import OnboardingCoachPage from './pages/OnboardingCoachPage'
 import SearchPage from './pages/SearchPage'
+import FunPage from './pages/FunPage'
 
 function AppContent() {
   const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
@@ -81,6 +82,7 @@ function AppContent() {
           <Route path="/"                       element={<Navigate to={defaultRoute} replace />} />
           <Route path="/calendrier"             element={<CalendrierPage />} />
           <Route path="/calendrier-visuel"      element={<CalendrierVisuelPage />} />
+<Route path="/fun" element={<FunPage />} />
           <Route path="/rpe"                    element={isCoach || isAdjoint ? <RpePage /> : <Navigate to="/" />} />
           <Route path="/mon-rpe"                element={isJoueur ? <MonRpePage /> : <Navigate to="/rpe" />} />
 <Route path="/cpa" element={<CPAPage />} />

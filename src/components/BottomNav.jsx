@@ -46,6 +46,7 @@ const NAV_JOUEUR_MORE = [
   { path: '/mes-badges',  icon: '🏅', label: 'Mes badges' },
   { path: '/sondages',    icon: '📊', label: 'Sondages' },
   { path: '/cpa',         icon: '📐', label: 'CPA' },
+  { path: '/fun',         icon: '🎮', label: 'Fun & Jeux' },
   { path: '/ressources',  icon: '📁', label: 'Ressources' },
 ]
 
