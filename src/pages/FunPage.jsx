@@ -73,6 +73,139 @@ const FORMATIONS = {
   },
 }
 
+function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
+  const [activeFormation, setActiveFormation] = useState('4-4-2')
+  const [showPosteStats, setShowPosteStats] = useState(null)
+  const nbReponses = tousLesOnze.length
+
+  if (nbReponses === 0) return (
+    <Card style={{ marginBottom: 14 }}>
+      <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 12 }}>
+        Aucun joueur n'a encore composé son 11 idéal.
+      </p>
+    </Card>
+  )
+
+  // Calculer le 11 populaire + % par poste
+  const formConfig = FORMATIONS[activeFormation]
+  const onzeAvecFormation = tousLesOnze.filter(o => o.formation === activeFormation)
+  const nbFormation = onzeAvecFormation.length || nbReponses
+
+  // Pour chaque poste, compter les votes par joueur
+  const statsByPoste = {}
+  for (const poste of formConfig.postes) {
+    const counts = {}
+    const source = onzeAvecFormation.length > 0 ? onzeAvecFormation : tousLesOnze
+    for (const onze of source) {
+      const jId = onze.selections?.[poste.key]
+      if (jId) counts[jId] = (counts[jId] || 0) + 1
+    }
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
+    statsByPoste[poste.key] = sorted.map(([jId, nb]) => ({
+      joueur: joueurs.find(j => j.id === jId),
+      nb, pct: Math.round(nb / nbFormation * 100)
+    }))
+  }
+
+  // 11 populaire = joueur le plus voté à chaque poste
+  const onzePopulaire = {}
+  for (const poste of formConfig.postes) {
+    if (statsByPoste[poste.key]?.length > 0) {
+      onzePopulaire[poste.key] = statsByPoste[poste.key][0].joueur?.id
+    }
+  }
+
+  const zones = [...new Set(formConfig.postes.map(p => p.zone))].sort((a, b) => b - a)
+
+  return (
+    <Card style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: THEME.primary }}>
+          🏆 11 du groupe ({nbReponses} réponse{nbReponses > 1 ? 's' : ''})
+        </p>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {Object.keys(FORMATIONS).map(f => (
+            <button key={f} onClick={() => setActiveFormation(f)} style={{
+              padding: '3px 8px', borderRadius: 6, fontSize: 10, cursor: 'pointer', fontWeight: 600,
+              border: `1px solid ${activeFormation === f ? THEME.primary : '#E5E7EB'}`,
+              background: activeFormation === f ? '#E6F1FB' : 'transparent',
+              color: activeFormation === f ? THEME.primary : '#9CA3AF',
+            }}>{f}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Terrain avec 11 populaire */}
+      <div style={{ background: 'linear-gradient(180deg, #2d7a27 0%, #3a9e32 100%)', borderRadius: 10, padding: '10px 6px', marginBottom: 12 }}>
+        {zones.map(zone => {
+          const postesZone = formConfig.postes.filter(p => p.zone === zone)
+          return (
+            <div key={zone} style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 8 }}>
+              {postesZone.map(poste => {
+                const joueurId = onzePopulaire[poste.key]
+                const joueur = joueurs.find(j => j.id === joueurId)
+                const stats = statsByPoste[poste.key] || []
+                const pct = stats[0]?.pct || 0
+                const isSelected = showPosteStats === poste.key
+                return (
+                  <div key={poste.key} onClick={() => setShowPosteStats(isSelected ? null : poste.key)}
+                    style={{ width: 58, textAlign: 'center', cursor: 'pointer' }}>
+                    <div style={{
+                      width: 42, height: 42, borderRadius: '50%', margin: '0 auto 3px',
+                      background: joueur ? THEME.primary : 'rgba(255,255,255,.15)',
+                      border: isSelected ? '2.5px solid #FFD700' : '2px solid rgba(255,255,255,.4)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      overflow: 'hidden', position: 'relative'
+                    }}>
+                      {joueur?.photo_url
+                        ? <img src={joueur.photo_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <span style={{ fontSize: joueur ? 9 : 16, color: '#fff', fontWeight: 700 }}>
+                            {joueur ? `${joueur.nom[0]}${joueur.prenom[0]}` : '?'}
+                          </span>
+                      }
+                    </div>
+                    <p style={{ fontSize: 8, color: '#fff', fontWeight: 600, lineHeight: 1.2 }}>
+                      {joueur ? joueur.nom.slice(0, 7) : poste.label}
+                    </p>
+                    {pct > 0 && (
+                      <p style={{ fontSize: 8, color: '#FFD700', fontWeight: 700 }}>{pct}%</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Détail poste sélectionné */}
+      {showPosteStats && statsByPoste[showPosteStats]?.length > 0 && (
+        <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 10, marginBottom: 8 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8 }}>
+            {formConfig.postes.find(p => p.key === showPosteStats)?.label} — détail des votes
+          </p>
+          {statsByPoste[showPosteStats].map(({ joueur, nb, pct }, i) => joueur ? (
+            <div key={joueur.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 12, width: 20 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
+              <span style={{ flex: 1, fontSize: 12, fontWeight: i === 0 ? 700 : 400 }}>{joueur.nom} {joueur.prenom}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 60, height: 6, background: '#E5E7EB', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: `${pct}%`, height: '100%', background: THEME.primary, borderRadius: 3 }} />
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: THEME.primary, minWidth: 32 }}>{pct}%</span>
+              </div>
+            </div>
+          ) : null)}
+        </div>
+      )}
+
+      <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center' }}>
+        Clique sur un poste pour voir le détail des votes
+      </p>
+    </Card>
+  )
+}
+
 const COULEURS = ['#FFDD57','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD','#F0B27A','#BB8FCE','#85C1E9','#F8C471','#82E0AA']
 
 export default function FunPage() {
@@ -226,25 +359,9 @@ export default function FunPage() {
     <div style={{ padding: 12 }}>
       <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 14 }}>🎮 Fun & Jeux</h1>
 
-      {/* VUE COACH */}
-      {isCoach && tousLesOnze.length > 0 && (
-        <Card style={{ background: '#E6F1FB', border: `1px solid ${THEME.primary}`, marginBottom: 14 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: THEME.primary, marginBottom: 10 }}>
-            👁️ Vue coach — {tousLesOnze.length} joueur(s) ont composé leur 11
-          </p>
-          {topChoisis.length > 0 && (
-            <>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 8 }}>🏅 Les plus sélectionnés par le groupe :</p>
-              {topChoisis.map((j, i) => (
-                <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-                  <span style={{ fontSize: 14 }}>{['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span>
-                  <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{j.nom} {j.prenom}</span>
-                  <span style={{ fontSize: 11, color: THEME.primary, fontWeight: 700 }}>{statsOnze[j.id]?.total} sél.</span>
-                </div>
-              ))}
-            </>
-          )}
-        </Card>
+      {/* VUE COACH DÉDIÉE */}
+      {isCoach && (
+        <CoachOnzeView joueurs={joueurs} tousLesOnze={tousLesOnze} statsOnze={statsOnze} />
       )}
 
       {/* Tabs */}
