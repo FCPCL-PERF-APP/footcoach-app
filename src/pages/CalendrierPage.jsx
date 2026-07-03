@@ -318,6 +318,7 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
           {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}>📊 Stats</Button>}
           <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}>❤️ RPE</Button>
           <Button size="sm" onClick={() => navigate(`/footbar?event=${ev.id}`)}>📡 Footbar</Button>
+          <Button size="sm" onClick={() => duplicateEvent(ev)}>📋 Dupliquer</Button>
         </div>
       )}
 
@@ -444,12 +445,59 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
         </div>
       )}
 
+      {/* Statut de forme avant la séance */}
+      {(statut === 'present' || statut === 'exterieur') && (
+        <FormeWidget evenementId={ev.id} joueurId={profile?.id} />
+      )}
+
       {/* Pas encore répondu */}
       {!statut && !loading && (
         <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', marginTop: 4 }}>
           Indique ta présence pour accéder au RPE et Footbar
         </p>
       )}
+    </div>
+  )
+}
+
+function FormeWidget({ evenementId, joueurId }) {
+  const [forme, setForme] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    supabase.from('forme_joueur').select('forme')
+      .eq('evenement_id', evenementId).eq('joueur_id', joueurId).maybeSingle()
+      .then(({ data }) => { if (data) setForme(data.forme) })
+  }, [evenementId, joueurId])
+
+  async function saveForme(val) {
+    setSaving(true)
+    setForme(val)
+    const { data: existing } = await supabase.from('forme_joueur').select('id')
+      .eq('evenement_id', evenementId).eq('joueur_id', joueurId).maybeSingle()
+    if (existing?.id) {
+      await supabase.from('forme_joueur').update({ forme: val }).eq('id', existing.id)
+    } else {
+      await supabase.from('forme_joueur').insert({ evenement_id: evenementId, joueur_id: joueurId, forme: val })
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div style={{ marginTop: 8, padding: '8px 10px', background: '#F9FAFB', borderRadius: 10 }}>
+      <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 6 }}>Comment tu te sens aujourd'hui ?</p>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+        {[['🟢', 'bien', 'Bien'], ['🟡', 'moyen', 'Moyen'], ['🔴', 'fatigue', 'Fatigué']].map(([emoji, val, label]) => (
+          <button key={val} onClick={() => saveForme(val)} style={{
+            flex: 1, padding: '6px 4px', borderRadius: 8, cursor: 'pointer', textAlign: 'center',
+            border: `1.5px solid ${forme === val ? '#185FA5' : '#E5E7EB'}`,
+            background: forme === val ? '#E6F1FB' : 'transparent',
+            fontSize: 11, fontWeight: forme === val ? 600 : 400
+          }}>
+            {emoji} {label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

@@ -118,7 +118,7 @@ export default function FicheJoueurPage() {
         alert(`✅ Invitation renvoyée à ${joueur.email}`)
       } else {
         const err = await res.json()
-        alert('Erreur : ' + (err.error || "Impossible d'envoyer l'invitation"))
+        alert('Erreur : ' + (err.error || 'Impossible d'envoyer l'invitation'))
       }
     } catch(e) {
       alert('Erreur réseau : ' + e.message)
@@ -140,6 +140,23 @@ export default function FicheJoueurPage() {
     setTimeout(() => setBilanSaved(false), 2000)
     const { data: updated } = await supabase.from('objectifs_joueur').select('*').eq('joueur_id', joueur.id).maybeSingle()
     if (updated) setObjJoueurData(updated)
+
+    // Notifier le joueur par message privé
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: staffData } = await supabase.from('staff').select('nom, prenom').eq('auth_id', user?.id).maybeSingle()
+      const coachNom = staffData ? `${staffData.nom} ${staffData.prenom}` : 'Le coach'
+      if (joueur.auth_id) {
+        await supabase.from('messages').insert({
+          expediteur_id: user?.id,
+          expediteur_nom: coachNom,
+          expediteur_role: 'coach',
+          destinataire_id: joueur.auth_id,
+          groupe: false,
+          contenu: `📋 Ton bilan de saison a été complété par le coach. Consulte-le dans Ma fiche → 🎯 Objectifs → Bilan saison.`
+        })
+      }
+    } catch(e) { console.error('Notif bilan:', e) }
   }
 
   async function saveIdentite() {
