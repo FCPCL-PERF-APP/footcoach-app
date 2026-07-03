@@ -20,6 +20,7 @@ const NAV_COACH_MORE = [
   { path: '/charge-hebdo',  icon: '📊', label: 'Charge hebdo' },
   { path: '/comparatif',    icon: '⚖️', label: 'Comparatif' },
   { path: '/archive-saison',icon: '📦', label: 'Archiver saison' },
+  { path: '/stats-connexion', icon: '📱', label: 'Connexions' },
   { path: '/sondages',      icon: '📊', label: 'Sondages' },
   { path: '/fun',           icon: '🎮', label: 'Fun & Jeux' },
   { path: '/cpa',           icon: '📐', label: 'CPA' },
