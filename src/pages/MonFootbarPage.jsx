@@ -71,7 +71,21 @@ export default function MonFootbarPage() {
     setFootHistory(foot || [])
     const footIds = new Set((foot || []).map(f => f.evenement_id))
     const passes = (evs || []).filter(e => new Date(e.date_heure) < new Date())
-    setEventsAFaire(passes.filter(e => !footIds.has(e.id)))
+
+    // Filtrer les événements où le joueur est absent ou blessé
+    const eventIds = passes.map(e => e.id)
+    const { data: presData } = await supabase.from('presences')
+      .select('evenement_id, statut')
+      .eq('joueur_id', profile.id)
+      .in('evenement_id', eventIds)
+    const presMap = {}
+    for (const p of (presData || [])) presMap[p.evenement_id] = p.statut
+
+    setEventsAFaire(passes.filter(e =>
+      !footIds.has(e.id) &&
+      presMap[e.id] !== 'absent' &&
+      presMap[e.id] !== 'blesse'
+    ))
     if (foot?.length && !selectedHistEvent) setSelectedHistEvent(foot[0].evenement_id)
     setLoading(false)
   }
