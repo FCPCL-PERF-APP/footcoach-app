@@ -21,6 +21,7 @@ const NAV_COACH_MORE = [
   { path: '/comparatif',    icon: '⚖️', label: 'Comparatif' },
   { path: '/archive-saison',icon: '📦', label: 'Archiver saison' },
   { path: '/sondages',      icon: '📊', label: 'Sondages' },
+  { path: '/fun',           icon: '🎮', label: 'Fun & Jeux' },
   { path: '/cpa',           icon: '📐', label: 'CPA' },
 ]
 const NAV_STAFF_MAIN = [

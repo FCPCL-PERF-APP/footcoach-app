@@ -124,6 +124,35 @@ export default function FunPage() {
     <div style={{ padding: 12 }}>
       <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 14 }}>🎮 Fun & Jeux</h1>
 
+      {/* VUE COACH - résumé agrégé */}
+      {isCoach && (
+        <div style={{ background: '#E6F1FB', borderRadius: 12, padding: 12, marginBottom: 14 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: THEME.primary, marginBottom: 10 }}>👁️ Vue coach — résultats agrégés</p>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ flex: 1, background: '#fff', borderRadius: 10, padding: 10, textAlign: 'center' }}>
+              <p style={{ fontSize: 22, fontWeight: 800, color: THEME.primary }}>{Object.values(statsOnze).reduce((s, v) => s + v.total, 0)}</p>
+              <p style={{ fontSize: 10, color: '#6B7280' }}>11 complétés</p>
+            </div>
+            <div style={{ flex: 1, background: '#fff', borderRadius: 10, padding: 10, textAlign: 'center' }}>
+              <p style={{ fontSize: 22, fontWeight: 800, color: '#3B6D11' }}>{Object.keys(mesPronostics).length}</p>
+              <p style={{ fontSize: 10, color: '#6B7280' }}>Mes pronostics</p>
+            </div>
+          </div>
+          {topChoisis.length > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>🏅 Top 3 les plus choisis en 11 idéal :</p>
+              {topChoisis.slice(0,3).map((j, i) => (
+                <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 14 }}>{['🥇','🥈','🥉'][i]}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{j.nom} {j.prenom}</span>
+                  <span style={{ fontSize: 11, color: THEME.primary, fontWeight: 700 }}>{statsOnze[j.id]?.total} sélections</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {[['onze', '🏆 Mon 11 idéal'], ['pronos', '🎯 Pronostics']].map(([key, label]) => (
