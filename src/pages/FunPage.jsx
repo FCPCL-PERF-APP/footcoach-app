@@ -209,7 +209,7 @@ function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
 const COULEURS = ['#FFDD57','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD','#F0B27A','#BB8FCE','#85C1E9','#F8C471','#82E0AA']
 
 export default function FunPage() {
-  const { profile, isCoach } = useAuth()
+  const { profile, isCoach, isAdjoint } = useAuth()
   const [activeTab, setActiveTab] = useState('onze')
   const [joueurs, setJoueurs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -360,7 +360,7 @@ export default function FunPage() {
       <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 14 }}>🎮 Fun & Jeux</h1>
 
       {/* VUE COACH DÉDIÉE */}
-      {isCoach && (
+      {(isCoach || isAdjoint) && (
         <CoachOnzeView joueurs={joueurs} tousLesOnze={tousLesOnze} statsOnze={statsOnze} />
       )}
 
