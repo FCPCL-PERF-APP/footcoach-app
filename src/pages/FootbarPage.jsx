@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Select, Button, Spinner, BarChart } from '../components/UI'
 import { THEME } from '../theme'
@@ -42,6 +42,7 @@ export default function FootbarPage() {
   const [form, setForm] = useState({})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [relanceState, setRelanceState] = useState(null)
 
   useEffect(() => { loadData() }, [])
   useEffect(() => { if (selectedEvent) loadFootbar() }, [selectedEvent])
@@ -92,6 +93,26 @@ export default function FootbarPage() {
 
   const joueursSansFootbar = joueurs.filter(j => !footData.find(f => f.joueur_id === j.id))
   const currentEvent = events.find(e => e.id === selectedEvent)
+
+  async function relancerManquants() {
+    setRelanceState('sending')
+    try {
+      const res = await fetch('/api/notif-manquants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({
+          type: 'footbar',
+          eventTitre: currentEvent?.titre,
+          joueurIds: joueursSansFootbar.map(j => j.id)
+        })
+      })
+      const data = await res.json()
+      setRelanceState(data.success ? `✅ ${data.sent} notification(s) envoyée(s)` : `❌ ${data.error || 'Erreur'}`)
+    } catch {
+      setRelanceState('❌ Erreur réseau')
+    }
+    setTimeout(() => setRelanceState(null), 4000)
+  }
 
   // Données comparatives pour les barres
   function getBarData(key) {
@@ -284,9 +305,9 @@ export default function FootbarPage() {
                         <span style={{ fontSize: 11, color: '#D85A30' }}>⏳ En attente</span>
                       </div>
                     ))}
-                    <button onClick={() => alert(`📱 Notification envoyée à ${joueursSansFootbar.length} joueur(s)`)}
+                    <button onClick={relancerManquants} disabled={relanceState === 'sending'}
                       style={{ width: '100%', marginTop: 12, padding: 10, background: THEME.gradient, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                      📱 Relancer par notification push
+                      {relanceState === 'sending' ? 'Envoi...' : relanceState || '📱 Relancer par notification push'}
                     </button>
                   </>
               }

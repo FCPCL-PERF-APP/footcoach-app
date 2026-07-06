@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Badge, Button, Select, Textarea, BarChart, Spinner, AlertCard } from '../components/UI'
 
@@ -43,6 +43,7 @@ export default function RpePage() {
   const [rpeData, setRpeData] = useState([])
   const [joueurs, setJoueurs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [relanceState, setRelanceState] = useState(null)
 
   useEffect(() => { loadEvents(); loadJoueurs() }, [])
   useEffect(() => { if (selectedEvent) loadRpe() }, [selectedEvent])
@@ -87,6 +88,26 @@ export default function RpePage() {
   })
 
   const joueursSansRpe = joueurs.filter(j => !rpeData.find(r => r.joueur_id === j.id))
+
+  async function relancerManquants() {
+    setRelanceState('sending')
+    try {
+      const res = await fetch('/api/notif-manquants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({
+          type: 'rpe',
+          eventTitre: currentEvent?.titre,
+          joueurIds: joueursSansRpe.map(j => j.id)
+        })
+      })
+      const data = await res.json()
+      setRelanceState(data.success ? `✅ ${data.sent} notification(s) envoyée(s)` : `❌ ${data.error || 'Erreur'}`)
+    } catch {
+      setRelanceState('❌ Erreur réseau')
+    }
+    setTimeout(() => setRelanceState(null), 4000)
+  }
 
   return (
     <div style={{ padding: 12 }}>
@@ -222,8 +243,9 @@ export default function RpePage() {
                       </div>
                     ))}
                     <Button variant="primary" style={{ width: '100%', marginTop: 12 }}
-                      onClick={() => alert(`📱 Notification envoyée à ${joueursSansRpe.length} joueur(s)`)}>
-                      📱 Relancer par notification push
+                      disabled={relanceState === 'sending'}
+                      onClick={relancerManquants}>
+                      {relanceState === 'sending' ? 'Envoi...' : relanceState || '📱 Relancer par notification push'}
                     </Button>
                   </>
               }

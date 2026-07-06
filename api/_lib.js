@@ -19,3 +19,25 @@ export async function requireCoach(req, supabase) {
     .from('staff').select('role').eq('auth_id', user.id).maybeSingle()
   return staffRow?.role === 'coach' ? user : null
 }
+
+export async function sendPushToSubscriptions(webpush, supabase, authIds, payload) {
+  if (!authIds?.length) return { sent: 0 }
+  const { data: subs } = await supabase
+    .from('push_subscriptions').select('*').in('user_id', authIds)
+
+  let sent = 0
+  for (const sub of (subs || [])) {
+    try {
+      await webpush.sendNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        JSON.stringify(payload)
+      )
+      sent++
+    } catch (err) {
+      if (err.statusCode === 410 || err.statusCode === 404) {
+        await supabase.from('push_subscriptions').delete().eq('id', sub.id)
+      }
+    }
+  }
+  return { sent, total: subs?.length || 0 }
+}

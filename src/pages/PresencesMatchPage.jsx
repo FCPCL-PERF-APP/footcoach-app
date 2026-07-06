@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { Card, Button, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -33,6 +33,7 @@ export default function PresencesMatchPage() {
   const [saved, setSaved] = useState(false)
   const [filterStatut, setFilterStatut] = useState('tous')
   const [search, setSearch] = useState('')
+  const [relanceState, setRelanceState] = useState(null)
 
   useEffect(() => { loadData() }, [eventId])
 
@@ -97,6 +98,27 @@ export default function PresencesMatchPage() {
     return matchSearch && matchStatut
   })
 
+  async function relancerIndecis() {
+    const indecis = convocations.filter(c => c.joueurs && presences[c.joueurs.id] === 'inconnu')
+    setRelanceState('sending')
+    try {
+      const res = await fetch('/api/notif-manquants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({
+          type: 'presence',
+          eventTitre: event?.titre,
+          joueurIds: indecis.map(c => c.joueurs.id)
+        })
+      })
+      const data = await res.json()
+      setRelanceState(data.success ? `✅ ${data.sent} notification(s) envoyée(s)` : `❌ ${data.error || 'Erreur'}`)
+    } catch {
+      setRelanceState('❌ Erreur réseau')
+    }
+    setTimeout(() => setRelanceState(null), 4000)
+  }
+
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
 
   return (
@@ -118,13 +140,14 @@ export default function PresencesMatchPage() {
       </div>
 
       {/* Résumé avec filtres cliquables */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 6, marginBottom: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 6, marginBottom: 12 }}>
         {[
           ['Tous', 'tous', convocations.length, '#185FA5', '#E6F1FB'],
           ['Présents', 'present', nbPresents, '#3B6D11', '#EAF3DE'],
           ['Extérieur', 'exterieur', nbExterieurs, '#185FA5', '#E6F1FB'],
           ['Absents', 'absent', nbAbsents, '#A32D2D', '#FCEBEB'],
           ['Blessés', 'blesse', nbBlesses, '#854F0B', '#FAEEDA'],
+          ['Inconnus', 'inconnu', nbInconnus, '#6B7280', '#F3F4F6'],
         ].map(([lbl, key, val, color, bg]) => (
           <button key={key} onClick={() => setFilterStatut(key)} style={{
             padding: '8px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
@@ -137,6 +160,14 @@ export default function PresencesMatchPage() {
           </button>
         ))}
       </div>
+
+      {/* Relancer les indécis */}
+      {filterStatut === 'inconnu' && nbInconnus > 0 && (
+        <button onClick={relancerIndecis} disabled={relanceState === 'sending'}
+          style={{ width: '100%', marginBottom: 12, padding: 10, background: THEME.gradient, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+          {relanceState === 'sending' ? 'Envoi...' : relanceState || `📱 Relancer les ${nbInconnus} indécis`}
+        </button>
+      )}
 
       {/* Recherche */}
       <input value={search} onChange={e => setSearch(e.target.value)}

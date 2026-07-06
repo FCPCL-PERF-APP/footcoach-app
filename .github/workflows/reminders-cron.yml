@@ -1,0 +1,15 @@
+name: Relance RPE/Footbar post-événement
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  call-endpoint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appelle l'endpoint de relance
+        run: |
+          curl -sf -X POST "https://footcoach-fcpcl.vercel.app/api/cron-rpe-footbar-relance" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

@@ -1,10 +1,7 @@
 import webpush from 'web-push'
-import { createClient } from '@supabase/supabase-js'
+import { adminClient, sendPushToSubscriptions } from './_lib.js'
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-)
+const supabase = adminClient()
 
 export default async function handler(req, res) {
   // Vérifier le secret cron
@@ -81,28 +78,13 @@ export default async function handler(req, res) {
         const manquants = eventIds.filter(id => !rpeIds.has(id)).length
 
         if (manquants > 0) {
-          const { data: subs } = await supabase.from('push_subscriptions').select('*')
-            .eq('user_id', joueur.auth_id)
-
-          for (const sub of (subs || [])) {
-            try {
-              await webpush.sendNotification(
-                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-                JSON.stringify({
-                  title: `❤️ RPE à compléter`,
-                  body: `${joueur.prenom}, tu as ${manquants} RPE en attente — ça prend 1 minute !`,
-                  url: '/mon-rpe',
-                  icon: '/icons/logo.jpg'
-                })
-              )
-              sent++
-            } catch (err) {
-              if (err.statusCode === 410 || err.statusCode === 404) {
-                await supabase.from('push_subscriptions').delete().eq('id', sub.id)
-              }
-              errors.push(err.message)
-            }
-          }
+          const r = await sendPushToSubscriptions(webpush, supabase, [joueur.auth_id], {
+            title: `❤️ RPE à compléter`,
+            body: `${joueur.prenom}, tu as ${manquants} RPE en attente — ça prend 1 minute !`,
+            url: '/mon-rpe',
+            icon: '/icons/logo.jpg'
+          })
+          sent += r.sent
         }
       }
 
@@ -115,28 +97,44 @@ export default async function handler(req, res) {
         const manquants = eventIds.filter(id => !footbarIds.has(id)).length
 
         if (manquants > 0) {
-          const { data: subs } = await supabase.from('push_subscriptions').select('*')
-            .eq('user_id', joueur.auth_id)
+          const r = await sendPushToSubscriptions(webpush, supabase, [joueur.auth_id], {
+            title: `📡 Footbar à compléter`,
+            body: `${joueur.prenom}, tu as ${manquants} distance(s) en attente — ça prend 1 minute !`,
+            url: '/mon-footbar',
+            icon: '/icons/logo.jpg'
+          })
+          sent += r.sent
+        }
+      }
+    }
 
-          for (const sub of (subs || [])) {
-            try {
-              await webpush.sendNotification(
-                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-                JSON.stringify({
-                  title: `📡 Footbar à compléter`,
-                  body: `${joueur.prenom}, tu as ${manquants} distance(s) en attente — ça prend 1 minute !`,
-                  url: '/mon-footbar',
-                  icon: '/icons/logo.jpg'
-                })
-              )
-              sent++
-            } catch (err) {
-              if (err.statusCode === 410 || err.statusCode === 404) {
-                await supabase.from('push_subscriptions').delete().eq('id', sub.id)
-              }
-              errors.push(err.message)
-            }
-          }
+    // 4. Rappel présence non confirmée — événements des 2 prochains jours (même fenêtre que la section 1)
+    if (events?.length) {
+      const { data: tousJoueurs } = await supabase.from('joueurs').select('id, auth_id, prenom').not('auth_id', 'is', null)
+
+      for (const ev of events) {
+        let candidats
+        if (ev.type === 'seance') {
+          candidats = tousJoueurs || []
+        } else {
+          const { data: convocs } = await supabase.from('convocations').select('joueur_id')
+            .eq('evenement_id', ev.id).eq('convoque', true)
+          const convoqueIds = new Set((convocs || []).map(c => c.joueur_id))
+          candidats = (tousJoueurs || []).filter(j => convoqueIds.has(j.id))
+        }
+
+        const { data: pres } = await supabase.from('presences').select('joueur_id').eq('evenement_id', ev.id)
+        const reponduIds = new Set((pres || []).map(p => p.joueur_id))
+        const sansReponse = candidats.filter(j => !reponduIds.has(j.id))
+
+        for (const joueur of sansReponse) {
+          const r = await sendPushToSubscriptions(webpush, supabase, [joueur.auth_id], {
+            title: `❓ Confirme ta présence`,
+            body: `${joueur.prenom}, le coach attend ta réponse pour ${ev.titre} !`,
+            url: '/calendrier',
+            icon: '/icons/logo.jpg'
+          })
+          sent += r.sent
         }
       }
     }
