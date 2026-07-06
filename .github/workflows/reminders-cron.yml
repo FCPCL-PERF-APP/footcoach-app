@@ -11,5 +11,8 @@ jobs:
     steps:
       - name: Appelle l'endpoint de relance
         run: |
-          curl -sf -X POST "https://footcoach-fcpcl.vercel.app/api/cron-rpe-footbar-relance" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          code=$(curl -s -o response.txt -w "%{http_code}" -X POST "https://footcoach-fcpcl.vercel.app/api/cron-rpe-footbar-relance" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          echo "HTTP $code"
+          cat response.txt
+          if [ "$code" -ge 400 ]; then exit 1; fi
