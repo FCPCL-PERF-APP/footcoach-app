@@ -32,14 +32,33 @@ export default function MessagesPage({ setUnreadCount }) {
   useEffect(() => {
     loadGroupMessages()
     loadContacts()
-    const sub = supabase.channel('group-msgs')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'groupe=eq.true' },
-        payload => setGroupMessages(p => [...p, payload.new]))
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' },
-        payload => setGroupMessages(p => p.filter(m => m.id !== payload.old.id)))
+  }, [])
+
+  // Abonnement temps réel : re-souscrit à chaque changement de conversation ouverte
+  // pour que le filtre "message privé pertinent" reste à jour (fermeture/réouverture
+  // légère du channel, sans conséquence pour l'usage réel de la messagerie).
+  useEffect(() => {
+    const myAuthId = profile?.auth_id || profile?.id
+    const sub = supabase.channel('messages-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        const msg = payload.new
+        if (msg.groupe) {
+          setGroupMessages(p => [...p, msg])
+        } else if (
+          activeConv &&
+          ((msg.expediteur_id === myAuthId && msg.destinataire_id === activeConv.auth_id) ||
+           (msg.expediteur_id === activeConv.auth_id && msg.destinataire_id === myAuthId))
+        ) {
+          setConvMessages(p => [...p, msg])
+        }
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, payload => {
+        setGroupMessages(p => p.filter(m => m.id !== payload.old.id))
+        setConvMessages(p => p.filter(m => m.id !== payload.old.id))
+      })
       .subscribe()
     return () => supabase.removeChannel(sub)
-  }, [])
+  }, [activeConv, profile])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
