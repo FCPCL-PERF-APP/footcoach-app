@@ -205,7 +205,7 @@ export default function DashboardJoueurPage() {
         {[
           { label: 'Matchs', value: totalMatchs, color: THEME.primary },
           { label: 'Buts', value: totalButs, color: '#3B6D11' },
-          { label: 'Tps jeu moy.', value: tempsJeuMoy !== '—' ? `${tempsJeuMoy}\'` : '—', color: THEME.primary },
+          { label: 'Tps jeu moy.', value: tempsJeuMoy !== '—' ? `${tempsJeuMoy}'` : '—', color: THEME.primary },
           { label: 'Présence entr.', value: tauxPresenceEntrainement !== '—' ? `${tauxPresenceEntrainement}%` : '—', color: tauxPresenceEntrainement >= 80 ? '#3B6D11' : '#D85A30' },
         ].map(s => (
           <div key={s.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: '10px 6px', textAlign: 'center' }}>

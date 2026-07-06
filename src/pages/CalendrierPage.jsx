@@ -73,6 +73,20 @@ export default function CalendrierPage() {
     setDeleteConfirm(null); loadEvents()
   }
 
+  function duplicateEvent(ev) {
+    setEditingEvent(null)
+    setForm({
+      type: ev.type, titre: ev.titre,
+      date: ev.date_heure?.split('T')[0] || '',
+      heure: ev.date_heure?.split('T')[1]?.slice(0,5) || '15:00',
+      lieu: ev.lieu || '', domicile: ev.domicile !== false,
+      rdv_heure: ev.rdv_heure || '14:00', rdv_lieu: ev.rdv_lieu || '',
+      match_type: ev.match_type || 'championnat'
+    })
+    setShowAdd(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const filtered = events.filter(e => filterType === 'tous' || e.type === filterType)
   const upcoming = filtered.filter(e => isAfter(parseISO(e.date_heure), new Date()))
   const past = filtered.filter(e => isBefore(parseISO(e.date_heure), new Date())).reverse()
@@ -200,7 +214,7 @@ export default function CalendrierPage() {
               upcoming.map(ev => (
                 <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur}
                   navigate={navigate} profile={profile}
-                  onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} />
+                  onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} onDuplicate={duplicateEvent} />
               ))
             )
           )}
@@ -223,7 +237,7 @@ export default function CalendrierPage() {
                 {selectedPastEventData && (
                   <EventCard ev={selectedPastEventData} isCoach={isCoach} isJoueur={isJoueur}
                     navigate={navigate} profile={profile}
-                    onEdit={startEdit} onDelete={() => setDeleteConfirm(selectedPastEventData)} past />
+                    onEdit={startEdit} onDelete={() => setDeleteConfirm(selectedPastEventData)} onDuplicate={duplicateEvent} past />
                 )}
               </>
             )
@@ -234,7 +248,7 @@ export default function CalendrierPage() {
   )
 }
 
-function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onEdit, onDelete }) {
+function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onEdit, onDelete, onDuplicate }) {
   const [presenceCount, setPresenceCount] = useState(null)
   const [convoque, setConvoque] = useState(null)
   const date = parseISO(ev.date_heure)
@@ -318,7 +332,7 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
           {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}>📊 Stats</Button>}
           <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}>❤️ RPE</Button>
           <Button size="sm" onClick={() => navigate(`/footbar?event=${ev.id}`)}>📡 Footbar</Button>
-          <Button size="sm" onClick={() => duplicateEvent(ev)}>📋 Dupliquer</Button>
+          <Button size="sm" onClick={() => onDuplicate(ev)}>📋 Dupliquer</Button>
         </div>
       )}
 

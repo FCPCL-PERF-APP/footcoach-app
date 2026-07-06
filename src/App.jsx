@@ -5,53 +5,59 @@ import { Spinner } from './components/UI'
 import BottomNav from './components/BottomNav'
 import AppHeader from './components/AppHeader'
 import LoginPage from './pages/LoginPage'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { THEME } from './theme'
 
-import CalendrierPage      from './pages/CalendrierPage'
-import CalendrierVisuelPage from './pages/CalendrierVisuelPage'
-import RpePage             from './pages/RpePage'
-import MonRpePage          from './pages/MonRpePage'
-import FootbarPage         from './pages/FootbarPage'
-import MonFootbarPage      from './pages/MonFootbarPage'
-import JoueursPage         from './pages/JoueursPage'
-import FicheJoueurPage     from './pages/FicheJoueurPage'
-import NouveauJoueurPage   from './pages/NouveauJoueurPage'
-import ImportJoueursPage   from './pages/ImportJoueursPage'
-import MaFichePage         from './pages/MaFichePage'
-import MesObjectifsPage from './pages/MesObjectifsPage'
-import MessagesPage        from './pages/MessagesPage'
-import DashboardPage       from './pages/DashboardPage'
-import DashboardStatsPage from './pages/DashboardStatsPage'
-import DashboardJoueurPage from './pages/DashboardJoueurPage'
-import RessourcesPage      from './pages/RessourcesPage'
-import StaffPage           from './pages/StaffPage'
-import StatsConnexionPage from './pages/StatsConnexionPage'
-import StatsPage           from './pages/StatsPage'
-import ConvocationsPage    from './pages/ConvocationsPage'
-import PresencesMatchPage  from './pages/PresencesMatchPage'
-import ChargeHebdoPage     from './pages/ChargeHebdoPage'
-import ComparatifJoueursPage from './pages/ComparatifJoueursPage'
-import BilanSaisonPage     from './pages/BilanSaisonPage'
-import CorrelationPage     from './pages/CorrelationPage'
-import BlessuresPage       from './pages/BlessuresPage'
-import ObjectifsPage       from './pages/ObjectifsPage'
-import OnboardingPage      from './pages/OnboardingPage'
-import MonBilanPage from './pages/MonBilanPage'
-import MonProfilJoueurPage from './pages/MonProfilJoueurPage'
-import SetPasswordPage from './pages/SetPasswordPage'
-import ProfilCoachPage     from './pages/ProfilCoachPage'
-import ArchiveSaisonPage   from './pages/ArchiveSaisonPage'
-import ClassementButeursPage from './pages/ClassementButeursPage'
-import ExportDonneesPage   from './pages/ExportDonneesPage'
-import RadarJoueurPage     from './pages/RadarJoueurPage'
-import BadgesJoueurPage from './pages/BadgesJoueurPage'
-import SondagePage from './pages/SondagePage'
-import CPAPage from './pages/CPAPage'
-import ExportFicheJoueurPage from './pages/ExportFicheJoueurPage'
-import OnboardingCoachPage from './pages/OnboardingCoachPage'
-import SearchPage from './pages/SearchPage'
-import FunPage from './pages/FunPage'
+const CalendrierPage         = lazy(() => import('./pages/CalendrierPage'))
+const CalendrierVisuelPage   = lazy(() => import('./pages/CalendrierVisuelPage'))
+const RpePage                = lazy(() => import('./pages/RpePage'))
+const MonRpePage             = lazy(() => import('./pages/MonRpePage'))
+const FootbarPage            = lazy(() => import('./pages/FootbarPage'))
+const MonFootbarPage         = lazy(() => import('./pages/MonFootbarPage'))
+const JoueursPage            = lazy(() => import('./pages/JoueursPage'))
+const FicheJoueurPage        = lazy(() => import('./pages/FicheJoueurPage'))
+const NouveauJoueurPage      = lazy(() => import('./pages/NouveauJoueurPage'))
+const ImportJoueursPage      = lazy(() => import('./pages/ImportJoueursPage'))
+const MaFichePage            = lazy(() => import('./pages/MaFichePage'))
+const MesObjectifsPage       = lazy(() => import('./pages/MesObjectifsPage'))
+const MessagesPage           = lazy(() => import('./pages/MessagesPage'))
+const DashboardPage          = lazy(() => import('./pages/DashboardPage'))
+const DashboardStatsPage     = lazy(() => import('./pages/DashboardStatsPage'))
+const DashboardJoueurPage    = lazy(() => import('./pages/DashboardJoueurPage'))
+const RessourcesPage         = lazy(() => import('./pages/RessourcesPage'))
+const StaffPage              = lazy(() => import('./pages/StaffPage'))
+const StatsConnexionPage     = lazy(() => import('./pages/StatsConnexionPage'))
+const StatsPage              = lazy(() => import('./pages/StatsPage'))
+const ConvocationsPage       = lazy(() => import('./pages/ConvocationsPage'))
+const PresencesMatchPage     = lazy(() => import('./pages/PresencesMatchPage'))
+const ChargeHebdoPage        = lazy(() => import('./pages/ChargeHebdoPage'))
+const ComparatifJoueursPage  = lazy(() => import('./pages/ComparatifJoueursPage'))
+const BilanSaisonPage        = lazy(() => import('./pages/BilanSaisonPage'))
+const CorrelationPage        = lazy(() => import('./pages/CorrelationPage'))
+const BlessuresPage          = lazy(() => import('./pages/BlessuresPage'))
+const ObjectifsPage          = lazy(() => import('./pages/ObjectifsPage'))
+const OnboardingPage         = lazy(() => import('./pages/OnboardingPage'))
+const MonBilanPage           = lazy(() => import('./pages/MonBilanPage'))
+const MonProfilJoueurPage    = lazy(() => import('./pages/MonProfilJoueurPage'))
+const SetPasswordPage        = lazy(() => import('./pages/SetPasswordPage'))
+const ProfilCoachPage        = lazy(() => import('./pages/ProfilCoachPage'))
+const ArchiveSaisonPage      = lazy(() => import('./pages/ArchiveSaisonPage'))
+const ClassementButeursPage  = lazy(() => import('./pages/ClassementButeursPage'))
+const ExportDonneesPage      = lazy(() => import('./pages/ExportDonneesPage'))
+const RadarJoueurPage        = lazy(() => import('./pages/RadarJoueurPage'))
+const BadgesJoueurPage       = lazy(() => import('./pages/BadgesJoueurPage'))
+const SondagePage            = lazy(() => import('./pages/SondagePage'))
+const CPAPage                = lazy(() => import('./pages/CPAPage'))
+const ExportFicheJoueurPage  = lazy(() => import('./pages/ExportFicheJoueurPage'))
+const OnboardingCoachPage    = lazy(() => import('./pages/OnboardingCoachPage'))
+const SearchPage             = lazy(() => import('./pages/SearchPage'))
+const FunPage                = lazy(() => import('./pages/FunPage'))
+
+const routeFallback = (
+  <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+    <Spinner />
+  </div>
+)
 
 function AppContent() {
   const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
@@ -70,7 +76,11 @@ function AppContent() {
   if (!user) return <LoginPage />
 
   // Onboarding automatique pour les nouveaux joueurs
-  if (needsOnboarding && isJoueur) return <OnboardingPage />
+  if (needsOnboarding && isJoueur) return (
+    <Suspense fallback={routeFallback}>
+      <OnboardingPage />
+    </Suspense>
+  )
 
   const defaultRoute = isJoueur ? '/mon-dashboard' : '/calendrier'
 
@@ -78,6 +88,7 @@ function AppContent() {
     <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: THEME.bgPage }}>
       <AppHeader />
       <div style={{ paddingBottom: 80 }}>
+        <Suspense fallback={routeFallback}>
         <Routes>
           <Route path="/"                       element={<Navigate to={defaultRoute} replace />} />
           <Route path="/calendrier"             element={<CalendrierPage />} />
@@ -111,7 +122,6 @@ function AppContent() {
           <Route path="/comparatif"             element={isCoach ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
           <Route path="/bilan-saison"           element={isCoach ? <BilanSaisonPage /> : <Navigate to="/" />} />
           <Route path="/correlation"            element={isCoach ? <CorrelationPage /> : <Navigate to="/" />} />
-<Route path="/mes-objectifs" element={isJoueur ? <MesObjectifsPage /> : <Navigate to="/" />} />
 <Route path="/mes-badges" element={isJoueur ? <BadgesJoueurPage /> : <Navigate to="/" />} />
 <Route path="/sondages" element={<SondagePage />} />
           <Route path="/onboarding"             element={<OnboardingPage />} />
@@ -127,6 +137,7 @@ function AppContent() {
 <Route path="/joueurs/:id/radar" element={isCoach ? <RadarJoueurPage /> : <Navigate to="/" />} />
 <Route path="*" element={<Navigate to={defaultRoute} replace />} />
         </Routes>
+        </Suspense>
       </div>
       <BottomNav unreadCount={unreadCount} />
     </div>

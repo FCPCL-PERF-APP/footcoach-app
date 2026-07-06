@@ -96,7 +96,7 @@ export default function DashboardPage() {
       try {
         const stored = JSON.parse(localStorage.getItem('fcpcl-alertes-v2') || '{}')
         localStorage.setItem('fcpcl-alertes-v2', JSON.stringify({ ...stored, keys: next }))
-      } catch {}
+      } catch { /* localStorage indisponible, on ignore */ }
       return next
     })
   }
@@ -110,7 +110,7 @@ export default function DashboardPage() {
     try {
       const stored = JSON.parse(localStorage.getItem('fcpcl-alertes-v2') || '{}')
       localStorage.setItem('fcpcl-alertes-v2', JSON.stringify({ ...stored, keys: next }))
-    } catch {}
+    } catch { /* localStorage indisponible, on ignore */ }
   }
 
   function resetAlertes() {

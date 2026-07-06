@@ -73,6 +73,7 @@ export default function MaFichePage() {
   const [pwd, setPwd] = useState({ new: '', confirm: '' })
   const [pwdMsg, setPwdMsg] = useState(null)
   const [pwdSaving, setPwdSaving] = useState(false)
+  const [photoUploading, setPhotoUploading] = useState(false)
 
   useEffect(() => { if (profile?.id) loadData() }, [profile])
 
@@ -149,6 +150,19 @@ export default function MaFichePage() {
     loadData()
   }
 
+  async function uploadPhoto(file) {
+    setPhotoUploading(true)
+    const path = `photos/${profile.id}_${Date.now()}.jpg`
+    const { error } = await supabase.storage.from('joueurs').upload(path, file, { upsert: true })
+    if (!error) {
+      const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
+      await supabase.from('joueurs').update({ photo_url: urlData.publicUrl }).eq('id', profile.id)
+      setJoueur(p => ({ ...p, photo_url: urlData.publicUrl }))
+      setForm(p => ({ ...p, photo_url: urlData.publicUrl }))
+    }
+    setPhotoUploading(false)
+  }
+
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
 
   // Calculs
@@ -193,10 +207,11 @@ export default function MaFichePage() {
           }
           <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'rgba(0,0,0,.5)', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>📷</div>
           <input id="photo-upload-fiche" type="file" accept="image/*" style={{ display: 'none' }}
-            onChange={e => uploadPhoto(e.target.files[0])} />
+            onChange={e => e.target.files[0] && uploadPhoto(e.target.files[0])} />
         </label>
         <div>
           <p style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{joueur?.nom} {joueur?.prenom}</p>
+          {photoUploading && <p style={{ fontSize: 11, color: 'rgba(255,255,255,.75)' }}>📷 Upload en cours...</p>}
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,.75)' }}>
             {joueur?.poste || '—'} {joueur?.numero ? `· N°${joueur.numero}` : ''} {joueur?.groupe ? `· Pôle ${joueur.groupe}` : ''}
           </p>
