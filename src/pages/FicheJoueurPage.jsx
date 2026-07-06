@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Button, Input, Select, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
@@ -111,7 +111,7 @@ export default function FicheJoueurPage() {
     try {
       const res = await fetch('/api/invite-joueur', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ joueurId: joueur.id, email: joueur.email, nom: joueur.nom, prenom: joueur.prenom })
       })
       if (res.ok) {
@@ -233,7 +233,7 @@ export default function FicheJoueurPage() {
     try {
       const res = await fetch('/api/invite-joueur', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ email: inviteEmail, joueurId: id, nom: joueur?.nom, prenom: joueur?.prenom })
       })
       const data = await res.json()

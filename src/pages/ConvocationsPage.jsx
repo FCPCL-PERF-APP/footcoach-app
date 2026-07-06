@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { Card, PageHeader, Button, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -80,7 +80,7 @@ export default function ConvocationsPage() {
           : ''
         await fetch('/api/notif-convocation', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
           body: JSON.stringify({
             eventId,
             eventTitre: event?.titre,

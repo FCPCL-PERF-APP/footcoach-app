@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { Card, PageHeader, Input, Select, Button } from '../components/UI'
 import { THEME } from '../theme'
 
@@ -58,7 +58,7 @@ export default function NouveauJoueurPage() {
       try {
         await fetch('/api/invite-joueur', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
           body: JSON.stringify({
             email: form.email,
             joueurId: joueur.id,

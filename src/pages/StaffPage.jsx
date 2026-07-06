@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Input, Button, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
@@ -64,7 +64,7 @@ export default function StaffPage() {
     try {
       const res = await fetch('/api/invite-staff', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({
           email: form.email,
           staffId: newStaff.id,
@@ -94,7 +94,7 @@ export default function StaffPage() {
     try {
       const res = await fetch('/api/invite-staff', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ email: s.email, staffId: s.id, nom: s.nom, prenom: s.prenom, role: s.role })
       })
       const data = await res.json()

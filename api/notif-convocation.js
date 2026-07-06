@@ -1,10 +1,7 @@
 import webpush from 'web-push'
-import { createClient } from '@supabase/supabase-js'
+import { adminClient, requireCoach } from './_lib.js'
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-)
+const supabase = adminClient()
 
 webpush.setVapidDetails(
   'mailto:contact@fcpcl.fr',
@@ -14,6 +11,9 @@ webpush.setVapidDetails(
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  const user = await requireCoach(req, supabase)
+  if (!user) return res.status(403).json({ error: 'Réservé au coach' })
 
   const { eventId, eventTitre, eventDate, rdvHeure, rdvLieu, joueurIds } = req.body
   if (!eventId || !joueurIds?.length) return res.status(400).json({ error: 'Paramètres manquants' })

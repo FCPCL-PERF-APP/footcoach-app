@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner, Avatar, Button } from '../components/UI'
 import { THEME } from '../theme'
@@ -97,7 +97,7 @@ export default function MessagesPage({ setUnreadCount }) {
       try {
         await fetch('/api/notif-message-prive', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
           body: JSON.stringify({
             destinataireId: activeConv.auth_id,
             expediteurNom: msg.expediteur_nom,

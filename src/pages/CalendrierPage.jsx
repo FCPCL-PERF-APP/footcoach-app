@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Badge, Button, Input, Select, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -351,7 +351,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
     setStatut(newStatut)
     try {
       await fetch('/api/notif-presence-resume', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ eventId: ev.id, eventTitre: ev.titre, coachAuthId: null })
       })
     } catch (err) { console.error(err) }

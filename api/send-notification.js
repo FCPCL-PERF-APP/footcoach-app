@@ -1,13 +1,13 @@
 import webpush from 'web-push'
-import { createClient } from '@supabase/supabase-js'
+import { adminClient, requireUser } from './_lib.js'
 
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-)
+const supabase = adminClient()
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  const user = await requireUser(req, supabase)
+  if (!user) return res.status(401).json({ error: 'Authentification requise' })
 
   const { userId, title, body, url } = req.body
   if (!userId || !title) return res.status(400).json({ error: 'userId et title requis' })
