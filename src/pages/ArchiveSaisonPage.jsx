@@ -14,27 +14,38 @@ export default function ArchiveSaisonPage() {
 
   useEffect(() => { loadStats() }, [])
 
-  async function loadStats() {
-    setLoading(true)
+  // La saison va du 1er juillet de `year` à aujourd'hui (calcul recopié dans archiverSaison)
+  function bornesSaison() {
     const now = new Date()
     const year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1
+    return { year, debut: new Date(year, 6, 1).toISOString(), fin: now.toISOString() }
+  }
+
+  async function loadStats() {
+    setLoading(true)
+    const { year, debut, fin } = bornesSaison()
     setSaisonLabel(`${year}/${year+1}`)
 
     const [
       { count: nbMatchs },
       { count: nbSeances },
       { count: nbJoueurs },
-      { count: nbRpe },
-      { count: nbFootbar },
-      { data: statsData }
+      { data: eventsSaison },
     ] = await Promise.all([
-      supabase.from('evenements').select('*', { count: 'exact', head: true }).eq('type', 'match'),
-      supabase.from('evenements').select('*', { count: 'exact', head: true }).eq('type', 'seance'),
+      supabase.from('evenements').select('*', { count: 'exact', head: true }).eq('type', 'match').gte('date_heure', debut).lte('date_heure', fin),
+      supabase.from('evenements').select('*', { count: 'exact', head: true }).eq('type', 'seance').gte('date_heure', debut).lte('date_heure', fin),
       supabase.from('joueurs').select('*', { count: 'exact', head: true }),
-      supabase.from('rpe').select('*', { count: 'exact', head: true }),
-      supabase.from('footbar').select('*', { count: 'exact', head: true }),
-      supabase.from('stats_collectives').select('buts_marques, buts_encaisses'),
+      supabase.from('evenements').select('id').gte('date_heure', debut).lte('date_heure', fin),
     ])
+
+    const eventIds = (eventsSaison || []).map(e => e.id)
+    const [{ count: nbRpe }, { count: nbFootbar }, { data: statsData }] = eventIds.length
+      ? await Promise.all([
+          supabase.from('rpe').select('*', { count: 'exact', head: true }).in('evenement_id', eventIds),
+          supabase.from('footbar').select('*', { count: 'exact', head: true }).in('evenement_id', eventIds),
+          supabase.from('stats_collectives').select('buts_marques, buts_encaisses').in('evenement_id', eventIds),
+        ])
+      : [{ count: 0 }, { count: 0 }, { data: [] }]
 
     const totalButs = (statsData || []).reduce((s, r) => s + (r.buts_marques || 0), 0)
     const totalEnc = (statsData || []).reduce((s, r) => s + (r.buts_encaisses || 0), 0)
@@ -67,19 +78,38 @@ export default function ArchiveSaisonPage() {
       })
       if (archErr) throw new Error('Erreur sauvegarde archive : ' + archErr.message)
 
-      // 2. Supprimer les données de la saison (sans filtre de date problématique)
-      const tables = ['rpe', 'footbar', 'stats_match', 'stats_collectives', 'presences', 'convocations', 'rapports_match', 'sondage_votes', 'sondages']
-      for (const table of tables) {
-        const { error: delErr } = await supabase.from(table).delete().gt('id', '00000000-0000-0000-0000-000000000000')
-        if (delErr) console.warn(`Erreur suppression ${table}:`, delErr.message)
+      // 2. Ne cibler que les événements de la saison archivée (pas tout l'historique)
+      const { debut, fin } = bornesSaison()
+      const { data: eventsSaison } = await supabase.from('evenements').select('id')
+        .gte('date_heure', debut).lte('date_heure', fin)
+      const eventIds = (eventsSaison || []).map(e => e.id)
+
+      if (eventIds.length) {
+        const tablesParEvenement = ['rpe', 'footbar', 'stats_match', 'stats_collectives', 'presences', 'convocations', 'rapports_match']
+        for (const table of tablesParEvenement) {
+          const { error: delErr } = await supabase.from(table).delete().in('evenement_id', eventIds)
+          if (delErr) console.warn(`Erreur suppression ${table}:`, delErr.message)
+        }
       }
 
-      // 3. Supprimer les événements passés
-      const { error: evErr } = await supabase.from('evenements').delete().lt('date_heure', new Date().toISOString())
-      if (evErr) console.warn('Erreur suppression événements:', evErr.message)
+      // 3. Sondages de la saison (rattachés par date de création, pas par événement)
+      const { data: sondagesSaison } = await supabase.from('sondages').select('id')
+        .gte('created_at', debut).lte('created_at', fin)
+      const sondageIds = (sondagesSaison || []).map(s => s.id)
+      if (sondageIds.length) {
+        const { error: votesErr } = await supabase.from('sondage_votes').delete().in('sondage_id', sondageIds)
+        if (votesErr) console.warn('Erreur suppression votes sondages:', votesErr.message)
+        const { error: sondagesErr } = await supabase.from('sondages').delete().in('id', sondageIds)
+        if (sondagesErr) console.warn('Erreur suppression sondages:', sondagesErr.message)
+      }
 
-      // 4. Remettre les blessures actives à zéro (garder l'historique)
-      // On garde les blessures — elles ont leur propre historique
+      // 4. Supprimer les événements de la saison (et seulement ceux-là)
+      if (eventIds.length) {
+        const { error: evErr } = await supabase.from('evenements').delete().in('id', eventIds)
+        if (evErr) console.warn('Erreur suppression événements:', evErr.message)
+      }
+
+      // 5. Blessures : on garde tout, elles ont leur propre historique indépendant
 
       setStep(2)
     } catch (err) {
