@@ -503,9 +503,9 @@ export default function FunPage() {
             const monProno = mesPronostics[match.id]
             const input = scoreInputs[match.id] || { dom: '', ext: '' }
             const titre = match.titre || 'Match'
-            const parts = titre.split(' - ')
-            const domicile = parts[0] || 'FC PCL'
-            const exterieur = parts[1] || 'Adversaire'
+            const adversaire = titre.replace(/^vs\.?\s*/i, '').trim() || 'Adversaire'
+            const domicile = match.domicile !== false ? 'FC PCL' : adversaire
+            const exterieur = match.domicile !== false ? adversaire : 'FC PCL'
             return (
               <Card key={match.id}>
                 <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 4 }}>

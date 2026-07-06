@@ -132,11 +132,17 @@ export default function StatsPage() {
     setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2000); loadData()
   }
 
-  async function calculerPointsPronostics(scoreReel_dom, scoreReel_ext) {
+  async function calculerPointsPronostics(butsMarques, butsEncaisses) {
     // Récupérer tous les pronostics pour ce match
     const { data: pronos } = await supabase.from('pronostics')
       .select('*').eq('evenement_id', eventId)
     if (!pronos?.length) return
+
+    // pronostics.score_domicile/score_exterieur représentent l'équipe à domicile/à
+    // l'extérieur (au sens propre) : on traduit donc "buts marqués/encaissés par FC PCL"
+    // selon que FC PCL joue à domicile ou à l'extérieur pour ce match.
+    const scoreReel_dom = event?.domicile !== false ? butsMarques : butsEncaisses
+    const scoreReel_ext = event?.domicile !== false ? butsEncaisses : butsMarques
 
     const tendanceReelle = scoreReel_dom > scoreReel_ext ? 'V' : scoreReel_dom < scoreReel_ext ? 'D' : 'N'
 
