@@ -105,6 +105,40 @@ export default async function handler(req, res) {
           }
         }
       }
+
+      // 3. Rappel Footbar — mêmes joueurs/événements que le rappel RPE ci-dessus
+      for (const joueur of (joueurs || [])) {
+        const { data: footbars } = await supabase.from('footbar').select('evenement_id')
+          .eq('joueur_id', joueur.id).in('evenement_id', eventIds)
+
+        const footbarIds = new Set((footbars || []).map(f => f.evenement_id))
+        const manquants = eventIds.filter(id => !footbarIds.has(id)).length
+
+        if (manquants > 0) {
+          const { data: subs } = await supabase.from('push_subscriptions').select('*')
+            .eq('user_id', joueur.auth_id)
+
+          for (const sub of (subs || [])) {
+            try {
+              await webpush.sendNotification(
+                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+                JSON.stringify({
+                  title: `📡 Footbar à compléter`,
+                  body: `${joueur.prenom}, tu as ${manquants} distance(s) en attente — ça prend 1 minute !`,
+                  url: '/mon-footbar',
+                  icon: '/icons/logo.jpg'
+                })
+              )
+              sent++
+            } catch (err) {
+              if (err.statusCode === 410 || err.statusCode === 404) {
+                await supabase.from('push_subscriptions').delete().eq('id', sub.id)
+              }
+              errors.push(err.message)
+            }
+          }
+        }
+      }
     }
 
     res.status(200).json({ success: true, sent, errors: errors.length })
