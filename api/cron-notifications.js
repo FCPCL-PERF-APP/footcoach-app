@@ -81,10 +81,10 @@ export default async function handler(req, res) {
         const manquants = eventIds.filter(id => !rpeIds.has(id)).length
 
         if (manquants > 0) {
-          const { data: sub } = await supabase.from('push_subscriptions').select('*')
-            .eq('user_id', joueur.auth_id).maybeSingle()
+          const { data: subs } = await supabase.from('push_subscriptions').select('*')
+            .eq('user_id', joueur.auth_id)
 
-          if (sub) {
+          for (const sub of (subs || [])) {
             try {
               await webpush.sendNotification(
                 { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
