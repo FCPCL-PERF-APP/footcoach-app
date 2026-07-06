@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -72,11 +73,28 @@ export default function MonRpePage() {
   const [commentaires, setCommentaires] = useState({})
   const [savingEventId, setSavingEventId] = useState(null)
   const [savedEventId, setSavedEventId] = useState(null)
+  const [savedWasQueued, setSavedWasQueued] = useState({})
+  const [saveError, setSaveError] = useState({})
+  const [queueCount, setQueueCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { if (profile?.id) loadData() }, [profile])
+  useEffect(() => {
+    if (!profile?.id) return
+    flushQueue('rpe').then(() => {
+      setQueueCount(getQueueCount('rpe'))
+      loadData()
+    })
+  }, [profile])
+
+  useEffect(() => {
+    if (!profile?.id) return
+    function onQueueChange() { setQueueCount(getQueueCount('rpe')); loadData() }
+    window.addEventListener('fc-offline-queue-changed', onQueueChange)
+    return () => window.removeEventListener('fc-offline-queue-changed', onQueueChange)
+  }, [profile])
 
   async function loadData() {
+    if (!profile?.id) return
     setLoading(true)
     const [{ data: evs }, { data: rpe }] = await Promise.all([
       supabase.from('evenements').select('*').order('date_heure', { ascending: false }).limit(30),
@@ -116,13 +134,20 @@ export default function MonRpePage() {
       commentaire: commentaires[eventId] || '',
       ...Object.fromEntries(RPE_ITEMS.map(i => [i.key, form[i.key] !== undefined ? parseFloat(form[i.key]) : null]))
     }
-    const existing = rpeHistory.find(r => r.evenement_id === eventId)
-    if (existing) await supabase.from('rpe').update(payload).eq('id', existing.id)
-    else await supabase.from('rpe').insert(payload)
-    setSavingEventId(null); setSavedEventId(eventId)
-    setForms(p => ({ ...p, [eventId]: {} }))
-    setTimeout(() => setSavedEventId(null), 3000)
-    loadData()
+    try {
+      const result = await upsertOrQueue('rpe', payload, 'evenement_id,joueur_id')
+      setSavedEventId(eventId)
+      setSavedWasQueued(p => ({ ...p, [eventId]: result.queued }))
+      setSaveError(p => ({ ...p, [eventId]: null }))
+      setForms(p => ({ ...p, [eventId]: {} }))
+      setTimeout(() => setSavedEventId(null), 3000)
+      setQueueCount(getQueueCount('rpe'))
+      if (!result.queued) loadData()
+    } catch (err) {
+      setSaveError(p => ({ ...p, [eventId]: err.message || 'Erreur inconnue' }))
+    } finally {
+      setSavingEventId(null)
+    }
   }
 
   const rpeEntrainement = rpeHistory.filter(r => r.evenements?.type === 'seance')
@@ -145,6 +170,12 @@ export default function MonRpePage() {
   return (
     <div style={{ padding: 12 }}>
       <PageHeader title="Mon RPE" />
+
+      {queueCount > 0 && (
+        <div style={{ background: '#FAEEDA', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center' }}>
+          📡 {queueCount} RPE en attente de synchronisation
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 5, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
         {tabs.map(([tab, lbl]) => (
@@ -211,7 +242,14 @@ export default function MonRpePage() {
                         style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
                     </div>
                     {savedEventId === ev.id && (
-                      <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '10px 12px', marginBottom: 10, fontSize: 13, color: '#3B6D11', textAlign: 'center', fontWeight: 600 }}>✅ RPE enregistré !</div>
+                      savedWasQueued[ev.id] ? (
+                        <div style={{ background: '#FAEEDA', borderRadius: 8, padding: '10px 12px', marginBottom: 10, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600 }}>📡 Pas de réseau — sera synchronisé automatiquement</div>
+                      ) : (
+                        <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '10px 12px', marginBottom: 10, fontSize: 13, color: '#3B6D11', textAlign: 'center', fontWeight: 600 }}>✅ RPE enregistré !</div>
+                      )
+                    )}
+                    {saveError[ev.id] && (
+                      <div style={{ background: '#FCEBEB', borderRadius: 8, padding: '10px 12px', marginBottom: 10, fontSize: 13, color: '#A32D2D', textAlign: 'center', fontWeight: 600 }}>⚠️ Échec de l'enregistrement : {saveError[ev.id]}</div>
                     )}
                     <button onClick={() => handleSave(ev.id)} disabled={savingEventId === ev.id || !hasValues}
                       style={{ width: '100%', padding: 13, background: hasValues ? THEME.gradient : '#E5E7EB', color: hasValues ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: hasValues ? 'pointer' : 'not-allowed' }}>
