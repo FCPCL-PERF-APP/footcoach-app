@@ -42,10 +42,12 @@ export default function BadgesJoueurPage() {
       { data: presences },
       { data: statsMatch },
       { data: rpe },
+      { data: pastEvents },
     ] = await Promise.all([
-      supabase.from('presences').select('statut, evenements(type,date_heure)').eq('joueur_id', joueurId).order('created_at', { ascending: false }),
+      supabase.from('presences').select('evenement_id, statut, evenements(type,date_heure)').eq('joueur_id', joueurId).order('created_at', { ascending: false }),
       supabase.from('stats_match').select('buts, passes_decisives, titulaire, evenements(match_type)').eq('joueur_id', joueurId),
       supabase.from('rpe').select('evenement_id, created_at').eq('joueur_id', joueurId).order('created_at', { ascending: false }),
+      supabase.from('evenements').select('id').lte('date_heure', new Date().toISOString()).order('date_heure', { ascending: true }),
     ])
 
     // Calcul série présences
@@ -68,12 +70,19 @@ export default function BadgesJoueurPage() {
     const totalMatchs = officiels.length
     const titularisations = officiels.filter(s => s.titulaire).length
 
-    // Série RPE
-    let serieRpe = 0
-    for (const r of (rpe || [])) { serieRpe++ }
-    const serieRpeConsec = Math.min(serieRpe, 10)
+    // Série RPE consécutive : parcourt les événements passés dans l'ordre chronologique
+    // (en excluant absent/blessé, comme MonRpePage.jsx), incrémente si RPE rempli, reset sinon
+    const presByEvent = {}
+    for (const p of (presences || [])) if (p.evenement_id) presByEvent[p.evenement_id] = p.statut
+    const rpeEventIds = new Set((rpe || []).map(r => r.evenement_id))
+    let serieRpe = 0, maxSerieRpe = 0
+    for (const ev of (pastEvents || [])) {
+      if (presByEvent[ev.id] === 'absent' || presByEvent[ev.id] === 'blesse') continue
+      if (rpeEventIds.has(ev.id)) { serieRpe++; maxSerieRpe = Math.max(maxSerieRpe, serieRpe) }
+      else serieRpe = 0
+    }
 
-    const s = { seriePresences: maxSerie, tauxPresence, totalButs, totalPD, totalMatchs, titularisations, totalRpe: (rpe || []).length, serieRpe: serieRpeConsec }
+    const s = { seriePresences: maxSerie, tauxPresence, totalButs, totalPD, totalMatchs, titularisations, totalRpe: (rpe || []).length, serieRpe: maxSerieRpe }
     setStats(s)
 
     // Calcul badges débloqués
