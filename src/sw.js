@@ -1,19 +1,25 @@
-// Service Worker — FootCoach App
-// Gère les notifications push et le cache offline
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching'
+import { registerRoute, NavigationRoute } from 'workbox-routing'
+import { NetworkFirst } from 'workbox-strategies'
+import { ExpirationPlugin } from 'workbox-expiration'
 
-const CACHE_NAME = 'footcoach-v1'
+self.skipWaiting()
+cleanupOutdatedCaches()
+precacheAndRoute(self.__WB_MANIFEST)
 
-self.addEventListener('install', event => {
-  self.skipWaiting()
-})
+registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
+
+registerRoute(
+  /^https:\/\/.*\.supabase\.co\/.*/i,
+  new NetworkFirst({
+    cacheName: 'supabase-cache',
+    plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 300 })]
+  }),
+  'GET'
+)
 
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  )
-  self.clients.claim()
+  event.waitUntil(self.clients.claim())
 })
 
 // Notification push reçue

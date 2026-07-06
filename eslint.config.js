@@ -6,7 +6,20 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 export default [
   { ignores: ['dist', 'node_modules'] },
   {
+    files: ['src/sw.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: globals.serviceworker,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      'no-unused-vars': ['warn', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+  {
     files: ['src/**/*.{js,jsx}'],
+    ignores: ['src/sw.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
