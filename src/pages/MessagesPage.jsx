@@ -14,7 +14,7 @@ const AVATAR_COLORS = [
   { bg: '#FAC775', color: '#633806' },
 ]
 
-export default function MessagesPage({ setUnreadCount }) {
+export default function MessagesPage() {
   const { profile, isCoach } = useAuth()
   const [activeTab, setActiveTab] = useState('groupe')
   const [groupMessages, setGroupMessages] = useState([])

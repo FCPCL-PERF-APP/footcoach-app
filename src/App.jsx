@@ -5,7 +5,7 @@ import { Spinner } from './components/UI'
 import BottomNav from './components/BottomNav'
 import AppHeader from './components/AppHeader'
 import LoginPage from './pages/LoginPage'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense } from 'react'
 import { THEME } from './theme'
 
 const CalendrierPage         = lazy(() => import('./pages/CalendrierPage'))
@@ -61,7 +61,6 @@ const routeFallback = (
 
 function AppContent() {
   const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
-  const [unreadCount, setUnreadCount] = useState(0)
   usePush(user, profile)
 
   if (loading) return (
@@ -110,7 +109,7 @@ function AppContent() {
 <Route path="/search" element={<SearchPage />} />
           <Route path="/ma-fiche"               element={isJoueur ? <MaFichePage /> : <Navigate to="/" />} />
 <Route path="/mes-objectifs" element={isJoueur ? <MesObjectifsPage /> : <Navigate to="/" />} />
-          <Route path="/messages"               element={<MessagesPage setUnreadCount={setUnreadCount} />} />
+          <Route path="/messages"               element={<MessagesPage />} />
           <Route path="/dashboard"              element={<DashboardPage />} />
           <Route path="/mon-dashboard"          element={isJoueur ? <DashboardJoueurPage /> : <Navigate to="/dashboard" />} />
           <Route path="/ressources"             element={<RessourcesPage />} />
@@ -139,7 +138,7 @@ function AppContent() {
         </Routes>
         </Suspense>
       </div>
-      <BottomNav unreadCount={unreadCount} />
+      <BottomNav />
     </div>
   )
 }

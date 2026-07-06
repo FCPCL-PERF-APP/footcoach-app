@@ -52,12 +52,13 @@ const NAV_JOUEUR_MORE = [
   { path: '/ressources',  icon: '📁', label: 'Ressources' },
 ]
 
-export default function BottomNav({ unreadCount = 0 }) {
+export default function BottomNav() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const { isCoach, isAdjoint, isJoueur } = useAuth()
+  const { profile, isCoach, isAdjoint, isJoueur } = useAuth()
   const [showMore, setShowMore] = useState(false)
   const [nbAlertes, setNbAlertes] = useState(0)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const mainItems = isCoach ? NAV_COACH_MAIN : isAdjoint ? NAV_STAFF_MAIN : NAV_JOUEUR_MAIN
   const moreItems = isCoach ? NAV_COACH_MORE : isAdjoint ? NAV_STAFF_MORE : NAV_JOUEUR_MORE
@@ -66,6 +67,19 @@ export default function BottomNav({ unreadCount = 0 }) {
   useEffect(() => {
     if (isCoach) loadAlertes()
   }, [isCoach])
+
+  // Charge le nombre de messages privés non lus — recalculé à chaque navigation
+  // pour refléter les messages marqués "lu" en ouvrant une conversation.
+  useEffect(() => { loadUnread() }, [profile, pathname])
+
+  async function loadUnread() {
+    const myAuthId = profile?.auth_id || profile?.id
+    if (!myAuthId) return
+    const { count } = await supabase.from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('destinataire_id', myAuthId).eq('lu', false)
+    setUnreadCount(count || 0)
+  }
 
   async function loadAlertes() {
     try {
