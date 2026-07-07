@@ -46,9 +46,14 @@ export default function CalendrierPage() {
       rdv_lieu: form.type === 'match' ? form.rdv_lieu : null,
       match_type: form.type === 'match' ? form.match_type : null,
     }
-    if (editingEvent) await supabase.from('evenements').update(payload).eq('id', editingEvent.id)
-    else await supabase.from('evenements').insert(payload)
+    const { error } = editingEvent
+      ? await supabase.from('evenements').update(payload).eq('id', editingEvent.id)
+      : await supabase.from('evenements').insert(payload)
     setSaving(false)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+      return
+    }
     setShowAdd(false); setEditingEvent(null)
     setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '' })
     loadEvents()
@@ -69,7 +74,11 @@ export default function CalendrierPage() {
   }
 
   async function deleteEvent(ev) {
-    await supabase.from('evenements').delete().eq('id', ev.id)
+    const { error } = await supabase.from('evenements').delete().eq('id', ev.id)
+    if (error) {
+      alert('Erreur lors de la suppression : ' + error.message)
+      return
+    }
     setDeleteConfirm(null); loadEvents()
   }
 
@@ -360,8 +369,18 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
   async function handleStatut(newStatut) {
     if (!profile?.id) return
     setSaving(true)
-    await supabase.from('presences').delete().eq('evenement_id', ev.id).eq('joueur_id', profile?.id)
-    await supabase.from('presences').insert({ evenement_id: ev.id, joueur_id: profile?.id, statut: newStatut })
+    const { error: delError } = await supabase.from('presences').delete().eq('evenement_id', ev.id).eq('joueur_id', profile?.id)
+    if (delError) {
+      setSaving(false)
+      alert('Erreur lors de la mise à jour de ta présence : ' + delError.message)
+      return
+    }
+    const { error: insError } = await supabase.from('presences').insert({ evenement_id: ev.id, joueur_id: profile?.id, statut: newStatut })
+    if (insError) {
+      setSaving(false)
+      alert('Erreur lors de la mise à jour de ta présence : ' + insError.message)
+      return
+    }
     setStatut(newStatut)
     try {
       await fetch('/api/notif-presence-resume', {
@@ -533,8 +552,12 @@ function RecurringModal({ onClose, onSave }) {
       seances.push({ type: 'seance', titre: form.titre, date_heure: `${current.toISOString().split('T')[0]}T${form.heure}:00`, lieu: form.lieu, domicile: true })
       current.setDate(current.getDate() + 7)
     }
-    await supabase.from('evenements').insert(seances)
+    const { error } = await supabase.from('evenements').insert(seances)
     setSaving(false)
+    if (error) {
+      alert('Erreur lors de la création des séances : ' + error.message)
+      return
+    }
     alert(`✅ ${seances.length} séances créées !`)
     onSave(); onClose()
   }
