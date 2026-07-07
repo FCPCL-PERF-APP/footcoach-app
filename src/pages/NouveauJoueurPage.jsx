@@ -15,6 +15,7 @@ export default function NouveauJoueurPage() {
   })
   const [saving, setSaving] = useState(false)
   const [inviteEmail, setInviteEmail] = useState(true)
+  const [inviteError, setInviteError] = useState(null)
   const [step, setStep] = useState(1) // 1 = infos, 2 = confirmation
 
   const f = (key) => form[key]
@@ -54,9 +55,10 @@ export default function NouveauJoueurPage() {
     }
 
     // 2. Envoie l'invitation si email fourni
+    setInviteError(null)
     if (inviteEmail && form.email) {
       try {
-        await fetch('/api/invite-joueur', {
+        const res = await fetch('/api/invite-joueur', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
           body: JSON.stringify({
@@ -66,8 +68,11 @@ export default function NouveauJoueurPage() {
             prenom: form.prenom
           })
         })
+        const data = await res.json()
+        if (!data.success) setInviteError(data.error || "Impossible d'envoyer l'invitation")
       } catch (err) {
         console.error('Erreur invitation:', err)
+        setInviteError('Erreur réseau')
       }
     }
 
@@ -84,11 +89,17 @@ export default function NouveauJoueurPage() {
             <p style={{ fontSize: 16, fontWeight: 700, color: '#3B6D11' }}>
               {form.prenom} {form.nom.toUpperCase()} ajouté !
             </p>
-            {form.email && inviteEmail && (
+            {form.email && inviteEmail && !inviteError && (
               <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: '#3B6D11' }}>
                 📧 Un email d'invitation a été envoyé à<br />
                 <strong>{form.email}</strong><br />
                 Le joueur devra créer son mot de passe.
+              </div>
+            )}
+            {form.email && inviteEmail && inviteError && (
+              <div style={{ background: '#FCEBEB', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: '#A32D2D' }}>
+                ⚠️ Le joueur a été créé, mais l'envoi de l'invitation a échoué : {inviteError}.<br />
+                Tu peux la renvoyer depuis la fiche du joueur.
               </div>
             )}
             {form.email && !inviteEmail && (
