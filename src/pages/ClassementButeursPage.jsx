@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 
@@ -54,11 +55,16 @@ export default function ClassementButeursPage() {
 
   async function loadData() {
     setLoading(true)
+    const { debut, fin } = bornesSaison()
+    const { data: eventsSaisonIds } = await supabase.from('evenements').select('id')
+      .gte('date_heure', debut).lte('date_heure', fin)
+    const idsSaison = (eventsSaisonIds || []).map(e => e.id)
+
     const [{ data: stats }, { data: footbar }, { data: joueurs }] = await Promise.all([
       supabase.from('stats_match')
-        .select('*, joueurs(id,nom,prenom,poste), evenements(match_type)'),
+        .select('*, joueurs(id,nom,prenom,poste), evenements(match_type)').in('evenement_id', idsSaison),
       supabase.from('footbar')
-        .select('joueur_id, distance_km, evenements(type)'),
+        .select('joueur_id, distance_km, evenements(type)').in('evenement_id', idsSaison),
       supabase.from('joueurs').select('id,nom,prenom,poste'),
     ])
 
@@ -136,7 +142,7 @@ export default function ClassementButeursPage() {
       </div>
 
       <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10 }}>
-        * Matchs de championnat et de coupe uniquement (préparation exclus)
+        * Saison en cours · matchs de championnat et de coupe uniquement (préparation exclus)
       </p>
 
       {loading ? <Spinner /> : (

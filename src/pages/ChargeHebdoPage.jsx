@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
-import { format, parseISO, startOfWeek, endOfWeek, subWeeks, eachWeekOfInterval } from 'date-fns'
+import { format, parseISO, endOfWeek, subWeeks, eachWeekOfInterval } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 function rpeColor(v) {
@@ -29,7 +30,12 @@ export default function ChargeHebdoPage() {
 
   async function loadData() {
     setLoading(true)
-    const depuis = subWeeks(new Date(), 12).toISOString()
+    // Fenêtre glissante de 12 semaines, sans jamais remonter avant le début de la saison
+    // en cours (sinon en début de saison, la fenêtre mélangerait avec la saison précédente).
+    const { debut: debutSaison } = bornesSaison()
+    const depuis12sem = subWeeks(new Date(), 12)
+    const depuisDate = depuis12sem > new Date(debutSaison) ? depuis12sem : new Date(debutSaison)
+    const depuis = depuisDate.toISOString()
 
     const [{ data: rpeData }, { data: eventsData }] = await Promise.all([
       supabase.from('rpe').select('*, evenements(date_heure, type)')
@@ -40,7 +46,7 @@ export default function ChargeHebdoPage() {
 
     // Groupe par semaine
     const weeks = eachWeekOfInterval(
-      { start: subWeeks(new Date(), 11), end: new Date() },
+      { start: depuisDate, end: new Date() },
       { weekStartsOn: 1 }
     )
 

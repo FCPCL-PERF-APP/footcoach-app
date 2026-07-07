@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -48,12 +49,17 @@ export default function CorrelationPage() {
 
   async function loadData() {
     setLoading(true)
-    // Récupère les RPE et les stats collectives liés aux mêmes événements
+    const { debut, fin } = bornesSaison()
+    const { data: eventsSaisonIds } = await supabase.from('evenements').select('id')
+      .gte('date_heure', debut).lte('date_heure', fin)
+    const idsSaison = (eventsSaisonIds || []).map(e => e.id)
+
+    // Récupère les RPE et les stats collectives liés aux mêmes événements, de la saison en cours
     const [{ data: rpeData }, { data: statsData }] = await Promise.all([
       supabase.from('rpe').select('evenement_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
-        .order('created_at', { ascending: false }),
+        .in('evenement_id', idsSaison).order('created_at', { ascending: false }),
       supabase.from('stats_collectives').select('*, evenements(titre, date_heure)')
-        .order('created_at', { ascending: false })
+        .in('evenement_id', idsSaison).order('created_at', { ascending: false })
     ])
 
     // Moyennes charge / perf ressentie par événement

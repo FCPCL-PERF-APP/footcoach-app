@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner, BarChart } from '../components/UI'
 import { THEME } from '../theme'
-import { format, parseISO } from 'date-fns'
-import { fr } from 'date-fns/locale'
 
 function StatBox({ label, value, sub, color = THEME.primary, big = false }) {
   return (
@@ -18,11 +17,22 @@ function StatBox({ label, value, sub, color = THEME.primary, big = false }) {
 export default function BilanSaisonPage() {
   const [loading, setLoading] = useState(true)
   const [bilan, setBilan] = useState(null)
+  const [saisonYear, setSaisonYear] = useState(null)
 
   useEffect(() => { loadBilan() }, [])
 
   async function loadBilan() {
     setLoading(true)
+    const { year, debut, fin } = bornesSaison()
+    setSaisonYear(year)
+
+    // Récupère d'abord les IDs des événements de la saison en cours, pour borner
+    // toutes les stats qui en dépendent (sinon "bilan de saison" mélange plusieurs
+    // saisons tant que l'archivage n'a pas eu lieu).
+    const { data: eventsSaisonIds } = await supabase.from('evenements').select('id')
+      .gte('date_heure', debut).lte('date_heure', fin)
+    const idsSaison = (eventsSaisonIds || []).map(e => e.id)
+
     const [
       { data: matchStatsRaw },
       { data: rpeData },
@@ -31,12 +41,12 @@ export default function BilanSaisonPage() {
       { data: presences },
       { data: eventsRaw },
     ] = await Promise.all([
-      supabase.from('stats_collectives').select('*, evenements(titre,date_heure,match_type)').order('created_at', { ascending: true }),
-      supabase.from('rpe').select('*, joueurs(nom,prenom)').order('created_at', { ascending: false }),
-      supabase.from('footbar').select('*, joueurs(nom,prenom)').order('created_at', { ascending: false }),
-      supabase.from('stats_match').select('*, joueurs(nom,prenom), evenements(match_type)').order('created_at', { ascending: false }),
-      supabase.from('presences').select('*, joueurs(nom,prenom)'),
-      supabase.from('evenements').select('*').eq('type', 'match'),
+      supabase.from('stats_collectives').select('*, evenements(titre,date_heure,match_type)').in('evenement_id', idsSaison).order('created_at', { ascending: true }),
+      supabase.from('rpe').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
+      supabase.from('footbar').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
+      supabase.from('stats_match').select('*, joueurs(nom,prenom), evenements(match_type)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
+      supabase.from('presences').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison),
+      supabase.from('evenements').select('*').eq('type', 'match').gte('date_heure', debut).lte('date_heure', fin),
     ])
 
     // Ne garder que les matchs officiels (hors préparation), comme ClassementButeursPage/
@@ -129,7 +139,7 @@ export default function BilanSaisonPage() {
       {/* Résultats globaux */}
       <div style={{ background: THEME.gradient, borderRadius: 16, padding: '16px 14px', marginBottom: 14 }}>
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', marginBottom: 10, textAlign: 'center' }}>
-          Saison {new Date().getFullYear()-1}/{new Date().getFullYear()} · {bilan.totalMatchs} matchs disputés
+          Saison {saisonYear}/{saisonYear+1} · {bilan.totalMatchs} matchs disputés
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
           {[

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 
@@ -13,13 +14,6 @@ export default function ArchiveSaisonPage() {
   const [saisonLabel, setSaisonLabel] = useState('')
 
   useEffect(() => { loadStats() }, [])
-
-  // La saison va du 1er juillet de `year` à aujourd'hui (calcul recopié dans archiverSaison)
-  function bornesSaison() {
-    const now = new Date()
-    const year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1
-    return { year, debut: new Date(year, 6, 1).toISOString(), fin: now.toISOString() }
-  }
 
   async function loadStats() {
     setLoading(true)

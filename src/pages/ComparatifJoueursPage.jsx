@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 
@@ -28,16 +29,22 @@ export default function ComparatifJoueursPage() {
   const [data2, setData2] = useState(null)
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('rpe')
+  const [idsSaison, setIdsSaison] = useState(null)
 
   useEffect(() => { loadJoueurs() }, [])
   useEffect(() => {
-    if (joueur1) loadJoueurData(joueur1, setData1)
-    if (joueur2) loadJoueurData(joueur2, setData2)
-  }, [joueur1, joueur2])
+    if (idsSaison && joueur1) loadJoueurData(joueur1, setData1)
+    if (idsSaison && joueur2) loadJoueurData(joueur2, setData2)
+  }, [joueur1, joueur2, idsSaison])
 
   async function loadJoueurs() {
-    const { data } = await supabase.from('joueurs').select('id,nom,prenom,poste,numero').order('nom')
+    const { debut, fin } = bornesSaison()
+    const [{ data }, { data: eventsSaisonIds }] = await Promise.all([
+      supabase.from('joueurs').select('id,nom,prenom,poste,numero').order('nom'),
+      supabase.from('evenements').select('id').gte('date_heure', debut).lte('date_heure', fin),
+    ])
     setJoueurs(data || [])
+    setIdsSaison((eventsSaisonIds || []).map(e => e.id))
     if (data?.length >= 2) { setJoueur1(data[0].id); setJoueur2(data[1].id) }
   }
 
@@ -45,10 +52,10 @@ export default function ComparatifJoueursPage() {
     setLoading(true)
     const [{ data: j }, { data: rpe }, { data: foot }, { data: stats }, { data: pres }] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', id).single(),
-      supabase.from('rpe').select('*').eq('joueur_id', id).order('created_at', { ascending: false }).limit(20),
-      supabase.from('footbar').select('*').eq('joueur_id', id).order('created_at', { ascending: false }).limit(20),
-      supabase.from('stats_match').select('*, evenements(match_type)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(20),
-      supabase.from('presences').select('statut').eq('joueur_id', id),
+      supabase.from('rpe').select('*').eq('joueur_id', id).in('evenement_id', idsSaison).order('created_at', { ascending: false }).limit(20),
+      supabase.from('footbar').select('*').eq('joueur_id', id).in('evenement_id', idsSaison).order('created_at', { ascending: false }).limit(20),
+      supabase.from('stats_match').select('*, evenements(match_type)').eq('joueur_id', id).in('evenement_id', idsSaison).order('created_at', { ascending: false }).limit(20),
+      supabase.from('presences').select('statut').eq('joueur_id', id).in('evenement_id', idsSaison),
     ])
 
     // Moyennes RPE
