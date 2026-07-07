@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
+import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Button, Input, Select, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
@@ -196,16 +197,25 @@ export default function FicheJoueurPage() {
   }
 
   async function uploadPhoto(file) {
+    const fileErr = validateFile(file, 'image')
+    if (fileErr) { alert(fileErr); return }
     setPhotoUploading(true)
     const path = `photos/${id}_${Date.now()}.jpg`
     const { error } = await supabase.storage.from('joueurs').upload(path, file, { upsert: true })
-    if (!error) {
-      const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
-      await supabase.from('joueurs').update({ photo_url: urlData.publicUrl }).eq('id', id)
-      setJoueur(p => ({ ...p, photo_url: urlData.publicUrl }))
-      setForm(p => ({ ...p, photo_url: urlData.publicUrl }))
+    if (error) {
+      setPhotoUploading(false)
+      alert('Erreur lors de l\'upload de la photo : ' + error.message)
+      return
     }
+    const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
+    const { error: updateError } = await supabase.from('joueurs').update({ photo_url: urlData.publicUrl }).eq('id', id)
     setPhotoUploading(false)
+    if (updateError) {
+      alert('Erreur lors de l\'enregistrement de la photo : ' + updateError.message)
+      return
+    }
+    setJoueur(p => ({ ...p, photo_url: urlData.publicUrl }))
+    setForm(p => ({ ...p, photo_url: urlData.publicUrl }))
   }
 
   async function savePoids() {

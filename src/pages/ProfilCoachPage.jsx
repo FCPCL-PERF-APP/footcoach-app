@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { validateFile } from '../lib/upload'
 import PushToggle from '../components/PushToggle'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Input, Button, Spinner, Avatar } from '../components/UI'
@@ -59,6 +60,8 @@ export default function ProfilCoachPage() {
   }
 
   async function uploadPhoto(file) {
+    const err = validateFile(file, 'image')
+    if (err) { alert(err); return }
     setPhotoUploading(true)
     const path = `staff/${form.id}_${Date.now()}.jpg`
     const { error } = await supabase.storage.from('joueurs').upload(path, file, { upsert: true })

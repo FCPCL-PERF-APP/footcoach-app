@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { validateFile, sanitizeFileName } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Button, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -42,7 +43,9 @@ export default function RessourcesPage() {
     let url = form.url
 
     if (file && addTab === 'pdf') {
-      const path = `pdfs/${Date.now()}_${file.name.replace(/\s/g, '_')}`
+      const fileErr = validateFile(file, 'pdf')
+      if (fileErr) { alert(fileErr); setUploading(false); return }
+      const path = `pdfs/${Date.now()}_${sanitizeFileName(file.name)}`
       const { error } = await supabase.storage.from('ressources').upload(path, file)
       if (!error) {
         const { data: urlData } = supabase.storage.from('ressources').getPublicUrl(path)
