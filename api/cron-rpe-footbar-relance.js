@@ -59,7 +59,8 @@ export default async function handler(req, res) {
               title: '❤️ RPE à compléter',
               body: `${joueur.prenom}, comment s'est passé(e) ${ev.titre} ? Remplis ton RPE.`,
               url: '/mon-rpe',
-              icon: '/icons/logo.jpg'
+              icon: '/icons/logo.jpg',
+              tag: 'rpe-rappel'
             })
             sent += r.sent
           }
@@ -68,7 +69,8 @@ export default async function handler(req, res) {
               title: '📡 Footbar à compléter',
               body: `${joueur.prenom}, renseigne ton Footbar pour ${ev.titre}.`,
               url: '/mon-footbar',
-              icon: '/icons/logo.jpg'
+              icon: '/icons/logo.jpg',
+              tag: 'footbar-rappel'
             })
             sent += r.sent
           }

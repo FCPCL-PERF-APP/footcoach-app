@@ -9,24 +9,27 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 )
 
+// Mêmes tags que les rappels automatiques (cron-notifications.js, cron-rpe-footbar-relance.js)
+// pour qu'une relance manuelle du coach remplace un rappel automatique déjà reçu au lieu
+// de s'empiler à côté dans le centre de notifications.
 const MESSAGES = {
   rpe: (eventTitre) => ({
     title: '❤️ RPE à compléter',
     body: `N'oublie pas de remplir ton RPE pour ${eventTitre} !`,
     url: '/mon-rpe',
-    tag: 'relance-rpe'
+    tag: 'rpe-rappel'
   }),
   footbar: (eventTitre) => ({
     title: '📡 Footbar à compléter',
     body: `N'oublie pas de renseigner ton Footbar pour ${eventTitre} !`,
     url: '/mon-footbar',
-    tag: 'relance-footbar'
+    tag: 'footbar-rappel'
   }),
   presence: (eventTitre) => ({
     title: '❓ Confirme ta présence',
     body: `Le coach attend ta réponse pour ${eventTitre}.`,
     url: '/calendrier',
-    tag: 'relance-presence'
+    tag: 'presence-rappel'
   })
 }
 
