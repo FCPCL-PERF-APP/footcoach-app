@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     // Invite via Supabase Auth Admin
     const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-      redirectTo: `${appUrl}/`,
+      redirectTo: `${appUrl}/set-password`,
       data: { joueur_id: joueurId, nom, prenom }
     })
 
