@@ -17,7 +17,8 @@ export async function requireCoach(req, supabase) {
   if (!user) return null
   const { data: staffRow } = await supabase
     .from('staff').select('role').eq('auth_id', user.id).maybeSingle()
-  return staffRow?.role === 'coach' ? user : null
+  // 'admin' a un accès complet équivalent à 'coach' (voir StaffPage.jsx ROLES / src/hooks/useAuth.jsx)
+  return (staffRow?.role === 'coach' || staffRow?.role === 'admin') ? user : null
 }
 
 export async function sendPushToSubscriptions(webpush, supabase, authIds, payload) {

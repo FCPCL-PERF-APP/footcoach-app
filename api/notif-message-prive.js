@@ -1,5 +1,5 @@
 import webpush from 'web-push'
-import { adminClient, requireUser } from './_lib.js'
+import { adminClient, requireUser, sendPushToSubscriptions } from './_lib.js'
 
 const supabase = adminClient()
 
@@ -19,26 +19,14 @@ export default async function handler(req, res) {
   if (!destinataireId) return res.status(400).json({ error: 'destinataireId requis' })
 
   try {
-    const { data: subs } = await supabase
-      .from('push_subscriptions')
-      .select('*')
-      .eq('user_id', destinataireId)
-
-    if (!subs?.length) return res.status(200).json({ sent: 0 })
-
-    const payload = JSON.stringify({
+    const result = await sendPushToSubscriptions(webpush, supabase, [destinataireId], {
       title: `💬 Message de ${expediteurNom}`,
       body: contenu?.length > 80 ? contenu.slice(0, 80) + '...' : contenu,
       url: '/messages',
       tag: 'message-prive'
     })
 
-    const results = await Promise.allSettled(
-      subs.map(sub => webpush.sendNotification(JSON.parse(sub.subscription), payload))
-    )
-
-    const sent = results.filter(r => r.status === 'fulfilled').length
-    res.status(200).json({ success: true, sent })
+    res.status(200).json({ success: true, ...result })
   } catch (err) {
     console.error('Erreur notif message:', err)
     res.status(500).json({ error: err.message })

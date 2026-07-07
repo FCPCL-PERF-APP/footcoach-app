@@ -36,6 +36,13 @@ function rpeColor(v) {
   return '#3B6D11'
 }
 
+// Le bucket (valeur arrondie) fait partie de la clé : si une alerte déjà "traitée"
+// s'aggrave (bucket différent), elle redevient visible sans attendre le reset hebdo.
+function alertKey(a, joueurId) {
+  const base = joueurId !== undefined ? `ind-${joueurId}-${a.title}` : `col-${a.title}`
+  return a.bucket !== undefined ? `${base}-${a.bucket}` : base
+}
+
 function LineChart({ data, color = THEME.primary }) {
   if (!data || data.length < 2) return <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', padding: 12 }}>Pas assez de données</p>
   const W = 300, H = 80, PAD = 10
@@ -103,8 +110,8 @@ export default function DashboardPage() {
 
   function marquerToutTraite(alertesC, alertesI) {
     const next = [
-      ...alertesC.map(a => `col-${a.title}`),
-      ...alertesI.map(a => `ind-${a.joueurId}-${a.title}`)
+      ...alertesC.map(a => alertKey(a)),
+      ...alertesI.map(a => alertKey(a, a.joueurId))
     ]
     setAlertesTraitees(next)
     try {
@@ -122,23 +129,43 @@ export default function DashboardPage() {
 
   async function loadDashboard() {
     setLoading(true)
-    const [{ data: rpeData }, { data: footData }, { data: statsData },
+    const [{ data: rpeData }, { data: footData }, { data: statsDataRaw },
            { data: joueursData }, { data: presencesData }, { data: eventsData },
            { data: absencesData }] = await Promise.all([
       supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure)').order('created_at', { ascending: false }).limit(300),
       supabase.from('footbar').select('distance_km, joueurs(nom,prenom)').order('created_at', { ascending: false }).limit(100),
-      supabase.from('stats_collectives').select('*, evenements(date_heure,titre)').order('created_at', { ascending: false }).limit(20),
+      supabase.from('stats_collectives').select('*, evenements(date_heure,titre,match_type)').order('created_at', { ascending: false }).limit(20),
       supabase.from('joueurs').select('id,nom,prenom').order('nom'),
       supabase.from('presences').select('*, evenements(date_heure)').order('created_at', { ascending: false }).limit(500),
       supabase.from('evenements').select('*').gte('date_heure', new Date().toISOString()).order('date_heure', { ascending: true }).limit(1),
       supabase.from('presences').select('joueur_id, statut, evenement_id').in('statut', ['absent','blesse']),
     ])
 
+    // Matchs officiels (hors préparation), triés par date réelle du match plutôt que
+    // par date de saisie — comme ClassementButeursPage/DashboardStatsPage/BadgesJoueurPage
+    const statsData = (statsDataRaw || [])
+      .filter(s => s.evenements?.match_type !== 'preparation')
+      .sort((a, b) => new Date(b.evenements?.date_heure || 0) - new Date(a.evenements?.date_heure || 0))
+
     // Set des joueurs absents/blessés sur au moins un événement récent
     const joueursAbsentsBlessesSurEvenement = new Set((absencesData || []).map(p => p.joueur_id))
 
     // Prochain événement
     setProchainEvent(eventsData?.[0] || null)
+
+    // Présences par événement (aussi utilisé pour la métrique "Présence moy." ci-dessous)
+    const presByEvent = {}
+    for (const p of (presencesData || [])) {
+      const evId = p.evenement_id
+      if (!presByEvent[evId]) presByEvent[evId] = { total: 0, present: 0, date: p.evenements?.date_heure }
+      presByEvent[evId].total++
+      if (p.statut === 'present') presByEvent[evId].present++
+    }
+    const unMoisAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const presEventsCeMois = Object.values(presByEvent).filter(p => p.total > 0 && p.date && new Date(p.date) >= unMoisAgo)
+    const presenceMoy = presEventsCeMois.length
+      ? presEventsCeMois.reduce((s, p) => s + (p.present / p.total), 0) / presEventsCeMois.length * 100
+      : 0
 
     // Métriques
     const rpeVals = (rpeData || []).map(r => {
@@ -150,7 +177,7 @@ export default function DashboardPage() {
     const distMoy = distances.length ? distances.reduce((a, b) => a + b, 0) / distances.length : 0
     const buts = (statsData || []).map(s => s.buts_marques || 0)
     const butsMoy = buts.length ? buts.reduce((a, b) => a + b, 0) / buts.length : 0
-    setMetrics({ rpeMoy: rpeMoy.toFixed(1), presence: 81, distMoy: distMoy.toFixed(1), butsMoy: butsMoy.toFixed(1) })
+    setMetrics({ rpeMoy: rpeMoy.toFixed(1), presence: presenceMoy.toFixed(0), distMoy: distMoy.toFixed(1), butsMoy: butsMoy.toFixed(1) })
 
     // RPE par item
     const itemKeys = ['difficulte','fatigue','implication','motivation','perf_individuelle','perf_collective']
@@ -177,14 +204,6 @@ export default function DashboardPage() {
       label, value: parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1))
     })))
 
-    // Présences par événement
-    const presByEvent = {}
-    for (const p of (presencesData || [])) {
-      const evId = p.evenement_id
-      if (!presByEvent[evId]) presByEvent[evId] = { total: 0, present: 0, date: p.evenements?.date_heure }
-      presByEvent[evId].total++
-      if (p.statut === 'present') presByEvent[evId].present++
-    }
     setPresenceEvolution(Object.values(presByEvent).filter(p => p.total > 0 && p.date)
       .sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-8)
       .map(p => ({ label: format(parseISO(p.date), 'd/M', { locale: fr }), value: parseFloat((p.present / p.total * 100).toFixed(0)) })))
@@ -227,14 +246,23 @@ export default function DashboardPage() {
       const avgMotivLast = j.motivation.slice(0, 3).filter(v => v !== null)
       const avgMotivAll = j.motivation.filter(v => v !== null)
       const avgPerfIndLast2 = j.perf_ind.slice(0, 2).filter(v => v !== null)
-      if (avgLast3 >= 4.5) alertList.push({ type: 'red', title: `${j.nom} — Surcharge`, message: `RPE ${avgLast3.toFixed(1)}/5 sur 3 sessions.`, joueurId: id })
-      if (avgFatLast3.length >= 3 && avgFatLast3.every(v => v >= 4)) alertList.push({ type: 'red', title: `${j.nom} — Fatigue chronique`, message: `Fatigue ≥ 4/5 sur 3 sessions.`, joueurId: id })
+      // bucket = valeur arrondie au 0.5 près, incluse dans la clé de "traité" plus bas :
+      // si la situation s'aggrave (bucket différent), l'alerte redevient visible même
+      // avant le reset hebdomadaire du lundi.
+      if (avgLast3 >= 4.5) alertList.push({ type: 'red', title: `${j.nom} — Surcharge`, message: `RPE ${avgLast3.toFixed(1)}/5 sur 3 sessions.`, joueurId: id, bucket: Math.round(avgLast3 * 2) / 2 })
+      if (avgFatLast3.length >= 3 && avgFatLast3.every(v => v >= 4)) {
+        const fatMoy = avgFatLast3.reduce((a, b) => a + b, 0) / avgFatLast3.length
+        alertList.push({ type: 'red', title: `${j.nom} — Fatigue chronique`, message: `Fatigue ≥ 4/5 sur 3 sessions.`, joueurId: id, bucket: Math.round(fatMoy * 2) / 2 })
+      }
       if (avgMotivLast.length >= 2 && avgMotivAll.length >= 4) {
         const motLast = avgMotivLast.reduce((a, b) => a + b, 0) / avgMotivLast.length
         const motAll = avgMotivAll.reduce((a, b) => a + b, 0) / avgMotivAll.length
-        if (motAll - motLast >= 1.5) alertList.push({ type: 'orange', title: `${j.nom} — Baisse motivation`, message: `${motLast.toFixed(1)}/5 vs ${motAll.toFixed(1)}/5 en moyenne.`, joueurId: id })
+        if (motAll - motLast >= 1.5) alertList.push({ type: 'orange', title: `${j.nom} — Baisse motivation`, message: `${motLast.toFixed(1)}/5 vs ${motAll.toFixed(1)}/5 en moyenne.`, joueurId: id, bucket: Math.round(motLast * 2) / 2 })
       }
-      if (avgPerfIndLast2.length >= 2 && avgPerfIndLast2.every(v => v < 2.5)) alertList.push({ type: 'orange', title: `${j.nom} — Perf. faible`, message: `Perf. indiv. < 2.5/5 sur 2 sessions.`, joueurId: id })
+      if (avgPerfIndLast2.length >= 2 && avgPerfIndLast2.every(v => v < 2.5)) {
+        const perfMoy = avgPerfIndLast2.reduce((a, b) => a + b, 0) / avgPerfIndLast2.length
+        alertList.push({ type: 'orange', title: `${j.nom} — Perf. faible`, message: `Perf. indiv. < 2.5/5 sur 2 sessions.`, joueurId: id, bucket: Math.round(perfMoy * 2) / 2 })
+      }
     }
     const joueursAvecRpe = new Set(Object.keys(joueurMap))
     for (const j of (joueursData || [])) {
@@ -243,12 +271,12 @@ export default function DashboardPage() {
         alertList.push({ type: 'yellow', title: `${j.nom} ${j.prenom} — RPE manquant`, message: `Aucune donnée RPE.`, joueurId: j.id })
       }
     }
-    if (parseFloat(rpeMoy) >= 4.2) collAlertes.push({ type: 'red', title: 'Surcharge collective', message: `RPE moyen : ${rpeMoy.toFixed(1)}/5.` })
+    if (parseFloat(rpeMoy) >= 4.2) collAlertes.push({ type: 'red', title: 'Surcharge collective', message: `RPE moyen : ${rpeMoy.toFixed(1)}/5.`, bucket: Math.round(rpeMoy * 2) / 2 })
     const allMotiv = (rpeData || []).map(r => r.motivation).filter(v => v !== null && v !== undefined)
     const avgMotivEquipe = allMotiv.length ? allMotiv.reduce((a, b) => a + b, 0) / allMotiv.length : 0
-    if (avgMotivEquipe < 3.0 && allMotiv.length > 0) collAlertes.push({ type: 'orange', title: 'Motivation collective faible', message: `Motivation : ${avgMotivEquipe.toFixed(1)}/5.` })
+    if (avgMotivEquipe < 3.0 && allMotiv.length > 0) collAlertes.push({ type: 'orange', title: 'Motivation collective faible', message: `Motivation : ${avgMotivEquipe.toFixed(1)}/5.`, bucket: Math.round(avgMotivEquipe * 2) / 2 })
     const nbRpeRecents = new Set((rpeData || []).slice(0, 50).map(r => r.joueur_id)).size
-    if (totalJoueurs > 0 && nbRpeRecents / totalJoueurs < 0.7) collAlertes.push({ type: 'yellow', title: 'Complétion RPE insuffisante', message: `${nbRpeRecents}/${totalJoueurs} joueurs ont rempli.` })
+    if (totalJoueurs > 0 && nbRpeRecents / totalJoueurs < 0.7) collAlertes.push({ type: 'yellow', title: 'Complétion RPE insuffisante', message: `${nbRpeRecents}/${totalJoueurs} joueurs ont rempli.`, bucket: nbRpeRecents })
     const derniers3 = matchResults.slice(0, 3)
     if (derniers3.length >= 3 && derniers3.every(r => r === 'D')) collAlertes.push({ type: 'yellow', title: '3 défaites consécutives', message: 'Analyser les rapports.' })
 
@@ -325,8 +353,8 @@ export default function DashboardPage() {
 
           {/* ALERTES */}
           {(() => {
-            const alertesCollFiltrees = alertesCollectives.filter(a => !alertesTraitees.includes(`col-${a.title}`))
-            const alertesFiltrees = alertes.filter(a => !alertesTraitees.includes(`ind-${a.joueurId}-${a.title}`))
+            const alertesCollFiltrees = alertesCollectives.filter(a => !alertesTraitees.includes(alertKey(a)))
+            const alertesFiltrees = alertes.filter(a => !alertesTraitees.includes(alertKey(a, a.joueurId)))
             const totalVisible = alertesCollFiltrees.length + alertesFiltrees.length
 
             return totalVisible > 0 ? (
@@ -341,7 +369,7 @@ export default function DashboardPage() {
                 {alertesCollFiltrees.length > 0 && <>
                   <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
                   {alertesCollectives.map((a, i) => {
-                    const key = `col-${a.title}`
+                    const key = alertKey(a)
                     if (alertesTraitees.includes(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
                   })}
@@ -349,7 +377,7 @@ export default function DashboardPage() {
                 {alertesFiltrees.length > 0 && <>
                   <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
                   {alertes.map((a, i) => {
-                    const key = `ind-${a.joueurId}-${a.title}`
+                    const key = alertKey(a, a.joueurId)
                     if (alertesTraitees.includes(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
                   })}

@@ -1,5 +1,5 @@
 import webpush from 'web-push'
-import { adminClient, requireCoach } from './_lib.js'
+import { adminClient, requireCoach, sendPushToSubscriptions } from './_lib.js'
 
 const supabase = adminClient()
 
@@ -28,28 +28,15 @@ export default async function handler(req, res) {
 
     const authIds = (joueurs || []).map(j => j.auth_id)
 
-    // Récupère les abonnements push de ces joueurs
-    const { data: subs } = await supabase
-      .from('push_subscriptions')
-      .select('*')
-      .in('user_id', authIds)
-
-    if (!subs?.length) return res.status(200).json({ sent: 0, message: 'Aucun abonnement push trouvé' })
-
     const rdvStr = rdvHeure ? ` · RDV ${rdvHeure}${rdvLieu ? ` à ${rdvLieu}` : ''}` : ''
-    const payload = JSON.stringify({
+    const result = await sendPushToSubscriptions(webpush, supabase, authIds, {
       title: `📢 Convocation — ${eventTitre}`,
       body: `${eventDate}${rdvStr}. Confirme ta présence dans l'app.`,
       url: '/calendrier',
       tag: 'convocation'
     })
 
-    const results = await Promise.allSettled(
-      subs.map(sub => webpush.sendNotification(JSON.parse(sub.subscription), payload))
-    )
-
-    const sent = results.filter(r => r.status === 'fulfilled').length
-    res.status(200).json({ success: true, sent, total: subs.length })
+    res.status(200).json({ success: true, ...result })
   } catch (err) {
     console.error('Erreur notif convocation:', err)
     res.status(500).json({ error: err.message })

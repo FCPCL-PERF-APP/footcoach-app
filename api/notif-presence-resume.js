@@ -1,5 +1,5 @@
 import webpush from 'web-push'
-import { adminClient, requireUser } from './_lib.js'
+import { adminClient, requireUser, sendPushToSubscriptions } from './_lib.js'
 
 const supabase = adminClient()
 
@@ -29,22 +29,13 @@ export default async function handler(req, res) {
     const blesses = (presences || []).filter(p => p.statut === 'blesse').length
     const total = (presences || []).length
 
-    // Notifie le coach
-    const { data: coachSubs } = await supabase
-      .from('push_subscriptions')
-      .select('*')
-      .eq('user_id', coachAuthId)
-
-    if (coachSubs?.length) {
-      const payload = JSON.stringify({
+    if (coachAuthId) {
+      await sendPushToSubscriptions(webpush, supabase, [coachAuthId], {
         title: `📋 Présences — ${eventTitre}`,
         body: `✅ ${presents} présents · ❌ ${absents} absents · 🤕 ${blesses} blessés (${total} réponses)`,
         url: '/calendrier',
         tag: 'presences'
       })
-      await Promise.allSettled(
-        coachSubs.map(sub => webpush.sendNotification(JSON.parse(sub.subscription), payload))
-      )
     }
 
     res.status(200).json({ success: true, presents, absents, blesses })

@@ -106,8 +106,10 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
-  const isCoach   = profile?.role === 'coach'
-  const isAdjoint = profile?.role === 'adjoint' || profile?.role === 'gardien'
+  // 'admin' a un accès complet équivalent à 'coach' (voir StaffPage.jsx ROLES), 'preparateur' et
+  // 'gardien' sont des rôles staff à accès restreint équivalents à 'adjoint'.
+  const isCoach   = profile?.role === 'coach' || profile?.role === 'admin'
+  const isAdjoint = profile?.role === 'adjoint' || profile?.role === 'gardien' || profile?.role === 'preparateur'
   const isStaff   = isCoach || isAdjoint
   const isJoueur  = profile?.type === 'joueur' || (!isCoach && !isAdjoint)
   const canEdit    = isCoach
