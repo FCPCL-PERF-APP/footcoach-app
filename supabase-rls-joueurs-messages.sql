@@ -13,6 +13,10 @@
 -- à tout le monde), inutile d'exécuter la suite. Si tu vois des policies avec
 -- "true" en USING/WITH CHECK sans condition sur auth.uid(), applique ce qui suit.
 --
+-- Constaté le 2026-07-07 sur ce projet : policies "Allow all" (ALL, USING true)
+-- sur joueurs et messages, plus une policy en double "Allow all joueurs" sur
+-- joueurs. Accès total sans restriction — à corriger avec la suite du script.
+--
 -- ÉTAPE 2 — Remplace par des policies alignées sur le comportement réel de l'app
 -- (vérifié dans le code : JoueursPage, MaFichePage, MessagesPage) :
 --   - joueurs : lecture pour tout utilisateur connecté (staff + joueurs voient
@@ -30,11 +34,8 @@
 -- ============================================================
 -- JOUEURS
 -- ============================================================
-DROP POLICY IF EXISTS "Allow read joueurs" ON joueurs;
+DROP POLICY IF EXISTS "Allow all" ON joueurs;
 DROP POLICY IF EXISTS "Allow all joueurs" ON joueurs;
-DROP POLICY IF EXISTS "Allow insert joueurs" ON joueurs;
-DROP POLICY IF EXISTS "Allow update joueurs" ON joueurs;
-DROP POLICY IF EXISTS "Allow delete joueurs" ON joueurs;
 
 CREATE POLICY "joueurs_select_authenticated" ON joueurs
   FOR SELECT TO authenticated USING (true);
@@ -58,11 +59,7 @@ CREATE POLICY "joueurs_delete_coach_only" ON joueurs
 -- ============================================================
 -- MESSAGES
 -- ============================================================
-DROP POLICY IF EXISTS "Allow read messages" ON messages;
-DROP POLICY IF EXISTS "Allow all messages" ON messages;
-DROP POLICY IF EXISTS "Allow insert messages" ON messages;
-DROP POLICY IF EXISTS "Allow update messages" ON messages;
-DROP POLICY IF EXISTS "Allow delete messages" ON messages;
+DROP POLICY IF EXISTS "Allow all" ON messages;
 
 CREATE POLICY "messages_select_concerned" ON messages
   FOR SELECT TO authenticated USING (
