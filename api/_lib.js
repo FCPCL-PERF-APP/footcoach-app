@@ -37,6 +37,11 @@ export async function sendPushToSubscriptions(webpush, supabase, authIds, payloa
     } catch (err) {
       if (err.statusCode === 410 || err.statusCode === 404) {
         await supabase.from('push_subscriptions').delete().eq('id', sub.id)
+      } else {
+        // Erreur autre qu'un abonnement expiré (ex: mauvaise config VAPID, timeout) —
+        // sans ce log, `sent` reste à 0 pour tout le monde sans aucune trace exploitable
+        // dans les logs Vercel.
+        console.error('sendPushToSubscriptions error:', err.statusCode, err.message)
       }
     }
   }
