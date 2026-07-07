@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
+  const [profileError, setProfileError] = useState(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -26,6 +27,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function fetchProfile(userId) {
+    setProfileError(null)
     try {
       // Mise à jour last_seen + onboarding_done dans joueurs
       await supabase.from('joueurs').update({
@@ -79,10 +81,14 @@ export function AuthProvider({ children }) {
         }
       }
 
-      setProfile({ type: 'joueur', role: 'joueur' })
+      // Compte authentifié mais sans fiche joueur/staff correspondante (ni par auth_id
+      // ni par email) : cas légitime distinct d'une erreur réseau/serveur, marqué comme
+      // tel pour que l'UI puisse afficher un message clair plutôt qu'un dashboard cassé.
+      setProfile({ type: 'joueur', role: 'joueur', orphan: true })
     } catch (err) {
       console.error('fetchProfile error:', err)
-      setProfile({ type: 'joueur', role: 'joueur' })
+      setProfileError('Impossible de charger ton profil. Vérifie ta connexion et réessaie.')
+      setProfile(null)
     }
     setLoading(false)
   }
@@ -115,9 +121,13 @@ export function AuthProvider({ children }) {
   const canEdit    = isCoach
   const canComment = isStaff
 
+  function retryProfile() {
+    if (user) { setLoading(true); fetchProfile(user.id) }
+  }
+
   return (
     <AuthContext.Provider value={{
-      user, profile, loading, needsOnboarding,
+      user, profile, loading, needsOnboarding, profileError, retryProfile,
       signIn, signOut, resetPassword,
       isCoach, isStaff, isAdjoint, isJoueur,
       canEdit, canComment, canViewAll: isStaff

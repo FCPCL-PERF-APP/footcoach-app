@@ -60,7 +60,7 @@ const routeFallback = (
 )
 
 function AppContent() {
-  const { user, profile, loading, needsOnboarding, isCoach, isAdjoint, isJoueur } = useAuth()
+  const { user, profile, loading, needsOnboarding, profileError, retryProfile, signOut, isCoach, isAdjoint, isJoueur } = useAuth()
   usePush(user, profile)
 
   if (loading) return (
@@ -84,6 +84,38 @@ function AppContent() {
   }
 
   if (!user) return <LoginPage />
+
+  // Erreur réseau/serveur lors du chargement du profil : on évite de laisser l'utilisateur
+  // entrer dans l'app avec un profil vide qui casserait silencieusement plusieurs pages.
+  if (profileError) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: THEME.gradient, padding: 20 }}>
+      <div style={{ textAlign: 'center', background: '#fff', borderRadius: 16, padding: 24, maxWidth: 340 }}>
+        <div style={{ fontSize: 36, marginBottom: 10 }}>⚠️</div>
+        <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{profileError}</p>
+        <button onClick={retryProfile} style={{ marginTop: 10, padding: '10px 18px', borderRadius: 10, border: 'none', background: THEME.gradient, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          Réessayer
+        </button>
+        <button onClick={signOut} style={{ display: 'block', margin: '10px auto 0', border: 'none', background: 'none', color: '#9CA3AF', fontSize: 12, cursor: 'pointer' }}>
+          Se déconnecter
+        </button>
+      </div>
+    </div>
+  )
+
+  // Compte authentifié mais sans fiche joueur/staff associée (ni par auth_id, ni par
+  // email) : afficher un message clair plutôt qu'un dashboard joueur cassé (profil sans id).
+  if (profile?.orphan) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: THEME.gradient, padding: 20 }}>
+      <div style={{ textAlign: 'center', background: '#fff', borderRadius: 16, padding: 24, maxWidth: 340 }}>
+        <div style={{ fontSize: 36, marginBottom: 10 }}>👤</div>
+        <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>Compte non lié</p>
+        <p style={{ fontSize: 13, color: '#6B7280' }}>Ton compte n'est pas encore associé à une fiche joueur ou staff. Contacte ton coach pour qu'il vérifie ton accès.</p>
+        <button onClick={signOut} style={{ marginTop: 14, padding: '10px 18px', borderRadius: 10, border: 'none', background: THEME.gradient, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          Se déconnecter
+        </button>
+      </div>
+    </div>
+  )
 
   // Onboarding automatique pour les nouveaux joueurs
   if (needsOnboarding && isJoueur) return (
