@@ -46,20 +46,29 @@ export default function BlessuresPage() {
   async function handleSave() {
     if (!form.date_debut || !form.zone) return
     setSaving(true)
-    await supabase.from('blessures').insert({
+    const { error } = await supabase.from('blessures').insert({
       joueur_id: joueurId,
       ...form,
       date_retour_prevue: form.date_retour_prevue || null,
       date_retour_effective: form.date_retour_effective || null,
     })
     setSaving(false)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+      return
+    }
     setShowAdd(false)
     setForm({ type_blessure: 'Musculaire', zone: 'Genou', gravite: 'moderee', date_debut: '', date_retour_prevue: '', date_retour_effective: '', description: '', traitement: '' })
     loadData()
   }
 
   async function marquerGueri(id, date) {
-    await supabase.from('blessures').update({ date_retour_effective: date || new Date().toISOString().split('T')[0], statut: 'gueri' }).eq('id', id)
+    const { error } = await supabase.from('blessures')
+      .update({ date_retour_effective: date || new Date().toISOString().split('T')[0], statut: 'gueri' }).eq('id', id)
+    if (error) {
+      alert('Erreur lors de la mise à jour : ' + error.message)
+      return
+    }
     loadData()
   }
 

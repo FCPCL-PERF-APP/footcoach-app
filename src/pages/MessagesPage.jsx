@@ -110,7 +110,11 @@ export default function MessagesPage() {
       groupe,
       contenu: input
     }
-    await supabase.from('messages').insert(msg)
+    const { error } = await supabase.from('messages').insert(msg)
+    if (error) {
+      alert('Erreur lors de l\'envoi du message : ' + error.message)
+      return
+    }
 
     if (!groupe && activeConv?.auth_id) {
       try {

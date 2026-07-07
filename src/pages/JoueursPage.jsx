@@ -56,7 +56,11 @@ export default function JoueursPage() {
   }
 
   async function deleteJoueur(joueur) {
-    await supabase.from('joueurs').delete().eq('id', joueur.id)
+    const { error } = await supabase.from('joueurs').delete().eq('id', joueur.id)
+    if (error) {
+      alert('Erreur lors de la suppression : ' + error.message)
+      return
+    }
     setConfirmDelete(null)
     loadJoueurs()
   }

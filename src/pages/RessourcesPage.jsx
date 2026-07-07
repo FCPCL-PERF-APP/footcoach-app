@@ -54,7 +54,7 @@ export default function RessourcesPage() {
       }
     }
 
-    await supabase.from('ressources').insert({
+    const { error: insertError } = await supabase.from('ressources').insert({
       titre: form.titre,
       type: addTab === 'pdf' ? 'pdf' : 'video',
       url,
@@ -63,6 +63,10 @@ export default function RessourcesPage() {
     })
 
     setUploading(false)
+    if (insertError) {
+      alert('Erreur lors de l\'enregistrement : ' + insertError.message)
+      return
+    }
     setShowAdd(false)
     setForm({ titre: '', url: '', categorie: 'general', evenement_id: '' })
     setFile(null)
@@ -91,7 +95,11 @@ export default function RessourcesPage() {
   }
 
   async function deleteRessource(id) {
-    await supabase.from('ressources').delete().eq('id', id)
+    const { error } = await supabase.from('ressources').delete().eq('id', id)
+    if (error) {
+      alert('Erreur lors de la suppression : ' + error.message)
+      return
+    }
     loadData()
   }
 
