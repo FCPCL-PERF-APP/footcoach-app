@@ -78,17 +78,19 @@ export default function MaFichePage() {
   useEffect(() => { if (profile?.id) loadData() }, [profile])
 
   async function loadData() {
-    const [{ data: j }, { data: rpe }, { data: stats }, { data: poids }] = await Promise.all([
+    const [{ data: j }, { data: rpe }, { data: stats }, { data: poids }, { data: blessures }] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', profile.id).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)').eq('joueur_id', profile.id).order('created_at', { ascending: false }).limit(8),
       supabase.from('stats_match').select('*, evenements(titre,date_heure)').eq('joueur_id', profile.id).order('created_at', { ascending: false }).limit(10),
       supabase.from('suivi_poids').select('*').eq('joueur_id', profile.id).order('date_mesure', { ascending: true }).limit(12),
+      supabase.from('blessures').select('*').eq('joueur_id', profile.id).order('date_debut', { ascending: false }),
     ])
     setJoueur(j)
     setForm(j || {})
     setRpeHistory(rpe || [])
     setStatsHistory(stats || [])
     setPoidsHistory(poids || [])
+    setBlessuresData(blessures || [])
     setLoading(false)
   }
 
@@ -132,20 +134,26 @@ export default function MaFichePage() {
       fc_repos: form.fc_repos ? parseInt(form.fc_repos) : null,
     }).eq('id', profile.id)
     setSaving(false)
-    if (!error) {
-      setSaved(true)
-      setJoueur({ ...joueur, ...form })
-      setTimeout(() => setSaved(false), 3000)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+      return
     }
+    setSaved(true)
+    setJoueur({ ...joueur, ...form })
+    setTimeout(() => setSaved(false), 3000)
   }
 
   async function savePoids() {
     if (!newPoids) return
-    await supabase.from('suivi_poids').insert({
+    const { error } = await supabase.from('suivi_poids').insert({
       joueur_id: profile.id,
       poids: parseFloat(newPoids),
       date_mesure: new Date().toISOString().split('T')[0]
     })
+    if (error) {
+      alert('Erreur lors de l\'ajout : ' + error.message)
+      return
+    }
     setNewPoids('')
     loadData()
   }
@@ -187,6 +195,7 @@ export default function MaFichePage() {
   const tabs = [
     { key: 'infos',    label: '👤 Mes infos' },
     { key: 'physio',   label: '❤️ Physio & FC' },
+    { key: 'rpe',      label: '📊 Mon RPE' },
     { key: 'stats',    label: '⚽ Mes stats' },
     { key: 'poids',    label: '⚖️ Mon poids' },
     { key: 'objectifs',label: '🎯 Objectifs' },
