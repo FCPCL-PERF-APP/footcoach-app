@@ -16,6 +16,19 @@ export function usePush(userId) {
     try {
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
+      if (sub) {
+        const currentKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
+        const subKey = sub.options?.applicationServerKey
+        const matches = currentKey && subKey && arraysEqual(new Uint8Array(subKey), urlBase64ToUint8Array(currentKey))
+        if (!matches) {
+          // La clé VAPID a été régénérée côté serveur : l'abonnement existant est mort
+          // (les push échoueront silencieusement). On le remplace directement plutôt que
+          // de laisser l'utilisateur croire que les notifications sont actives.
+          await sub.unsubscribe()
+          await enablePush()
+          return
+        }
+      }
       setPushEnabled(!!sub)
     } catch (err) {
       console.error('Erreur vérification push:', err)
@@ -73,6 +86,12 @@ export function usePush(userId) {
   }
 
   return { pushSupported, pushEnabled, enablePush, disablePush }
+}
+
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
+  return true
 }
 
 function urlBase64ToUint8Array(base64String) {
