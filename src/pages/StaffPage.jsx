@@ -75,7 +75,9 @@ export default function StaffPage() {
       })
       const data = await res.json()
       if (data.success) {
-        setResult({ ok: true, message: `✅ ${form.prenom} ${form.nom} ajouté et invitation envoyée à ${form.email}` })
+        setResult({ ok: true, message: data.mode === 'reset'
+          ? `✅ ${form.prenom} ${form.nom} ajouté — ce membre avait déjà un compte, un email de réinitialisation de mot de passe a été envoyé à ${form.email}`
+          : `✅ ${form.prenom} ${form.nom} ajouté et invitation envoyée à ${form.email}` })
       } else {
         setResult({ ok: false, message: `⚠️ Fiche créée mais erreur invitation : ${data.error}` })
       }
@@ -98,7 +100,9 @@ export default function StaffPage() {
         body: JSON.stringify({ email: s.email, staffId: s.id, nom: s.nom, prenom: s.prenom, role: s.role })
       })
       const data = await res.json()
-      if (data.success) alert(`✅ Invitation renvoyée à ${s.email}`)
+      if (data.success) alert(data.mode === 'reset'
+        ? `✅ Ce membre avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à ${s.email}`
+        : `✅ Invitation renvoyée à ${s.email}`)
       else alert(`❌ Erreur : ${data.error}`)
     } catch (err) {
       alert('Erreur réseau.')

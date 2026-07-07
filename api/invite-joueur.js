@@ -20,7 +20,20 @@ export default async function handler(req, res) {
       data: { joueur_id: joueurId, nom, prenom }
     })
 
-    if (error) throw error
+    if (error) {
+      // Le compte existe déjà (invitation précédente déjà acceptée, ou ancien bug de
+      // redirection qui connectait l'utilisateur sans jamais lui faire créer de mot de
+      // passe) : on bascule sur un email de réinitialisation plutôt que de bloquer le coach.
+      const alreadyExists = error.code === 'email_exists' || /already registered/i.test(error.message || '')
+      if (alreadyExists) {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${appUrl}/set-password`
+        })
+        if (resetError) throw resetError
+        return res.status(200).json({ success: true, mode: 'reset' })
+      }
+      throw error
+    }
 
     // Lie le compte auth au joueur
     if (data?.user?.id) {
@@ -29,7 +42,7 @@ export default async function handler(req, res) {
         .eq('id', joueurId)
     }
 
-    res.status(200).json({ success: true, userId: data?.user?.id })
+    res.status(200).json({ success: true, mode: 'invite', userId: data?.user?.id })
   } catch (err) {
     console.error('Erreur invitation:', err)
     res.status(500).json({ error: err.message })

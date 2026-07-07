@@ -6,9 +6,6 @@ const supabase = adminClient()
 // Durée estimée par type d'événement (aucune durée réelle n'est stockée en base)
 const DUREE_MIN = { match: 120, seance: 90 }
 const DELAI_APRES_MIN = 30
-// Doit correspondre à la fréquence du workflow GitHub Actions qui appelle ce endpoint,
-// pour ne déclencher chaque relance qu'une seule fois par événement.
-const FENETRE_MIN = 15
 
 export default async function handler(req, res) {
   const authHeader = req.headers['authorization']
@@ -26,16 +23,20 @@ export default async function handler(req, res) {
   let sent = 0
 
   try {
-    // Fenêtre large (3h) pour couvrir la plus longue durée possible (match) + délai + marge
-    const il3h = new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString()
+    // Fenêtre large (48h) : le cron GitHub Actions gratuit peut sauter des créneaux
+    // (parfois plusieurs heures d'écart au lieu des 15 min prévues). On ne borne donc
+    // plus la relance à une fenêtre stricte après l'horaire cible — la déduplication
+    // se fait naturellement plus bas via l'absence de RPE/Footbar déjà rempli, donc
+    // élargir la recherche ne cause aucun envoi en double.
+    const il48h = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString()
     const { data: events } = await supabase.from('evenements').select('*')
       .lte('date_heure', now.toISOString())
-      .gte('date_heure', il3h)
+      .gte('date_heure', il48h)
 
     const aRelancer = (events || []).filter(ev => {
       const duree = DUREE_MIN[ev.type] || 90
       const cible = new Date(ev.date_heure).getTime() + (duree + DELAI_APRES_MIN) * 60 * 1000
-      return now.getTime() >= cible && now.getTime() < cible + FENETRE_MIN * 60 * 1000
+      return now.getTime() >= cible
     })
 
     if (aRelancer.length) {

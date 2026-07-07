@@ -19,14 +19,24 @@ export default async function handler(req, res) {
       data: { staff_id: staffId, nom, prenom, role }
     })
 
-    if (error) throw error
+    if (error) {
+      const alreadyExists = error.code === 'email_exists' || /already registered/i.test(error.message || '')
+      if (alreadyExists) {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${appUrl}/set-password`
+        })
+        if (resetError) throw resetError
+        return res.status(200).json({ success: true, mode: 'reset' })
+      }
+      throw error
+    }
 
     // Lie le compte auth au staff
     if (data?.user?.id) {
       await supabase.from('staff').update({ auth_id: data.user.id }).eq('id', staffId)
     }
 
-    res.status(200).json({ success: true, userId: data?.user?.id })
+    res.status(200).json({ success: true, mode: 'invite', userId: data?.user?.id })
   } catch (err) {
     console.error('Erreur invitation staff:', err)
     res.status(500).json({ error: err.message })

@@ -16,6 +16,7 @@ export default function NouveauJoueurPage() {
   const [saving, setSaving] = useState(false)
   const [inviteEmail, setInviteEmail] = useState(true)
   const [inviteError, setInviteError] = useState(null)
+  const [inviteMode, setInviteMode] = useState(null)
   const [step, setStep] = useState(1) // 1 = infos, 2 = confirmation
 
   const f = (key) => form[key]
@@ -56,6 +57,7 @@ export default function NouveauJoueurPage() {
 
     // 2. Envoie l'invitation si email fourni
     setInviteError(null)
+    setInviteMode(null)
     if (inviteEmail && form.email) {
       try {
         const res = await fetch('/api/invite-joueur', {
@@ -70,6 +72,7 @@ export default function NouveauJoueurPage() {
         })
         const data = await res.json()
         if (!data.success) setInviteError(data.error || "Impossible d'envoyer l'invitation")
+        else setInviteMode(data.mode)
       } catch (err) {
         console.error('Erreur invitation:', err)
         setInviteError('Erreur réseau')
@@ -89,7 +92,13 @@ export default function NouveauJoueurPage() {
             <p style={{ fontSize: 16, fontWeight: 700, color: '#3B6D11' }}>
               {form.prenom} {form.nom.toUpperCase()} ajouté !
             </p>
-            {form.email && inviteEmail && !inviteError && (
+            {form.email && inviteEmail && !inviteError && inviteMode === 'reset' && (
+              <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: '#3B6D11' }}>
+                📧 Ce joueur avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à<br />
+                <strong>{form.email}</strong>
+              </div>
+            )}
+            {form.email && inviteEmail && !inviteError && inviteMode === 'invite' && (
               <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: '#3B6D11' }}>
                 📧 Un email d'invitation a été envoyé à<br />
                 <strong>{form.email}</strong><br />

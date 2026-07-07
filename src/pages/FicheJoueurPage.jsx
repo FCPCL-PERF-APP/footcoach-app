@@ -112,7 +112,10 @@ export default function FicheJoueurPage() {
         body: JSON.stringify({ joueurId: joueur.id, email: joueur.email, nom: joueur.nom, prenom: joueur.prenom })
       })
       if (res.ok) {
-        alert(`✅ Invitation renvoyée à ${joueur.email}`)
+        const data = await res.json()
+        alert(data.mode === 'reset'
+          ? `✅ Ce joueur avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à ${joueur.email}`
+          : `✅ Invitation renvoyée à ${joueur.email}`)
       } else {
         const err = await res.json()
         alert('Erreur : ' + (err.error || "Impossible d'envoyer l'invitation"))
