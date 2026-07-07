@@ -24,22 +24,28 @@ export default function BilanSaisonPage() {
   async function loadBilan() {
     setLoading(true)
     const [
-      { data: matchStats },
+      { data: matchStatsRaw },
       { data: joueurs },
       { data: rpeData },
       { data: footData },
-      { data: statsIndiv },
+      { data: statsIndivRaw },
       { data: presences },
-      { data: events },
+      { data: eventsRaw },
     ] = await Promise.all([
-      supabase.from('stats_collectives').select('*, evenements(titre,date_heure)').order('created_at', { ascending: true }),
+      supabase.from('stats_collectives').select('*, evenements(titre,date_heure,match_type)').order('created_at', { ascending: true }),
       supabase.from('joueurs').select('id,nom,prenom,poste'),
       supabase.from('rpe').select('*, joueurs(nom,prenom)').order('created_at', { ascending: false }),
       supabase.from('footbar').select('*, joueurs(nom,prenom)').order('created_at', { ascending: false }),
-      supabase.from('stats_match').select('*, joueurs(nom,prenom)').order('created_at', { ascending: false }),
+      supabase.from('stats_match').select('*, joueurs(nom,prenom), evenements(match_type)').order('created_at', { ascending: false }),
       supabase.from('presences').select('*, joueurs(nom,prenom)'),
       supabase.from('evenements').select('*').eq('type', 'match'),
     ])
+
+    // Ne garder que les matchs officiels (hors préparation), comme ClassementButeursPage/
+    // DashboardStatsPage/BadgesJoueurPage
+    const matchStats = (matchStatsRaw || []).filter(s => s.evenements?.match_type !== 'preparation')
+    const statsIndiv = (statsIndivRaw || []).filter(s => s.evenements?.match_type !== 'preparation')
+    const events = (eventsRaw || []).filter(e => e.match_type !== 'preparation')
 
     // ===== BILAN MATCHS =====
     const victoires = (matchStats || []).filter(s => s.buts_marques > s.buts_encaisses).length

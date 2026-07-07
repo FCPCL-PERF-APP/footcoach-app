@@ -47,7 +47,7 @@ export default function ComparatifJoueursPage() {
       supabase.from('joueurs').select('*').eq('id', id).single(),
       supabase.from('rpe').select('*').eq('joueur_id', id).order('created_at', { ascending: false }).limit(20),
       supabase.from('footbar').select('*').eq('joueur_id', id).order('created_at', { ascending: false }).limit(20),
-      supabase.from('stats_match').select('*').eq('joueur_id', id).order('created_at', { ascending: false }).limit(20),
+      supabase.from('stats_match').select('*, evenements(match_type)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(20),
       supabase.from('presences').select('statut').eq('joueur_id', id),
     ])
 
@@ -65,17 +65,18 @@ export default function ComparatifJoueursPage() {
       footMoyennes[key] = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)) : null
     })
 
-    // Stats match
-    const totalButs = (stats || []).reduce((s,r) => s+(r.buts||0), 0)
-    const totalPD = (stats || []).reduce((s,r) => s+(r.passes_decisives||0), 0)
-    const noteMoy = stats?.length ? parseFloat(((stats || []).reduce((s,r) => s+(r.note||0),0)/stats.length).toFixed(1)) : null
-    const minMoy = stats?.length ? parseFloat(((stats || []).reduce((s,r) => s+(r.temps_jeu||0),0)/stats.length).toFixed(0)) : null
+    // Stats match (matchs officiels seulement, comme ClassementButeursPage/DashboardStatsPage)
+    const officiels = (stats || []).filter(s => s.evenements?.match_type !== 'preparation')
+    const totalButs = officiels.reduce((s,r) => s+(r.buts||0), 0)
+    const totalPD = officiels.reduce((s,r) => s+(r.passes_decisives||0), 0)
+    const noteMoy = officiels.length ? parseFloat((officiels.reduce((s,r) => s+(r.note||0),0)/officiels.length).toFixed(1)) : null
+    const minMoy = officiels.length ? parseFloat((officiels.reduce((s,r) => s+(r.temps_jeu||0),0)/officiels.length).toFixed(0)) : null
 
     // Présence
     const presents = (pres || []).filter(p => p.statut === 'present').length
     const tauxPresence = pres?.length ? Math.round(presents/pres.length*100) : null
 
-    setter({ joueur: j, rpeMoyennes, footMoyennes, totalButs, totalPD, noteMoy, minMoy, tauxPresence, nbMatchs: stats?.length || 0 })
+    setter({ joueur: j, rpeMoyennes, footMoyennes, totalButs, totalPD, noteMoy, minMoy, tauxPresence, nbMatchs: officiels.length })
     setLoading(false)
   }
 
