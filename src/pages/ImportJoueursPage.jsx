@@ -100,8 +100,14 @@ export default function ImportJoueursPage() {
         const csvCol = mapping[field.key]
         if (csvCol && rowObj[csvCol]) {
           let val = rowObj[csvCol]
-          if (field.key === 'numero' || field.key === 'taille') val = parseInt(val) || null
-          if (field.key === 'poids') val = parseFloat(val) || null
+          if (field.key === 'numero' || field.key === 'taille') {
+            const parsed = parseInt(val)
+            val = Number.isNaN(parsed) ? null : parsed
+          }
+          if (field.key === 'poids') {
+            const parsed = parseFloat(val)
+            val = Number.isNaN(parsed) ? null : parsed
+          }
           if (field.key === 'nom') val = val.toUpperCase()
           joueur[field.key] = val
         }
