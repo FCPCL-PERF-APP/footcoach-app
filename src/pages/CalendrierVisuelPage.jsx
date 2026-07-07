@@ -11,7 +11,8 @@ const TYPE_COLORS = { match: '#1A3A6B', seance: '#3B6D11' }
 
 export default function CalendrierVisuelPage() {
   const navigate = useNavigate()
-  const { isCoach, isJoueur, profile } = useAuth()
+  const { isCoach, isAdjoint, isJoueur } = useAuth()
+  const isStaff = isCoach || isAdjoint
   const [events, setEvents] = useState([])
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
@@ -164,14 +165,14 @@ export default function CalendrierVisuelPage() {
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {isCoach && ev.type === 'match' && (
-                    <>
-                      <button onClick={() => navigate(`/convocations/${ev.id}`)}
-                        style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📢 Convoquer</button>
-                      <button onClick={() => navigate(`/stats/${ev.id}`)}
-                        style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📊 Stats</button>
-                    </>
+                    <button onClick={() => navigate(`/convocations/${ev.id}`)}
+                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📢 Convoquer</button>
                   )}
-                  {isCoach && (
+                  {isStaff && ev.type === 'match' && (
+                    <button onClick={() => navigate(`/stats/${ev.id}`)}
+                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📊 Stats</button>
+                  )}
+                  {isStaff && (
                     <button onClick={() => navigate(`/rpe?event=${ev.id}`)}
                       style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>❤️ RPE</button>
                   )}

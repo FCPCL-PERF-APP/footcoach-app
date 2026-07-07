@@ -8,7 +8,7 @@ import { format, parseISO, isAfter, isBefore } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 export default function CalendrierPage() {
-  const { isCoach, isJoueur, profile } = useAuth()
+  const { isCoach, isAdjoint, isJoueur, profile } = useAuth()
   const navigate = useNavigate()
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -221,7 +221,7 @@ export default function CalendrierPage() {
               <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucun événement à venir.{isCoach && ' Clique sur "+ Ajouter".'}</p></Card>
             ) : (
               upcoming.map(ev => (
-                <EventCard key={ev.id} ev={ev} isCoach={isCoach} isJoueur={isJoueur}
+                <EventCard key={ev.id} ev={ev} isCoach={isCoach} isAdjoint={isAdjoint} isJoueur={isJoueur}
                   navigate={navigate} profile={profile}
                   onEdit={startEdit} onDelete={() => setDeleteConfirm(ev)} onDuplicate={duplicateEvent} />
               ))
@@ -244,7 +244,7 @@ export default function CalendrierPage() {
                   </select>
                 </div>
                 {selectedPastEventData && (
-                  <EventCard ev={selectedPastEventData} isCoach={isCoach} isJoueur={isJoueur}
+                  <EventCard ev={selectedPastEventData} isCoach={isCoach} isAdjoint={isAdjoint} isJoueur={isJoueur}
                     navigate={navigate} profile={profile}
                     onEdit={startEdit} onDelete={() => setDeleteConfirm(selectedPastEventData)} onDuplicate={duplicateEvent} past />
                 )}
@@ -257,14 +257,15 @@ export default function CalendrierPage() {
   )
 }
 
-function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onEdit, onDelete, onDuplicate }) {
+function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, profile, onEdit, onDelete, onDuplicate }) {
+  const isStaff = isCoach || isAdjoint
   const [presenceCount, setPresenceCount] = useState(null)
   const [convoque, setConvoque] = useState(null)
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
   useEffect(() => {
-    if (isCoach) loadPresenceCount()
+    if (isStaff) loadPresenceCount()
     if (isJoueur && profile?.id) checkConvocation()
   }, [ev.id])
 
@@ -322,8 +323,8 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
         </p>
       )}
 
-      {/* Résumé présences coach */}
-      {isCoach && presenceCount !== null && (
+      {/* Résumé présences staff */}
+      {isStaff && presenceCount !== null && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 8, padding: '6px 10px', background: '#F9FAFB', borderRadius: 8, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, color: '#3B6D11' }}>✅ {presenceCount.present}</span>
           {presenceCount.exterieur > 0 && <span style={{ fontSize: 11, color: '#185FA5' }}>🔄 {presenceCount.exterieur}</span>}
@@ -333,15 +334,15 @@ function EventCard({ ev, isCoach, isJoueur, navigate, past = false, profile, onE
         </div>
       )}
 
-      {/* Boutons COACH */}
-      {isCoach && (
+      {/* Boutons STAFF (coach + adjoint/préparateur/gardien) */}
+      {isStaff && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-          {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}>📢 Convocations</Button>}
+          {isCoach && ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}>📢 Convocations</Button>}
           <Button size="sm" onClick={() => navigate(`/presences/${ev.id}`)}>✅ Présences</Button>
           {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}>📊 Stats</Button>}
           <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}>❤️ RPE</Button>
           <Button size="sm" onClick={() => navigate(`/footbar?event=${ev.id}`)}>📡 Footbar</Button>
-          <Button size="sm" onClick={() => onDuplicate(ev)}>📋 Dupliquer</Button>
+          {isCoach && <Button size="sm" onClick={() => onDuplicate(ev)}>📋 Dupliquer</Button>}
         </div>
       )}
 

@@ -33,6 +33,8 @@ const NAV_STAFF_MAIN = [
   { path: '/plus',       icon: '☰',  label: 'Plus' },
 ]
 const NAV_STAFF_MORE = [
+  { path: '/rpe',        icon: '❤️', label: 'RPE équipe' },
+  { path: '/footbar',    icon: '📡', label: 'Footbar équipe' },
   { path: '/ressources', icon: '📁', label: 'Ressources' },
 ]
 const NAV_JOUEUR_MAIN = [
