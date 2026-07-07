@@ -15,10 +15,22 @@ export default async function handler(req, res) {
   const user = await requireUser(req, supabase)
   if (!user) return res.status(401).json({ error: 'Authentification requise' })
 
-  const { destinataireId, expediteurNom, contenu } = req.body
+  const { destinataireId, contenu } = req.body
   if (!destinataireId) return res.status(400).json({ error: 'destinataireId requis' })
 
   try {
+    // Le nom de l'expéditeur est dérivé côté serveur depuis l'utilisateur authentifié
+    // (jamais depuis le corps de la requête) pour empêcher qu'un appel direct à cette
+    // API n'usurpe l'identité affichée dans la notification.
+    let expediteurNom = 'Un membre du club'
+    const { data: joueur } = await supabase.from('joueurs').select('nom, prenom').eq('auth_id', user.id).maybeSingle()
+    if (joueur) {
+      expediteurNom = `${joueur.prenom} ${joueur.nom}`.trim()
+    } else {
+      const { data: staffRow } = await supabase.from('staff').select('nom, prenom').eq('auth_id', user.id).maybeSingle()
+      if (staffRow) expediteurNom = `${staffRow.prenom} ${staffRow.nom}`.trim()
+    }
+
     const result = await sendPushToSubscriptions(webpush, supabase, [destinataireId], {
       title: `💬 Message de ${expediteurNom}`,
       body: contenu?.length > 80 ? contenu.slice(0, 80) + '...' : contenu,

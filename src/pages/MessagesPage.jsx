@@ -123,7 +123,6 @@ export default function MessagesPage() {
           headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
           body: JSON.stringify({
             destinataireId: activeConv.auth_id,
-            expediteurNom: msg.expediteur_nom,
             contenu: input
           })
         })

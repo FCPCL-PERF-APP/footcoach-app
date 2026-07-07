@@ -386,7 +386,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
     try {
       await fetch('/api/notif-presence-resume', {
         method: 'POST', headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-        body: JSON.stringify({ eventId: ev.id, eventTitre: ev.titre, coachAuthId: null })
+        body: JSON.stringify({ eventId: ev.id })
       })
     } catch (err) { console.error(err) }
     setSaving(false)
