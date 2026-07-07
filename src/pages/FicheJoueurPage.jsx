@@ -69,7 +69,7 @@ export default function FicheJoueurPage() {
       supabase.from('joueurs').select('*').eq('id', id).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
       supabase.from('footbar').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
-      supabase.from('stats_match').select('*, evenements(titre,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(15),
+      supabase.from('stats_match').select('*, evenements(titre,date_heure,match_type)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(15),
       supabase.from('tests_physiques').select('*').eq('joueur_id', id).order('date_test', { ascending: false }),
       supabase.from('suivi_poids').select('*').eq('joueur_id', id).order('date_mesure', { ascending: true }).limit(12),
       supabase.from('commentaires_joueurs').select('*').eq('joueur_id', id).order('created_at', { ascending: false }),
@@ -101,13 +101,10 @@ export default function FicheJoueurPage() {
     setLoading(false)
   }
 
-  // saveBilan v87
   async function renvoyerInvitation() {
     if (!joueur?.email) { alert('Aucun email pour ce joueur.'); return }
-    const { error } = await supabase.auth.admin ? 
-      { error: null } : // fallback
-      { error: null }
-    // Utiliser l'API d'invitation via notre endpoint
+    if (inviting) return
+    setInviting(true)
     try {
       const res = await fetch('/api/invite-joueur', {
         method: 'POST',
@@ -123,6 +120,7 @@ export default function FicheJoueurPage() {
     } catch(e) {
       alert('Erreur réseau : ' + e.message)
     }
+    setInviting(false)
   }
 
   async function saveBilan() {
@@ -130,12 +128,14 @@ export default function FicheJoueurPage() {
     setSavingBilan(true)
     const payload = { ...bilanForm, joueur_id: joueur.id }
     const { data: existing } = await supabase.from('objectifs_joueur').select('id').eq('joueur_id', joueur.id).maybeSingle()
-    if (existing?.id) {
-      await supabase.from('objectifs_joueur').update(payload).eq('id', existing.id)
-    } else {
-      await supabase.from('objectifs_joueur').insert(payload)
-    }
+    const { error } = existing?.id
+      ? await supabase.from('objectifs_joueur').update(payload).eq('id', existing.id)
+      : await supabase.from('objectifs_joueur').insert(payload)
     setSavingBilan(false)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement du bilan : ' + error.message)
+      return
+    }
     setBilanSaved(true)
     setTimeout(() => setBilanSaved(false), 2000)
     const { data: updated } = await supabase.from('objectifs_joueur').select('*').eq('joueur_id', joueur.id).maybeSingle()
@@ -207,7 +207,11 @@ export default function FicheJoueurPage() {
 
   async function savePoids() {
     if (!newPoids) return
-    await supabase.from('suivi_poids').insert({ joueur_id: id, poids: parseFloat(newPoids), date_mesure: new Date().toISOString().split('T')[0] })
+    const { error } = await supabase.from('suivi_poids').insert({ joueur_id: id, poids: parseFloat(newPoids), date_mesure: new Date().toISOString().split('T')[0] })
+    if (error) {
+      alert('Erreur lors de l\'ajout : ' + error.message)
+      return
+    }
     setNewPoids('')
     loadAll()
   }
@@ -216,12 +220,16 @@ export default function FicheJoueurPage() {
     if (!newComment.trim()) return
     const { data: { user } } = await supabase.auth.getUser()
     const { data: staff } = await supabase.from('staff').select('nom,prenom,role').eq('auth_id', user?.id).maybeSingle()
-    await supabase.from('commentaires_joueurs').insert({
+    const { error } = await supabase.from('commentaires_joueurs').insert({
       joueur_id: id,
       auteur_nom: staff ? `${staff.nom} ${staff.prenom}` : 'Staff',
       auteur_role: staff?.role || 'staff',
       contenu: newComment
     })
+    if (error) {
+      alert('Erreur lors de l\'ajout du commentaire : ' + error.message)
+      return
+    }
     setNewComment('')
     loadAll()
   }
@@ -256,9 +264,12 @@ export default function FicheJoueurPage() {
   const initials = `${joueur.nom?.[0] || ''}${joueur.prenom?.[0] || ''}`
   const imc = joueur.taille && joueur.poids ? (joueur.poids / ((joueur.taille / 100) ** 2)).toFixed(1) : '—'
   const fcReserve = joueur.fc_max && joueur.fc_repos ? joueur.fc_max - joueur.fc_repos : null
-  const totalButs = statsHistory.reduce((s, r) => s + (r.buts || 0), 0)
-  const totalPD = statsHistory.reduce((s, r) => s + (r.passes_decisives || 0), 0)
-  const noteMoy = statsHistory.length ? (statsHistory.reduce((s, r) => s + (r.note || 0), 0) / statsHistory.length).toFixed(1) : '—'
+  // Matchs officiels seulement (hors préparation), comme ClassementButeursPage/
+  // DashboardStatsPage/BadgesJoueurPage/ComparatifJoueursPage
+  const statsOfficielles = statsHistory.filter(s => s.evenements?.match_type !== 'preparation')
+  const totalButs = statsOfficielles.reduce((s, r) => s + (r.buts || 0), 0)
+  const totalPD = statsOfficielles.reduce((s, r) => s + (r.passes_decisives || 0), 0)
+  const noteMoy = statsOfficielles.length ? (statsOfficielles.reduce((s, r) => s + (r.note || 0), 0) / statsOfficielles.length).toFixed(1) : '—'
   const blessureActive = blessures.find(b => !b.date_retour_effective)
 
   const tabs = [
@@ -331,10 +342,10 @@ export default function FicheJoueurPage() {
               style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: editing ? '#EAF3DE' : '#E6F1FB', color: editing ? '#3B6D11' : THEME.primary, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
               {saving ? '...' : editing ? '💾' : '✏️'}
             </button>
-            <button onClick={renvoyerInvitation}
+            <button onClick={renvoyerInvitation} disabled={inviting}
               title="Renvoyer l'invitation par email"
-              style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: 'pointer', fontSize: 12 }}>
-              📧
+              style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: inviting ? 'not-allowed' : 'pointer', fontSize: 12, opacity: inviting ? 0.5 : 1 }}>
+              {inviting ? '⏳' : '📧'}
             </button>
             {editing && <button onClick={() => { setEditing(false); setForm({...joueur}) }}
               style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#6B7280', fontSize: 12, cursor: 'pointer' }}>✕</button>}
@@ -399,7 +410,7 @@ export default function FicheJoueurPage() {
 
       {/* Stats rapides */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
-        {[['Matchs', statsHistory.length], ['Buts', totalButs], ['PD', totalPD], ['Note', noteMoy]].map(([l, v]) => (
+        {[['Matchs', statsOfficielles.length], ['Buts', totalButs], ['PD', totalPD], ['Note', noteMoy]].map(([l, v]) => (
           <div key={l} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 10, padding: 8, textAlign: 'center' }}>
             <div style={{ fontSize: 17, fontWeight: 700 }}>{v}</div>
             <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{l}</div>
@@ -621,7 +632,7 @@ export default function FicheJoueurPage() {
         <>
           {/* Stats enrichies */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
-            {[['Matchs',statsHistory.length],['Titu.',statsHistory.filter(s=>s.titulaire).length],['Rempl.',statsHistory.filter(s=>!s.titulaire).length],['Buts',totalButs],['PD',totalPD],['Note moy.',noteMoy],['Tps jeu moy.',statsHistory.filter(s=>s.temps_jeu>0).length ? Math.round(statsHistory.filter(s=>s.temps_jeu>0).reduce((a,b)=>a+b.temps_jeu,0)/statsHistory.filter(s=>s.temps_jeu>0).length)+"'" : '—'],['🟡',statsHistory.filter(s=>s.carton_jaune).length],['🔴',statsHistory.filter(s=>s.carton_rouge).length]].map(([l,v]) => (
+            {[['Matchs',statsOfficielles.length],['Titu.',statsOfficielles.filter(s=>s.titulaire).length],['Rempl.',statsOfficielles.filter(s=>!s.titulaire).length],['Buts',totalButs],['PD',totalPD],['Note moy.',noteMoy],['Tps jeu moy.',statsOfficielles.filter(s=>s.temps_jeu>0).length ? Math.round(statsOfficielles.filter(s=>s.temps_jeu>0).reduce((a,b)=>a+b.temps_jeu,0)/statsOfficielles.filter(s=>s.temps_jeu>0).length)+"'" : '—'],['🟡',statsOfficielles.filter(s=>s.carton_jaune).length],['🔴',statsOfficielles.filter(s=>s.carton_rouge).length]].map(([l,v]) => (
               <div key={l} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{v}</div>
                 <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{l}</div>
