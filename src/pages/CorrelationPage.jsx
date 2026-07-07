@@ -12,11 +12,37 @@ function rpeColor(v) {
   return '#3B6D11'
 }
 
+// Deux dimensions de polarité opposée : la charge (difficulté/fatigue — plus c'est haut,
+// plus la séance a été dure) ne peut pas être moyennée avec le ressenti de performance
+// (implication/motivation/perf — plus c'est haut, mieux les joueurs se sont sentis) sans
+// que les deux signaux ne se neutralisent. On calcule donc une corrélation séparée pour
+// chacune plutôt qu'une seule moyenne composite.
+const CHARGE_ITEMS = ['difficulte', 'fatigue']
+const PERF_ITEMS = ['implication', 'motivation', 'perf_individuelle', 'perf_collective']
+
+function avgOf(r, items) {
+  const vals = items.map(k => r[k]).filter(v => v !== null && v !== undefined)
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
+}
+
+function pearson(xs, ys) {
+  const n = xs.length
+  const sumX = xs.reduce((a, b) => a + b, 0)
+  const sumY = ys.reduce((a, b) => a + b, 0)
+  const sumXY = xs.reduce((s, xi, i) => s + xi * ys[i], 0)
+  const sumX2 = xs.reduce((s, xi) => s + xi * xi, 0)
+  const sumY2 = ys.reduce((s, yi) => s + yi * yi, 0)
+  const num = n * sumXY - sumX * sumY
+  const den = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY))
+  return den !== 0 ? parseFloat((num / den).toFixed(2)) : null
+}
+
 export default function CorrelationPage() {
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState([])
-  const [correlation, setCorrelation] = useState(null)
-  const [activeView, setActiveView] = useState('graphique')
+  const [correlationCharge, setCorrelationCharge] = useState(null)
+  const [correlationPerf, setCorrelationPerf] = useState(null)
+  const [dimension, setDimension] = useState('charge') // 'charge' | 'perf' — pilote le graphique/tableau
 
   useEffect(() => { loadData() }, [])
 
@@ -30,53 +56,51 @@ export default function CorrelationPage() {
         .order('created_at', { ascending: false })
     ])
 
-    // Calcule RPE moyen par événement
-    const rpeByEvent = {}
+    // Moyennes charge / perf ressentie par événement
+    const chargeByEvent = {}
+    const perfByEvent = {}
     for (const r of (rpeData || [])) {
-      const vals = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v !== null && v !== undefined)
-      if (!vals.length) continue
-      const avg = vals.reduce((a, b) => a + b, 0) / vals.length
-      if (!rpeByEvent[r.evenement_id]) rpeByEvent[r.evenement_id] = []
-      rpeByEvent[r.evenement_id].push(avg)
+      const charge = avgOf(r, CHARGE_ITEMS)
+      const perf = avgOf(r, PERF_ITEMS)
+      if (charge !== null) {
+        if (!chargeByEvent[r.evenement_id]) chargeByEvent[r.evenement_id] = []
+        chargeByEvent[r.evenement_id].push(charge)
+      }
+      if (perf !== null) {
+        if (!perfByEvent[r.evenement_id]) perfByEvent[r.evenement_id] = []
+        perfByEvent[r.evenement_id].push(perf)
+      }
     }
 
     // Croise avec les résultats de match
     const points = []
     for (const s of (statsData || [])) {
-      const rpeVals = rpeByEvent[s.evenement_id]
-      if (!rpeVals?.length) continue
-      const rpeMoy = rpeVals.reduce((a, b) => a + b, 0) / rpeVals.length
+      const chargeVals = chargeByEvent[s.evenement_id]
+      const perfVals = perfByEvent[s.evenement_id]
+      if (!chargeVals?.length && !perfVals?.length) continue
+      const chargeMoy = chargeVals?.length ? chargeVals.reduce((a, b) => a + b, 0) / chargeVals.length : null
+      const perfMoy = perfVals?.length ? perfVals.reduce((a, b) => a + b, 0) / perfVals.length : null
       const diff = (s.buts_marques || 0) - (s.buts_encaisses || 0)
       const resultat = s.buts_marques > s.buts_encaisses ? 'V' : s.buts_marques === s.buts_encaisses ? 'N' : 'D'
       points.push({
         titre: s.evenements?.titre || 'Match',
         date: s.evenements?.date_heure,
-        rpeMoy: parseFloat(rpeMoy.toFixed(1)),
+        chargeMoy: chargeMoy !== null ? parseFloat(chargeMoy.toFixed(1)) : null,
+        perfMoy: perfMoy !== null ? parseFloat(perfMoy.toFixed(1)) : null,
         diff,
         resultat,
         buts_marques: s.buts_marques || 0,
         buts_encaisses: s.buts_encaisses || 0,
-        nb_reponses: rpeVals.length
+        nb_reponses: Math.max(chargeVals?.length || 0, perfVals?.length || 0)
       })
     }
 
     setData(points)
 
-    // Calcule la corrélation de Pearson entre RPE moyen et différence de buts
-    if (points.length >= 3) {
-      const n = points.length
-      const x = points.map(p => p.rpeMoy)
-      const y = points.map(p => p.diff)
-      const sumX = x.reduce((a, b) => a + b, 0)
-      const sumY = y.reduce((a, b) => a + b, 0)
-      const sumXY = x.reduce((s, xi, i) => s + xi * y[i], 0)
-      const sumX2 = x.reduce((s, xi) => s + xi * xi, 0)
-      const sumY2 = y.reduce((s, yi) => s + yi * yi, 0)
-      const num = n * sumXY - sumX * sumY
-      const den = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY))
-      const r = den !== 0 ? parseFloat((num / den).toFixed(2)) : 0
-      setCorrelation(r)
-    }
+    const chargePoints = points.filter(p => p.chargeMoy !== null)
+    const perfPoints = points.filter(p => p.perfMoy !== null)
+    setCorrelationCharge(chargePoints.length >= 3 ? pearson(chargePoints.map(p => p.chargeMoy), chargePoints.map(p => p.diff)) : null)
+    setCorrelationPerf(perfPoints.length >= 3 ? pearson(perfPoints.map(p => p.perfMoy), perfPoints.map(p => p.diff)) : null)
 
     setLoading(false)
   }
@@ -89,14 +113,18 @@ export default function CorrelationPage() {
     return { label: 'Faible corrélation', color: '#9CA3AF' }
   }
 
-  const corrLabel = getCorrelationLabel(correlation)
+  const corrLabelCharge = getCorrelationLabel(correlationCharge)
+  const corrLabelPerf = getCorrelationLabel(correlationPerf)
 
-  // Prépare le graphique scatter
-  const maxRpe = 5
-  const maxDiff = data.length ? Math.max(3, ...data.map(p => Math.abs(p.diff))) : 3
+  // Prépare le graphique scatter selon la dimension choisie
+  const dimKey = dimension === 'charge' ? 'chargeMoy' : 'perfMoy'
+  const dimLabel = dimension === 'charge' ? 'Charge perçue (difficulté/fatigue)' : 'Ressenti de performance'
+  const dimData = data.filter(p => p[dimKey] !== null)
+  const maxVal = 5
+  const maxDiff = dimData.length ? Math.max(3, ...dimData.map(p => Math.abs(p.diff))) : 3
   const W = 280, H = 160, PAD = 24
 
-  function xPos(rpe) { return PAD + ((rpe - 1) / (maxRpe - 1)) * (W - PAD * 2) }
+  function xPos(v) { return PAD + ((v - 1) / (maxVal - 1)) * (W - PAD * 2) }
   function yPos(diff) { return H - PAD - ((diff + maxDiff) / (maxDiff * 2)) * (H - PAD * 2) }
 
   return (
@@ -105,23 +133,23 @@ export default function CorrelationPage() {
 
       {loading ? <Spinner /> : (
         <>
-          {/* Coefficient de corrélation */}
+          {/* Coefficients de corrélation — deux dimensions distinctes */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Corrélation RPE ↔ Résultats</p>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Charge perçue ↔ Résultats</p>
             <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 12 }}>
-              Relation entre la charge ressentie par l'équipe et la différence de buts en match.
+              Relation entre la difficulté/fatigue ressentie et la différence de buts en match.
             </p>
-            {correlation !== null ? (
+            {correlationCharge !== null ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 64, height: 64, borderRadius: '50%', border: `5px solid ${corrLabel.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 800, color: corrLabel.color }}>
-                  {correlation}
+                <div style={{ width: 64, height: 64, borderRadius: '50%', border: `5px solid ${corrLabelCharge.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 800, color: corrLabelCharge.color }}>
+                  {correlationCharge}
                 </div>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: corrLabel.color }}>{corrLabel.label}</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: corrLabelCharge.color }}>{corrLabelCharge.label}</p>
                   <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
-                    {correlation > 0.4 ? 'Plus l\'équipe est chargée, meilleurs sont les résultats.' :
-                     correlation < -0.4 ? 'La surcharge nuit aux performances.' :
-                     'Pas de lien clair entre charge et résultats sur les données actuelles.'}
+                    {correlationCharge > 0.4 ? 'Plus la charge perçue est élevée, meilleurs sont les résultats.' :
+                     correlationCharge < -0.4 ? 'Une charge perçue élevée est associée à de moins bons résultats.' :
+                     'Pas de lien clair entre charge perçue et résultats sur les données actuelles.'}
                   </p>
                 </div>
               </div>
@@ -130,10 +158,47 @@ export default function CorrelationPage() {
             )}
           </Card>
 
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Ressenti de performance ↔ Résultats</p>
+            <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 12 }}>
+              Relation entre l'implication/motivation/perf. ressentie et la différence de buts.
+            </p>
+            {correlationPerf !== null ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 64, height: 64, borderRadius: '50%', border: `5px solid ${corrLabelPerf.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 800, color: corrLabelPerf.color }}>
+                  {correlationPerf}
+                </div>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: corrLabelPerf.color }}>{corrLabelPerf.label}</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
+                    {correlationPerf > 0.4 ? 'Le ressenti des joueurs est cohérent avec le résultat réel.' :
+                     correlationPerf < -0.4 ? 'Le ressenti des joueurs diverge du résultat réel.' :
+                     'Pas de lien clair entre ressenti de performance et résultats sur les données actuelles.'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Il faut au moins 3 matchs avec RPE rempli pour calculer la corrélation.</p>
+            )}
+          </Card>
+
+          {/* Sélecteur de dimension pour le graphique et le tableau */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+            {[['charge', '💪 Charge perçue'], ['perf', '⭐ Ressenti perf.']].map(([key, lbl]) => (
+              <button key={key} onClick={() => setDimension(key)} style={{
+                padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+                border: '0.5px solid #D1D5DB',
+                background: dimension === key ? '#E6F1FB' : 'transparent',
+                color: dimension === key ? THEME.primary : '#6B7280',
+                fontWeight: dimension === key ? 600 : 400
+              }}>{lbl}</button>
+            ))}
+          </div>
+
           {/* Graphique scatter */}
-          {data.length >= 2 && (
+          {dimData.length >= 2 && (
             <Card>
-              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>RPE moyen vs Différence de buts</p>
+              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{dimLabel} vs Différence de buts</p>
               <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10 }}>Chaque point = un match · 🟢 Victoire · 🟡 Nul · 🔴 Défaite</p>
               <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 160 }}>
                 {/* Axes */}
@@ -142,18 +207,18 @@ export default function CorrelationPage() {
                 {/* Ligne zéro */}
                 <line x1={PAD} y1={yPos(0)} x2={W-PAD} y2={yPos(0)} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4,4" />
                 {/* Labels axes */}
-                <text x={W/2} y={H-4} textAnchor="middle" fontSize="9" fill="#9CA3AF">RPE moyen équipe</text>
+                <text x={W/2} y={H-4} textAnchor="middle" fontSize="9" fill="#9CA3AF">{dimLabel}</text>
                 <text x={6} y={H/2} textAnchor="middle" fontSize="9" fill="#9CA3AF" transform={`rotate(-90, 6, ${H/2})`}>Diff. buts</text>
                 {/* Points */}
-                {data.map((p, i) => {
-                  const cx = xPos(p.rpeMoy)
+                {dimData.map((p, i) => {
+                  const cx = xPos(p[dimKey])
                   const cy = yPos(p.diff)
                   const color = p.resultat === 'V' ? '#3B6D11' : p.resultat === 'N' ? '#BA7517' : '#A32D2D'
                   return (
                     <g key={i}>
                       <circle cx={cx} cy={cy} r="6" fill={color} opacity="0.85" />
                       <text x={cx} y={cy-9} textAnchor="middle" fontSize="8" fill="#6B7280">
-                        {p.rpeMoy}
+                        {p[dimKey]}
                       </text>
                     </g>
                   )
@@ -165,9 +230,9 @@ export default function CorrelationPage() {
           {/* Tableau détaillé */}
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Détail par match</p>
-            {data.length === 0
+            {dimData.length === 0
               ? <p style={{ fontSize: 12, color: '#9CA3AF' }}>Aucune donnée disponible. Assure-toi que les joueurs remplissent leur RPE après chaque match.</p>
-              : data.map((p, i) => (
+              : dimData.map((p, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
                     <div>
                       <p style={{ fontSize: 12, fontWeight: 600 }}>{p.titre}</p>
@@ -177,8 +242,8 @@ export default function CorrelationPage() {
                     </div>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: rpeColor(p.rpeMoy) }}>{p.rpeMoy}</div>
-                        <div style={{ fontSize: 9, color: '#9CA3AF' }}>RPE</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: rpeColor(p[dimKey]) }}>{p[dimKey]}</div>
+                        <div style={{ fontSize: 9, color: '#9CA3AF' }}>{dimension === 'charge' ? 'Charge' : 'Perf.'}</div>
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: 13, fontWeight: 700 }}>{p.buts_marques}-{p.buts_encaisses}</div>
