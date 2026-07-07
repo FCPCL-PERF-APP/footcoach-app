@@ -25,7 +25,6 @@ export default function BilanSaisonPage() {
     setLoading(true)
     const [
       { data: matchStatsRaw },
-      { data: joueurs },
       { data: rpeData },
       { data: footData },
       { data: statsIndivRaw },
@@ -33,7 +32,6 @@ export default function BilanSaisonPage() {
       { data: eventsRaw },
     ] = await Promise.all([
       supabase.from('stats_collectives').select('*, evenements(titre,date_heure,match_type)').order('created_at', { ascending: true }),
-      supabase.from('joueurs').select('id,nom,prenom,poste'),
       supabase.from('rpe').select('*, joueurs(nom,prenom)').order('created_at', { ascending: false }),
       supabase.from('footbar').select('*, joueurs(nom,prenom)').order('created_at', { ascending: false }),
       supabase.from('stats_match').select('*, joueurs(nom,prenom), evenements(match_type)').order('created_at', { ascending: false }),
@@ -54,7 +52,6 @@ export default function BilanSaisonPage() {
     const totalMatchs = (events || []).length
     const totalButs = (matchStats || []).reduce((s, m) => s + (m.buts_marques || 0), 0)
     const totalEncaisses = (matchStats || []).reduce((s, m) => s + (m.buts_encaisses || 0), 0)
-    const meilleurResultat = [...(matchStats || [])].sort((a,b) => (b.buts_marques - b.buts_encaisses) - (a.buts_marques - a.buts_encaisses))[0]
 
     // ===== MEILLEUR BUTEUR =====
     const butsParJoueur = {}
@@ -112,7 +109,6 @@ export default function BilanSaisonPage() {
     setBilan({
       victoires, nuls, defaites, totalMatchs,
       totalButs, totalEncaisses,
-      meilleurResultat,
       meilleurButeur, meilleurPasseur,
       topPresence, rpeMoySaison, distTotale,
       topButeurs, resultats

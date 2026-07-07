@@ -24,8 +24,6 @@ export default function ChargeHebdoPage() {
   const [loading, setLoading] = useState(true)
   const [semaines, setSemaines] = useState([])
   const [activeView, setActiveView] = useState('charge')
-  const [joueurs, setJoueurs] = useState([])
-  const [selectedJoueur, setSelectedJoueur] = useState('equipe')
 
   useEffect(() => { loadData() }, [])
 
@@ -33,15 +31,12 @@ export default function ChargeHebdoPage() {
     setLoading(true)
     const depuis = subWeeks(new Date(), 12).toISOString()
 
-    const [{ data: rpeData }, { data: eventsData }, { data: joueursData }] = await Promise.all([
-      supabase.from('rpe').select('*, evenements(date_heure, type), joueurs(id, nom, prenom)')
+    const [{ data: rpeData }, { data: eventsData }] = await Promise.all([
+      supabase.from('rpe').select('*, evenements(date_heure, type)')
         .gte('created_at', depuis).order('created_at', { ascending: true }),
       supabase.from('evenements').select('*')
         .gte('date_heure', depuis).order('date_heure', { ascending: true }),
-      supabase.from('joueurs').select('id, nom, prenom').order('nom'),
     ])
-
-    setJoueurs(joueursData || [])
 
     // Groupe par semaine
     const weeks = eachWeekOfInterval(
@@ -82,23 +77,12 @@ export default function ChargeHebdoPage() {
       const nbMatchs = weekEvents.filter(e => e.type === 'match').length
       const charge = rpeMoy ? parseFloat((rpeMoy * (nbSeances + nbMatchs * 1.5)).toFixed(1)) : null
 
-      // RPE par joueur
-      const rpeParJoueur = {}
-      for (const r of weekRpe) {
-        if (!r.joueurs) continue
-        const id = r.joueurs.id
-        if (!rpeParJoueur[id]) rpeParJoueur[id] = []
-        const items = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v != null)
-        if (items.length) rpeParJoueur[id].push(items.reduce((a,b) => a+b,0)/items.length)
-      }
-
       return {
         label, dateLabel, weekStart, weekEnd,
         rpeMoy: rpeMoy ? parseFloat(rpeMoy.toFixed(1)) : null,
         charge,
         nbSeances, nbMatchs,
         nbReponses: weekRpe.length,
-        rpeParJoueur,
         fatigueMoy: (() => {
           const vals = weekRpe.map(r => r.fatigue).filter(v => v != null)
           return vals.length ? parseFloat((vals.reduce((a,b) => a+b,0)/vals.length).toFixed(1)) : null
