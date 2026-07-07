@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Input, Select, Button, Spinner } from '../components/UI'
@@ -24,7 +24,7 @@ const STATUTS = [
 export default function ObjectifsPage() {
   const { id: joueurId } = useParams()
   const navigate = useNavigate()
-  const { isCoach } = useAuth()
+  const { isCoach, isJoueur } = useAuth()
   const [joueur, setJoueur] = useState(null)
   const [objectifs, setObjectifs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -88,6 +88,10 @@ export default function ObjectifsPage() {
     }
     return styles[cat] || { bg: '#F3F4F6', color: '#6B7280' }
   }
+
+  // Vue coach des objectifs — un joueur doit passer par "Mes objectifs", pas voir/gérer
+  // ceux des autres joueurs.
+  if (isJoueur) return <Navigate to="/mes-objectifs" replace />
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
 

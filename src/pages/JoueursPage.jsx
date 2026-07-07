@@ -22,7 +22,7 @@ function rpeColor(v) {
 }
 
 export default function JoueursPage() {
-  const { isCoach } = useAuth()
+  const { isCoach, isStaff } = useAuth()
   const navigate = useNavigate()
   const [joueurs, setJoueurs] = useState([])
   const [rpeAvgs, setRpeAvgs] = useState({})
@@ -100,7 +100,7 @@ export default function JoueursPage() {
       </div>
 
       {/* Alerte surcharge */}
-      {isCoach && nbSurcharge > 0 && (
+      {isStaff && nbSurcharge > 0 && (
         <div style={{ background: '#FDF1F1', border: '0.5px solid #FCA5A5', borderRadius: 10, padding: '8px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 12, color: '#A32D2D' }}>🔴 {nbSurcharge} joueur(s) avec RPE ≥ 4</span>
           <button onClick={() => setSortBy('rpe')} style={{ fontSize: 11, color: '#A32D2D', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Voir en premier →</button>
@@ -143,12 +143,12 @@ export default function JoueursPage() {
             background: sortBy === 'nom' ? '#E6F1FB' : 'transparent',
             color: sortBy === 'nom' ? THEME.primary : '#6B7280',
           }}>A→Z</button>
-          <button onClick={() => setSortBy('rpe')} style={{
+          {isStaff && <button onClick={() => setSortBy('rpe')} style={{
             padding: '4px 8px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: `0.5px solid ${sortBy === 'rpe' ? '#A32D2D' : '#D1D5DB'}`,
             background: sortBy === 'rpe' ? '#FCEBEB' : 'transparent',
             color: sortBy === 'rpe' ? '#A32D2D' : '#6B7280',
-          }}>❤️ RPE</button>
+          }}>❤️ RPE</button>}
         </div>
       </div>
 
@@ -188,7 +188,7 @@ export default function JoueursPage() {
                 borderRadius: 14, padding: '12px 14px', marginBottom: 8,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, cursor: isStaff ? 'pointer' : 'default' }} onClick={() => isStaff && navigate(`/joueurs/${j.id}`)}>
                   {j.photo_url
                     ? <img src={j.photo_url} alt={j.nom} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                     : <Avatar initials={initials} bg={col.bg} color={col.color} size={40} />
@@ -204,7 +204,7 @@ export default function JoueursPage() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {rpe && (
+                  {isStaff && rpe && (
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: rpeColor(parseFloat(rpe)) }}>{rpe}</div>
                       <div style={{ fontSize: 9, color: '#9CA3AF' }}>RPE</div>
@@ -216,7 +216,7 @@ export default function JoueursPage() {
                       🗑️
                     </button>
                   )}
-                  <span style={{ color: '#D1D5DB', fontSize: 20, cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)}>›</span>
+                  {isStaff && <span style={{ color: '#D1D5DB', fontSize: 20, cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)}>›</span>}
                 </div>
               </div>
             )

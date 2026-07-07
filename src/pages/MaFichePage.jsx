@@ -133,6 +133,8 @@ export default function MaFichePage() {
       vma: form.vma ? parseFloat(form.vma) : null,
       fc_max: form.fc_max ? parseInt(form.fc_max) : null,
       fc_repos: form.fc_repos ? parseInt(form.fc_repos) : null,
+      points_forts: form.points_forts,
+      points_faibles: form.points_faibles,
     }).eq('id', profile.id)
     setSaving(false)
     if (error) {
@@ -365,6 +367,21 @@ export default function MaFichePage() {
                 💡 Renseigne ta FC max et ta FC de repos pour voir tes zones d'entraînement personnalisées.
               </div>
             )}
+          </Card>
+
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Points forts / axes de travail</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>Visible et modifiable par toi et ton coach.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {['points_forts', 'points_faibles'].map((field, i) => (
+                <div key={field}>
+                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>{i === 0 ? '✅ Points forts' : '⚠️ Axes de travail'}</label>
+                  <textarea value={form[field] || ''} onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
+                    rows={4}
+                    style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+                </div>
+              ))}
+            </div>
           </Card>
 
           <Button variant="primary" style={{ width: '100%' }} onClick={saveForm} disabled={saving}>

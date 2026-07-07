@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
@@ -32,7 +32,7 @@ const AVATAR_COLORS = [
 export default function FicheJoueurPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isCoach, canComment } = useAuth()
+  const { isCoach, isJoueur, canComment } = useAuth()
   const [joueur, setJoueur] = useState(null)
   const [activeTab, setActiveTab] = useState('identite')
   const [rpeHistory, setRpeHistory] = useState([])
@@ -270,6 +270,11 @@ export default function FicheJoueurPage() {
     }
     setInviting(false)
   }
+
+  // Un joueur ne doit accéder qu'à sa propre fiche — la vue détaillée coach expose
+  // des données (commentaires staff, bilan, historique complet) qui ne doivent pas
+  // être visibles pour les autres joueurs. "Ma fiche" est le point d'entrée prévu.
+  if (isJoueur) return <Navigate to="/ma-fiche" replace />
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
   if (!joueur) return <div style={{ padding: 12 }}>Joueur introuvable.</div>

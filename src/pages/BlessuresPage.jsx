@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Input, Select, Button, Spinner } from '../components/UI'
@@ -18,7 +18,7 @@ const GRAVITES = [
 export default function BlessuresPage() {
   const { id: joueurId } = useParams()
   const navigate = useNavigate()
-  const { isCoach, canEdit } = useAuth()
+  const { isCoach, isJoueur, canEdit } = useAuth()
   const [joueur, setJoueur] = useState(null)
   const [blessures, setBlessures] = useState([])
   const [loading, setLoading] = useState(true)
@@ -80,6 +80,10 @@ export default function BlessuresPage() {
     if (g === 'moderee') return { bg: '#FAEEDA', color: '#854F0B', label: '🟠 Modérée' }
     return { bg: '#FDFAEE', color: '#BA7517', label: '🟡 Légère' }
   }
+
+  // Vue coach du détail des blessures — un joueur doit rester sur sa propre fiche
+  // ("Ma fiche" → onglet Blessures), pas voir/gérer celle des autres.
+  if (isJoueur) return <Navigate to="/ma-fiche" replace />
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
 
