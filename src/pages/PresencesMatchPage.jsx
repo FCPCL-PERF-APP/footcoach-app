@@ -74,11 +74,23 @@ export default function PresencesMatchPage() {
 
   async function handleSave() {
     setSaving(true)
-    await supabase.from('presences').delete().eq('evenement_id', eventId)
+    const { error: delError } = await supabase.from('presences').delete().eq('evenement_id', eventId)
+    if (delError) {
+      setSaving(false)
+      alert('Erreur lors de l\'enregistrement des présences : ' + delError.message)
+      return
+    }
     const inserts = Object.entries(presences).map(([joueur_id, statut]) => ({
       evenement_id: eventId, joueur_id, statut
     }))
-    if (inserts.length > 0) await supabase.from('presences').insert(inserts)
+    if (inserts.length > 0) {
+      const { error: insError } = await supabase.from('presences').insert(inserts)
+      if (insError) {
+        setSaving(false)
+        alert('Erreur lors de l\'enregistrement des présences : ' + insError.message)
+        return
+      }
+    }
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)

@@ -56,20 +56,35 @@ export default function ConvocationsPage() {
   async function saveConvocations() {
     setSaving(true)
     // Supprime les anciennes convocations
-    await supabase.from('convocations').delete().eq('evenement_id', eventId)
+    const { error: delError } = await supabase.from('convocations').delete().eq('evenement_id', eventId)
+    if (delError) {
+      setSaving(false)
+      alert('Erreur lors de l\'enregistrement des convocations : ' + delError.message)
+      return
+    }
     // Insère les nouvelles
     const inserts = joueurs.map(j => ({
       evenement_id: eventId,
       joueur_id: j.id,
       convoque: selected.has(j.id)
     }))
-    await supabase.from('convocations').insert(inserts)
+    const { error: insError } = await supabase.from('convocations').insert(inserts)
+    if (insError) {
+      setSaving(false)
+      alert('Erreur lors de l\'enregistrement des convocations : ' + insError.message)
+      return
+    }
 
    // Met à jour le lieu et heure de RDV dans l'événement
-    await supabase.from('evenements').update({
+    const { error: evError } = await supabase.from('evenements').update({
       rdv_heure: rdvHeure,
       rdv_lieu: rdvLieu || event?.lieu
     }).eq('id', eventId)
+    if (evError) {
+      setSaving(false)
+      alert('Erreur lors de l\'enregistrement du RDV : ' + evError.message)
+      return
+    }
 
     // Envoie notification push aux joueurs convoqués
     const convoquesIds = joueurs.filter(j => selected.has(j.id)).map(j => j.id)

@@ -28,7 +28,7 @@ export default function ProfilCoachPage() {
 
   async function saveProfil() {
     setSaving(true)
-    await supabase.from('staff').update({
+    const { error } = await supabase.from('staff').update({
       nom: form.nom,
       prenom: form.prenom,
       telephone: form.telephone,
@@ -38,6 +38,10 @@ export default function ProfilCoachPage() {
       specialite: form.specialite,
     }).eq('id', form.id)
     setSaving(false)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+      return
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
@@ -58,12 +62,19 @@ export default function ProfilCoachPage() {
     setPhotoUploading(true)
     const path = `staff/${form.id}_${Date.now()}.jpg`
     const { error } = await supabase.storage.from('joueurs').upload(path, file, { upsert: true })
-    if (!error) {
-      const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
-      await supabase.from('staff').update({ photo_url: urlData.publicUrl }).eq('id', form.id)
-      setForm(p => ({ ...p, photo_url: urlData.publicUrl }))
+    if (error) {
+      setPhotoUploading(false)
+      alert('Erreur lors de l\'upload de la photo : ' + error.message)
+      return
     }
+    const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
+    const { error: updateError } = await supabase.from('staff').update({ photo_url: urlData.publicUrl }).eq('id', form.id)
     setPhotoUploading(false)
+    if (updateError) {
+      alert('Erreur lors de l\'enregistrement de la photo : ' + updateError.message)
+      return
+    }
+    setForm(p => ({ ...p, photo_url: urlData.publicUrl }))
   }
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>

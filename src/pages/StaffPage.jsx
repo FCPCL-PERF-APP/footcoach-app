@@ -105,15 +105,41 @@ export default function StaffPage() {
     }
   }
 
+  function isCoachLike(role) { return role === 'coach' || role === 'admin' }
+
   async function updateRole(staffId, newRole) {
-    await supabase.from('staff').update({ role: newRole }).eq('id', staffId)
+    const target = staff.find(s => s.id === staffId)
+    if (isCoachLike(target?.role) && !isCoachLike(newRole)) {
+      const nbCoachs = staff.filter(s => isCoachLike(s.role)).length
+      if (nbCoachs <= 1) {
+        alert('Impossible : il doit rester au moins un coach ou administrateur.')
+        return
+      }
+    }
+    const { error } = await supabase.from('staff').update({ role: newRole }).eq('id', staffId)
+    if (error) {
+      alert('Erreur lors de la mise à jour du rôle : ' + error.message)
+      return
+    }
     setEditingRole(null)
     loadStaff()
   }
 
   async function deleteStaff(staffId) {
     if (!window.confirm('Supprimer ce membre du staff ?')) return
-    await supabase.from('staff').delete().eq('id', staffId)
+    const target = staff.find(s => s.id === staffId)
+    if (isCoachLike(target?.role)) {
+      const nbCoachs = staff.filter(s => isCoachLike(s.role)).length
+      if (nbCoachs <= 1) {
+        alert('Impossible de supprimer le dernier coach/administrateur.')
+        return
+      }
+    }
+    const { error } = await supabase.from('staff').delete().eq('id', staffId)
+    if (error) {
+      alert('Erreur lors de la suppression : ' + error.message)
+      return
+    }
     loadStaff()
   }
 
