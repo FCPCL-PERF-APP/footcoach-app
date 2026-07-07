@@ -11,20 +11,43 @@ export default function SetPasswordPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
+  const [linkError, setLinkError] = useState(null)
 
   useEffect(() => {
+    // Un lien d'invitation/reset expiré ou déjà utilisé revient avec une erreur dans le
+    // hash de l'URL (#error=access_denied&error_code=otp_expired&error_description=...)
+    // plutôt qu'une session valide — sans ça, l'écran restait bloqué indéfiniment sur
+    // "Vérification du lien..." sans aucun message.
+    const hash = window.location.hash
+    if (hash.includes('error=')) {
+      const params = new URLSearchParams(hash.replace('#', '?'))
+      const desc = params.get('error_description')
+      setLinkError(desc ? decodeURIComponent(desc.replace(/\+/g, ' ')) : 'Ce lien est invalide ou a expiré.')
+      return
+    }
+
     // Supabase gère automatiquement le token dans l'URL
     // On attend que la session soit établie
-    supabase.auth.onAuthStateChange((event, session) => {
+    let ready = false
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+        ready = true
         setSessionReady(true)
       }
     })
 
     // Vérifie si une session existe déjà
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true)
+      if (session) { ready = true; setSessionReady(true) }
     })
+
+    // Filet de sécurité : si après 10s aucune session ni erreur explicite n'est
+    // détectée, on affiche quand même un message plutôt que d'attendre indéfiniment.
+    const timeout = setTimeout(() => {
+      if (!ready) setLinkError('Ce lien ne fonctionne pas. Il est peut-être expiré ou déjà utilisé.')
+    }, 10000)
+
+    return () => { subscription.unsubscribe(); clearTimeout(timeout) }
   }, [])
 
   async function handleSave(e) {
@@ -65,13 +88,22 @@ export default function SetPasswordPage() {
         ) : (
           <>
             <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
-              {sessionReady ? 'Crée ton mot de passe' : 'Chargement...'}
+              {sessionReady ? 'Crée ton mot de passe' : linkError ? 'Lien invalide' : 'Chargement...'}
             </h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20 }}>
-              Choisis un mot de passe pour accéder à l'app FC PCL
-            </p>
+            {!linkError && (
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20 }}>
+                Choisis un mot de passe pour accéder à l'app FC PCL
+              </p>
+            )}
 
-            {!sessionReady ? (
+            {linkError ? (
+              <div style={{ textAlign: 'center', padding: 20 }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>⚠️</div>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#A32D2D', marginBottom: 6 }}>Ce lien ne fonctionne plus</p>
+                <p style={{ fontSize: 12, color: '#6B7280' }}>{linkError}</p>
+                <p style={{ fontSize: 12, color: '#6B7280', marginTop: 10 }}>Demande au coach de te renvoyer une invitation.</p>
+              </div>
+            ) : !sessionReady ? (
               <div style={{ textAlign: 'center', padding: 20 }}>
                 <div style={{ fontSize: 24 }}>⏳</div>
                 <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>Vérification du lien...</p>

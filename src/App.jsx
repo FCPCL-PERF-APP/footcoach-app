@@ -72,6 +72,17 @@ function AppContent() {
     </div>
   )
 
+  // /set-password doit rester accessible même sans session : un lien d'invitation
+  // expiré ne déclenche jamais SIGNED_IN, donc `user` resterait null indéfiniment
+  // et on serait renvoyé vers LoginPage avant même d'afficher le message d'erreur.
+  if (!user && window.location.pathname === '/set-password') {
+    return (
+      <Suspense fallback={routeFallback}>
+        <SetPasswordPage />
+      </Suspense>
+    )
+  }
+
   if (!user) return <LoginPage />
 
   // Onboarding automatique pour les nouveaux joueurs
