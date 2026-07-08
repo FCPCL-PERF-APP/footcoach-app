@@ -82,6 +82,7 @@ export default function DashboardPage() {
   const [presenceEvolution, setPresenceEvolution] = useState([])
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
+  const [aujourdhui, setAujourdhui] = useState({ presencesAConfirmer: [], rpeFootManquants: 0, convocationsManquantes: [] })
   const [alertesTraitees, setAlertesTraitees] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('fcpcl-alertes-v2') || '{}')
@@ -283,6 +284,73 @@ export default function DashboardPage() {
     setAlertes(alertList.slice(0, 6))
     setAlertesCollectives(collAlertes)
     setNbAlertes(alertList.length + collAlertes.length)
+
+    // ===== AUJOURD'HUI / À FAIRE =====
+    const now = new Date()
+    const dans2j = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString()
+    const dans7j = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    const il3j = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString()
+
+    const [
+      { data: eventsProches },
+      { data: eventsMatchs7j },
+      { data: eventsRecents },
+    ] = await Promise.all([
+      supabase.from('evenements').select('*')
+        .gte('date_heure', now.toISOString()).lte('date_heure', dans2j)
+        .order('date_heure', { ascending: true }),
+      supabase.from('evenements').select('*')
+        .eq('type', 'match')
+        .gte('date_heure', now.toISOString()).lte('date_heure', dans7j)
+        .order('date_heure', { ascending: true }),
+      supabase.from('evenements').select('id,titre,date_heure')
+        .lte('date_heure', now.toISOString()).gte('date_heure', il3j),
+    ])
+
+    // Présences non confirmées : séance → tous les joueurs, match → seulement les convoqués
+    const presencesAConfirmer = (await Promise.all((eventsProches || []).map(async ev => {
+      let candidats = joueursData || []
+      if (ev.type === 'match') {
+        const { data: convocs } = await supabase.from('convocations').select('joueur_id')
+          .eq('evenement_id', ev.id).eq('convoque', true)
+        const convoqueIds = new Set((convocs || []).map(c => c.joueur_id))
+        candidats = candidats.filter(j => convoqueIds.has(j.id))
+      }
+      const { data: pres } = await supabase.from('presences').select('joueur_id').eq('evenement_id', ev.id)
+      const reponduIds = new Set((pres || []).map(p => p.joueur_id))
+      const sansReponse = candidats.filter(j => !reponduIds.has(j.id))
+      return sansReponse.length > 0 ? { event: ev, nb: sansReponse.length } : null
+    }))).filter(Boolean)
+
+    // RPE/Footbar manquants sur les événements récents, en excluant absents/blessés
+    let rpeFootManquants = 0
+    const eventIdsRecents = (eventsRecents || []).map(e => e.id)
+    if (eventIdsRecents.length > 0) {
+      const [{ data: rpesFaits }, { data: footFaits }] = await Promise.all([
+        supabase.from('rpe').select('joueur_id, evenement_id').in('evenement_id', eventIdsRecents),
+        supabase.from('footbar').select('joueur_id, evenement_id').in('evenement_id', eventIdsRecents),
+      ])
+      const rpeSet = new Set((rpesFaits || []).map(r => `${r.joueur_id}-${r.evenement_id}`))
+      const footSet = new Set((footFaits || []).map(f => `${f.joueur_id}-${f.evenement_id}`))
+      for (const j of (joueursData || [])) {
+        if (joueursAbsentsBlessesSurEvenement.has(j.id)) continue
+        for (const evId of eventIdsRecents) {
+          if (!rpeSet.has(`${j.id}-${evId}`) || !footSet.has(`${j.id}-${evId}`)) rpeFootManquants++
+        }
+      }
+    }
+
+    // Matchs à venir (7j) sans aucune convocation envoyée
+    let convocationsManquantes = []
+    if (eventsMatchs7j?.length) {
+      const matchIds = eventsMatchs7j.map(e => e.id)
+      const { data: convocsExistantes } = await supabase.from('convocations')
+        .select('evenement_id').in('evenement_id', matchIds)
+      const idsAvecConvoc = new Set((convocsExistantes || []).map(c => c.evenement_id))
+      convocationsManquantes = eventsMatchs7j.filter(e => !idsAvecConvoc.has(e.id))
+    }
+
+    setAujourdhui({ presencesAConfirmer, rpeFootManquants, convocationsManquantes })
     setLoading(false)
   }
 
@@ -294,6 +362,45 @@ export default function DashboardPage() {
 
       {loading ? <Spinner /> : (
         <>
+          {/* AUJOURD'HUI / À FAIRE */}
+          {(() => {
+            const items = []
+            aujourdhui.presencesAConfirmer.forEach(p => items.push({
+              icon: '❓', label: `Présence à confirmer — ${p.event.titre}`,
+              sub: `${p.nb} joueur(s) sans réponse`, action: () => navigate('/calendrier')
+            }))
+            if (aujourdhui.rpeFootManquants > 0) items.push({
+              icon: '📝', label: 'RPE / Footbar à relancer',
+              sub: `${aujourdhui.rpeFootManquants} formulaire(s) manquant(s)`, action: () => navigate('/rpe')
+            })
+            aujourdhui.convocationsManquantes.forEach(ev => items.push({
+              icon: '📢', label: `Convocation à envoyer — ${ev.titre}`,
+              sub: format(parseISO(ev.date_heure), 'EEE d MMM', { locale: fr }),
+              action: () => navigate(`/convocations/${ev.id}`)
+            }))
+
+            return (
+              <Card style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: items.length ? 8 : 0 }}>📋 Aujourd'hui</p>
+                {items.length === 0 ? (
+                  <p style={{ fontSize: 12, color: '#3B6D11' }}>✅ Tout est à jour</p>
+                ) : items.map((it, i) => (
+                  <div key={i} onClick={it.action} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 0', borderBottom: i < items.length - 1 ? '0.5px solid #F3F4F6' : 'none',
+                    cursor: 'pointer'
+                  }}>
+                    <div>
+                      <span style={{ fontSize: 12, fontWeight: 500 }}>{it.icon} {it.label}</span>
+                      <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{it.sub}</div>
+                    </div>
+                    <span style={{ fontSize: 14, color: THEME.primary }}>→</span>
+                  </div>
+                ))}
+              </Card>
+            )
+          })()}
+
           {/* STAT RPE MANQUANTS */}
           {nbAlertes > 0 && (
             <div onClick={() => navigate('/rpe')} style={{

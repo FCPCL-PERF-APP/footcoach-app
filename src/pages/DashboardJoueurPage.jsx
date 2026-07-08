@@ -29,6 +29,7 @@ export default function DashboardJoueurPage() {
   const [eventsAFaire, setEventsAFaire] = useState([])
   const [nbRpeAFaire, setNbRpeAFaire] = useState(0)
   const [nbFootAFaire, setNbFootAFaire] = useState(0)
+  const [nbPresenceAConfirmer, setNbPresenceAConfirmer] = useState(0)
 
   const joueurId = profile?.id
 
@@ -49,6 +50,9 @@ export default function DashboardJoueurPage() {
       { data: evs },
       { data: rpesFaits },
       { data: footFaits },
+      { data: eventsProchesJoueur },
+      { data: presReponses },
+      { data: convocsJoueur },
     ] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', joueurId).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)')
@@ -69,6 +73,11 @@ export default function DashboardJoueurPage() {
         .order('date_heure', { ascending: false }),
       supabase.from('rpe').select('evenement_id').eq('joueur_id', joueurId),
       supabase.from('footbar').select('evenement_id').eq('joueur_id', joueurId),
+      supabase.from('evenements').select('id,type')
+        .gte('date_heure', new Date().toISOString())
+        .lte('date_heure', new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()),
+      supabase.from('presences').select('evenement_id').eq('joueur_id', joueurId),
+      supabase.from('convocations').select('evenement_id').eq('joueur_id', joueurId).eq('convoque', true),
     ])
 
     setJoueur(j)
@@ -85,6 +94,13 @@ export default function DashboardJoueurPage() {
     setEventsAFaire(aFaire)
     setNbRpeAFaire((evs || []).filter(e => new Date(e.date_heure) < new Date() && !rpeIds.has(e.id)).length)
     setNbFootAFaire((evs || []).filter(e => new Date(e.date_heure) < new Date() && !footIds.has(e.id)).length)
+
+    // Présence à confirmer : événements proches concernés (séances + matchs où convoqué)
+    // et pour lesquels aucune réponse n'a encore été enregistrée.
+    const presRepondues = new Set((presReponses || []).map(p => p.evenement_id))
+    const convoqueIds = new Set((convocsJoueur || []).map(c => c.evenement_id))
+    const eventsConcernes = (eventsProchesJoueur || []).filter(e => e.type !== 'match' || convoqueIds.has(e.id))
+    setNbPresenceAConfirmer(eventsConcernes.filter(e => !presRepondues.has(e.id)).length)
 
     setLoading(false)
   }
@@ -183,9 +199,15 @@ export default function DashboardJoueurPage() {
       </div>
 
       {/* ALERTES */}
-      {(eventsAFaire.length > 0 || blessureActive) && (
+      {(nbPresenceAConfirmer > 0 || eventsAFaire.length > 0 || blessureActive) && (
         <Card style={{ marginBottom: 14, background: '#FDF5EE', border: '0.5px solid #F5C4B3' }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#854F0B', marginBottom: 8 }}>⚠️ À faire</p>
+          {nbPresenceAConfirmer > 0 && (
+            <div onClick={() => navigate('/calendrier')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: (eventsAFaire.length > 0 || blessureActive) ? '0.5px solid #F3F4F6' : 'none', cursor: 'pointer' }}>
+              <span style={{ fontSize: 12 }}>❓ {nbPresenceAConfirmer} présence(s) à confirmer</span>
+              <span style={{ fontSize: 11, color: THEME.primary }}>→</span>
+            </div>
+          )}
           {eventsAFaire.length > 0 && (
             <div onClick={() => navigate('/mon-rpe')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: blessureActive ? '0.5px solid #F3F4F6' : 'none', cursor: 'pointer' }}>
               <span style={{ fontSize: 12 }}>📝 {eventsAFaire.length} RPE / Footbar à remplir</span>
