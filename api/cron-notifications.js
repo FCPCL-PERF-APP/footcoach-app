@@ -85,7 +85,7 @@ export default async function handler(req, res) {
           const r = await sendPushToSubscriptions(webpush, supabase, [joueur.auth_id], {
             title: `❤️ RPE à compléter`,
             body: `${joueur.prenom}, tu as ${manquants} RPE en attente — ça prend 1 minute !`,
-            url: '/mon-rpe',
+            url: '/mon-suivi',
             icon: '/icons/logo.jpg',
             tag: 'rpe-rappel'
           })
@@ -105,7 +105,7 @@ export default async function handler(req, res) {
           const r = await sendPushToSubscriptions(webpush, supabase, [joueur.auth_id], {
             title: `📡 Footbar à compléter`,
             body: `${joueur.prenom}, tu as ${manquants} distance(s) en attente — ça prend 1 minute !`,
-            url: '/mon-footbar',
+            url: '/mon-suivi',
             icon: '/icons/logo.jpg',
             tag: 'footbar-rappel'
           })

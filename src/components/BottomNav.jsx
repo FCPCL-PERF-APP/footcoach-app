@@ -45,8 +45,7 @@ const NAV_JOUEUR_MAIN = [
   { path: '/plus',          icon: '☰',  label: 'Plus' },
 ]
 const NAV_JOUEUR_MORE = [
-  { path: '/mon-rpe',     icon: '❤️', label: 'Mon RPE' },
-  { path: '/mon-footbar', icon: '📡', label: 'Mon Footbar' },
+  { path: '/mon-suivi',   icon: '❤️', label: 'Mon suivi' },
   { path: '/mes-badges',  icon: '🏅', label: 'Mes badges' },
   { path: '/sondages',    icon: '📊', label: 'Sondages' },
   { path: '/cpa',         icon: '📐', label: 'CPA' },

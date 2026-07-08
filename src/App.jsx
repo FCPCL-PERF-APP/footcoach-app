@@ -11,9 +11,8 @@ import { THEME } from './theme'
 const CalendrierPage         = lazy(() => import('./pages/CalendrierPage'))
 const CalendrierVisuelPage   = lazy(() => import('./pages/CalendrierVisuelPage'))
 const RpePage                = lazy(() => import('./pages/RpePage'))
-const MonRpePage             = lazy(() => import('./pages/MonRpePage'))
 const FootbarPage            = lazy(() => import('./pages/FootbarPage'))
-const MonFootbarPage         = lazy(() => import('./pages/MonFootbarPage'))
+const MonSuiviPage           = lazy(() => import('./pages/MonSuiviPage'))
 const JoueursPage            = lazy(() => import('./pages/JoueursPage'))
 const FicheJoueurPage        = lazy(() => import('./pages/FicheJoueurPage'))
 const NouveauJoueurPage      = lazy(() => import('./pages/NouveauJoueurPage'))
@@ -137,10 +136,11 @@ function AppContent() {
           <Route path="/calendrier-visuel"      element={<CalendrierVisuelPage />} />
 <Route path="/fun" element={<FunPage />} />
           <Route path="/rpe"                    element={isCoach || isAdjoint ? <RpePage /> : <Navigate to="/" />} />
-          <Route path="/mon-rpe"                element={isJoueur ? <MonRpePage /> : <Navigate to="/rpe" />} />
 <Route path="/cpa" element={<CPAPage />} />
           <Route path="/footbar"                element={isCoach || isAdjoint ? <FootbarPage /> : <Navigate to="/" />} />
-          <Route path="/mon-footbar"            element={isJoueur ? <MonFootbarPage /> : <Navigate to="/footbar" />} />
+          <Route path="/mon-suivi"              element={isJoueur ? <MonSuiviPage /> : <Navigate to="/rpe" />} />
+          <Route path="/mon-rpe"                element={<Navigate to="/mon-suivi" replace />} />
+          <Route path="/mon-footbar"            element={<Navigate to="/mon-suivi" replace />} />
           <Route path="/joueurs"                element={<JoueursPage />} />
           <Route path="/joueurs/nouveau"        element={isCoach ? <NouveauJoueurPage /> : <Navigate to="/" />} />
           <Route path="/joueurs/import"         element={isCoach ? <ImportJoueursPage /> : <Navigate to="/" />} />

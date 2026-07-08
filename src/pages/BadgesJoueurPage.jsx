@@ -71,7 +71,7 @@ export default function BadgesJoueurPage() {
     const titularisations = officiels.filter(s => s.titulaire).length
 
     // Série RPE consécutive : parcourt les événements passés dans l'ordre chronologique
-    // (en excluant absent/blessé, comme MonRpePage.jsx), incrémente si RPE rempli, reset sinon
+    // (en excluant absent/blessé, comme MonSuiviPage.jsx), incrémente si RPE rempli, reset sinon
     const presByEvent = {}
     for (const p of (presences || [])) if (p.evenement_id) presByEvent[p.evenement_id] = p.statut
     const rpeEventIds = new Set((rpe || []).map(r => r.evenement_id))

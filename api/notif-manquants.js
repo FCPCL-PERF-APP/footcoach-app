@@ -16,13 +16,13 @@ const MESSAGES = {
   rpe: (eventTitre) => ({
     title: '❤️ RPE à compléter',
     body: `N'oublie pas de remplir ton RPE pour ${eventTitre} !`,
-    url: '/mon-rpe',
+    url: '/mon-suivi',
     tag: 'rpe-rappel'
   }),
   footbar: (eventTitre) => ({
     title: '📡 Footbar à compléter',
     body: `N'oublie pas de renseigner ton Footbar pour ${eventTitre} !`,
-    url: '/mon-footbar',
+    url: '/mon-suivi',
     tag: 'footbar-rappel'
   }),
   presence: (eventTitre) => ({

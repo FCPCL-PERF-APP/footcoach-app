@@ -177,8 +177,8 @@ export default function CalendrierVisuelPage() {
                       style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>❤️ RPE</button>
                   )}
                   {isJoueur && (
-                    <button onClick={() => navigate(`/mon-rpe?event=${ev.id}`)}
-                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>❤️ Mon RPE</button>
+                    <button onClick={() => navigate('/mon-suivi')}
+                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>❤️ Mon suivi</button>
                   )}
                   {/* Vue liste */}
                   <button onClick={() => navigate('/calendrier')}

@@ -461,22 +461,12 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
         </div>
       )}
 
-      {/* Boutons RPE + Footbar si présent ou extérieur */}
+      {/* Bouton RPE + Footbar si présent ou extérieur */}
       {peutRemplir && (
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => navigate(`/mon-rpe?event=${ev.id}`)}
-            style={{ flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
-            ❤️ Mon RPE
-          </button>
-          <button onClick={() => navigate(`/mon-footbar?event=${ev.id}`)}
-            style={{ flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: 11,
-              border: `0.5px solid ${isMatch ? '#1A3A6B' : '#D1D5DB'}`,
-              background: isMatch ? '#E6F1FB' : 'transparent',
-              color: isMatch ? '#1A3A6B' : '#9CA3AF', cursor: 'pointer',
-              fontWeight: isMatch ? 600 : 400 }}>
-            📡 Footbar{isMatch ? '' : ' (opt.)'}
-          </button>
-        </div>
+        <button onClick={() => navigate('/mon-suivi')}
+          style={{ width: '100%', padding: '7px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151' }}>
+          ❤️ RPE / 📡 Footbar
+        </button>
       )}
 
       {/* Statut de forme avant la séance */}

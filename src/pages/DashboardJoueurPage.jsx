@@ -209,7 +209,7 @@ export default function DashboardJoueurPage() {
             </div>
           )}
           {eventsAFaire.length > 0 && (
-            <div onClick={() => navigate('/mon-rpe')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: blessureActive ? '0.5px solid #F3F4F6' : 'none', cursor: 'pointer' }}>
+            <div onClick={() => navigate('/mon-suivi')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: blessureActive ? '0.5px solid #F3F4F6' : 'none', cursor: 'pointer' }}>
               <span style={{ fontSize: 12 }}>📝 {eventsAFaire.length} RPE / Footbar à remplir</span>
               <span style={{ fontSize: 11, color: THEME.primary }}>→</span>
             </div>
@@ -239,7 +239,7 @@ export default function DashboardJoueurPage() {
 
       {/* RACCOURCIS RPE + FOOTBAR */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
-        <div onClick={() => navigate('/mon-rpe')} style={{
+        <div onClick={() => navigate('/mon-suivi')} style={{
           background: THEME.gradient, borderRadius: 14, padding: '12px 14px',
           cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
@@ -251,7 +251,7 @@ export default function DashboardJoueurPage() {
           </div>
           <span style={{ fontSize: 18, color: '#fff' }}>→</span>
         </div>
-        <div onClick={() => navigate('/mon-footbar')} style={{
+        <div onClick={() => navigate('/mon-suivi')} style={{
           background: '#1A3A6B', borderRadius: 14, padding: '12px 14px',
           cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
