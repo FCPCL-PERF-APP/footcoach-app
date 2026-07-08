@@ -22,6 +22,7 @@ const MesObjectifsPage       = lazy(() => import('./pages/MesObjectifsPage'))
 const MessagesPage           = lazy(() => import('./pages/MessagesPage'))
 const DashboardPage          = lazy(() => import('./pages/DashboardPage'))
 const DashboardStatsPage     = lazy(() => import('./pages/DashboardStatsPage'))
+const AnalysePage            = lazy(() => import('./pages/AnalysePage'))
 const DashboardJoueurPage    = lazy(() => import('./pages/DashboardJoueurPage'))
 const RessourcesPage         = lazy(() => import('./pages/RessourcesPage'))
 const StaffPage              = lazy(() => import('./pages/StaffPage'))
@@ -175,6 +176,7 @@ function AppContent() {
 <Route path="/classement" element={isCoach ? <ClassementButeursPage /> : <Navigate to="/" />} />
 <Route path="/stats-connexion" element={isCoach ? <StatsConnexionPage /> : <Navigate to="/" />} />
 <Route path="/stats-matchs" element={isCoach ? <DashboardStatsPage /> : <Navigate to="/" />} />
+<Route path="/analyse" element={isCoach ? <AnalysePage /> : <Navigate to="/" />} />
 <Route path="/export" element={isCoach ? <ExportDonneesPage /> : <Navigate to="/" />} />
 <Route path="/joueurs/:id/radar" element={isCoach ? <RadarJoueurPage /> : <Navigate to="/" />} />
 <Route path="*" element={<Navigate to={defaultRoute} replace />} />

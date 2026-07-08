@@ -13,16 +13,13 @@ const NAV_COACH_MAIN = [
 ]
 const NAV_COACH_MORE = [
   { section: 'Suivi & analyse', items: [
-    { path: '/rpe',          icon: '❤️', label: 'RPE équipe' },
-    { path: '/footbar',      icon: '📡', label: 'Footbar équipe' },
-    { path: '/correlation',  icon: '📈', label: 'Corrélation' },
-    { path: '/charge-hebdo', icon: '📊', label: 'Charge hebdo' },
-    { path: '/comparatif',   icon: '⚖️', label: 'Comparatif' },
+    { path: '/rpe',      icon: '❤️', label: 'RPE équipe' },
+    { path: '/footbar',  icon: '📡', label: 'Footbar équipe' },
+    { path: '/analyse',  icon: '📊', label: 'Analyse' },
   ]},
   { section: 'Administration', items: [
     { path: '/staff',           icon: '⚙️', label: 'Staff' },
     { path: '/archive-saison',  icon: '📦', label: 'Archiver saison' },
-    { path: '/stats-connexion', icon: '📱', label: 'Connexions' },
     { path: '/ressources',      icon: '📁', label: 'Ressources' },
   ]},
   { section: 'Autres', items: [
