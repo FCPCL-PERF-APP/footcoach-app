@@ -22,12 +22,19 @@ const STATUTS = {
   inconnu:   { label: '❓ Inconnu',   bg: '#F3F4F6', color: '#6B7280', border: '#D1D5DB' },
 }
 
+const FORMES = {
+  bien:    { emoji: '🟢', label: 'Bien' },
+  moyen:   { emoji: '🟡', label: 'Moyen' },
+  fatigue: { emoji: '🔴', label: 'Fatigué' },
+}
+
 export default function PresencesMatchPage() {
   const { id: eventId } = useParams()
   const navigate = useNavigate()
   const [event, setEvent] = useState(null)
   const [convocations, setConvocations] = useState([])
   const [presences, setPresences] = useState({})
+  const [formes, setFormes] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -39,16 +46,20 @@ export default function PresencesMatchPage() {
 
   async function loadData() {
     setLoading(true)
-    const [{ data: ev }, { data: convocs }, { data: pres }, { data: tousJoueurs }] = await Promise.all([
+    const [{ data: ev }, { data: convocs }, { data: pres }, { data: tousJoueurs }, { data: forme }] = await Promise.all([
       supabase.from('evenements').select('*').eq('id', eventId).single(),
       supabase.from('convocations').select('*, joueurs(*)').eq('evenement_id', eventId).eq('convoque', true),
       supabase.from('presences').select('*').eq('evenement_id', eventId),
       supabase.from('joueurs').select('id, nom, prenom, poste, numero, photo_url').order('nom'),
+      supabase.from('forme_joueur').select('joueur_id, forme').eq('evenement_id', eventId),
     ])
 
     setEvent(ev)
     const presMap = {}
     for (const p of (pres || [])) presMap[p.joueur_id] = p.statut
+    const formeMap = {}
+    for (const f of (forme || [])) formeMap[f.joueur_id] = f.forme
+    setFormes(formeMap)
 
     if (ev?.type === 'seance') {
       const joueursAvecStatut = (tousJoueurs || []).map(j => ({
@@ -207,6 +218,7 @@ export default function PresencesMatchPage() {
             const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
             const statut = presences[j.id] || 'inconnu'
             const st = STATUTS[statut]
+            const forme = formes[j.id] ? FORMES[formes[j.id]] : null
             return (
               <div key={j.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '0.5px solid #F3F4F6' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -220,9 +232,14 @@ export default function PresencesMatchPage() {
                     <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
                     <p style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}{j.numero ? ` · N°${j.numero}` : ''}</p>
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: st.color, background: st.bg, padding: '3px 8px', borderRadius: 8 }}>
-                    {st.label}
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: st.color, background: st.bg, padding: '3px 8px', borderRadius: 8 }}>
+                      {st.label}
+                    </span>
+                    {forme && (
+                      <span style={{ fontSize: 10, color: '#6B7280' }}>{forme.emoji} {forme.label}</span>
+                    )}
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {Object.entries(STATUTS).map(([key, val]) => (
