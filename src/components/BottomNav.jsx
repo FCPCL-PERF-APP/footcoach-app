@@ -12,18 +12,24 @@ const NAV_COACH_MAIN = [
   { path: '/plus',       icon: '☰',  label: 'Plus' },
 ]
 const NAV_COACH_MORE = [
-  { path: '/rpe',           icon: '❤️', label: 'RPE équipe' },
-  { path: '/footbar',       icon: '📡', label: 'Footbar équipe' },
-  { path: '/ressources',    icon: '📁', label: 'Ressources' },
-  { path: '/staff',         icon: '⚙️', label: 'Staff' },
-  { path: '/correlation',   icon: '📈', label: 'Corrélation' },
-  { path: '/charge-hebdo',  icon: '📊', label: 'Charge hebdo' },
-  { path: '/comparatif',    icon: '⚖️', label: 'Comparatif' },
-  { path: '/archive-saison',icon: '📦', label: 'Archiver saison' },
-  { path: '/stats-connexion', icon: '📱', label: 'Connexions' },
-  { path: '/sondages',      icon: '📊', label: 'Sondages' },
-  { path: '/fun',           icon: '🎮', label: 'Fun & Jeux' },
-  { path: '/cpa',           icon: '📐', label: 'CPA' },
+  { section: 'Suivi & analyse', items: [
+    { path: '/rpe',          icon: '❤️', label: 'RPE équipe' },
+    { path: '/footbar',      icon: '📡', label: 'Footbar équipe' },
+    { path: '/correlation',  icon: '📈', label: 'Corrélation' },
+    { path: '/charge-hebdo', icon: '📊', label: 'Charge hebdo' },
+    { path: '/comparatif',   icon: '⚖️', label: 'Comparatif' },
+  ]},
+  { section: 'Administration', items: [
+    { path: '/staff',           icon: '⚙️', label: 'Staff' },
+    { path: '/archive-saison',  icon: '📦', label: 'Archiver saison' },
+    { path: '/stats-connexion', icon: '📱', label: 'Connexions' },
+    { path: '/ressources',      icon: '📁', label: 'Ressources' },
+  ]},
+  { section: 'Autres', items: [
+    { path: '/sondages', icon: '📊', label: 'Sondages' },
+    { path: '/fun',      icon: '🎮', label: 'Fun & Jeux' },
+    { path: '/cpa',      icon: '📐', label: 'CPA' },
+  ]},
 ]
 const NAV_STAFF_MAIN = [
   { path: '/calendrier', icon: '📅', label: 'Agenda' },
@@ -33,9 +39,11 @@ const NAV_STAFF_MAIN = [
   { path: '/plus',       icon: '☰',  label: 'Plus' },
 ]
 const NAV_STAFF_MORE = [
-  { path: '/rpe',        icon: '❤️', label: 'RPE équipe' },
-  { path: '/footbar',    icon: '📡', label: 'Footbar équipe' },
-  { path: '/ressources', icon: '📁', label: 'Ressources' },
+  { section: null, items: [
+    { path: '/rpe',        icon: '❤️', label: 'RPE équipe' },
+    { path: '/footbar',    icon: '📡', label: 'Footbar équipe' },
+    { path: '/ressources', icon: '📁', label: 'Ressources' },
+  ]},
 ]
 const NAV_JOUEUR_MAIN = [
   { path: '/mon-dashboard', icon: '🏠', label: 'Dashboard' },
@@ -45,12 +53,14 @@ const NAV_JOUEUR_MAIN = [
   { path: '/plus',          icon: '☰',  label: 'Plus' },
 ]
 const NAV_JOUEUR_MORE = [
-  { path: '/mon-suivi',   icon: '❤️', label: 'Mon suivi' },
-  { path: '/mes-badges',  icon: '🏅', label: 'Mes badges' },
-  { path: '/sondages',    icon: '📊', label: 'Sondages' },
-  { path: '/cpa',         icon: '📐', label: 'CPA' },
-  { path: '/fun',         icon: '🎮', label: 'Fun & Jeux' },
-  { path: '/ressources',  icon: '📁', label: 'Ressources' },
+  { section: null, items: [
+    { path: '/mon-suivi',   icon: '❤️', label: 'Mon suivi' },
+    { path: '/mes-badges',  icon: '🏅', label: 'Mes badges' },
+    { path: '/sondages',    icon: '📊', label: 'Sondages' },
+    { path: '/cpa',         icon: '📐', label: 'CPA' },
+    { path: '/fun',         icon: '🎮', label: 'Fun & Jeux' },
+    { path: '/ressources',  icon: '📁', label: 'Ressources' },
+  ]},
 ]
 
 export default function BottomNav() {
@@ -153,19 +163,30 @@ export default function BottomNav() {
             maxWidth: 480, margin: '0 auto',
             boxShadow: '0 -4px 20px rgba(0,0,0,.4)'
           }}>
-            {moreItems.map(item => (
-              <button key={item.path} onClick={() => { navigate(item.path); setShowMore(false) }} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-                padding: '14px 20px', border: 'none',
-                background: pathname.startsWith(item.path) ? 'rgba(255,255,255,.08)' : 'transparent',
-                cursor: 'pointer', borderBottom: '0.5px solid rgba(255,255,255,.06)'
-              }}>
-                <span style={{ fontSize: 22 }}>{item.icon}</span>
-                <span style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{item.label}</span>
-                {pathname.startsWith(item.path) && (
-                  <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>
+            {moreItems.map(({ section, items }) => (
+              <div key={section || 'default'}>
+                {section && (
+                  <p style={{
+                    fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.4)',
+                    textTransform: 'uppercase', letterSpacing: '.5px',
+                    padding: '10px 20px 4px'
+                  }}>{section}</p>
                 )}
-              </button>
+                {items.map(item => (
+                  <button key={item.path} onClick={() => { navigate(item.path); setShowMore(false) }} style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                    padding: '14px 20px', border: 'none',
+                    background: pathname.startsWith(item.path) ? 'rgba(255,255,255,.08)' : 'transparent',
+                    cursor: 'pointer', borderBottom: '0.5px solid rgba(255,255,255,.06)'
+                  }}>
+                    <span style={{ fontSize: 22 }}>{item.icon}</span>
+                    <span style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{item.label}</span>
+                    {pathname.startsWith(item.path) && (
+                      <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>
+                    )}
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
         </>
