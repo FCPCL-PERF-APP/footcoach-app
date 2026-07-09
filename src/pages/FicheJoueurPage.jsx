@@ -4,6 +4,7 @@ import { supabase, authHeaders } from '../lib/supabase'
 import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Button, Input, Select, Spinner, Avatar } from '../components/UI'
+import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME } from '../theme'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -53,6 +54,7 @@ export default function FicheJoueurPage() {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({})
   const [photoUploading, setPhotoUploading] = useState(false)
+  const [pendingPhoto, setPendingPhoto] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [newPoids, setNewPoids] = useState('')
@@ -330,6 +332,10 @@ export default function FicheJoueurPage() {
 
   return (
     <div style={{ padding: 12 }}>
+      {pendingPhoto && (
+        <PhotoCropModal file={pendingPhoto} onCancel={() => setPendingPhoto(null)}
+          onCropped={f => { setPendingPhoto(null); uploadPhoto(f) }} />
+      )}
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
         <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
@@ -345,7 +351,7 @@ export default function FicheJoueurPage() {
             </div>
           )}
           <input id={`photo-${id}`} type="file" accept="image/*" style={{ display: 'none' }}
-            onChange={e => e.target.files[0] && uploadPhoto(e.target.files[0])} />
+            onChange={e => e.target.files[0] && setPendingPhoto(e.target.files[0])} />
         </div>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 16, fontWeight: 700 }}>{joueur.nom} {joueur.prenom}</p>

@@ -24,7 +24,7 @@ const PAGE_TITLES = {
 
 export default function AppHeader() {
   const { pathname } = useLocation()
-  const { signOut, profile, isCoach, isJoueur } = useAuth()
+  const { signOut, profile, isCoach, isStaff, isJoueur } = useAuth()
   const { darkMode, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -69,8 +69,8 @@ export default function AppHeader() {
           {darkMode ? '☀️' : '🌙'}
         </button>
 
-        {/* Profil coach */}
-        {isCoach && (
+        {/* Profil staff */}
+        {isStaff && (
           <button onClick={() => navigate('/mon-profil')} style={btnStyle}>👤</button>
         )}
 

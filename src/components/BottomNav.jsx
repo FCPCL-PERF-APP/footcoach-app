@@ -53,6 +53,7 @@ const NAV_JOUEUR_MORE = [
   { section: null, items: [
     { path: '/mon-suivi',   icon: '❤️', label: 'Mon suivi' },
     { path: '/mes-badges',  icon: '🏅', label: 'Mes badges' },
+    { path: '/staff',       icon: '📋', label: 'Staff' },
     { path: '/sondages',    icon: '📊', label: 'Sondages' },
     { path: '/cpa',         icon: '📐', label: 'CPA' },
     { path: '/fun',         icon: '🎮', label: 'Fun & Jeux' },

@@ -5,6 +5,7 @@ import { validateFile } from '../lib/upload'
 import PushToggle from '../components/PushToggle'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Input, Button, Spinner, Avatar } from '../components/UI'
+import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME } from '../theme'
 
 export default function ProfilCoachPage() {
@@ -18,6 +19,7 @@ export default function ProfilCoachPage() {
   const [pwd, setPwd] = useState({ current: '', new: '', confirm: '' })
   const [pwdMsg, setPwdMsg] = useState(null)
   const [photoUploading, setPhotoUploading] = useState(false)
+  const [pendingPhoto, setPendingPhoto] = useState(null)
 
   useEffect(() => { loadProfil() }, [])
 
@@ -86,6 +88,10 @@ export default function ProfilCoachPage() {
 
   return (
     <div style={{ padding: 12 }}>
+      {pendingPhoto && (
+        <PhotoCropModal file={pendingPhoto} onCancel={() => setPendingPhoto(null)}
+          onCropped={f => { setPendingPhoto(null); uploadPhoto(f) }} />
+      )}
       <PageHeader title="Mon profil" />
 
       {/* Hero */}
@@ -100,7 +106,7 @@ export default function ProfilCoachPage() {
             📷
           </div>
           <input id="coach-photo" type="file" accept="image/*" style={{ display: 'none' }}
-            onChange={e => e.target.files[0] && uploadPhoto(e.target.files[0])} />
+            onChange={e => e.target.files[0] && setPendingPhoto(e.target.files[0])} />
         </div>
         {photoUploading && <p style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>Upload en cours...</p>}
         <p style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{form.nom} {form.prenom}</p>

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Button, Spinner } from '../components/UI'
+import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -75,6 +76,7 @@ export default function MaFichePage() {
   const [pwdMsg, setPwdMsg] = useState(null)
   const [pwdSaving, setPwdSaving] = useState(false)
   const [photoUploading, setPhotoUploading] = useState(false)
+  const [pendingPhoto, setPendingPhoto] = useState(null)
 
   useEffect(() => { if (profile?.id) loadData() }, [profile])
 
@@ -217,6 +219,10 @@ export default function MaFichePage() {
 
   return (
     <div style={{ padding: 12 }}>
+      {pendingPhoto && (
+        <PhotoCropModal file={pendingPhoto} onCancel={() => setPendingPhoto(null)}
+          onCropped={f => { setPendingPhoto(null); uploadPhoto(f) }} />
+      )}
       {/* Hero */}
       <div style={{ background: THEME.gradient, borderRadius: 16, padding: '16px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
         <label htmlFor="photo-upload-fiche" style={{ cursor: 'pointer', position: 'relative', display: 'block' }}>
@@ -228,7 +234,7 @@ export default function MaFichePage() {
           }
           <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'rgba(0,0,0,.5)', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>📷</div>
           <input id="photo-upload-fiche" type="file" accept="image/*" style={{ display: 'none' }}
-            onChange={e => e.target.files[0] && uploadPhoto(e.target.files[0])} />
+            onChange={e => e.target.files[0] && setPendingPhoto(e.target.files[0])} />
         </label>
         <div>
           <p style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{joueur?.nom} {joueur?.prenom}</p>

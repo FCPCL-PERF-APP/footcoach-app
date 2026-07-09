@@ -60,7 +60,7 @@ const routeFallback = (
 )
 
 function AppContent() {
-  const { user, profile, loading, needsOnboarding, profileError, retryProfile, signOut, isCoach, isAdjoint, isJoueur } = useAuth()
+  const { user, profile, loading, needsOnboarding, profileError, retryProfile, signOut, isCoach, isAdjoint, isJoueur, isStaff } = useAuth()
   usePush(user, profile)
 
   if (loading) return (
@@ -157,7 +157,7 @@ function AppContent() {
           <Route path="/dashboard"              element={<DashboardPage />} />
           <Route path="/mon-dashboard"          element={isJoueur ? <DashboardJoueurPage /> : <Navigate to="/dashboard" />} />
           <Route path="/ressources"             element={<RessourcesPage />} />
-          <Route path="/staff"                  element={isCoach ? <StaffPage /> : <Navigate to="/" />} />
+          <Route path="/staff"                  element={<StaffPage />} />
           <Route path="/stats/:id"              element={isCoach || isAdjoint ? <StatsPage /> : <Navigate to="/" />} />
           <Route path="/convocations/:id"       element={isCoach ? <ConvocationsPage /> : <Navigate to="/" />} />
           <Route path="/presences/:id"          element={isCoach || isAdjoint ? <PresencesMatchPage /> : <Navigate to="/" />} />
@@ -171,7 +171,7 @@ function AppContent() {
 <Route path="/mon-bilan" element={isJoueur ? <MonBilanPage /> : <Navigate to="/" />} />
 <Route path="/mon-profil-joueur" element={isJoueur ? <MonProfilJoueurPage /> : <Navigate to="/" />} />
 <Route path="/set-password" element={<SetPasswordPage />} />
-          <Route path="/mon-profil"             element={isCoach ? <ProfilCoachPage /> : <Navigate to="/" />} />
+          <Route path="/mon-profil"             element={isStaff ? <ProfilCoachPage /> : <Navigate to="/" />} />
           <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
 <Route path="/classement" element={isCoach ? <ClassementButeursPage /> : <Navigate to="/" />} />
 <Route path="/stats-connexion" element={isCoach ? <StatsConnexionPage /> : <Navigate to="/" />} />
