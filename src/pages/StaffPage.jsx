@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase, authHeaders } from '../lib/supabase'
+import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Input, Button, Spinner, Avatar } from '../components/UI'
+import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME } from '../theme'
 
 const ROLES = [
@@ -28,6 +30,11 @@ export default function StaffPage() {
   const [inviting, setInviting] = useState(false)
   const [result, setResult] = useState(null)
   const [editingRole, setEditingRole] = useState(null)
+  const [editingInfo, setEditingInfo] = useState(null)
+  const [infoForm, setInfoForm] = useState({})
+  const [savingInfo, setSavingInfo] = useState(false)
+  const [pendingPhoto, setPendingPhoto] = useState(null)
+  const [photoUploadingId, setPhotoUploadingId] = useState(null)
 
   useEffect(() => { loadStaff() }, [])
 
@@ -129,6 +136,50 @@ export default function StaffPage() {
     loadStaff()
   }
 
+  function startEditingInfo(s) {
+    setInfoForm({
+      nom: s.nom || '', prenom: s.prenom || '', telephone: s.telephone || '',
+      email: s.email || '', diplome: s.diplome || '', specialite: s.specialite || ''
+    })
+    setEditingInfo(s.id)
+  }
+
+  async function saveInfo(staffId) {
+    setSavingInfo(true)
+    const { error } = await supabase.from('staff').update({
+      nom: infoForm.nom, prenom: infoForm.prenom, telephone: infoForm.telephone,
+      email: infoForm.email, diplome: infoForm.diplome, specialite: infoForm.specialite
+    }).eq('id', staffId)
+    setSavingInfo(false)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+      return
+    }
+    setEditingInfo(null)
+    loadStaff()
+  }
+
+  async function uploadStaffPhoto(staffId, file) {
+    const err = validateFile(file, 'image')
+    if (err) { alert(err); return }
+    setPhotoUploadingId(staffId)
+    const path = `staff/${staffId}_${Date.now()}.jpg`
+    const { error } = await supabase.storage.from('joueurs').upload(path, file, { upsert: true })
+    if (error) {
+      setPhotoUploadingId(null)
+      alert('Erreur lors de l\'upload de la photo : ' + error.message)
+      return
+    }
+    const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
+    const { error: updateError } = await supabase.from('staff').update({ photo_url: urlData.publicUrl }).eq('id', staffId)
+    setPhotoUploadingId(null)
+    if (updateError) {
+      alert('Erreur lors de l\'enregistrement de la photo : ' + updateError.message)
+      return
+    }
+    loadStaff()
+  }
+
   async function deleteStaff(staffId) {
     if (!window.confirm('Supprimer ce membre du staff ?')) return
     const target = staff.find(s => s.id === staffId)
@@ -151,6 +202,10 @@ export default function StaffPage() {
 
   return (
     <div style={{ padding: 12 }}>
+      {pendingPhoto && (
+        <PhotoCropModal file={pendingPhoto.file} onCancel={() => setPendingPhoto(null)}
+          onCropped={f => { const id = pendingPhoto.staffId; setPendingPhoto(null); uploadStaffPhoto(id, f) }} />
+      )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Staff technique</h1>
         {isCoach && (
@@ -222,18 +277,35 @@ export default function StaffPage() {
             return (
               <Card key={s.id} style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {s.photo_url
-                    ? <img src={s.photo_url} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
-                    : <Avatar initials={`${s.nom?.[0]}${s.prenom?.[0]}`} bg={col.bg} color={col.color} size={44} />
-                  }
+                  <div style={{ position: 'relative' }}>
+                    {s.photo_url
+                      ? <img src={s.photo_url} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
+                      : <Avatar initials={`${s.nom?.[0]}${s.prenom?.[0]}`} bg={col.bg} color={col.color} size={44} />
+                    }
+                    {isCoach && (
+                      <>
+                        <div onClick={() => document.getElementById(`staff-photo-${s.id}`).click()}
+                          style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, background: THEME.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 10 }}>
+                          📷
+                        </div>
+                        <input id={`staff-photo-${s.id}`} type="file" accept="image/*" style={{ display: 'none' }}
+                          onChange={e => e.target.files[0] && setPendingPhoto({ staffId: s.id, file: e.target.files[0] })} />
+                      </>
+                    )}
+                  </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: 700 }}>{s.nom} {s.prenom}</p>
                     <span style={{ fontSize: 11, fontWeight: 600, color: roleInfo.color, background: `${roleInfo.color}15`, padding: '2px 8px', borderRadius: 20 }}>
                       {roleInfo.label}
                     </span>
+                    {photoUploadingId === s.id && <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>📷 Upload en cours...</p>}
                   </div>
                   {isCoach && (
                     <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => editingInfo === s.id ? setEditingInfo(null) : startEditingInfo(s)}
+                        style={{ border: 'none', background: '#EAF3DE', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 11, color: '#3B6D11', fontWeight: 600 }}>
+                        ✏️ Modifier
+                      </button>
                       <button onClick={() => setEditingRole(editingRole === s.id ? null : s.id)}
                         style={{ border: 'none', background: '#E6F1FB', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 11, color: THEME.primary, fontWeight: 600 }}>
                         ✏️ Rôle
@@ -246,11 +318,29 @@ export default function StaffPage() {
                   )}
                 </div>
 
+                {/* Formulaire de modification des coordonnées */}
+                {editingInfo === s.id && isCoach && (
+                  <div style={{ marginTop: 10, padding: 10, background: '#F9FAFB', borderRadius: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      <Input label="Nom" value={infoForm.nom} onChange={v => setInfoForm(p => ({...p, nom: v}))} />
+                      <Input label="Prénom" value={infoForm.prenom} onChange={v => setInfoForm(p => ({...p, prenom: v}))} />
+                      <Input label="Téléphone" value={infoForm.telephone} onChange={v => setInfoForm(p => ({...p, telephone: v}))} />
+                      <Input label="Email" value={infoForm.email} onChange={v => setInfoForm(p => ({...p, email: v}))} />
+                      <Input label="Diplôme" value={infoForm.diplome} onChange={v => setInfoForm(p => ({...p, diplome: v}))} />
+                      <Input label="Spécialité" value={infoForm.specialite} onChange={v => setInfoForm(p => ({...p, specialite: v}))} />
+                    </div>
+                    <Button variant="primary" style={{ width: '100%', marginTop: 4 }} onClick={() => saveInfo(s.id)} disabled={savingInfo}>
+                      {savingInfo ? 'Enregistrement...' : '💾 Enregistrer'}
+                    </Button>
+                  </div>
+                )}
+
                 {/* Infos contact */}
                 <div style={{ marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #F3F4F6' }}>
                   {s.email && <p style={{ fontSize: 11, color: '#6B7280' }}>📧 {s.email}</p>}
                   {s.telephone && <p style={{ fontSize: 11, color: '#6B7280' }}>📱 {s.telephone}</p>}
                   {s.diplome && <p style={{ fontSize: 11, color: '#6B7280' }}>🎓 {s.diplome}</p>}
+                  {s.specialite && <p style={{ fontSize: 11, color: '#6B7280' }}>🧩 {s.specialite}</p>}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
                     <p style={{ fontSize: 10, color: s.auth_id ? '#3B6D11' : '#9CA3AF' }}>
                       {s.auth_id ? '✅ Compte actif' : '⏳ Invitation en attente'}

@@ -10,6 +10,11 @@ export default function getCroppedImg(imageSrc, cropPixels, fileName) {
       canvas.width = cropPixels.width
       canvas.height = cropPixels.height
       const ctx = canvas.getContext('2d')
+      // Le JPEG ne supporte pas la transparence : sans ce fond blanc, toute zone
+      // transparente de la source (PNG) ou hors des bords de l'image lors du zoom/
+      // déplacement serait aplatie en noir par canvas.toBlob().
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
       ctx.drawImage(
         image,
         cropPixels.x, cropPixels.y, cropPixels.width, cropPixels.height,
