@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import PushToggle from '../components/PushToggle'
 import { THEME } from '../theme'
 
 const STEPS = [
@@ -45,6 +46,13 @@ const STEPS = [
     desc: 'Retrouve un résumé de toutes tes données — RPE, présences, Footbar, objectifs et blessures — en un seul endroit.',
     color: THEME.primary,
     image: '🏠 → Dashboard'
+  },
+  {
+    icon: '🔔',
+    title: 'Active tes notifications',
+    desc: 'Reçois une alerte pour les convocations, les rappels RPE et les messages de ton coach. Tu peux les désactiver à tout moment depuis ton profil.',
+    color: '#185FA5',
+    pushStep: true,
   },
   {
     icon: '🎯',
@@ -136,9 +144,16 @@ export default function OnboardingPage() {
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 10 }}>
           {current.title}
         </h2>
-        <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6, marginBottom: current.image ? 16 : 28 }}>
+        <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6, marginBottom: current.image || current.pushStep ? 16 : 28 }}>
           {current.desc}
         </p>
+
+        {/* Activation des notifications */}
+        {current.pushStep && (
+          <div style={{ textAlign: 'left', background: '#F9FAFB', borderRadius: 12, padding: '4px 14px', marginBottom: 24 }}>
+            <PushToggle />
+          </div>
+        )}
 
         {/* Chemin de navigation */}
         {current.image && (
