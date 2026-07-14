@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
+import { savePresenceOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Badge, Button, Input, Select, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -25,8 +26,19 @@ export default function CalendrierPage() {
     match_type: 'championnat'
   })
   const [saving, setSaving] = useState(false)
+  const [queueCount, setQueueCount] = useState(0)
 
   useEffect(() => { loadEvents() }, [])
+
+  // Synchronise les présences saisies hors-ligne (ex: au stade, en zone blanche) dès
+  // que la page se charge, en plus du flush automatique déclenché au retour réseau.
+  useEffect(() => {
+    if (!isJoueur) return
+    flushQueue('presences').then(() => setQueueCount(getQueueCount('presences')))
+    function onQueueChange() { setQueueCount(getQueueCount('presences')) }
+    window.addEventListener('fc-offline-queue-changed', onQueueChange)
+    return () => window.removeEventListener('fc-offline-queue-changed', onQueueChange)
+  }, [isJoueur])
 
   async function loadEvents() {
     setLoading(true)
@@ -115,6 +127,11 @@ export default function CalendrierPage() {
 
   return (
     <div style={{ padding: 12 }}>
+      {queueCount > 0 && (
+        <div style={{ background: '#FAEEDA', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center' }}>
+          📡 {queueCount} présence(s) en attente de synchronisation
+        </div>
+      )}
       {/* Modal suppression */}
       {deleteConfirm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
@@ -356,6 +373,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
   const [statut, setStatut] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [wasQueued, setWasQueued] = useState(false)
 
   useEffect(() => { if (profile?.id) loadStatut() }, [ev.id, profile?.id])
 
@@ -370,26 +388,29 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
   async function handleStatut(newStatut) {
     if (!profile?.id) return
     setSaving(true)
-    const { error: delError } = await supabase.from('presences').delete().eq('evenement_id', ev.id).eq('joueur_id', profile?.id)
-    if (delError) {
+    setWasQueued(false)
+    let result
+    try {
+      result = await savePresenceOrQueue(ev.id, profile.id, newStatut)
+    } catch (err) {
       setSaving(false)
-      alert('Erreur lors de la mise à jour de ta présence : ' + delError.message)
-      return
-    }
-    const { error: insError } = await supabase.from('presences').insert({ evenement_id: ev.id, joueur_id: profile?.id, statut: newStatut })
-    if (insError) {
-      setSaving(false)
-      alert('Erreur lors de la mise à jour de ta présence : ' + insError.message)
+      alert('Erreur lors de la mise à jour de ta présence : ' + err.message)
       return
     }
     setStatut(newStatut)
-    try {
-      await fetch('/api/notif-presence-resume', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-        body: JSON.stringify({ eventId: ev.id })
-      })
-    } catch (err) { console.error(err) }
+    setWasQueued(result.queued)
+    // Hors-ligne : pas la peine d'appeler l'API, elle échouerait de toute façon — le
+    // coach sera notifié dès que la présence sera synchronisée normalement.
+    if (!result.queued) {
+      try {
+        await fetch('/api/notif-presence-resume', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+          body: JSON.stringify({ eventId: ev.id })
+        })
+      } catch (err) { console.error(err) }
+    }
     setSaving(false)
+    if (result.queued) setTimeout(() => setWasQueued(false), 4000)
   }
 
   const isMatch = ev.type === 'match'
@@ -429,6 +450,12 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
       <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>
         {isMatch ? 'Ma présence au match :' : 'Ma présence à l\'entraînement :'}
       </p>
+
+      {wasQueued && (
+        <div style={{ background: '#FAEEDA', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: '#854F0B', textAlign: 'center', fontWeight: 600 }}>
+          📡 Pas de réseau — sera synchronisé automatiquement
+        </div>
+      )}
 
       {loading ? <p style={{ fontSize: 11, color: '#9CA3AF' }}>Chargement...</p> : (
         <div style={{ display: 'flex', gap: 5, marginBottom: 10, flexWrap: isMatch ? 'nowrap' : 'wrap' }}>
