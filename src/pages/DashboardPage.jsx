@@ -82,7 +82,7 @@ export default function DashboardPage() {
   const [presenceEvolution, setPresenceEvolution] = useState([])
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
-  const [aujourdhui, setAujourdhui] = useState({ presencesAConfirmer: [], rpeFootManquants: 0, convocationsManquantes: [] })
+  const [aujourdhui, setAujourdhui] = useState({ presencesAConfirmer: [], rpeManquants: 0, convocationsManquantes: [] })
   const [alertesTraitees, setAlertesTraitees] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('fcpcl-alertes-v2') || '{}')
@@ -322,20 +322,17 @@ export default function DashboardPage() {
       return sansReponse.length > 0 ? { event: ev, nb: sansReponse.length } : null
     }))).filter(Boolean)
 
-    // RPE/Footbar manquants sur les événements récents, en excluant absents/blessés
-    let rpeFootManquants = 0
+    // RPE manquants sur les événements récents, en excluant absents/blessés — le Footbar
+    // est facultatif (capteur pas toujours dispo, club amateur) donc pas compté ici.
+    let rpeManquants = 0
     const eventIdsRecents = (eventsRecents || []).map(e => e.id)
     if (eventIdsRecents.length > 0) {
-      const [{ data: rpesFaits }, { data: footFaits }] = await Promise.all([
-        supabase.from('rpe').select('joueur_id, evenement_id').in('evenement_id', eventIdsRecents),
-        supabase.from('footbar').select('joueur_id, evenement_id').in('evenement_id', eventIdsRecents),
-      ])
+      const { data: rpesFaits } = await supabase.from('rpe').select('joueur_id, evenement_id').in('evenement_id', eventIdsRecents)
       const rpeSet = new Set((rpesFaits || []).map(r => `${r.joueur_id}-${r.evenement_id}`))
-      const footSet = new Set((footFaits || []).map(f => `${f.joueur_id}-${f.evenement_id}`))
       for (const j of (joueursData || [])) {
         if (joueursAbsentsBlessesSurEvenement.has(j.id)) continue
         for (const evId of eventIdsRecents) {
-          if (!rpeSet.has(`${j.id}-${evId}`) || !footSet.has(`${j.id}-${evId}`)) rpeFootManquants++
+          if (!rpeSet.has(`${j.id}-${evId}`)) rpeManquants++
         }
       }
     }
@@ -350,7 +347,7 @@ export default function DashboardPage() {
       convocationsManquantes = eventsMatchs7j.filter(e => !idsAvecConvoc.has(e.id))
     }
 
-    setAujourdhui({ presencesAConfirmer, rpeFootManquants, convocationsManquantes })
+    setAujourdhui({ presencesAConfirmer, rpeManquants, convocationsManquantes })
     setLoading(false)
   }
 
@@ -369,9 +366,9 @@ export default function DashboardPage() {
               icon: '❓', label: `Présence à confirmer — ${p.event.titre}`,
               sub: `${p.nb} joueur(s) sans réponse`, action: () => navigate('/calendrier')
             }))
-            if (aujourdhui.rpeFootManquants > 0) items.push({
-              icon: '📝', label: 'RPE / Footbar à relancer',
-              sub: `${aujourdhui.rpeFootManquants} formulaire(s) manquant(s)`, action: () => navigate('/rpe')
+            if (aujourdhui.rpeManquants > 0) items.push({
+              icon: '📝', label: 'RPE à relancer',
+              sub: `${aujourdhui.rpeManquants} formulaire(s) manquant(s)`, action: () => navigate('/rpe')
             })
             aujourdhui.convocationsManquantes.forEach(ev => items.push({
               icon: '📢', label: `Convocation à envoyer — ${ev.titre}`,

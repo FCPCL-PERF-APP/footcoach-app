@@ -90,7 +90,9 @@ export default function DashboardJoueurPage() {
 
     const rpeIds = new Set((rpesFaits || []).map(r => r.evenement_id))
     const footIds = new Set((footFaits || []).map(f => f.evenement_id))
-    const aFaire = (evs || []).filter(e => !rpeIds.has(e.id) || !footIds.has(e.id))
+    // Le Footbar est facultatif (capteur pas toujours dispo, club amateur) : seul le RPE
+    // conditionne le badge "à faire".
+    const aFaire = (evs || []).filter(e => !rpeIds.has(e.id))
     setEventsAFaire(aFaire)
     setNbRpeAFaire((evs || []).filter(e => new Date(e.date_heure) < new Date() && !rpeIds.has(e.id)).length)
     setNbFootAFaire((evs || []).filter(e => new Date(e.date_heure) < new Date() && !footIds.has(e.id)).length)
@@ -210,7 +212,7 @@ export default function DashboardJoueurPage() {
           )}
           {eventsAFaire.length > 0 && (
             <div onClick={() => navigate('/mon-suivi')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: blessureActive ? '0.5px solid #F3F4F6' : 'none', cursor: 'pointer' }}>
-              <span style={{ fontSize: 12 }}>📝 {eventsAFaire.length} RPE / Footbar à remplir</span>
+              <span style={{ fontSize: 12 }}>📝 {eventsAFaire.length} RPE à remplir</span>
               <span style={{ fontSize: 11, color: THEME.primary }}>→</span>
             </div>
           )}

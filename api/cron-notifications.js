@@ -92,26 +92,8 @@ export default async function handler(req, res) {
           sent += r.sent
         }
       }
-
-      // 3. Rappel Footbar — mêmes joueurs/événements que le rappel RPE ci-dessus
-      for (const joueur of (joueurs || [])) {
-        const { data: footbars } = await supabase.from('footbar').select('evenement_id')
-          .eq('joueur_id', joueur.id).in('evenement_id', eventIds)
-
-        const footbarIds = new Set((footbars || []).map(f => f.evenement_id))
-        const manquants = eventIds.filter(id => !footbarIds.has(id)).length
-
-        if (manquants > 0) {
-          const r = await sendPushToSubscriptions(webpush, supabase, [joueur.auth_id], {
-            title: `📡 Footbar à compléter`,
-            body: `${joueur.prenom}, tu as ${manquants} distance(s) en attente — ça prend 1 minute !`,
-            url: '/mon-suivi',
-            icon: '/icons/logo.jpg',
-            tag: 'footbar-rappel'
-          })
-          sent += r.sent
-        }
-      }
+      // Le Footbar est facultatif (capteur pas toujours dispo, club amateur) : pas de
+      // relance automatique dédiée, contrairement au RPE ci-dessus.
     }
 
     // 4. Rappel présence non confirmée — événements des 2 prochains jours (même fenêtre que la section 1)

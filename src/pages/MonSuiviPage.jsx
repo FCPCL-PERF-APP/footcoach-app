@@ -147,7 +147,6 @@ export default function MonSuiviPage() {
     setFootHistory(foot || [])
 
     const rpeIds = new Set((rpe || []).map(r => r.evenement_id))
-    const footIds = new Set((foot || []).map(f => f.evenement_id))
     const passes = (evs || []).filter(e => new Date(e.date_heure) < new Date())
 
     // Filtrer les événements où le joueur est absent ou blessé
@@ -159,14 +158,10 @@ export default function MonSuiviPage() {
     const presMap = {}
     for (const p of (presData || [])) presMap[p.evenement_id] = p.statut
 
-    // Une séance sort de "à faire" dès que le RPE est rempli (Footbar optionnel).
-    // Un match reste "à faire" tant que RPE ou Footbar manque (les deux recommandés).
+    // Le Footbar est facultatif (capteur pas toujours dispo/porté, club amateur) : seul
+    // le RPE conditionne la sortie de "à faire", pour un match comme pour une séance.
     const eligibles = passes.filter(e => presMap[e.id] !== 'absent' && presMap[e.id] !== 'blesse')
-    setEventsAFaire(eligibles.filter(e => {
-      const noRpe = !rpeIds.has(e.id)
-      const noFoot = !footIds.has(e.id)
-      return e.type === 'seance' ? noRpe : (noRpe || noFoot)
-    }))
+    setEventsAFaire(eligibles.filter(e => !rpeIds.has(e.id)))
 
     if (!selectedHistEvent) {
       const firstEvent = rpe?.[0]?.evenement_id || foot?.[0]?.evenement_id

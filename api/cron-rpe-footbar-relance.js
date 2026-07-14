@@ -48,10 +48,11 @@ export default async function handler(req, res) {
         for (const p of (pres || [])) presMap[p.joueur_id] = p.statut
         const eligibles = (joueurs || []).filter(j => presMap[j.id] !== 'absent' && presMap[j.id] !== 'blesse')
 
+        // Le Footbar est facultatif (capteur pas toujours dispo, club amateur) : seul le
+        // RPE déclenche une relance automatique, pour ne pas notifier des joueurs pour
+        // quelque chose qu'ils ne peuvent pas toujours fournir.
         const { data: rpes } = await supabase.from('rpe').select('joueur_id').eq('evenement_id', ev.id)
         const rpeIds = new Set((rpes || []).map(r => r.joueur_id))
-        const { data: footbars } = await supabase.from('footbar').select('joueur_id').eq('evenement_id', ev.id)
-        const footbarIds = new Set((footbars || []).map(f => f.joueur_id))
 
         for (const joueur of eligibles) {
           if (!rpeIds.has(joueur.id)) {
@@ -61,16 +62,6 @@ export default async function handler(req, res) {
               url: '/mon-suivi',
               icon: '/icons/logo.jpg',
               tag: 'rpe-rappel'
-            })
-            sent += r.sent
-          }
-          if (!footbarIds.has(joueur.id)) {
-            const r = await sendPushToSubscriptions(webpush, supabase, [joueur.auth_id], {
-              title: '📡 Footbar à compléter',
-              body: `${joueur.prenom}, renseigne ton Footbar pour ${ev.titre}.`,
-              url: '/mon-suivi',
-              icon: '/icons/logo.jpg',
-              tag: 'footbar-rappel'
             })
             sent += r.sent
           }
