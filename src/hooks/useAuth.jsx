@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { Sentry } from '../lib/sentry'
 
 const AuthContext = createContext(null)
 
@@ -25,6 +26,12 @@ export function AuthProvider({ children }) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // Contexte utilisateur minimal pour Sentry — jamais `profile` tel quel, qui contient
+  // potentiellement email/téléphone (PII à ne pas envoyer à un service tiers).
+  useEffect(() => {
+    Sentry.setUser(profile ? { id: profile.id || user?.id, role: profile.role, type: profile.type } : null)
+  }, [profile, user])
 
   async function fetchProfile(userId) {
     setProfileError(null)

@@ -1,4 +1,4 @@
-import { adminClient, requireCoach } from './_lib.js'
+import { adminClient, requireCoach, captureError } from './_lib.js'
 
 const supabase = adminClient()
 
@@ -39,6 +39,7 @@ export default async function handler(req, res) {
     res.status(200).json({ success: true, mode: 'invite', userId: data?.user?.id })
   } catch (err) {
     console.error('Erreur invitation staff:', err)
+    captureError(err, { endpoint: 'invite-staff' })
     res.status(500).json({ error: err.message })
   }
 }

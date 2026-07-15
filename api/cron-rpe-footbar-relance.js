@@ -1,5 +1,5 @@
 import webpush from 'web-push'
-import { adminClient, sendPushToSubscriptions } from './_lib.js'
+import { adminClient, sendPushToSubscriptions, captureError } from './_lib.js'
 
 const supabase = adminClient()
 
@@ -72,6 +72,7 @@ export default async function handler(req, res) {
     res.status(200).json({ success: true, sent, events: aRelancer.length })
   } catch (err) {
     console.error('Cron relance error:', err)
+    captureError(err, { endpoint: 'cron-rpe-footbar-relance' })
     res.status(500).json({ error: err.message })
   }
 }

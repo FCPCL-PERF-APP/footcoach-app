@@ -1,5 +1,5 @@
 import webpush from 'web-push'
-import { adminClient, requireUser, sendPushToSubscriptions } from './_lib.js'
+import { adminClient, requireUser, sendPushToSubscriptions, captureError } from './_lib.js'
 
 const supabase = adminClient()
 
@@ -41,6 +41,7 @@ export default async function handler(req, res) {
     res.status(200).json({ success: true, ...result })
   } catch (err) {
     console.error('Erreur notif message:', err)
+    captureError(err, { endpoint: 'notif-message-prive' })
     res.status(500).json({ error: err.message })
   }
 }

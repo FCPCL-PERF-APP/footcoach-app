@@ -1,5 +1,5 @@
 import webpush from 'web-push'
-import { adminClient, requireCoach, sendPushToSubscriptions } from './_lib.js'
+import { adminClient, requireCoach, sendPushToSubscriptions, captureError } from './_lib.js'
 
 const supabase = adminClient()
 
@@ -39,6 +39,7 @@ export default async function handler(req, res) {
     res.status(200).json({ success: true, ...result })
   } catch (err) {
     console.error('Erreur notif convocation:', err)
+    captureError(err, { endpoint: 'notif-convocation' })
     res.status(500).json({ error: err.message })
   }
 }

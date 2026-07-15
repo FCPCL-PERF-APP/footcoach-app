@@ -1,4 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
+import * as Sentry from '@sentry/node'
+
+let sentryInitialized = false
+function initSentryServer() {
+  if (sentryInitialized || !process.env.SENTRY_DSN) return
+  Sentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.VERCEL_ENV || 'development', tracesSampleRate: 0 })
+  sentryInitialized = true
+}
+
+// Init paresseuse (seulement au premier appel réel) : chaque fichier api/*.js est son
+// propre bundle serverless isolé, pas besoin d'initialiser Sentry sur les requêtes qui
+// n'échouent jamais.
+export function captureError(err, tags) {
+  initSentryServer()
+  if (process.env.SENTRY_DSN) Sentry.captureException(err, tags ? { tags } : undefined)
+}
 
 export function adminClient() {
   return createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
@@ -42,6 +58,7 @@ export async function sendPushToSubscriptions(webpush, supabase, authIds, payloa
         // sans ce log, `sent` reste à 0 pour tout le monde sans aucune trace exploitable
         // dans les logs Vercel.
         console.error('sendPushToSubscriptions error:', err.statusCode, err.message)
+        captureError(err, { endpoint: 'sendPushToSubscriptions' })
       }
     }
   }

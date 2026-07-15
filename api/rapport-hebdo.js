@@ -1,6 +1,7 @@
 // Rapport hebdomadaire automatique — envoyé chaque lundi matin
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
+import { captureError } from './_lib.js'
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -88,6 +89,7 @@ export default async function handler(req, res) {
     res.status(200).json({ success: true, sent, rpeMoy, tauxPresence })
   } catch (err) {
     console.error('Erreur rapport hebdo:', err)
+    captureError(err, { endpoint: 'rapport-hebdo' })
     res.status(500).json({ error: err.message })
   }
 }

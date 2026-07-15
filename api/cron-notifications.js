@@ -1,5 +1,5 @@
 import webpush from 'web-push'
-import { adminClient, sendPushToSubscriptions } from './_lib.js'
+import { adminClient, sendPushToSubscriptions, captureError } from './_lib.js'
 
 const supabase = adminClient()
 
@@ -121,6 +121,7 @@ export default async function handler(req, res) {
     res.status(200).json({ success: true, sent })
   } catch (err) {
     console.error('Cron error:', err)
+    captureError(err, { endpoint: 'cron-notifications' })
     res.status(500).json({ error: err.message })
   }
 }
