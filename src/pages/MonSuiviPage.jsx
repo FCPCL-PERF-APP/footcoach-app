@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { bornesSaison } from '../lib/saison'
 import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner } from '../components/UI'
@@ -136,12 +137,22 @@ export default function MonSuiviPage() {
   async function loadData() {
     if (!profile?.id) return
     setLoading(true)
-    const [{ data: evs }, { data: rpe }, { data: foot }] = await Promise.all([
-      supabase.from('evenements').select('*').order('date_heure', { ascending: false }).limit(30),
+    const { debut, fin } = bornesSaison()
+
+    // Événements de la saison en cours, sans limite arbitraire (une saison ne dépasse
+    // jamais quelques centaines d'événements) — sinon les entrées RPE/Footbar les plus
+    // anciennes de la saison (ex: août) disparaissaient de l'historique et des bilans
+    // dès que plus de 50 entrées plus récentes existaient.
+    const { data: evs } = await supabase.from('evenements').select('*')
+      .gte('date_heure', debut).lte('date_heure', fin)
+      .order('date_heure', { ascending: false })
+    const idsSaison = (evs || []).map(e => e.id)
+
+    const [{ data: rpe }, { data: foot }] = await Promise.all([
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)')
-        .eq('joueur_id', profile.id).order('created_at', { ascending: false }).limit(50),
+        .eq('joueur_id', profile.id).in('evenement_id', idsSaison).order('created_at', { ascending: false }),
       supabase.from('footbar').select('*, evenements(titre,type,date_heure)')
-        .eq('joueur_id', profile.id).order('created_at', { ascending: false }).limit(50),
+        .eq('joueur_id', profile.id).in('evenement_id', idsSaison).order('created_at', { ascending: false }),
     ])
     setRpeHistory(rpe || [])
     setFootHistory(foot || [])
@@ -164,8 +175,11 @@ export default function MonSuiviPage() {
     setEventsAFaire(eligibles.filter(e => !rpeIds.has(e.id)))
 
     if (!selectedHistEvent) {
-      const firstEvent = rpe?.[0]?.evenement_id || foot?.[0]?.evenement_id
-      if (firstEvent) setSelectedHistEvent(firstEvent)
+      // Le premier événement (par date, pas par date de saisie) ayant un RPE ou un
+      // Footbar — cohérent avec l'ordre affiché dans le menu déroulant "Historique".
+      const footIds = new Set((foot || []).map(f => f.evenement_id))
+      const firstEvent = (evs || []).find(e => rpeIds.has(e.id) || footIds.has(e.id))
+      if (firstEvent) setSelectedHistEvent(firstEvent.id)
     }
     setLoading(false)
   }
