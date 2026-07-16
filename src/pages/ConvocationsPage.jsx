@@ -38,8 +38,8 @@ export default function ConvocationsPage() {
 
   useEffect(() => { loadData() }, [eventId])
 
-  // Coupe = 16 convocables (règlement), championnat/préparation = 14
-  const cap = event?.match_type === 'coupe' ? 16 : 14
+  // Coupe = 16 convocables (règlement), championnat = 14, préparation = 22 (effectif large, pas de règlement de compétition)
+  const cap = event?.match_type === 'coupe' ? 16 : event?.match_type === 'preparation' ? 22 : 14
 
   async function loadData() {
     setLoading(true)
@@ -189,7 +189,7 @@ export default function ConvocationsPage() {
               </span>
             </div>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10, marginTop: -6 }}>
-              {event?.match_type === 'coupe' ? 'Match de coupe · 16 convocables' : 'Championnat / préparation · 14 convocables'} — les joueurs disponibles sont affichés en premier.
+              {event?.match_type === 'coupe' ? 'Match de coupe' : event?.match_type === 'preparation' ? 'Match de préparation' : 'Championnat'} · {cap} convocables — les joueurs disponibles sont affichés en premier.
             </p>
 
             {/* Aperçu SMS */}
