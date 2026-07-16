@@ -322,8 +322,12 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
     setConvoque(data?.convoque || false)
   }
 
+  // Liseré coloré à gauche pour distinguer les cartes d'un coup d'œil dans la liste
+  // (même couleur que le badge type, au lieu d'un simple bloc blanc uniforme).
+  const typeColor = ev.type === 'match' ? '#185FA5' : THEME.success
+
   return (
-    <Card style={{ opacity: past ? 0.85 : 1, marginBottom: 10 }}>
+    <Card style={{ opacity: past ? 0.85 : 1, marginBottom: 10, borderLeft: `3px solid ${typeColor}` }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, flexWrap: 'wrap' }}>
           <Badge type={ev.type}>
@@ -353,9 +357,9 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
       </div>
 
       <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
-        <CalendarDays size={11} /> {dateStr}{ev.type === 'match' ? (ev.domicile ? ' · Domicile' : ' · Déplacement') : ''}
+        <CalendarDays size={11} color={THEME.primary} /> {dateStr}{ev.type === 'match' ? (ev.domicile ? ' · Domicile' : ' · Déplacement') : ''}
       </p>
-      {ev.lieu && <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} /> {ev.lieu}</p>}
+      {ev.lieu && <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} color={CAT_COLORS.violet.color} /> {ev.lieu}</p>}
       {ev.type === 'match' && ev.rdv_heure && (
         <p style={{ fontSize: 11, color: THEME.primary, marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
           <Clock size={11} /> RDV {ev.rdv_heure}{ev.rdv_lieu ? ` · ${ev.rdv_lieu}` : ''}
@@ -373,15 +377,17 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
         </div>
       )}
 
-      {/* Boutons STAFF (coach + adjoint/préparateur/gardien) */}
+      {/* Boutons STAFF (coach + adjoint/préparateur/gardien) — icône colorée par
+          catégorie pour les distinguer d'un coup d'œil, au lieu d'une rangée de
+          pilules grises identiques. */}
       {isStaff && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-          {isCoach && ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}><Send size={11} style={{ marginRight: 4, verticalAlign: -2 }} />Convocations</Button>}
-          <Button size="sm" onClick={() => navigate(`/presences/${ev.id}`)}><CheckCircle2 size={11} style={{ marginRight: 4, verticalAlign: -2 }} />Présences</Button>
-          {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}><BarChart3 size={11} style={{ marginRight: 4, verticalAlign: -2 }} />Stats</Button>}
-          <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}><Heart size={11} style={{ marginRight: 4, verticalAlign: -2 }} />RPE</Button>
-          <Button size="sm" onClick={() => navigate(`/footbar?event=${ev.id}`)}><Radio size={11} style={{ marginRight: 4, verticalAlign: -2 }} />Footbar</Button>
-          {isCoach && <Button size="sm" onClick={() => onDuplicate(ev)}><Copy size={11} style={{ marginRight: 4, verticalAlign: -2 }} />Dupliquer</Button>}
+          {isCoach && ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}><Send size={11} color={CAT_COLORS.blue.color} style={{ marginRight: 4, verticalAlign: -2 }} />Convocations</Button>}
+          <Button size="sm" onClick={() => navigate(`/presences/${ev.id}`)}><CheckCircle2 size={11} color={THEME.success} style={{ marginRight: 4, verticalAlign: -2 }} />Présences</Button>
+          {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}><BarChart3 size={11} color={CAT_COLORS.purple.color} style={{ marginRight: 4, verticalAlign: -2 }} />Stats</Button>}
+          <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}><Heart size={11} color={CAT_COLORS.rose.color} style={{ marginRight: 4, verticalAlign: -2 }} />RPE</Button>
+          <Button size="sm" onClick={() => navigate(`/footbar?event=${ev.id}`)}><Radio size={11} color={CAT_COLORS.orange.color} style={{ marginRight: 4, verticalAlign: -2 }} />Footbar</Button>
+          {isCoach && <Button size="sm" onClick={() => onDuplicate(ev)}><Copy size={11} color={CAT_COLORS.slate.color} style={{ marginRight: 4, verticalAlign: -2 }} />Dupliquer</Button>}
         </div>
       )}
 
