@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { Card, PageHeader, Input, Select, Button } from '../components/UI'
 import { THEME } from '../theme'
+import { ArrowLeft, CheckCircle2, Mail, AlertTriangle, Lightbulb, Plus, Check } from 'lucide-react'
 
 export default function NouveauJoueurPage() {
   const navigate = useNavigate()
@@ -88,38 +89,42 @@ export default function NouveauJoueurPage() {
       <div style={{ padding: 12 }}>
         <Card>
           <div style={{ textAlign: 'center', padding: 24 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#3B6D11' }}>
+            <CheckCircle2 size={44} color={THEME.success} style={{ marginBottom: 12 }} />
+            <p style={{ fontSize: 16, fontWeight: 700, color: THEME.success }}>
               {form.prenom} {form.nom.toUpperCase()} ajouté !
             </p>
             {form.email && inviteEmail && !inviteError && inviteMode === 'reset' && (
-              <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: '#3B6D11' }}>
-                📧 Ce joueur avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à<br />
-                <strong>{form.email}</strong>
+              <div style={{ background: THEME.successBg, borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: THEME.success, display: 'flex', gap: 6 }}>
+                <Mail size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>Ce joueur avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à<br />
+                <strong>{form.email}</strong></span>
               </div>
             )}
             {form.email && inviteEmail && !inviteError && inviteMode === 'invite' && (
-              <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: '#3B6D11' }}>
-                📧 Un email d'invitation a été envoyé à<br />
+              <div style={{ background: THEME.successBg, borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: THEME.success, display: 'flex', gap: 6 }}>
+                <Mail size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>Un email d'invitation a été envoyé à<br />
                 <strong>{form.email}</strong><br />
-                Le joueur devra créer son mot de passe.
+                Le joueur devra créer son mot de passe.</span>
               </div>
             )}
             {form.email && inviteEmail && inviteError && (
-              <div style={{ background: '#FCEBEB', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: '#A32D2D' }}>
-                ⚠️ Le joueur a été créé, mais l'envoi de l'invitation a échoué : {inviteError}.<br />
-                Tu peux la renvoyer depuis la fiche du joueur.
+              <div style={{ background: THEME.dangerBg, borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: THEME.danger, display: 'flex', gap: 6 }}>
+                <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>Le joueur a été créé, mais l'envoi de l'invitation a échoué : {inviteError}.<br />
+                Tu peux la renvoyer depuis la fiche du joueur.</span>
               </div>
             )}
             {form.email && !inviteEmail && (
-              <div style={{ background: '#E6F1FB', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: THEME.primary }}>
-                💡 Pour créer le compte du joueur manuellement :<br />
-                Supabase → Authentication → Users → Add user
+              <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: THEME.primary, display: 'flex', gap: 6 }}>
+                <Lightbulb size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>Pour créer le compte du joueur manuellement :<br />
+                Supabase → Authentication → Users → Add user</span>
               </div>
             )}
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              <Button variant="primary" style={{ flex: 1 }} onClick={() => { setStep(1); setForm({ nom:'',prenom:'',poste:'',numero:'',groupe:'A',date_naissance:'',licence:'',pied:'Droit',telephone:'',email:'',adresse:'',contact_urgence_nom:'',contact_urgence_tel:'',taille:'',poids:'' }) }}>
-                + Ajouter un autre joueur
+              <Button variant="primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }} onClick={() => { setStep(1); setForm({ nom:'',prenom:'',poste:'',numero:'',groupe:'A',date_naissance:'',licence:'',pied:'Droit',telephone:'',email:'',adresse:'',contact_urgence_nom:'',contact_urgence_tel:'',taille:'',poids:'' }) }}>
+                <Plus size={13} /> Ajouter un autre joueur
               </Button>
               <Button style={{ flex: 1 }} onClick={() => navigate('/joueurs')}>
                 Voir l'effectif
@@ -134,7 +139,7 @@ export default function NouveauJoueurPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
+        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Nouveau joueur</h1>
       </div>
 
@@ -193,9 +198,9 @@ export default function NouveauJoueurPage() {
         </Card>
       )}
 
-      <Button variant="primary" style={{ width: '100%', padding: 14, fontSize: 14 }}
+      <Button variant="primary" style={{ width: '100%', padding: 14, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
         onClick={handleSave} disabled={saving}>
-        {saving ? 'Création en cours...' : '✅ Créer le joueur'}
+        {saving ? 'Création en cours...' : <><Check size={14} /> Créer le joueur</>}
       </Button>
     </div>
   )
