@@ -3,16 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { THEME } from '../theme'
+import { Hand, Calendar, Users, Heart, BarChart3, MessageCircle, Trophy, ArrowLeft, ArrowRight } from 'lucide-react'
 
 const STEPS = [
   {
-    icon: '👋',
+    icon: Hand,
     titre: 'Bienvenue Coach !',
     desc: "Bienvenue sur l'app FC PCL. Ce guide rapide te présente les fonctionnalités essentielles pour bien démarrer la saison.",
     tips: []
   },
   {
-    icon: '📅',
+    icon: Calendar,
     titre: 'L\'Agenda',
     desc: "Crée tous tes événements de la saison : matchs, entraînements, et séances récurrentes.",
     tips: [
@@ -22,7 +23,7 @@ const STEPS = [
     ]
   },
   {
-    icon: '👥',
+    icon: Users,
     titre: 'Les Joueurs',
     desc: "Gère ta liste de joueurs et invite-les sur l'app pour qu'ils puissent remplir leur RPE et consulter l'agenda.",
     tips: [
@@ -33,7 +34,7 @@ const STEPS = [
     ]
   },
   {
-    icon: '❤️',
+    icon: Heart,
     titre: 'RPE & Footbar',
     desc: "Après chaque séance ou match, tes joueurs remplissent leur RPE. Tu accèdes aux données en temps réel.",
     tips: [
@@ -44,7 +45,7 @@ const STEPS = [
     ]
   },
   {
-    icon: '📊',
+    icon: BarChart3,
     titre: 'Stats & Analyse',
     desc: "Après chaque match, saisis les stats pour suivre les performances individuelles et collectives.",
     tips: [
@@ -55,7 +56,7 @@ const STEPS = [
     ]
   },
   {
-    icon: '💬',
+    icon: MessageCircle,
     titre: 'Communication',
     desc: "Communique avec tes joueurs via la messagerie intégrée — canal groupe ou messages privés.",
     tips: [
@@ -66,7 +67,7 @@ const STEPS = [
     ]
   },
   {
-    icon: '🏆',
+    icon: Trophy,
     titre: 'Tout est prêt !',
     desc: "Tu as tout ce qu'il faut pour gérer ta saison comme un pro. Bonne saison au FC PCL !",
     tips: [
@@ -100,7 +101,7 @@ export default function OnboardingCoachPage() {
 
       {/* Contenu */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: 72, marginBottom: 20 }}>{current.icon}</div>
+        <div style={{ marginBottom: 20 }}><current.icon size={64} color="#fff" strokeWidth={1.5} /></div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', textAlign: 'center', marginBottom: 12 }}>{current.titre}</h1>
         <p style={{ fontSize: 15, color: 'rgba(255,255,255,.85)', textAlign: 'center', marginBottom: 28, lineHeight: 1.6, maxWidth: 340 }}>{current.desc}</p>
 
@@ -116,8 +117,8 @@ export default function OnboardingCoachPage() {
       {/* Navigation */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 32 }}>
         <button onClick={() => step > 0 ? setStep(s => s - 1) : null}
-          style={{ padding: '12px 20px', borderRadius: 12, border: '1px solid rgba(255,255,255,.3)', background: 'transparent', color: '#fff', fontSize: 14, cursor: step > 0 ? 'pointer' : 'not-allowed', opacity: step > 0 ? 1 : 0.3 }}>
-          ← Précédent
+          style={{ padding: '12px 20px', borderRadius: 12, border: '1px solid rgba(255,255,255,.3)', background: 'transparent', color: '#fff', fontSize: 14, cursor: step > 0 ? 'pointer' : 'not-allowed', opacity: step > 0 ? 1 : 0.3, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <ArrowLeft size={14} /> Précédent
         </button>
 
         <span style={{ fontSize: 12, color: 'rgba(255,255,255,.6)' }}>{step + 1} / {STEPS.length}</span>
@@ -125,12 +126,12 @@ export default function OnboardingCoachPage() {
         {isLast ? (
           <button onClick={finish}
             style={{ padding: '12px 24px', borderRadius: 12, border: 'none', background: '#fff', color: THEME.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
-            C'est parti ! ⚽
+            C'est parti !
           </button>
         ) : (
           <button onClick={() => setStep(s => s + 1)}
-            style={{ padding: '12px 20px', borderRadius: 12, border: 'none', background: 'rgba(255,255,255,.2)', color: '#fff', fontSize: 14, cursor: 'pointer' }}>
-            Suivant →
+            style={{ padding: '12px 20px', borderRadius: 12, border: 'none', background: 'rgba(255,255,255,.2)', color: '#fff', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            Suivant <ArrowRight size={14} />
           </button>
         )}
       </div>

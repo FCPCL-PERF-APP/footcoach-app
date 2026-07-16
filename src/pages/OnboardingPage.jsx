@@ -4,58 +4,59 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import PushToggle from '../components/PushToggle'
 import { THEME } from '../theme'
+import { Hand, Calendar, Heart, Radio, MessageCircle, Home, Bell, Target, ArrowLeft, ArrowRight, Rocket, MapPin } from 'lucide-react'
 
 const STEPS = [
   {
-    icon: '👋',
+    icon: Hand,
     title: 'Bienvenue dans l\'app FC PCL !',
     desc: 'Ton coach Romain GICQUEL t\'a invité à rejoindre l\'application officielle du FC PCL. En quelques minutes, tu seras prêt à l\'utiliser.',
     color: THEME.primary,
   },
   {
-    icon: '📅',
+    icon: Calendar,
     title: 'Ton calendrier',
-    desc: 'Consulte tous les matchs et entraînements à venir. Confirme ta présence directement depuis l\'app avec ✅ Présent, ❌ Absent ou 🤕 Blessé.',
+    desc: 'Consulte tous les matchs et entraînements à venir. Confirme ta présence directement depuis l\'app avec Présent, Absent ou Blessé.',
     color: '#185FA5',
-    image: '📅 → Agenda'
+    image: 'Agenda'
   },
   {
-    icon: '❤️',
+    icon: Heart,
     title: 'Ton RPE',
     desc: 'Après chaque séance ou match, remplis ton RPE (évaluation de l\'effort perçu). Ça prend 2 minutes et aide ton coach à gérer ta charge de travail.',
     color: '#A32D2D',
-    image: '❤️ → Mon RPE'
+    image: 'Mon RPE'
   },
   {
-    icon: '📡',
+    icon: Radio,
     title: 'Ton Footbar',
     desc: 'Si tu as accès à des données GPS ou de tracking, saisis tes statistiques physiques : distance, sprints, vitesse max...',
     color: '#3B6D11',
-    image: '☰ Plus → Mon Footbar'
+    image: 'Plus → Mon Footbar'
   },
   {
-    icon: '💬',
+    icon: MessageCircle,
     title: 'Messages',
     desc: 'Communique directement avec ton coach et tes coéquipiers. Le canal groupe est accessible à toute l\'équipe.',
     color: '#854F0B',
-    image: '💬 → Messages'
+    image: 'Messages'
   },
   {
-    icon: '🏠',
+    icon: Home,
     title: 'Ton dashboard',
     desc: 'Retrouve un résumé de toutes tes données — RPE, présences, Footbar, objectifs et blessures — en un seul endroit.',
     color: THEME.primary,
-    image: '🏠 → Dashboard'
+    image: 'Dashboard'
   },
   {
-    icon: '🔔',
+    icon: Bell,
     title: 'Active tes notifications',
     desc: 'Reçois une alerte pour les convocations, les rappels RPE et les messages de ton coach. Tu peux les désactiver à tout moment depuis ton profil.',
     color: '#185FA5',
     pushStep: true,
   },
   {
-    icon: '🎯',
+    icon: Target,
     title: 'Tu es prêt !',
     desc: 'L\'application est là pour t\'aider à progresser. Ton coach suit tes données pour mieux personnaliser ton entraînement.',
     color: '#3B6D11',
@@ -136,9 +137,9 @@ export default function OnboardingPage() {
           width: 72, height: 72, borderRadius: '50%',
           background: `${current.color}15`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 32, margin: '0 auto 16px'
+          margin: '0 auto 16px'
         }}>
-          {current.icon}
+          <current.icon size={30} color={current.color} strokeWidth={1.8} />
         </div>
 
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 10 }}>
@@ -157,8 +158,9 @@ export default function OnboardingPage() {
 
         {/* Chemin de navigation */}
         {current.image && (
-          <div style={{ background: '#F0F4FF', borderRadius: 10, padding: '8px 14px', marginBottom: 24, display: 'inline-block' }}>
-            <p style={{ fontSize: 12, color: THEME.primary, fontWeight: 600 }}>📍 {current.image}</p>
+          <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: '8px 14px', marginBottom: 24, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <MapPin size={12} color={THEME.primary} />
+            <p style={{ fontSize: 12, color: THEME.primary, fontWeight: 600 }}>{current.image}</p>
           </div>
         )}
 
@@ -168,15 +170,17 @@ export default function OnboardingPage() {
             <button onClick={() => setStep(s => s - 1)} style={{
               flex: 1, padding: 12, borderRadius: 10,
               border: '0.5px solid #D1D5DB', background: 'transparent',
-              fontSize: 13, cursor: 'pointer', color: '#6B7280'
-            }}>← Retour</button>
+              fontSize: 13, cursor: 'pointer', color: '#6B7280',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+            }}><ArrowLeft size={13} /> Retour</button>
           )}
           <button onClick={isLast ? finish : () => setStep(s => s + 1)} style={{
             flex: 2, padding: 12, borderRadius: 10,
             border: 'none', background: THEME.gradient,
-            color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+            color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
           }}>
-            {isLast ? '🚀 Commencer !' : 'Suivant →'}
+            {isLast ? <><Rocket size={14} /> Commencer !</> : <>Suivant <ArrowRight size={14} /></>}
           </button>
         </div>
 
