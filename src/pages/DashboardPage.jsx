@@ -328,16 +328,24 @@ export default function DashboardPage() {
       return sansReponse.length > 0 ? { event: ev, nb: sansReponse.length } : null
     }))).filter(Boolean)
 
-    // RPE manquants sur les événements récents, en excluant absents/blessés — le Footbar
-    // est facultatif (capteur pas toujours dispo, club amateur) donc pas compté ici.
+    // RPE manquants sur les événements récents, en excluant absents/blessés et, pour un
+    // match, les joueurs non convoqués — le Footbar est facultatif (capteur pas toujours
+    // dispo, club amateur) donc pas compté ici.
     let rpeManquants = 0
     const eventIdsRecents = (eventsRecents || []).map(e => e.id)
     if (eventIdsRecents.length > 0) {
-      const { data: rpesFaits } = await supabase.from('rpe').select('joueur_id, evenement_id').in('evenement_id', eventIdsRecents)
+      const [{ data: rpesFaits }, { data: recentsFull }, { data: convocsRecentes }] = await Promise.all([
+        supabase.from('rpe').select('joueur_id, evenement_id').in('evenement_id', eventIdsRecents),
+        supabase.from('evenements').select('id,type').in('id', eventIdsRecents),
+        supabase.from('convocations').select('joueur_id, evenement_id').eq('convoque', true).in('evenement_id', eventIdsRecents),
+      ])
       const rpeSet = new Set((rpesFaits || []).map(r => `${r.joueur_id}-${r.evenement_id}`))
+      const matchIdsRecents = new Set((recentsFull || []).filter(e => e.type === 'match').map(e => e.id))
+      const convoqueSet = new Set((convocsRecentes || []).map(c => `${c.joueur_id}-${c.evenement_id}`))
       for (const j of (joueursData || [])) {
         if (joueursAbsentsBlessesSurEvenement.has(j.id)) continue
         for (const evId of eventIdsRecents) {
+          if (matchIdsRecents.has(evId) && !convoqueSet.has(`${j.id}-${evId}`)) continue
           if (!rpeSet.has(`${j.id}-${evId}`)) rpeManquants++
         }
       }

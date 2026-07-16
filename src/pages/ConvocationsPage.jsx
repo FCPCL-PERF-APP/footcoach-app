@@ -5,7 +5,14 @@ import { Card, PageHeader, Button, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { ArrowLeft, CheckCircle2, MapPin, Bell, Send, Check } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, MapPin, Bell, Send, Check, XCircle, Bandage, HelpCircle } from 'lucide-react'
+
+const DISPO = {
+  present: { label: 'Disponible', icon: CheckCircle2, color: THEME.success, bg: THEME.successBg },
+  absent:  { label: 'Indisponible', icon: XCircle, color: THEME.danger, bg: THEME.dangerBg },
+  blesse:  { label: 'Blessé', icon: Bandage, color: '#854F0B', bg: THEME.warningBg },
+  inconnu: { label: 'Sans réponse', icon: HelpCircle, color: '#9CA3AF', bg: '#F3F4F6' },
+}
 
 const AVATAR_COLORS = [
   { bg: '#B5D4F4', color: '#0C447C' },
@@ -27,18 +34,31 @@ export default function ConvocationsPage() {
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(true)
   const [existingConvocs, setExistingConvocs] = useState([])
+  const [dispos, setDispos] = useState({})
 
   useEffect(() => { loadData() }, [eventId])
 
+  // Coupe = 16 convocables (règlement), championnat/préparation = 14
+  const cap = event?.match_type === 'coupe' ? 16 : 14
+
   async function loadData() {
     setLoading(true)
-    const [{ data: ev }, { data: jrs }, { data: convocs }] = await Promise.all([
+    const [{ data: ev }, { data: jrs }, { data: convocs }, { data: pres }] = await Promise.all([
       supabase.from('evenements').select('*').eq('id', eventId).single(),
       supabase.from('joueurs').select('*').order('nom'),
-      supabase.from('convocations').select('*').eq('evenement_id', eventId)
+      supabase.from('convocations').select('*').eq('evenement_id', eventId),
+      supabase.from('presences').select('joueur_id, statut').eq('evenement_id', eventId),
     ])
     setEvent(ev)
-    setJoueurs(jrs || [])
+    const dispoMap = {}
+    for (const p of (pres || [])) dispoMap[p.joueur_id] = p.statut
+    setDispos(dispoMap)
+    // Les joueurs disponibles remontent en tête de liste pour faciliter la sélection
+    const sorted = [...(jrs || [])].sort((a, b) => {
+      const rank = s => s === 'present' ? 0 : s === 'blesse' ? 2 : s === 'absent' ? 3 : 1
+      return rank(dispoMap[a.id]) - rank(dispoMap[b.id])
+    })
+    setJoueurs(sorted)
     const convocSet = new Set((convocs || []).filter(c => c.convoque).map(c => c.joueur_id))
     setSelected(convocSet)
     setExistingConvocs(convocs || [])
@@ -46,7 +66,7 @@ export default function ConvocationsPage() {
   }
 
   function toggleJoueur(id) {
-    if (selected.size >= 16 && !selected.has(id)) return
+    if (selected.size >= cap && !selected.has(id)) return
     setSelected(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
@@ -164,10 +184,13 @@ export default function ConvocationsPage() {
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <p style={{ fontSize: 13, fontWeight: 600 }}>Sélection des joueurs</p>
-              <span style={{ fontSize: 12, color: selected.size >= 16 ? THEME.danger : THEME.primary, fontWeight: 600 }}>
-                {selected.size}/16
+              <span style={{ fontSize: 12, color: selected.size >= cap ? THEME.danger : THEME.primary, fontWeight: 600 }}>
+                {selected.size}/{cap}
               </span>
             </div>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10, marginTop: -6 }}>
+              {event?.match_type === 'coupe' ? 'Match de coupe · 16 convocables' : 'Championnat / préparation · 14 convocables'} — les joueurs disponibles sont affichés en premier.
+            </p>
 
             {/* Aperçu SMS */}
             <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: 10, marginBottom: 12, borderLeft: `3px solid ${THEME.primary}` }}>
@@ -183,17 +206,23 @@ export default function ConvocationsPage() {
               const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
               const initials = `${j.nom?.[0] || ''}${j.prenom?.[0] || ''}`
               const isSelected = selected.has(j.id)
+              const d = DISPO[dispos[j.id]] || DISPO.inconnu
               return (
                 <div key={j.id} onClick={() => toggleJoueur(j.id)} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '10px 0', borderBottom: '0.5px solid #F3F4F6', cursor: 'pointer',
-                  opacity: !isSelected && selected.size >= 16 ? 0.4 : 1
+                  opacity: !isSelected && selected.size >= cap ? 0.4 : 1
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <Avatar initials={initials} bg={col.bg} color={col.color} size={36} />
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 500 }}>{j.nom} {j.prenom}</p>
-                      <p style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste} {j.numero ? `· N°${j.numero}` : ''}</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {j.poste} {j.numero ? `· N°${j.numero}` : ''}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, color: d.color, background: d.bg, borderRadius: 6, padding: '1px 5px', fontWeight: 600, marginLeft: 2 }}>
+                          <d.icon size={9} /> {d.label}
+                        </span>
+                      </p>
                     </div>
                   </div>
                   <div style={{

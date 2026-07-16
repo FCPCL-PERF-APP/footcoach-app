@@ -34,6 +34,7 @@ export default function FootbarPage() {
   const [activeTab, setActiveTab] = useState('bilan')
   const [events, setEvents] = useState([])
   const [joueurs, setJoueurs] = useState([])
+  const [convoqueIds, setConvoqueIds] = useState(null)
   const [selectedEvent, setSelectedEvent] = useState(eventIdParam || '')
   const [footData, setFootData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -46,7 +47,7 @@ export default function FootbarPage() {
   const [relanceState, setRelanceState] = useState(null)
 
   useEffect(() => { loadData() }, [])
-  useEffect(() => { if (selectedEvent) loadFootbar() }, [selectedEvent])
+  useEffect(() => { if (selectedEvent) { loadFootbar(); loadConvocations() } }, [selectedEvent])
 
   async function loadData() {
     const [{ data: evs }, { data: jrs }] = await Promise.all([
@@ -66,6 +67,14 @@ export default function FootbarPage() {
       .select('*, joueurs(id,nom,prenom,poste)')
       .eq('evenement_id', selectedEvent)
     setFootData(data || [])
+  }
+
+  // Sur un match, seuls les joueurs convoqués sont concernés par le Footbar
+  async function loadConvocations() {
+    const { data: ev } = await supabase.from('evenements').select('type').eq('id', selectedEvent).single()
+    if (ev?.type !== 'match') { setConvoqueIds(null); return }
+    const { data } = await supabase.from('convocations').select('joueur_id').eq('evenement_id', selectedEvent).eq('convoque', true)
+    setConvoqueIds(new Set((data || []).map(c => c.joueur_id)))
   }
 
   async function handleSave() {
@@ -92,8 +101,10 @@ export default function FootbarPage() {
     loadFootbar()
   }
 
-  const joueursSansFootbar = joueurs.filter(j => !footData.find(f => f.joueur_id === j.id))
   const currentEvent = events.find(e => e.id === selectedEvent)
+  // Effectif ciblé : tout le monde pour une séance, seulement les convoqués pour un match
+  const joueursCibles = convoqueIds ? joueurs.filter(j => convoqueIds.has(j.id)) : joueurs
+  const joueursSansFootbar = joueursCibles.filter(j => !footData.find(f => f.joueur_id === j.id))
 
   async function relancerManquants() {
     setRelanceState('sending')
@@ -209,15 +220,15 @@ export default function FootbarPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
                     width: 64, height: 64, borderRadius: '50%',
-                    border: `6px solid ${footData.length / Math.max(joueurs.length, 1) >= 0.8 ? THEME.success : '#D85A30'}`,
+                    border: `6px solid ${footData.length / Math.max(joueursCibles.length, 1) >= 0.8 ? THEME.success : '#D85A30'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 16, fontWeight: 700
                   }}>
-                    {joueurs.length ? Math.round(footData.length / joueurs.length * 100) : 0}%
+                    {joueursCibles.length ? Math.round(footData.length / joueursCibles.length * 100) : 0}%
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                     <strong style={{ color: 'var(--text-primary)' }}>{footData.length}</strong> joueur(s) ont rempli leur Footbar<br />
-                    sur <strong style={{ color: 'var(--text-primary)' }}>{joueurs.length}</strong> dans l'effectif
+                    sur <strong style={{ color: 'var(--text-primary)' }}>{joueursCibles.length}</strong> {convoqueIds ? 'convoqué(s)' : 'dans l\'effectif'}
                   </div>
                 </div>
               </Card>

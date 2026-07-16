@@ -164,18 +164,27 @@ export default function MonSuiviPage() {
     const rpeIds = new Set((rpe || []).map(r => r.evenement_id))
     const passes = (evs || []).filter(e => new Date(e.date_heure) < new Date())
 
-    // Filtrer les événements où le joueur est absent ou blessé
+    // Filtrer les événements où le joueur est absent, blessé, ou (pour un match) non convoqué
     const eventIds = passes.map(e => e.id)
-    const { data: presData } = await supabase.from('presences')
-      .select('evenement_id, statut')
-      .eq('joueur_id', profile.id)
-      .in('evenement_id', eventIds)
+    const [{ data: presData }, { data: convocData }] = await Promise.all([
+      supabase.from('presences').select('evenement_id, statut')
+        .eq('joueur_id', profile.id).in('evenement_id', eventIds),
+      supabase.from('convocations').select('evenement_id, convoque')
+        .eq('joueur_id', profile.id).in('evenement_id', eventIds),
+    ])
     const presMap = {}
     for (const p of (presData || [])) presMap[p.evenement_id] = p.statut
+    const convocMap = {}
+    for (const c of (convocData || [])) convocMap[c.evenement_id] = c.convoque
 
     // Le Footbar est facultatif (capteur pas toujours dispo/porté, club amateur) : seul
     // le RPE conditionne la sortie de "à faire", pour un match comme pour une séance.
-    const eligibles = passes.filter(e => presMap[e.id] !== 'absent' && presMap[e.id] !== 'blesse')
+    // Sur un match, seuls les joueurs convoqués sont concernés.
+    const eligibles = passes.filter(e => {
+      if (presMap[e.id] === 'absent' || presMap[e.id] === 'blesse') return false
+      if (e.type === 'match' && !convocMap[e.id]) return false
+      return true
+    })
     setEventsAFaire(eligibles.filter(e => !rpeIds.has(e.id)))
 
     if (!selectedHistEvent) {

@@ -319,7 +319,8 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
     if (ev.type !== 'match') { setConvoque(null); return }
     const { data } = await supabase.from('convocations').select('convoque')
       .eq('evenement_id', ev.id).eq('joueur_id', profile.id).maybeSingle()
-    setConvoque(data?.convoque || false)
+    // null = le coach n'a pas encore fait sa sélection (à distinguer de "non retenu")
+    setConvoque(data ? data.convoque : null)
   }
 
   // Liseré coloré à gauche pour distinguer les cartes d'un coup d'œil dans la liste
@@ -459,25 +460,17 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
 
   const STATUTS = isMatch ? STATUTS_MATCH : STATUTS_SEANCE
 
-  // Le joueur peut remplir RPE/Footbar si présent ou extérieur
-  const peutRemplir = statut === 'present' || statut === 'exterieur'
+  // Sur un match, seuls les joueurs convoqués remplissent RPE/Footbar — la disponibilité
+  // déclarée avant sélection ne suffit pas.
+  const peutRemplir = (statut === 'present' || statut === 'exterieur') && (!isMatch || convoque === true)
   const estEmpêche = statut === 'absent' || statut === 'blesse'
-
-  // Si c'est un match et pas convoqué → message informatif
-  if (isMatch && convoque === false) {
-    return (
-      <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid #F3F4F6' }}>
-        <div style={{ background: '#F3F4F6', borderRadius: 8, padding: '7px 10px', fontSize: 11, color: '#9CA3AF', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-          <Hourglass size={12} /> Tu n'es pas convoqué pour ce match
-        </div>
-      </div>
-    )
-  }
+  // Match pas encore décidé par le coach, ou joueur non retenu
+  const enAttenteSelection = isMatch && convoque !== true
 
   return (
     <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid #F3F4F6' }}>
       <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>
-        {isMatch ? 'Ma présence au match :' : 'Ma présence à l\'entraînement :'}
+        {isMatch ? (convoque === true ? 'Ma présence au match :' : 'Ma disponibilité pour ce match :') : 'Ma présence à l\'entraînement :'}
       </p>
 
       {wasQueued && (
@@ -517,7 +510,14 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
         </div>
       )}
 
-      {/* Bouton RPE + Footbar si présent ou extérieur */}
+      {/* Disponible mais pas encore convoqué/retenu par le coach */}
+      {!estEmpêche && enAttenteSelection && (statut === 'present' || statut === 'exterieur') && (
+        <div style={{ background: '#F3F4F6', borderRadius: 8, padding: '7px 10px', fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Hourglass size={12} /> En attente de la sélection du coach — RPE et Footbar débloqués si tu es convoqué.
+        </div>
+      )}
+
+      {/* Bouton RPE + Footbar si présent/extérieur et (séance, ou match + convoqué) */}
       {peutRemplir && (
         <button onClick={() => navigate('/mon-suivi')}
           style={{ width: '100%', padding: '7px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
@@ -525,15 +525,15 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
         </button>
       )}
 
-      {/* Statut de forme avant la séance */}
-      {(statut === 'present' || statut === 'exterieur') && (
+      {/* Statut de forme avant la séance/le match (uniquement si éligible RPE/Footbar) */}
+      {peutRemplir && (
         <FormeWidget evenementId={ev.id} joueurId={profile?.id} />
       )}
 
       {/* Pas encore répondu */}
       {!statut && !loading && (
         <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', marginTop: 4 }}>
-          Indique ta présence pour accéder au RPE et Footbar
+          {isMatch ? 'Indique ta disponibilité pour ce match' : 'Indique ta présence pour accéder au RPE et Footbar'}
         </p>
       )}
     </div>

@@ -44,11 +44,12 @@ export default function RpePage() {
   const [selectedEvent, setSelectedEvent] = useState(eventIdParam || '')
   const [rpeData, setRpeData] = useState([])
   const [joueurs, setJoueurs] = useState([])
+  const [convoqueIds, setConvoqueIds] = useState(null)
   const [loading, setLoading] = useState(true)
   const [relanceState, setRelanceState] = useState(null)
 
   useEffect(() => { loadEvents(); loadJoueurs() }, [])
-  useEffect(() => { if (selectedEvent) loadRpe() }, [selectedEvent])
+  useEffect(() => { if (selectedEvent) { loadRpe(); loadConvocations() } }, [selectedEvent])
 
   async function loadEvents() {
     const { data } = await supabase.from('evenements').select('*').order('date_heure', { ascending: false }).limit(20)
@@ -67,8 +68,21 @@ export default function RpePage() {
     setRpeData(data || [])
   }
 
+  // Sur un match, seuls les joueurs convoqués sont concernés par le RPE — requête directe
+  // sur l'événement (pas via la liste `events`) pour éviter un souci d'ordre de chargement
+  // quand la page est ouverte directement sur un match via ?event=.
+  async function loadConvocations() {
+    const { data: ev } = await supabase.from('evenements').select('type').eq('id', selectedEvent).single()
+    if (ev?.type !== 'match') { setConvoqueIds(null); return }
+    const { data } = await supabase.from('convocations').select('joueur_id').eq('evenement_id', selectedEvent).eq('convoque', true)
+    setConvoqueIds(new Set((data || []).map(c => c.joueur_id)))
+  }
+
   const currentEvent = events.find(e => e.id === selectedEvent)
   const items = currentEvent?.type === 'match' ? RPE_ITEMS_MATCH : RPE_ITEMS_SEANCE
+  // Effectif ciblé par cet événement : tout le monde pour une séance, seulement les
+  // convoqués pour un match (les autres n'ont pas à remplir leur RPE).
+  const joueursCibles = convoqueIds ? joueurs.filter(j => convoqueIds.has(j.id)) : joueurs
 
   // Calcul moyennes groupe
   function groupAvg(key) {
@@ -89,7 +103,7 @@ export default function RpePage() {
     return avg >= 4.5
   })
 
-  const joueursSansRpe = joueurs.filter(j => !rpeData.find(r => r.joueur_id === j.id))
+  const joueursSansRpe = joueursCibles.filter(j => !rpeData.find(r => r.joueur_id === j.id))
 
   async function relancerManquants() {
     setRelanceState('sending')
@@ -174,15 +188,15 @@ export default function RpePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
                     width: 64, height: 64, borderRadius: '50%',
-                    border: `6px solid ${rpeData.length / Math.max(joueurs.length, 1) >= 0.8 ? THEME.success : '#D85A30'}`,
+                    border: `6px solid ${rpeData.length / Math.max(joueursCibles.length, 1) >= 0.8 ? THEME.success : '#D85A30'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 16, fontWeight: 700
                   }}>
-                    {joueurs.length ? Math.round(rpeData.length / joueurs.length * 100) : 0}%
+                    {joueursCibles.length ? Math.round(rpeData.length / joueursCibles.length * 100) : 0}%
                   </div>
                   <div style={{ fontSize: 12, color: '#6B7280' }}>
                     <strong style={{ color: '#111' }}>{rpeData.length}</strong> joueur(s) ont rempli leur RPE<br />
-                    sur <strong style={{ color: '#111' }}>{joueurs.length}</strong> dans l'effectif
+                    sur <strong style={{ color: '#111' }}>{joueursCibles.length}</strong> {convoqueIds ? 'convoqué(s)' : 'dans l\'effectif'}
                   </div>
                 </div>
               </Card>
