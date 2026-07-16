@@ -3,24 +3,28 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
+import {
+  Compass, Ruler, Shield, Target, Square, Hand, RefreshCw, Users, MoveRight,
+  Route, Plus, X, Undo2, MessageSquare, Trash2, Check, Hourglass, MousePointerClick
+} from 'lucide-react'
 
 const CPA_TYPES = [
-  { key: 'corner_off',  label: '📐 Corner offensif',     color: '#3B6D11' },
-  { key: 'corner_def',  label: '🛡️ Corner défensif',     color: '#185FA5' },
-  { key: 'cf_off',      label: '🎯 Coup-franc offensif',  color: '#854F0B' },
-  { key: 'cf_def',      label: '🧱 Coup-franc défensif',  color: '#A32D2D' },
-  { key: 'penalty_off', label: '⚽ Pénalty offensif',    color: '#3B6D11' },
-  { key: 'penalty_def', label: '🧤 Pénalty défensif',    color: '#185FA5' },
-  { key: 'remise_jeu',  label: '🔄 Remise en jeu',       color: '#6B7280' },
+  { key: 'corner_off',  icon: Ruler,  label: 'Corner offensif',     color: '#3B6D11' },
+  { key: 'corner_def',  icon: Shield, label: 'Corner défensif',     color: '#185FA5' },
+  { key: 'cf_off',      icon: Target, label: 'Coup-franc offensif',  color: '#854F0B' },
+  { key: 'cf_def',      icon: Square, label: 'Coup-franc défensif',  color: '#A32D2D' },
+  { key: 'penalty_off', icon: Target, label: 'Pénalty offensif',    color: '#3B6D11' },
+  { key: 'penalty_def', icon: Hand,   label: 'Pénalty défensif',    color: '#185FA5' },
+  { key: 'remise_jeu',  icon: RefreshCw, label: 'Remise en jeu',    color: '#6B7280' },
 ]
 
 const COULEURS = ['#FFDD57','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD','#F0B27A','#BB8FCE']
 const MODES = [
-  { key: 'joueur',    label: '👥 Joueur',  desc: 'Clique sur le terrain' },
-  { key: 'ballon',    label: '⚽ Ballon',  desc: 'Repositionne le ballon' },
-  { key: 'fleche_bal',label: '→ Trajectoire ballon', desc: 'Flèche pleine' },
-  { key: 'fleche_crs',label: '⤳ Course joueur',     desc: 'Flèche pointillée' },
-  { key: 'zone',      label: '⬜ Zone',    desc: 'Zone de tir/espace' },
+  { key: 'joueur',    icon: Users, label: 'Joueur',  desc: 'Clique sur le terrain' },
+  { key: 'ballon',    icon: Target, label: 'Ballon',  desc: 'Repositionne le ballon' },
+  { key: 'fleche_bal',icon: MoveRight, label: 'Trajectoire ballon', desc: 'Flèche pleine' },
+  { key: 'fleche_crs',icon: Route, label: 'Course joueur',     desc: 'Flèche pointillée' },
+  { key: 'zone',      icon: Square, label: 'Zone',    desc: 'Zone de tir/espace' },
 ]
 
 export default function CPAPage() {
@@ -141,9 +145,9 @@ export default function CPAPage() {
       expediteur_nom: 'Coach',
       expediteur_role: 'coach',
       groupe: true,
-      contenu: `📐 CPA — ${cpa.titre}\n${type?.label || ''}\n${cpa.description ? `\n💬 ${cpa.description}` : ''}\n\nConsulte le schéma dans Menu ☰ → CPA`
+      contenu: `CPA — ${cpa.titre}\n${type?.label || ''}\n${cpa.description ? `\n${cpa.description}` : ''}\n\nConsulte le schéma dans Menu → CPA`
     })
-    alert('✅ Schéma partagé dans le groupe !')
+    alert('Schéma partagé dans le groupe !')
   }
 
   const cpaFiltres = activeFilter === 'tous' ? cpas : cpas.filter(c => c.type === activeFilter)
@@ -151,20 +155,20 @@ export default function CPAPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600 }}>📐 CPA</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Compass size={17} color={THEME.primary} /> CPA</h1>
         {isCoach && (
           <button onClick={() => { setShowCreate(!showCreate); setSelectedCpa(null); if (showCreate) resetForm() }}
-            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: showCreate ? '#6B7280' : THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
-            {showCreate ? '✕ Annuler' : '+ Créer'}
+            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: showCreate ? '#6B7280' : THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+            {showCreate ? <><X size={12} /> Annuler</> : <><Plus size={12} /> Créer</>}
           </button>
         )}
       </div>
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: 5, marginBottom: 14, overflowX: 'auto', paddingBottom: 2 }}>
-        <button onClick={() => setActiveFilter('tous')} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: '0.5px solid #D1D5DB', background: activeFilter === 'tous' ? '#E6F1FB' : 'transparent', color: activeFilter === 'tous' ? THEME.primary : '#6B7280', fontWeight: activeFilter === 'tous' ? 600 : 400 }}>Tous</button>
+        <button onClick={() => setActiveFilter('tous')} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: '0.5px solid #D1D5DB', background: activeFilter === 'tous' ? THEME.primaryBg : 'transparent', color: activeFilter === 'tous' ? THEME.primary : '#6B7280', fontWeight: activeFilter === 'tous' ? 600 : 400 }}>Tous</button>
         {CPA_TYPES.map(t => (
-          <button key={t.key} onClick={() => setActiveFilter(t.key)} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: `0.5px solid ${activeFilter === t.key ? t.color : '#D1D5DB'}`, background: activeFilter === t.key ? `${t.color}15` : 'transparent', color: activeFilter === t.key ? t.color : '#6B7280', fontWeight: activeFilter === t.key ? 600 : 400 }}>{t.label}</button>
+          <button key={t.key} onClick={() => setActiveFilter(t.key)} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: `0.5px solid ${activeFilter === t.key ? t.color : '#D1D5DB'}`, background: activeFilter === t.key ? `${t.color}15` : 'transparent', color: activeFilter === t.key ? t.color : '#6B7280', fontWeight: activeFilter === t.key ? 600 : 400, display: 'inline-flex', alignItems: 'center', gap: 4 }}><t.icon size={11} /> {t.label}</button>
         ))}
       </div>
 
@@ -200,10 +204,11 @@ export default function CPAPage() {
               <button key={m.key} onClick={() => { setModeEdition(m.key); setDrawStart(null) }} style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                 border: `0.5px solid ${modeEdition === m.key ? THEME.primary : '#D1D5DB'}`,
-                background: modeEdition === m.key ? '#E6F1FB' : 'transparent',
+                background: modeEdition === m.key ? THEME.primaryBg : 'transparent',
                 color: modeEdition === m.key ? THEME.primary : '#6B7280',
-                fontWeight: modeEdition === m.key ? 600 : 400
-              }}>{m.label}</button>
+                fontWeight: modeEdition === m.key ? 600 : 400,
+                display: 'inline-flex', alignItems: 'center', gap: 4
+              }}><m.icon size={11} /> {m.label}</button>
             ))}
           </div>
 
@@ -217,8 +222,8 @@ export default function CPAPage() {
           )}
 
           {(modeEdition === 'fleche_bal' || modeEdition === 'fleche_crs' || modeEdition === 'zone') && (
-            <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: '#6B7280' }}>
-              {drawStart ? '✅ Point de départ placé — clique pour le point d\'arrivée' : '👆 Clique sur le terrain pour le point de départ'}
+            <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}>
+              {drawStart ? <><Check size={12} /> Point de départ placé — clique pour le point d'arrivée</> : <><MousePointerClick size={12} /> Clique sur le terrain pour le point de départ</>}
             </div>
           )}
 
@@ -232,23 +237,23 @@ export default function CPAPage() {
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             {placements.length > 0 && (
               <button onClick={() => setPlacements(p => p.slice(0,-1))}
-                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', fontSize: 11, cursor: 'pointer' }}>
-                ↩ Annuler joueur
+                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Undo2 size={11} /> Annuler joueur
               </button>
             )}
             {fleches.length > 0 && (
               <button onClick={() => setFleches(f => f.slice(0,-1))}
-                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', fontSize: 11, cursor: 'pointer' }}>
-                ↩ Annuler flèche
+                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Undo2 size={11} /> Annuler flèche
               </button>
             )}
           </div>
 
-          {saveError && <p style={{ fontSize: 12, color: '#A32D2D', marginBottom: 8 }}>{saveError}</p>}
+          {saveError && <p style={{ fontSize: 12, color: THEME.danger, marginBottom: 8 }}>{saveError}</p>}
 
           <button onClick={saveCpa} disabled={saving || !form.titre}
-            style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none', background: form.titre ? THEME.gradient : '#E5E7EB', color: form.titre ? '#fff' : '#9CA3AF', fontSize: 14, fontWeight: 700, cursor: form.titre ? 'pointer' : 'not-allowed' }}>
-            {saving ? '⏳ Enregistrement...' : '💾 Sauvegarder le schéma'}
+            style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none', background: form.titre ? THEME.gradient : '#E5E7EB', color: form.titre ? '#fff' : '#9CA3AF', fontSize: 14, fontWeight: 700, cursor: form.titre ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            {saving ? <><Hourglass size={14} /> Enregistrement...</> : <><Check size={14} /> Sauvegarder le schéma</>}
           </button>
         </Card>
       )}
@@ -259,18 +264,18 @@ export default function CPAPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <div>
               <p style={{ fontSize: 14, fontWeight: 700 }}>{selectedCpa.titre}</p>
-              <span style={{ fontSize: 11, color: CPA_TYPES.find(t => t.key === selectedCpa.type)?.color, fontWeight: 600 }}>
-                {CPA_TYPES.find(t => t.key === selectedCpa.type)?.label}
+              <span style={{ fontSize: 11, color: CPA_TYPES.find(t => t.key === selectedCpa.type)?.color, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                {(() => { const T = CPA_TYPES.find(t => t.key === selectedCpa.type); return T ? <><T.icon size={11} /> {T.label}</> : null })()}
               </span>
             </div>
-            <button onClick={() => setSelectedCpa(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>✕</button>
+            <button onClick={() => setSelectedCpa(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><X size={20} color="#6B7280" /></button>
           </div>
           <div style={{ background: '#2d7a27', borderRadius: 10, overflow: 'hidden', marginBottom: 10 }}>
             <TerrainSVG placements={selectedCpa.joueurs_placements || []} ballonPos={selectedCpa.ballon_pos || {x:50,y:50}} fleches={selectedCpa.fleches || []} />
           </div>
           {selectedCpa.description && (
             <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 12px', marginBottom: 10 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>💬 Consignes</p>
+              <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}><MessageSquare size={12} /> Consignes</p>
               <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>{selectedCpa.description}</p>
             </div>
           )}
@@ -288,17 +293,17 @@ export default function CPAPage() {
           {/* Légende flèches */}
           {selectedCpa.fleches?.length > 0 && (
             <div style={{ display: 'flex', gap: 12, marginBottom: 10, fontSize: 10, color: '#6B7280' }}>
-              {selectedCpa.fleches.some(f => f.type === 'fleche_bal') && <span>— Trajectoire ballon</span>}
-              {selectedCpa.fleches.some(f => f.type === 'fleche_crs') && <span>⤳ Course joueur</span>}
-              {selectedCpa.fleches.some(f => f.type === 'zone') && <span>⬜ Zone</span>}
+              {selectedCpa.fleches.some(f => f.type === 'fleche_bal') && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MoveRight size={11} /> Trajectoire ballon</span>}
+              {selectedCpa.fleches.some(f => f.type === 'fleche_crs') && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Route size={11} /> Course joueur</span>}
+              {selectedCpa.fleches.some(f => f.type === 'zone') && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Square size={11} /> Zone</span>}
             </div>
           )}
           {isCoach && (
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => partagerCpa(selectedCpa)} style={{ flex: 1, padding: 10, borderRadius: 10, border: `1px solid ${THEME.primary}`, background: '#E6F1FB', color: THEME.primary, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                💬 Partager dans le groupe
+              <button onClick={() => partagerCpa(selectedCpa)} style={{ flex: 1, padding: 10, borderRadius: 10, border: `1px solid ${THEME.primary}`, background: THEME.primaryBg, color: THEME.primary, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                <MessageSquare size={12} /> Partager dans le groupe
               </button>
-              <button onClick={() => deleteCpa(selectedCpa.id)} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: '#FCEBEB', color: '#A32D2D', fontSize: 12, cursor: 'pointer' }}>🗑️</button>
+              <button onClick={() => deleteCpa(selectedCpa.id)} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: THEME.dangerBg, color: THEME.danger, cursor: 'pointer', display: 'flex' }}><Trash2 size={13} /></button>
             </div>
           )}
         </Card>
@@ -322,7 +327,9 @@ export default function CPAPage() {
                   </div>
                   <div style={{ padding: '7px 10px' }}>
                     <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 2 }}>{cpa.titre}</p>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: typeInfo?.color }}>{typeInfo?.label}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: typeInfo?.color, display: 'flex', alignItems: 'center', gap: 3 }}>
+                      {typeInfo && <typeInfo.icon size={10} />} {typeInfo?.label}
+                    </span>
                   </div>
                 </div>
               )
