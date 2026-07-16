@@ -8,12 +8,16 @@ import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import {
+  User, Heart, BarChart3, Swords, Scale, Target, Bandage, Lock, Camera,
+  CheckCircle2, Save, MessageSquare, Lightbulb, XCircle
+} from 'lucide-react'
 
 function rpeColor(v) {
-  if (v >= 4.5) return '#A32D2D'
+  if (v >= 4.5) return THEME.danger
   if (v >= 4) return '#D85A30'
-  if (v >= 3) return '#BA7517'
-  return '#3B6D11'
+  if (v >= 3) return THEME.warning
+  return THEME.success
 }
 
 const RPE_ITEMS = [
@@ -108,7 +112,7 @@ export default function MaFichePage() {
     setPwdSaving(false)
     if (error) setPwdMsg({ ok: false, text: 'Erreur : ' + error.message })
     else {
-      setPwdMsg({ ok: true, text: '✅ Mot de passe modifié !' })
+      setPwdMsg({ ok: true, text: 'Mot de passe modifié !' })
       setPwd({ new: '', confirm: '' })
       setTimeout(() => setPwdMsg(null), 3000)
     }
@@ -207,14 +211,14 @@ export default function MaFichePage() {
   })
 
   const tabs = [
-    { key: 'infos',    label: '👤 Mes infos' },
-    { key: 'physio',   label: '❤️ Physio & FC' },
-    { key: 'rpe',      label: '📊 Mon RPE' },
-    { key: 'stats',    label: '⚽ Mes stats' },
-    { key: 'poids',    label: '⚖️ Mon poids' },
-    { key: 'objectifs',label: '🎯 Objectifs' },
-    { key: 'blessures',label: '🤕 Blessures' },
-    { key: 'compte',   label: '🔐 Compte' },
+    { key: 'infos',    icon: User, label: 'Mes infos' },
+    { key: 'physio',   icon: Heart, label: 'Physio & FC' },
+    { key: 'rpe',      icon: BarChart3, label: 'Mon RPE' },
+    { key: 'stats',    icon: Swords, label: 'Mes stats' },
+    { key: 'poids',    icon: Scale, label: 'Mon poids' },
+    { key: 'objectifs',icon: Target, label: 'Objectifs' },
+    { key: 'blessures',icon: Bandage, label: 'Blessures' },
+    { key: 'compte',   icon: Lock, label: 'Compte' },
   ]
 
   return (
@@ -232,13 +236,13 @@ export default function MaFichePage() {
                 {joueur?.nom?.[0]}{joueur?.prenom?.[0]}
               </div>
           }
-          <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'rgba(0,0,0,.5)', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>📷</div>
+          <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'rgba(0,0,0,.5)', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Camera size={10} color="#fff" /></div>
           <input id="photo-upload-fiche" type="file" accept="image/*" style={{ display: 'none' }}
             onChange={e => e.target.files[0] && setPendingPhoto(e.target.files[0])} />
         </label>
         <div>
           <p style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>{joueur?.nom} {joueur?.prenom}</p>
-          {photoUploading && <p style={{ fontSize: 11, color: 'rgba(255,255,255,.75)' }}>📷 Upload en cours...</p>}
+          {photoUploading && <p style={{ fontSize: 11, color: 'rgba(255,255,255,.75)', display: 'flex', alignItems: 'center', gap: 4 }}><Camera size={11} /> Upload en cours...</p>}
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,.75)' }}>
             {joueur?.poste || '—'} {joueur?.numero ? `· N°${joueur.numero}` : ''} {joueur?.groupe ? `· Pôle ${joueur.groupe}` : ''}
           </p>
@@ -261,16 +265,17 @@ export default function MaFichePage() {
           <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-            background: activeTab === t.key ? '#E6F1FB' : 'transparent',
+            background: activeTab === t.key ? THEME.primaryBg : 'transparent',
             color: activeTab === t.key ? THEME.primary : '#6B7280',
-            fontWeight: activeTab === t.key ? 600 : 400
-          }}>{t.label}</button>
+            fontWeight: activeTab === t.key ? 600 : 400,
+            display: 'flex', alignItems: 'center', gap: 5
+          }}><t.icon size={12} /> {t.label}</button>
         ))}
       </div>
 
       {saved && (
-        <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#3B6D11' }}>
-          ✅ Modifications enregistrées !
+        <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <CheckCircle2 size={13} /> Modifications enregistrées !
         </div>
       )}
 
@@ -316,8 +321,8 @@ export default function MaFichePage() {
             </div>
           </Card>
 
-          <Button variant="primary" style={{ width: '100%' }} onClick={saveForm} disabled={saving}>
-            {saving ? 'Enregistrement...' : '💾 Enregistrer mes infos'}
+          <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveForm} disabled={saving}>
+            {saving ? 'Enregistrement...' : <><Save size={13} /> Enregistrer mes infos</>}
           </Button>
         </>
       )}
@@ -369,8 +374,8 @@ export default function MaFichePage() {
             )}
 
             {!fcReserve && (
-              <div style={{ background: '#F0F4FF', borderRadius: 10, padding: 12, fontSize: 12, color: THEME.primary }}>
-                💡 Renseigne ta FC max et ta FC de repos pour voir tes zones d'entraînement personnalisées.
+              <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: 12, fontSize: 12, color: THEME.primary, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                <Lightbulb size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Renseigne ta FC max et ta FC de repos pour voir tes zones d'entraînement personnalisées.
               </div>
             )}
           </Card>
@@ -381,7 +386,9 @@ export default function MaFichePage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {['points_forts', 'points_faibles'].map((field, i) => (
                 <div key={field}>
-                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>{i === 0 ? '✅ Points forts' : '⚠️ Axes de travail'}</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
+                    {i === 0 ? <><CheckCircle2 size={11} color={THEME.success} /> Points forts</> : <><Target size={11} color={THEME.warning} /> Axes de travail</>}
+                  </label>
                   <textarea value={form[field] || ''} onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
                     rows={4}
                     style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
@@ -390,8 +397,8 @@ export default function MaFichePage() {
             </div>
           </Card>
 
-          <Button variant="primary" style={{ width: '100%' }} onClick={saveForm} disabled={saving}>
-            {saving ? 'Enregistrement...' : '💾 Enregistrer mes données physio'}
+          <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveForm} disabled={saving}>
+            {saving ? 'Enregistrement...' : <><Save size={13} /> Enregistrer mes données physio</>}
           </Button>
         </>
       )}
@@ -439,7 +446,11 @@ export default function MaFichePage() {
                     </div>
                   ))}
                 </div>
-                {r.commentaire && <p style={{ fontSize: 11, color: '#6B7280', marginTop: 6, fontStyle: 'italic' }}>💬 {r.commentaire}</p>}
+                {r.commentaire && (
+                  <p style={{ fontSize: 11, color: '#6B7280', marginTop: 6, fontStyle: 'italic', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+                    <MessageSquare size={11} style={{ flexShrink: 0, marginTop: 2 }} /> {r.commentaire}
+                  </p>
+                )}
               </Card>
             )
           })}
@@ -456,8 +467,10 @@ export default function MaFichePage() {
                 <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
                   <div>
                     <p style={{ fontSize: 12, fontWeight: 600 }}>{s.evenements?.titre}</p>
-                    <p style={{ fontSize: 10, color: '#9CA3AF' }}>
-                      {s.temps_jeu}min · {s.titulaire ? 'Titulaire' : 'Remplaçant'} {s.carton_jaune ? '🟡' : ''}{s.carton_rouge ? '🔴' : ''}
+                    <p style={{ fontSize: 10, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      {s.temps_jeu}min · {s.titulaire ? 'Titulaire' : 'Remplaçant'}
+                      {s.carton_jaune && <span style={{ width: 8, height: 10, background: THEME.warning, borderRadius: 1, display: 'inline-block' }} />}
+                      {s.carton_rouge && <span style={{ width: 8, height: 10, background: THEME.danger, borderRadius: 1, display: 'inline-block' }} />}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -473,7 +486,7 @@ export default function MaFichePage() {
       {/* OBJECTIFS */}
       {activeTab === 'objectifs' && (
         <div style={{ textAlign: 'center', padding: 20 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+          <Target size={44} color={THEME.primary} style={{ marginBottom: 12 }} />
           <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Mes objectifs & bilan</p>
           <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 20 }}>
             Points forts, axes d'amélioration, objectifs saison et bilan de fin de saison.
@@ -494,8 +507,8 @@ export default function MaFichePage() {
           {blessuresData.length === 0 ? (
             <Card>
               <div style={{ textAlign: 'center', padding: 20 }}>
-                <div style={{ fontSize: 36, marginBottom: 8 }}>💪</div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: '#3B6D11' }}>Aucune blessure enregistrée</p>
+                <CheckCircle2 size={36} color={THEME.success} style={{ marginBottom: 8 }} />
+                <p style={{ fontSize: 14, fontWeight: 600, color: THEME.success }}>Aucune blessure enregistrée</p>
                 <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>Continue comme ça !</p>
               </div>
             </Card>
@@ -509,27 +522,32 @@ export default function MaFichePage() {
                   </div>
                   <span style={{
                     fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-                    background: !b.date_retour_effective ? '#FCEBEB' : '#EAF3DE',
-                    color: !b.date_retour_effective ? '#A32D2D' : '#3B6D11'
+                    background: !b.date_retour_effective ? THEME.dangerBg : THEME.successBg,
+                    color: !b.date_retour_effective ? THEME.danger : THEME.success,
+                    display: 'inline-flex', alignItems: 'center', gap: 3
                   }}>
-                    {!b.date_retour_effective ? '🤕 En cours' : '✅ Guéri'}
+                    {!b.date_retour_effective ? <><Bandage size={10} /> En cours</> : <><CheckCircle2 size={10} /> Guéri</>}
                   </span>
                 </div>
                 <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 11, color: '#6B7280' }}>
-                  <span>📅 Début : {b.date_debut ? new Date(b.date_debut).toLocaleDateString('fr-FR') : '—'}</span>
-                  {b.date_retour_prevue && <span>🎯 Retour prévu : {new Date(b.date_retour_prevue).toLocaleDateString('fr-FR')}</span>}
+                  <span>Début : {b.date_debut ? new Date(b.date_debut).toLocaleDateString('fr-FR') : '—'}</span>
+                  {b.date_retour_prevue && <span>Retour prévu : {new Date(b.date_retour_prevue).toLocaleDateString('fr-FR')}</span>}
                 </div>
                 {b.date_retour_effective && (
-                  <p style={{ fontSize: 11, color: '#3B6D11', marginTop: 4 }}>
-                    ✅ Retour effectif : {new Date(b.date_retour_effective).toLocaleDateString('fr-FR')}
+                  <p style={{ fontSize: 11, color: THEME.success, marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <CheckCircle2 size={11} /> Retour effectif : {new Date(b.date_retour_effective).toLocaleDateString('fr-FR')}
                   </p>
                 )}
                 {b.description && (
                   <p style={{ fontSize: 11, color: '#6B7280', marginTop: 6, fontStyle: 'italic' }}>{b.description}</p>
                 )}
-                <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                  <span style={{ fontSize: 10, background: '#F3F4F6', padding: '2px 8px', borderRadius: 6 }}>
-                    {b.gravite === 'legere' ? '🟡 Légère' : b.gravite === 'moderee' ? '🟠 Modérée' : b.gravite === 'grave' ? '🔴 Grave' : '—'}
+                <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center' }}>
+                  <span style={{
+                    fontSize: 10, padding: '2px 8px', borderRadius: 6,
+                    background: b.gravite === 'legere' ? THEME.warningBg : b.gravite === 'moderee' ? '#FDF5EE' : b.gravite === 'grave' ? THEME.dangerBg : '#F3F4F6',
+                    color: b.gravite === 'legere' ? THEME.warning : b.gravite === 'moderee' ? '#D85A30' : b.gravite === 'grave' ? THEME.danger : '#6B7280'
+                  }}>
+                    {b.gravite === 'legere' ? 'Légère' : b.gravite === 'moderee' ? 'Modérée' : b.gravite === 'grave' ? 'Grave' : '—'}
                   </span>
                   {b.duree_estimee && <span style={{ fontSize: 10, color: '#9CA3AF' }}>~{b.duree_estimee} jours</span>}
                 </div>
@@ -543,7 +561,7 @@ export default function MaFichePage() {
       {activeTab === 'compte' && (
         <>
           <Card>
-            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>🔐 Changer mon mot de passe</p>
+            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Lock size={14} /> Changer mon mot de passe</p>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>
               Choisis un mot de passe sécurisé d'au moins 6 caractères.
             </p>
@@ -560,12 +578,12 @@ export default function MaFichePage() {
                 style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             {pwdMsg && (
-              <div style={{ background: pwdMsg.ok ? '#EAF3DE' : '#FCEBEB', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: pwdMsg.ok ? '#3B6D11' : '#A32D2D' }}>
-                {pwdMsg.text}
+              <div style={{ background: pwdMsg.ok ? THEME.successBg : THEME.dangerBg, borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: pwdMsg.ok ? THEME.success : THEME.danger, display: 'flex', alignItems: 'center', gap: 6 }}>
+                {pwdMsg.ok ? <CheckCircle2 size={13} /> : <XCircle size={13} />} {pwdMsg.text}
               </div>
             )}
-            <Button variant="primary" style={{ width: '100%' }} onClick={changePassword} disabled={pwdSaving}>
-              {pwdSaving ? 'Enregistrement...' : '💾 Modifier mon mot de passe'}
+            <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={changePassword} disabled={pwdSaving}>
+              {pwdSaving ? 'Enregistrement...' : <><Save size={13} /> Modifier mon mot de passe</>}
             </Button>
           </Card>
 
