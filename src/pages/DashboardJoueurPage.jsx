@@ -2,17 +2,21 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { Card, Spinner } from '../components/UI'
+import { Card, Spinner, ListRow } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO, subDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import {
+  Award, HelpCircle, FileText, AlertTriangle, Heart, Radio, Calendar, User,
+  MessageCircle, TrendingUp, CheckCircle2, XCircle, Bandage, Target, ArrowRight
+} from 'lucide-react'
 
 function rpeColor(v) {
-  if (!v) return '#9CA3AF'
-  if (v >= 4.5) return '#A32D2D'
+  if (!v) return THEME.textMuted
+  if (v >= 4.5) return THEME.danger
   if (v >= 4) return '#D85A30'
-  if (v >= 3) return '#BA7517'
-  return '#3B6D11'
+  if (v >= 3) return THEME.warning
+  return THEME.success
 }
 
 export default function DashboardJoueurPage() {
@@ -179,8 +183,8 @@ export default function DashboardJoueurPage() {
               {joueur?.poste || '—'} {joueur?.numero ? `· N°${joueur.numero}` : ''} {joueur?.groupe ? `· Pôle ${joueur.groupe}` : ''}
             </p>
             {blessureActive && (
-              <div style={{ marginTop: 4, background: 'rgba(163,45,45,.3)', borderRadius: 6, padding: '2px 8px', display: 'inline-block' }}>
-                <span style={{ fontSize: 11, color: '#FCA5A5' }}>🤕 {blessureActive.zone}</span>
+              <div style={{ marginTop: 4, background: 'rgba(193,59,59,.3)', borderRadius: 6, padding: '2px 8px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Bandage size={11} color="#FCA5A5" /><span style={{ fontSize: 11, color: '#FCA5A5' }}>{blessureActive.zone}</span>
               </div>
             )}
           </div>
@@ -190,36 +194,34 @@ export default function DashboardJoueurPage() {
       {/* BADGES */}
       <div onClick={() => navigate('/mes-badges')} style={{
         background: 'linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)',
-        borderRadius: 12, padding: '10px 14px', marginBottom: 14,
+        borderRadius: THEME.radiusMd, padding: '10px 14px', marginBottom: 14,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer'
       }}>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#FFD700' }}>🏅 Mes badges</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#FFD700', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Award size={15} /> Mes badges
+          </p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>Voir mes récompenses et défis</p>
         </div>
-        <span style={{ fontSize: 18, color: '#FFD700' }}>→</span>
+        <ArrowRight size={18} color="#FFD700" />
       </div>
 
       {/* ALERTES */}
       {(nbPresenceAConfirmer > 0 || eventsAFaire.length > 0 || blessureActive) && (
-        <Card style={{ marginBottom: 14, background: '#FDF5EE', border: '0.5px solid #F5C4B3' }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#854F0B', marginBottom: 8 }}>⚠️ À faire</p>
+        <Card style={{ marginBottom: 14, background: THEME.warningBg, border: '0.5px solid #F5C4B3' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#854F0B', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <AlertTriangle size={13} /> À faire
+          </p>
           {nbPresenceAConfirmer > 0 && (
-            <div onClick={() => navigate('/calendrier')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: (eventsAFaire.length > 0 || blessureActive) ? '0.5px solid #F3F4F6' : 'none', cursor: 'pointer' }}>
-              <span style={{ fontSize: 12 }}>❓ {nbPresenceAConfirmer} présence(s) à confirmer</span>
-              <span style={{ fontSize: 11, color: THEME.primary }}>→</span>
-            </div>
+            <ListRow icon={HelpCircle} label={`${nbPresenceAConfirmer} présence(s) à confirmer`}
+              onClick={() => navigate('/calendrier')} last={!(eventsAFaire.length > 0 || blessureActive)} />
           )}
           {eventsAFaire.length > 0 && (
-            <div onClick={() => navigate('/mon-suivi')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: blessureActive ? '0.5px solid #F3F4F6' : 'none', cursor: 'pointer' }}>
-              <span style={{ fontSize: 12 }}>📝 {eventsAFaire.length} RPE à remplir</span>
-              <span style={{ fontSize: 11, color: THEME.primary }}>→</span>
-            </div>
+            <ListRow icon={FileText} label={`${eventsAFaire.length} RPE à remplir`}
+              onClick={() => navigate('/mon-suivi')} last={!blessureActive} />
           )}
           {blessureActive && (
-            <div style={{ padding: '6px 0' }}>
-              <span style={{ fontSize: 12 }}>🤕 Blessure en cours — {blessureActive.zone}</span>
-            </div>
+            <ListRow icon={Bandage} label={`Blessure en cours — ${blessureActive.zone}`} last />
           )}
         </Card>
       )}
@@ -228,13 +230,13 @@ export default function DashboardJoueurPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
         {[
           { label: 'Matchs', value: totalMatchs, color: THEME.primary },
-          { label: 'Buts', value: totalButs, color: '#3B6D11' },
+          { label: 'Buts', value: totalButs, color: THEME.success },
           { label: 'Tps jeu moy.', value: tempsJeuMoy !== '—' ? `${tempsJeuMoy}'` : '—', color: THEME.primary },
-          { label: 'Présence entr.', value: tauxPresenceEntrainement !== '—' ? `${tauxPresenceEntrainement}%` : '—', color: tauxPresenceEntrainement >= 80 ? '#3B6D11' : '#D85A30' },
+          { label: 'Présence entr.', value: tauxPresenceEntrainement !== '—' ? `${tauxPresenceEntrainement}%` : '—', color: tauxPresenceEntrainement >= 80 ? THEME.success : '#D85A30' },
         ].map(s => (
-          <div key={s.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: '10px 6px', textAlign: 'center' }}>
+          <div key={s.label} style={{ background: THEME.bgCard, border: `0.5px solid ${THEME.border}`, borderRadius: THEME.radiusMd, padding: '10px 6px', textAlign: 'center' }}>
             <div style={{ fontSize: 16, fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
+            <div style={{ fontSize: 9, color: THEME.textMuted, marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -242,35 +244,41 @@ export default function DashboardJoueurPage() {
       {/* RACCOURCIS RPE + FOOTBAR */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
         <div onClick={() => navigate('/mon-suivi')} style={{
-          background: THEME.gradient, borderRadius: 14, padding: '12px 14px',
+          background: THEME.gradient, borderRadius: THEME.radiusLg, padding: '12px 14px',
           cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>❤️ Mon RPE</p>
-            <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>
-              {nbRpeAFaire > 0 ? `${nbRpeAFaire} à compléter` : 'À jour ✅'}
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Heart size={14} /> Mon RPE
+            </p>
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)', display: 'flex', alignItems: 'center', gap: 3 }}>
+              {nbRpeAFaire > 0 ? `${nbRpeAFaire} à compléter` : <>À jour <CheckCircle2 size={11} /></>}
             </p>
           </div>
-          <span style={{ fontSize: 18, color: '#fff' }}>→</span>
+          <ArrowRight size={16} color="#fff" />
         </div>
         <div onClick={() => navigate('/mon-suivi')} style={{
-          background: '#1A3A6B', borderRadius: 14, padding: '12px 14px',
+          background: THEME.primaryDark, borderRadius: THEME.radiusLg, padding: '12px 14px',
           cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>📡 Footbar</p>
-            <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)' }}>
-              {nbFootAFaire > 0 ? `${nbFootAFaire} à compléter` : 'À jour ✅'}
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Radio size={14} /> Footbar
+            </p>
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,.7)', display: 'flex', alignItems: 'center', gap: 3 }}>
+              {nbFootAFaire > 0 ? `${nbFootAFaire} à compléter` : <>À jour <CheckCircle2 size={11} /></>}
             </p>
           </div>
-          <span style={{ fontSize: 18, color: '#fff' }}>→</span>
+          <ArrowRight size={16} color="#fff" />
         </div>
       </div>
 
       {/* COURBE RPE */}
       {rpeParSession.length >= 2 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>❤️ Mon RPE — évolution</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <TrendingUp size={14} color={THEME.primary} /> Mon RPE — évolution
+          </p>
           <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 80 }}>
             <line x1={PAD} y1={yPos(2.5)} x2={W-PAD} y2={yPos(2.5)} stroke="#F3F4F6" strokeWidth="1" strokeDasharray="4,4" />
             <polyline
@@ -279,13 +287,13 @@ export default function DashboardJoueurPage() {
             {rpeParSession.map((d,i) => (
               <g key={i}>
                 <circle cx={xPos(i,rpeParSession.length)} cy={yPos(d.value)} r="4"
-                  fill={d.type === 'match' ? '#1A3A6B' : rpeColor(d.value)} />
+                  fill={d.type === 'match' ? THEME.primaryDark : rpeColor(d.value)} />
                 <text x={xPos(i,rpeParSession.length)} y={yPos(d.value)-8} textAnchor="middle" fontSize="9" fill="#6B7280">{d.value}</text>
               </g>
             ))}
           </svg>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
-            {rpeParSession.map((d,i) => <span key={i}>{d.label} {d.type === 'match' ? '⚽' : ''}</span>)}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: THEME.textMuted, marginTop: 2 }}>
+            {rpeParSession.map((d,i) => <span key={i}>{d.label}</span>)}
           </div>
         </Card>
       )}
@@ -293,15 +301,17 @@ export default function DashboardJoueurPage() {
       {/* FOOTBAR — km moyen entraînement vs match */}
       {footHistory.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📡 Distance parcourue</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Radio size={14} color={THEME.primary} /> Distance parcourue
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <div style={{ background: '#EAF3DE', borderRadius: 12, padding: '12px 10px', textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#3B6D11' }}>{distMoyEntrainement} <span style={{ fontSize: 12 }}>km</span></div>
-              <div style={{ fontSize: 10, color: '#3B6D11', marginTop: 2 }}>🏃 Moy. entraînement</div>
+            <div style={{ background: THEME.successBg, borderRadius: THEME.radiusMd, padding: '12px 10px', textAlign: 'center' }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: THEME.success }}>{distMoyEntrainement} <span style={{ fontSize: 12 }}>km</span></div>
+              <div style={{ fontSize: 10, color: THEME.success, marginTop: 2 }}>Moy. entraînement</div>
             </div>
-            <div style={{ background: '#E6F1FB', borderRadius: 12, padding: '12px 10px', textAlign: 'center' }}>
+            <div style={{ background: THEME.primaryBg, borderRadius: THEME.radiusMd, padding: '12px 10px', textAlign: 'center' }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: THEME.primary }}>{distMoyMatch} <span style={{ fontSize: 12 }}>km</span></div>
-              <div style={{ fontSize: 10, color: THEME.primary, marginTop: 2 }}>⚽ Moy. match</div>
+              <div style={{ fontSize: 10, color: THEME.primary, marginTop: 2 }}>Moy. match</div>
             </div>
           </div>
         </Card>
@@ -310,26 +320,30 @@ export default function DashboardJoueurPage() {
       {/* PRÉSENCES ENTRAÎNEMENTS */}
       {presencesEntrainement.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📅 Présences entraînements</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Calendar size={14} color={THEME.primary} /> Présences entraînements
+          </p>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
             {presencesEntrainement.slice(0,10).map((p,i) => (
               <div key={i} style={{ textAlign: 'center' }}>
                 <div style={{
-                  width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
-                  background: p.statut === 'present' ? '#EAF3DE' : p.statut === 'absent' ? '#FCEBEB' : '#FAEEDA'
+                  width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: p.statut === 'present' ? THEME.successBg : p.statut === 'absent' ? THEME.dangerBg : THEME.warningBg
                 }}>
-                  {p.statut === 'present' ? '✅' : p.statut === 'absent' ? '❌' : '🤕'}
+                  {p.statut === 'present' ? <CheckCircle2 size={15} color={THEME.success} />
+                    : p.statut === 'absent' ? <XCircle size={15} color={THEME.danger} />
+                    : <Bandage size={15} color={THEME.warning} />}
                 </div>
-                <div style={{ fontSize: 8, color: '#9CA3AF', marginTop: 2 }}>
+                <div style={{ fontSize: 8, color: THEME.textMuted, marginTop: 2 }}>
                   {p.evenements?.date_heure ? format(parseISO(p.evenements.date_heure), 'd/M', { locale: fr }) : ''}
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: 12, fontSize: 11, borderTop: '0.5px solid #F3F4F6', paddingTop: 8 }}>
-            <span style={{ color: '#3B6D11' }}>✅ {presentsEntrainement}</span>
-            <span style={{ color: '#A32D2D' }}>❌ {presencesEntrainement.filter(p => p.statut === 'absent').length}</span>
-            <span style={{ color: '#9CA3AF' }}>· {tauxPresenceEntrainement}% de présence</span>
+          <div style={{ display: 'flex', gap: 12, fontSize: 11, borderTop: `0.5px solid ${THEME.border}`, paddingTop: 8 }}>
+            <span style={{ color: THEME.success }}>{presentsEntrainement} présent(s)</span>
+            <span style={{ color: THEME.danger }}>{presencesEntrainement.filter(p => p.statut === 'absent').length} absent(s)</span>
+            <span style={{ color: THEME.textMuted }}>· {tauxPresenceEntrainement}% de présence</span>
           </div>
         </Card>
       )}
@@ -337,20 +351,22 @@ export default function DashboardJoueurPage() {
       {/* OBJECTIFS */}
       {objectifs.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>🎯 Mes objectifs</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Target size={14} color={THEME.primary} /> Mes objectifs
+          </p>
           {objectifs.slice(0,3).map(o => {
             const progress = o.valeur_cible && o.valeur_actuelle
               ? Math.min(100, Math.round(o.valeur_actuelle/o.valeur_cible*100))
               : null
             return (
-              <div key={o.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '0.5px solid #F3F4F6' }}>
+              <div key={o.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: `0.5px solid ${THEME.border}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <p style={{ fontSize: 12, fontWeight: 600 }}>{o.titre}</p>
-                  {progress !== null && <span style={{ fontSize: 11, fontWeight: 700, color: progress >= 100 ? '#3B6D11' : THEME.primary }}>{progress}%</span>}
+                  {progress !== null && <span style={{ fontSize: 11, fontWeight: 700, color: progress >= 100 ? THEME.success : THEME.primary }}>{progress}%</span>}
                 </div>
                 {progress !== null && (
-                  <div style={{ height: 6, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 4, background: progress >= 100 ? '#3B6D11' : THEME.primary, width: `${progress}%` }} />
+                  <div style={{ height: 6, background: THEME.surfaceMuted, borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 4, background: progress >= 100 ? THEME.success : THEME.primary, width: `${progress}%` }} />
                   </div>
                 )}
               </div>
@@ -362,15 +378,16 @@ export default function DashboardJoueurPage() {
       {/* Navigation rapide */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 4 }}>
         {[
-          { label: '📅 Agenda', path: '/calendrier' },
-          { label: '👤 Ma fiche', path: '/ma-fiche' },
-          { label: '💬 Messages', path: '/messages' },
+          { icon: Calendar, label: 'Agenda', path: '/calendrier' },
+          { icon: User, label: 'Ma fiche', path: '/ma-fiche' },
+          { icon: MessageCircle, label: 'Messages', path: '/messages' },
         ].map(item => (
           <button key={item.path} onClick={() => navigate(item.path)} style={{
-            padding: 10, background: '#fff', border: '0.5px solid #E5E7EB',
-            borderRadius: 12, fontSize: 12, color: THEME.primary,
-            fontWeight: 500, cursor: 'pointer', textAlign: 'center'
-          }}>{item.label}</button>
+            padding: 10, background: THEME.bgCard, border: `0.5px solid ${THEME.border}`,
+            borderRadius: THEME.radiusMd, fontSize: 12, color: THEME.primary,
+            fontWeight: 500, cursor: 'pointer', textAlign: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+          }}><item.icon size={14} /> {item.label}</button>
         ))}
       </div>
     </div>
