@@ -5,6 +5,7 @@ import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { Gamepad2, Trophy, Target, X, CheckCircle2, Save, Hourglass, Pencil, Award } from 'lucide-react'
 
 const FORMATIONS = {
   '4-4-2': {
@@ -120,8 +121,8 @@ function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
   return (
     <Card style={{ marginBottom: 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: THEME.primary }}>
-          🏆 11 du groupe ({nbReponses} réponse{nbReponses > 1 ? 's' : ''})
+        <p style={{ fontSize: 13, fontWeight: 700, color: THEME.primary, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Trophy size={14} /> 11 du groupe ({nbReponses} réponse{nbReponses > 1 ? 's' : ''})
         </p>
         <div style={{ display: 'flex', gap: 4 }}>
           {Object.keys(FORMATIONS).map(f => (
@@ -357,7 +358,9 @@ export default function FunPage() {
 
   return (
     <div style={{ padding: 12 }}>
-      <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 14 }}>🎮 Fun & Jeux</h1>
+      <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 7 }}>
+        <Gamepad2 size={18} color={THEME.primary} /> Fun & Jeux
+      </h1>
 
       {/* VUE COACH DÉDIÉE */}
       {(isCoach || isAdjoint) && (
@@ -366,13 +369,14 @@ export default function FunPage() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {[['onze', '🏆 Mon 11 idéal'], ['pronos', '🎯 Pronostics']].map(([key, label]) => (
+        {[['onze', Trophy, 'Mon 11 idéal'], ['pronos', Target, 'Pronostics']].map(([key, Icon, label]) => (
           <button key={key} onClick={() => setActiveTab(key)} style={{
             flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
             border: `1.5px solid ${activeTab === key ? THEME.primary : '#E5E7EB'}`,
-            background: activeTab === key ? '#E6F1FB' : 'transparent',
+            background: activeTab === key ? THEME.primaryBg : 'transparent',
             color: activeTab === key ? THEME.primary : '#6B7280',
-          }}>{label}</button>
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+          }}><Icon size={13} /> {label}</button>
         ))}
       </div>
 
@@ -380,7 +384,7 @@ export default function FunPage() {
       {activeTab === 'onze' && (
         <>
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>🏆 Mon 11 idéal FC PCL</p>
+            <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={14} /> Mon 11 idéal FC PCL</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Choisis ta formation et compose ton 11 de rêve.</p>
 
             {/* Choix formation */}
@@ -457,8 +461,8 @@ export default function FunPage() {
                     <button onClick={() => {
                       setMonOnze(p => { const n = {...p}; delete n[selectingPoste]; return n })
                       setSelectingPoste(null)
-                    }} style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', border: '1px solid #FCEBEB', background: '#FCEBEB', color: '#A32D2D' }}>
-                      ✕ Retirer
+                    }} style={{ padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', border: `1px solid ${THEME.dangerBg}`, background: THEME.dangerBg, color: THEME.danger, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <X size={11} /> Retirer
                     </button>
                   )}
                 </div>
@@ -469,15 +473,15 @@ export default function FunPage() {
               style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none',
                 background: Object.keys(monOnze).length >= nbPostes ? THEME.gradient : '#E5E7EB',
                 color: Object.keys(monOnze).length >= nbPostes ? '#fff' : '#9CA3AF',
-                fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-              {onzeSaved ? '✅ Sauvegardé !' : `💾 Valider mon 11 (${Object.keys(monOnze).length}/${nbPostes})`}
+                fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              {onzeSaved ? <><CheckCircle2 size={14} /> Sauvegardé !</> : <><Save size={14} /> Valider mon 11 ({Object.keys(monOnze).length}/{nbPostes})</>}
             </button>
           </Card>
 
           {/* Top joueurs */}
           {topChoisis.length > 0 && (
             <Card>
-              <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>🏅 Les plus choisis dans le groupe</p>
+              <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Award size={14} /> Les plus choisis dans le groupe</p>
               {topChoisis.map((j, i) => (
                 <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '0.5px solid #F3F4F6' }}>
                   <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span>
@@ -531,8 +535,8 @@ export default function FunPage() {
                   style={{ width: '100%', padding: 10, borderRadius: 10, border: 'none',
                     background: input.dom !== '' && input.ext !== '' ? THEME.gradient : '#E5E7EB',
                     color: input.dom !== '' && input.ext !== '' ? '#fff' : '#9CA3AF',
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  {savingProno === match.id ? '⏳...' : monProno ? '✏️ Modifier mon pronostic' : '🎯 Valider mon pronostic'}
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  {savingProno === match.id ? <Hourglass size={13} /> : monProno ? <><Pencil size={13} /> Modifier mon pronostic</> : <><Target size={13} /> Valider mon pronostic</>}
                 </button>
                 {monProno && (
                   <p style={{ fontSize: 11, color: '#3B6D11', textAlign: 'center', marginTop: 6, fontWeight: 600 }}>
@@ -545,7 +549,7 @@ export default function FunPage() {
 
           {classementPronos.length > 0 && (
             <Card>
-              <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>🏆 Classement pronostics</p>
+              <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={14} /> Classement pronostics</p>
               {classementPronos.map((j, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '0.5px solid #F3F4F6' }}>
                   <span style={{ fontSize: 16, width: 24 }}>{i < 3 ? ['🥇','🥈','🥉'][i] : `${i+1}.`}</span>
