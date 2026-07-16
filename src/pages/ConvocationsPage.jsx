@@ -5,6 +5,7 @@ import { Card, PageHeader, Button, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { ArrowLeft, CheckCircle2, MapPin, Bell, Send, Check } from 'lucide-react'
 
 const AVATAR_COLORS = [
   { bg: '#B5D4F4', color: '#0C447C' },
@@ -121,7 +122,7 @@ export default function ConvocationsPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
+        <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
         <div>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Convocations</p>
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>{event?.titre} · {dateStr}</p>
@@ -131,7 +132,7 @@ export default function ConvocationsPage() {
       {sent ? (
         <Card>
           <div style={{ textAlign: 'center', padding: 24 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+            <CheckCircle2 size={44} color={THEME.success} style={{ marginBottom: 12 }} />
             <p style={{ fontSize: 16, fontWeight: 700, color: THEME.success }}>Convocations enregistrées !</p>
             <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{selected.size} joueur(s) convoqué(s)</p>
             <Button variant="primary" style={{ marginTop: 16, width: '100%' }} onClick={() => navigate('/calendrier')}>
@@ -143,7 +144,7 @@ export default function ConvocationsPage() {
         <>
           {/* Heure et lieu de RDV */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📍 Informations de rendez-vous</p>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><MapPin size={13} color={THEME.primary} /> Informations de rendez-vous</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div>
                 <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>Heure de RDV</label>
@@ -169,11 +170,12 @@ export default function ConvocationsPage() {
             </div>
 
             {/* Aperçu SMS */}
-            <div style={{ background: '#F0F4FF', borderRadius: 10, padding: 10, marginBottom: 12, borderLeft: `3px solid ${THEME.primary}` }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: THEME.primary, marginBottom: 4 }}>📱 Notification push envoyée</p>
-              <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>
-                📢 <strong>Convocation — {event?.titre}</strong>{'\n'}
-                {dateStr} · RDV {rdvHeure} · {rdvLieu || event?.lieu || 'Vestiaires'}
+            <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: 10, marginBottom: 12, borderLeft: `3px solid ${THEME.primary}` }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: THEME.primary, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}><Bell size={12} /> Notification push envoyée</p>
+              <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+                <Send size={12} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span><strong>Convocation — {event?.titre}</strong>{'\n'}
+                {dateStr} · RDV {rdvHeure} · {rdvLieu || event?.lieu || 'Vestiaires'}</span>
               </p>
             </div>
 
@@ -201,16 +203,16 @@ export default function ConvocationsPage() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 14, color: '#fff', flexShrink: 0, transition: 'all .15s'
                   }}>
-                    {isSelected ? '✓' : ''}
+                    {isSelected && <Check size={14} />}
                   </div>
                 </div>
               )
             })}
           </Card>
 
-          <Button variant="primary" style={{ width: '100%', padding: 14, fontSize: 14 }}
+          <Button variant="primary" style={{ width: '100%', padding: 14, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             onClick={saveConvocations} disabled={saving || selected.size === 0}>
-            {saving ? 'Enregistrement...' : `📢 Convoquer ${selected.size} joueur(s) et notifier`}
+            {saving ? 'Enregistrement...' : <><Send size={14} /> Convoquer {selected.size} joueur(s) et notifier</>}
           </Button>
         </>
       )}
