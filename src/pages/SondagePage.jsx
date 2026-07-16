@@ -5,6 +5,7 @@ import { Card, PageHeader, Button, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { ListChecks, Plus, X, Check, Circle, Lock } from 'lucide-react'
 
 export default function SondagePage() {
   const { profile, isCoach, isJoueur } = useAuth()
@@ -68,12 +69,13 @@ export default function SondagePage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600 }}>📊 Sondages</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><ListChecks size={17} color={THEME.primary} /> Sondages</h1>
         {isCoach && (
           <button onClick={() => setShowCreate(!showCreate)} style={{
             padding: '6px 14px', borderRadius: 8, border: 'none',
-            background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600
-          }}>{showCreate ? '✕ Annuler' : '+ Créer'}</button>
+            background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600,
+            display: 'flex', alignItems: 'center', gap: 5
+          }}>{showCreate ? <><X size={12} /> Annuler</> : <><Plus size={12} /> Créer</>}</button>
         )}
       </div>
 
@@ -99,7 +101,7 @@ export default function SondagePage() {
                   style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                 {form.options.length > 2 && (
                   <button onClick={() => setForm(p => ({...p, options: p.options.filter((_,j) => j !== i)}))}
-                    style={{ padding: '8px 10px', border: 'none', background: '#FCEBEB', borderRadius: 10, cursor: 'pointer', color: '#A32D2D' }}>✕</button>
+                    style={{ padding: '8px 10px', border: 'none', background: THEME.dangerBg, borderRadius: 10, cursor: 'pointer', color: THEME.danger, display: 'flex' }}><X size={13} /></button>
                 )}
               </div>
             ))}
@@ -115,8 +117,8 @@ export default function SondagePage() {
             <input type="datetime-local" value={form.expire_at} onChange={e => setForm(p => ({...p, expire_at: e.target.value}))}
               style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
           </div>
-          <Button variant="primary" style={{ width: '100%' }} onClick={createSondage} disabled={saving}>
-            {saving ? 'Création...' : '✅ Envoyer le sondage'}
+          <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={createSondage} disabled={saving}>
+            {saving ? 'Création...' : <><Check size={13} /> Envoyer le sondage</>}
           </Button>
         </Card>
       )}
@@ -145,9 +147,10 @@ export default function SondagePage() {
                     </p>
                   </div>
                   <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-                    background: s.actif ? '#EAF3DE' : '#F3F4F6',
-                    color: s.actif ? '#3B6D11' : '#9CA3AF' }}>
-                    {s.actif ? '🟢 Ouvert' : '🔒 Clôturé'}
+                    background: s.actif ? THEME.successBg : '#F3F4F6',
+                    color: s.actif ? THEME.success : '#9CA3AF',
+                    display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    {s.actif ? <><Circle size={7} fill={THEME.success} color={THEME.success} /> Ouvert</> : <><Lock size={9} /> Clôturé</>}
                   </span>
                 </div>
 
@@ -169,8 +172,8 @@ export default function SondagePage() {
                         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, background: isMyVote ? 'rgba(24,95,165,.1)' : 'rgba(0,0,0,.03)', width: `${pct}%`, transition: 'width .5s' }} />
                       )}
                       <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: 12, fontWeight: isMyVote ? 700 : 400, color: isMyVote ? THEME.primary : '#374151' }}>
-                          {isMyVote ? '✓ ' : ''}{opt}
+                        <span style={{ fontSize: 12, fontWeight: isMyVote ? 700 : 400, color: isMyVote ? THEME.primary : '#374151', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {isMyVote && <Check size={12} />}{opt}
                         </span>
                         {aVote && <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280' }}>{pct}%</span>}
                       </div>
@@ -180,8 +183,8 @@ export default function SondagePage() {
 
                 {isCoach && s.actif && (
                   <button onClick={() => clotureSondage(s.id)}
-                    style={{ fontSize: 11, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4 }}>
-                    🔒 Clôturer
+                    style={{ fontSize: 11, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Lock size={11} /> Clôturer
                   </button>
                 )}
               </Card>
