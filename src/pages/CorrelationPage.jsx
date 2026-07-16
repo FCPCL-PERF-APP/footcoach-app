@@ -5,6 +5,7 @@ import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { TrendingDown, Dumbbell, Star, Circle } from 'lucide-react'
 
 function rpeColor(v) {
   if (v >= 4.5) return '#A32D2D'
@@ -135,7 +136,7 @@ export default function CorrelationPage() {
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="📊 Corrélation RPE / Perf." />
+      <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><TrendingDown size={18} /> Corrélation RPE / Perf.</span>} />
 
       {loading ? <Spinner /> : (
         <>
@@ -190,14 +191,15 @@ export default function CorrelationPage() {
 
           {/* Sélecteur de dimension pour le graphique et le tableau */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-            {[['charge', '💪 Charge perçue'], ['perf', '⭐ Ressenti perf.']].map(([key, lbl]) => (
+            {[['charge', Dumbbell, 'Charge perçue'], ['perf', Star, 'Ressenti perf.']].map(([key, Icon, lbl]) => (
               <button key={key} onClick={() => setDimension(key)} style={{
                 padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                 border: '0.5px solid #D1D5DB',
-                background: dimension === key ? '#E6F1FB' : 'transparent',
+                background: dimension === key ? THEME.primaryBg : 'transparent',
                 color: dimension === key ? THEME.primary : '#6B7280',
-                fontWeight: dimension === key ? 600 : 400
-              }}>{lbl}</button>
+                fontWeight: dimension === key ? 600 : 400,
+                display: 'inline-flex', alignItems: 'center', gap: 5
+              }}><Icon size={11} /> {lbl}</button>
             ))}
           </div>
 
@@ -205,7 +207,12 @@ export default function CorrelationPage() {
           {dimData.length >= 2 && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{dimLabel} vs Différence de buts</p>
-              <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10 }}>Chaque point = un match · 🟢 Victoire · 🟡 Nul · 🔴 Défaite</p>
+              <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span>Chaque point = un match</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={THEME.success} color={THEME.success} /> Victoire</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={THEME.warning} color={THEME.warning} /> Nul</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={THEME.danger} color={THEME.danger} /> Défaite</span>
+              </p>
               <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 160 }}>
                 {/* Axes */}
                 <line x1={PAD} y1={PAD} x2={PAD} y2={H-PAD} stroke="#E5E7EB" strokeWidth="1" />
@@ -219,7 +226,7 @@ export default function CorrelationPage() {
                 {dimData.map((p, i) => {
                   const cx = xPos(p[dimKey])
                   const cy = yPos(p.diff)
-                  const color = p.resultat === 'V' ? '#3B6D11' : p.resultat === 'N' ? '#BA7517' : '#A32D2D'
+                  const color = p.resultat === 'V' ? THEME.success : p.resultat === 'N' ? THEME.warning : THEME.danger
                   return (
                     <g key={i}>
                       <circle cx={cx} cy={cy} r="6" fill={color} opacity="0.85" />
