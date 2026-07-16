@@ -5,7 +5,7 @@ import { Spinner } from './components/UI'
 import BottomNav from './components/BottomNav'
 import AppHeader from './components/AppHeader'
 import LoginPage from './pages/LoginPage'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { THEME } from './theme'
 
 const CalendrierPage         = lazy(() => import('./pages/CalendrierPage'))
@@ -62,6 +62,14 @@ const routeFallback = (
 function AppContent() {
   const { user, profile, loading, needsOnboarding, profileError, retryProfile, signOut, isCoach, isAdjoint, isJoueur, isStaff } = useAuth()
   usePush(user, profile)
+
+  // Une fois l'app stable quelques secondes, on lève le garde-fou anti-boucle de
+  // ErrorBoundary : une future erreur de chunk (ex. après un nouveau déploiement)
+  // pourra de nouveau déclencher un rechargement automatique.
+  useEffect(() => {
+    const t = setTimeout(() => sessionStorage.removeItem('fc-chunk-reload'), 5000)
+    return () => clearTimeout(t)
+  }, [])
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: THEME.gradient }}>

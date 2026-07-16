@@ -15,6 +15,18 @@ export class ErrorBoundary extends Component {
   componentDidCatch(error, info) {
     console.error('App error:', error, info)
     Sentry.captureException(error, { contexts: { react: { componentStack: info.componentStack } } })
+
+    // Un chunk lazy-loadé (React.lazy) peut échouer à se charger si le navigateur a
+    // encore en mémoire une page ouverte avant un déploiement plus récent : les noms
+    // de fichiers changent à chaque build, et l'ancien chemin n'existe plus côté
+    // serveur. C'est transitoire et se résout systématiquement par un rechargement —
+    // on le fait automatiquement une fois (marqueur sessionStorage pour éviter une
+    // boucle infinie si l'erreur persiste pour une autre raison).
+    const isChunkLoadError = /dynamically imported module|Loading chunk|Importing a module script failed/i.test(error?.message || '')
+    if (isChunkLoadError && !sessionStorage.getItem('fc-chunk-reload')) {
+      sessionStorage.setItem('fc-chunk-reload', '1')
+      window.location.reload()
+    }
   }
 
   render() {
