@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Input, Button, Spinner, Avatar } from '../components/UI'
 import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME } from '../theme'
+import { Camera, CheckCircle2, Lock, X, Save, LogOut } from 'lucide-react'
 
 export default function ProfilCoachPage() {
   const navigate = useNavigate()
@@ -55,7 +56,7 @@ export default function ProfilCoachPage() {
     const { error } = await supabase.auth.updateUser({ password: pwd.new })
     if (error) setPwdMsg({ ok: false, text: `Erreur : ${error.message}` })
     else {
-      setPwdMsg({ ok: true, text: '✅ Mot de passe modifié avec succès !' })
+      setPwdMsg({ ok: true, text: 'Mot de passe modifié avec succès !' })
       setPwd({ current: '', new: '', confirm: '' })
       setTimeout(() => { setChangingPwd(false); setPwdMsg(null) }, 3000)
     }
@@ -102,8 +103,8 @@ export default function ProfilCoachPage() {
             : <Avatar initials={initials} size={72} bg="rgba(255,255,255,.2)" color="#fff" />
           }
           <div onClick={() => document.getElementById('coach-photo').click()}
-            style={{ position: 'absolute', bottom: 0, right: 0, width: 24, height: 24, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 13 }}>
-            📷
+            style={{ position: 'absolute', bottom: 0, right: 0, width: 24, height: 24, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <Camera size={13} color={THEME.primary} />
           </div>
           <input id="coach-photo" type="file" accept="image/*" style={{ display: 'none' }}
             onChange={e => e.target.files[0] && setPendingPhoto(e.target.files[0])} />
@@ -115,7 +116,7 @@ export default function ProfilCoachPage() {
         </p>
       </div>
 
-      {saved && <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#3B6D11' }}>✅ Profil mis à jour !</div>}
+      {saved && <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Profil mis à jour !</div>}
 
       {/* Infos */}
       <Card>
@@ -128,25 +129,25 @@ export default function ProfilCoachPage() {
           <Input label="Diplôme" value={form.diplome || ''} onChange={v => setForm(p => ({...p, diplome: v}))} />
           <Input label="Spécialité" value={form.specialite || ''} onChange={v => setForm(p => ({...p, specialite: v}))} />
         </div>
-        <Button variant="primary" style={{ width: '100%', marginTop: 4 }} onClick={saveProfil} disabled={saving}>
-          {saving ? 'Enregistrement...' : '💾 Enregistrer'}
+        <Button variant="primary" style={{ width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveProfil} disabled={saving}>
+          {saving ? 'Enregistrement...' : <><Save size={13} /> Enregistrer</>}
         </Button>
       </Card>
 
       {/* Changement mot de passe */}
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: changingPwd ? 12 : 0 }}>
-          <p style={{ fontSize: 13, fontWeight: 600 }}>🔐 Mot de passe</p>
+          <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Lock size={13} /> Mot de passe</p>
           <button onClick={() => { setChangingPwd(!changingPwd); setPwdMsg(null) }}
-            style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>
-            {changingPwd ? '✕ Annuler' : 'Modifier'}
+            style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            {changingPwd ? <><X size={11} /> Annuler</> : 'Modifier'}
           </button>
         </div>
         {changingPwd && (
           <>
             <Input label="Nouveau mot de passe" type="password" value={pwd.new} onChange={v => setPwd(p => ({...p, new: v}))} />
             <Input label="Confirmer le mot de passe" type="password" value={pwd.confirm} onChange={v => setPwd(p => ({...p, confirm: v}))} />
-            {pwdMsg && <p style={{ fontSize: 12, color: pwdMsg.ok ? '#3B6D11' : '#A32D2D', marginBottom: 8 }}>{pwdMsg.text}</p>}
+            {pwdMsg && <p style={{ fontSize: 12, color: pwdMsg.ok ? THEME.success : THEME.danger, marginBottom: 8 }}>{pwdMsg.text}</p>}
             <Button variant="primary" style={{ width: '100%' }} onClick={changePassword}>
               Changer le mot de passe
             </Button>
@@ -158,9 +159,10 @@ export default function ProfilCoachPage() {
       <button onClick={signOut} style={{
         width: '100%', padding: 14, borderRadius: 12,
         border: '0.5px solid #FCEBEB', background: '#FDF1F1',
-        color: '#A32D2D', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4
+        color: THEME.danger, fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
       }}>
-        🚪 Se déconnecter
+        <LogOut size={14} /> Se déconnecter
       </button>
     </div>
   )
