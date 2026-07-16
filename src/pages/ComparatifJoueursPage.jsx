@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
+import { Scale, Heart, Radio } from 'lucide-react'
 
 function rpeColor(v) {
   if (!v) return '#9CA3AF'
@@ -120,7 +121,7 @@ export default function ComparatifJoueursPage() {
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="⚖️ Comparatif joueurs" />
+      <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Scale size={18} /> Comparatif joueurs</span>} />
 
       {/* Sélection joueurs */}
       <Card>
@@ -171,14 +172,15 @@ export default function ComparatifJoueursPage() {
 
           {/* Tabs */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-            {[['rpe','❤️ RPE'],['footbar','📡 Footbar']].map(([tab, lbl]) => (
+            {[['rpe', Heart, 'RPE'],['footbar', Radio, 'Footbar']].map(([tab, Icon, lbl]) => (
               <button key={tab} onClick={() => setActiveTab(tab)} style={{
                 padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                 border: '0.5px solid #D1D5DB',
-                background: activeTab === tab ? '#E6F1FB' : 'transparent',
+                background: activeTab === tab ? THEME.primaryBg : 'transparent',
                 color: activeTab === tab ? THEME.primary : '#6B7280',
-                fontWeight: activeTab === tab ? 600 : 400
-              }}>{lbl}</button>
+                fontWeight: activeTab === tab ? 600 : 400,
+                display: 'inline-flex', alignItems: 'center', gap: 5
+              }}><Icon size={11} /> {lbl}</button>
             ))}
           </div>
 
