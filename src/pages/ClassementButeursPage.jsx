@@ -4,15 +4,16 @@ import { supabase } from '../lib/supabase'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
+import { Trophy, Goal, Target, BarChart3, ClipboardList, Clock, Footprints, Gamepad2 } from 'lucide-react'
 
 const MEDALS = ['🥇', '🥈', '🥉']
 
-function Top5({ title, data, valueKey, valueLabel, valueSuffix = '' }) {
+function Top5({ title, icon: Icon, data, valueKey, valueLabel, valueSuffix = '' }) {
   const top5 = data.slice(0, 5)
   const max = top5[0]?.[valueKey] || 1
   return (
     <Card>
-      <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>{title}</p>
+      <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Icon size={14} color={THEME.primary} /> {title}</p>
       {top5.length === 0 ? (
         <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Pas encore de données.</p>
       ) : (
@@ -120,24 +121,25 @@ export default function ClassementButeursPage() {
   }
 
   const tabs = [
-    { key: 'buts',     label: '⚽ Buteurs' },
-    { key: 'pd',       label: '🎯 Passeurs' },
-    { key: 'stats',    label: '📊 Stats' },
+    { key: 'buts',     icon: Goal, label: 'Buteurs' },
+    { key: 'pd',       icon: Target, label: 'Passeurs' },
+    { key: 'stats',    icon: BarChart3, label: 'Stats' },
   ]
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="🏆 Classements" />
+      <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Trophy size={18} /> Classements</span>} />
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
         {tabs.map(t => (
           <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === t.key ? '#E6F1FB' : 'transparent',
+            background: activeTab === t.key ? THEME.primaryBg : 'transparent',
             color: activeTab === t.key ? THEME.primary : '#6B7280',
-            fontWeight: activeTab === t.key ? 600 : 400
-          }}>{t.label}</button>
+            fontWeight: activeTab === t.key ? 600 : 400,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+          }}><t.icon size={12} /> {t.label}</button>
         ))}
       </div>
 
@@ -149,19 +151,19 @@ export default function ClassementButeursPage() {
         <>
           {activeTab === 'buts' && (
             <>
-              <Top5 title="⚽ Top buteurs" data={classements.buteurs} valueKey="buts" valueSuffix=" but(s)" />
-              <Top5 title="🎯 Top passeurs" data={classements.passeurs} valueKey="pd" valueSuffix=" PD" />
+              <Top5 title="Top buteurs" icon={Goal} data={classements.buteurs} valueKey="buts" valueSuffix=" but(s)" />
+              <Top5 title="Top passeurs" icon={Target} data={classements.passeurs} valueKey="pd" valueSuffix=" PD" />
             </>
           )}
           {activeTab === 'pd' && (
-            <Top5 title="🎯 Top passeurs décisifs" data={classements.passeurs} valueKey="pd" valueSuffix=" PD" />
+            <Top5 title="Top passeurs décisifs" icon={Target} data={classements.passeurs} valueKey="pd" valueSuffix=" PD" />
           )}
           {activeTab === 'stats' && (
             <>
-              <Top5 title="📋 Titularisations" data={classements.titularisations} valueKey="titularisations" valueSuffix=" tit." />
-              <Top5 title="⏱️ Temps de jeu moyen" data={classements.tempsJeu} valueKey="tempsMoy" valueSuffix="'" />
-              <Top5 title="🏃 Distance moy. en match" data={classements.distanceMoyMatch} valueKey="distMoy" valueSuffix=" km" />
-              <Top5 title="🎮 Matchs joués" data={classements.matchsJoues} valueKey="nbMatchs" valueSuffix=" match(s)" />
+              <Top5 title="Titularisations" icon={ClipboardList} data={classements.titularisations} valueKey="titularisations" valueSuffix=" tit." />
+              <Top5 title="Temps de jeu moyen" icon={Clock} data={classements.tempsJeu} valueKey="tempsMoy" valueSuffix="'" />
+              <Top5 title="Distance moy. en match" icon={Footprints} data={classements.distanceMoyMatch} valueKey="distMoy" valueSuffix=" km" />
+              <Top5 title="Matchs joués" icon={Gamepad2} data={classements.matchsJoues} valueKey="nbMatchs" valueSuffix=" match(s)" />
             </>
           )}
         </>
