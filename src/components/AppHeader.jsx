@@ -46,9 +46,9 @@ export default function AppHeader() {
       boxShadow: '0 1px 4px rgba(0,0,0,.25)'
     }
   }
-  const CHIP = { search: '#0EA5E9', profil: '#8B5CF6', trophy: '#EAB308', logout: '#F43F5E' }
-  // Mode sombre : bouton discret (silhouette) plutôt qu'une pastille colorée —
-  // action secondaire, pas besoin d'être mise en avant comme les autres.
+  const CHIP = { search: '#0EA5E9', mode: '#F59E0B', profil: '#8B5CF6', trophy: '#EAB308' }
+  // Déconnexion : bouton discret (silhouette) plutôt qu'une pastille colorée —
+  // action de sortie, pas besoin d'être mise en avant comme les autres.
   const discreetStyle = {
     background: 'rgba(255,255,255,.15)',
     border: 'none', borderRadius: '50%',
@@ -82,8 +82,8 @@ export default function AppHeader() {
         <button onClick={() => navigate('/search')} style={btnStyle(CHIP.search)}><Search size={15} color="#fff" /></button>
 
         {/* Mode sombre */}
-        <button onClick={toggleTheme} style={discreetStyle}>
-          {darkMode ? <Sun size={15} color="rgba(255,255,255,.85)" /> : <Moon size={15} color="rgba(255,255,255,.85)" />}
+        <button onClick={toggleTheme} style={btnStyle(CHIP.mode)}>
+          {darkMode ? <Sun size={15} color="#fff" /> : <Moon size={15} color="#fff" />}
         </button>
 
         {/* Profil staff */}
@@ -108,11 +108,12 @@ export default function AppHeader() {
 
         {/* Déconnexion */}
         <button onClick={signOut} style={{
-          background: CHIP.logout, border: 'none', borderRadius: 20,
-          padding: '6px 12px', boxShadow: '0 1px 4px rgba(0,0,0,.25)',
-          cursor: 'pointer', fontSize: 12,
-          color: '#fff', fontWeight: 600,
-          display: 'flex', alignItems: 'center', gap: 5
+          ...discreetStyle,
+          borderRadius: 20,
+          width: 'auto', padding: '6px 12px',
+          fontSize: 12,
+          color: 'rgba(255,255,255,.85)', fontWeight: 600,
+          gap: 5
         }}>
           <LogOut size={14} /> Déconnexion
         </button>
