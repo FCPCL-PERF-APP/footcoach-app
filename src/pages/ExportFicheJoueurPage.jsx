@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Spinner } from '../components/UI'
 import { THEME } from '../theme'
+import { ArrowLeft, Printer } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -72,8 +73,8 @@ export default function ExportFicheJoueurPage() {
     <>
       {/* Boutons non imprimés */}
       <div style={{ padding: '10px 12px', display: 'flex', gap: 8, background: '#F9FAFB', borderBottom: '0.5px solid #E5E7EB' }} className="no-print">
-        <button onClick={() => navigate(-1)} style={{ padding: '7px 14px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: 'pointer', fontSize: 12 }}>← Retour</button>
-        <button onClick={handlePrint} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: THEME.gradient, color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>🖨️ Imprimer / PDF</button>
+        <button onClick={() => navigate(-1)} style={{ padding: '7px 14px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Retour</button>
+        <button onClick={handlePrint} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: THEME.gradient, color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Printer size={13} /> Imprimer / PDF</button>
         <p style={{ fontSize: 11, color: '#9CA3AF', alignSelf: 'center' }}>Sur iPhone : Partager → "Enregistrer en PDF"</p>
       </div>
 
