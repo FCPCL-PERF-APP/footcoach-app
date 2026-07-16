@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
+import { ArrowLeft, CheckCircle2, Lock, BarChart3 } from 'lucide-react'
 
 const BADGE_DEFS = [
   // Présences
@@ -99,7 +100,7 @@ export default function BadgesJoueurPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Mes badges</h1>
       </div>
 
@@ -118,7 +119,7 @@ export default function BadgesJoueurPage() {
       {/* Badges débloqués */}
       {badges.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>✅ Débloqués</p>
+          <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} color={THEME.success} /> Débloqués</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
             {badges.map(b => (
               <div key={b.id} style={{ textAlign: 'center', padding: 10, background: '#F9FAFB', borderRadius: 12, border: '1.5px solid #FFD700' }}>
@@ -134,7 +135,7 @@ export default function BadgesJoueurPage() {
       {/* Badges verrouillés */}
       {locked.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: '#9CA3AF' }}>🔒 À débloquer</p>
+          <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 6 }}><Lock size={13} /> À débloquer</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
             {locked.map(b => (
               <div key={b.id} style={{ textAlign: 'center', padding: 10, background: '#F3F4F6', borderRadius: 12, border: '1px solid #E5E7EB', opacity: 0.6 }}>
@@ -150,7 +151,7 @@ export default function BadgesJoueurPage() {
       {/* Stats rapides */}
       {stats && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📊 Tes stats saison 2026/2027</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={14} color={THEME.primary} /> Tes stats saison 2026/2027</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
             {[
               ['Série présences', `${stats.seriePresences} 🔥`],
