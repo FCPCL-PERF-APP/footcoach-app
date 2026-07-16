@@ -74,9 +74,16 @@ export default function PresencesMatchPage() {
         if (!presMap[j.id]) presMap[j.id] = 'inconnu'
       }
     } else {
-      setConvocations(convocs || [])
-      for (const c of (convocs || [])) {
-        if (!presMap[c.joueur_id]) presMap[c.joueur_id] = 'inconnu'
+      // Tout l'effectif est affiché, pas seulement les convoqués : la disponibilité
+      // (présent/absent/blessé) peut être déclarée avant que le coach ait fait sa
+      // sélection, et un joueur absent/blessé n'est de toute façon jamais convoqué.
+      const convoqueSet = new Set((convocs || []).map(c => c.joueur_id))
+      const joueursAvecStatut = (tousJoueurs || []).map(j => ({
+        id: j.id, convoque: convoqueSet.has(j.id), joueurs: j
+      }))
+      setConvocations(joueursAvecStatut)
+      for (const j of (tousJoueurs || [])) {
+        if (!presMap[j.id]) presMap[j.id] = 'inconnu'
       }
     }
     setPresences(presMap)
@@ -233,7 +240,12 @@ export default function PresencesMatchPage() {
                       </div>
                   }
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      {j.nom} {j.prenom}
+                      {event?.type === 'match' && c.convoque && (
+                        <span style={{ fontSize: 9, fontWeight: 600, color: THEME.primary, background: THEME.primaryBg, padding: '1px 5px', borderRadius: 6 }}>Convoqué</span>
+                      )}
+                    </p>
                     <p style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}{j.numero ? ` · N°${j.numero}` : ''}</p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>

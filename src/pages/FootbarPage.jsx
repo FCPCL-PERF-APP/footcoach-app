@@ -52,13 +52,19 @@ export default function FootbarPage() {
   async function loadData() {
     // Pas de limite arbitraire — cf. RpePage.jsx, sinon les événements les plus anciens
     // disparaissaient du menu dès que plus de 30 événements plus récents/futurs existaient.
+    // Ordre chronologique (du plus ancien au plus récent).
     const [{ data: evs }, { data: jrs }] = await Promise.all([
-      supabase.from('evenements').select('*').order('date_heure', { ascending: false }),
+      supabase.from('evenements').select('*').order('date_heure', { ascending: true }),
       supabase.from('joueurs').select('id,nom,prenom,poste').order('nom')
     ])
     setEvents(evs || [])
     setJoueurs(jrs || [])
-    if (!selectedEvent && evs?.length) setSelectedEvent(evs[0].id)
+    if (!selectedEvent && evs?.length) {
+      // Par défaut : l'événement passé le plus récent, sinon le plus proche à venir.
+      const now = new Date()
+      const passes = evs.filter(e => new Date(e.date_heure) <= now)
+      setSelectedEvent((passes[passes.length - 1] || evs[0]).id)
+    }
     if (jrs?.length) setSelectedJoueur(jrs[0].id)
     setLoading(false)
   }

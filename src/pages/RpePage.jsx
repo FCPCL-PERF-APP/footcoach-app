@@ -55,10 +55,17 @@ export default function RpePage() {
     // Pas de limite arbitraire — une saison ne dépasse jamais quelques centaines
     // d'événements (cf. MonSuiviPage.jsx), sinon les événements les plus anciens
     // (ex: matchs de préparation de juillet/août) disparaissaient du menu dès que
-    // plus de 20 événements plus récents/futurs existaient.
-    const { data } = await supabase.from('evenements').select('*').order('date_heure', { ascending: false })
+    // plus de 20 événements plus récents/futurs existaient. Ordre chronologique
+    // (du plus ancien au plus récent) pour un menu déroulant lisible.
+    const { data } = await supabase.from('evenements').select('*').order('date_heure', { ascending: true })
     setEvents(data || [])
-    if (!selectedEvent && data?.length) setSelectedEvent(data[0].id)
+    if (!selectedEvent && data?.length) {
+      // Par défaut : l'événement passé le plus récent (le plus utile à renseigner),
+      // sinon le plus proche à venir s'il n'y a encore aucun événement passé.
+      const now = new Date()
+      const passes = data.filter(e => new Date(e.date_heure) <= now)
+      setSelectedEvent((passes[passes.length - 1] || data[0]).id)
+    }
     setLoading(false)
   }
 

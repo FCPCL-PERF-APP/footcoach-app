@@ -38,13 +38,13 @@ export default function LoginPage() {
           width: 90, height: 90, borderRadius: '50%', margin: '0 auto 12px',
           border: '3px solid rgba(255,255,255,.3)',
           overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(255,255,255,.1)',
+          background: '#fff', padding: 7, boxSizing: 'border-box',
           animation: logoLoaded ? 'none' : 'pulse 1.5s infinite',
         }}>
           <img
             src="/icons/logo.jpg" alt="FC PCL"
             onLoad={() => setLogoLoaded(true)}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: logoLoaded ? 1 : 0, transition: 'opacity .3s' }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: logoLoaded ? 1 : 0, transition: 'opacity .3s' }}
           />
         </div>
         <h1 style={{ color: '#fff', fontSize: 22, fontWeight: 800, marginBottom: 2, letterSpacing: .5 }}>FC PCL</h1>
