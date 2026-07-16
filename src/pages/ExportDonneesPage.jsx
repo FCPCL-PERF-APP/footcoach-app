@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { Card, PageHeader, Button, Spinner } from '../components/UI'
-import { THEME } from '../theme'
+import { Card, PageHeader, Button, Spinner, IconTile } from '../components/UI'
+import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { Download, Users, Heart, Radio, Swords, Calendar, Lightbulb } from 'lucide-react'
 
 function toCSV(headers, rows) {
   const escape = v => `"${String(v ?? '').replace(/"/g, '""')}"`
@@ -106,28 +107,26 @@ export default function ExportDonneesPage() {
   }
 
   const exports = [
-    { icon: '👥', label: 'Joueurs', sub: `${counts.joueurs || 0} joueur(s)`, fn: exportJoueurs, color: THEME.primary },
-    { icon: '❤️', label: 'Données RPE', sub: `${counts.rpe || 0} entrée(s)`, fn: exportRPE, color: '#A32D2D' },
-    { icon: '📡', label: 'Données Footbar', sub: `${counts.footbar || 0} entrée(s)`, fn: exportFootbar, color: '#3B6D11' },
-    { icon: '⚽', label: 'Stats match', sub: `${counts.stats || 0} entrée(s)`, fn: exportStats, color: '#854F0B' },
-    { icon: '📅', label: 'Présences', sub: `Tous les événements`, fn: exportPresences, color: '#185FA5' },
+    { icon: Users, cat: 'blue', label: 'Joueurs', sub: `${counts.joueurs || 0} joueur(s)`, fn: exportJoueurs },
+    { icon: Heart, cat: 'rose', label: 'Données RPE', sub: `${counts.rpe || 0} entrée(s)`, fn: exportRPE },
+    { icon: Radio, cat: 'orange', label: 'Données Footbar', sub: `${counts.footbar || 0} entrée(s)`, fn: exportFootbar },
+    { icon: Swords, cat: 'amber', label: 'Stats match', sub: `${counts.stats || 0} entrée(s)`, fn: exportStats },
+    { icon: Calendar, cat: 'blue', label: 'Présences', sub: `Tous les événements`, fn: exportPresences },
   ]
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="📥 Export données" />
+      <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Download size={18} /> Export données</span>} />
 
-      <div style={{ background: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: THEME.primary }}>
-        💡 Les fichiers exportés sont au format <strong>CSV</strong> — ouvrable directement dans Excel ou Google Sheets.
+      <div style={{ background: THEME.primaryBg, borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: THEME.primary, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+        <Lightbulb size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Les fichiers exportés sont au format <strong>CSV</strong> — ouvrable directement dans Excel ou Google Sheets.
       </div>
 
-      {exports.map(({ icon, label, sub, fn, color }) => (
+      {exports.map(({ icon, cat, label, sub, fn }) => (
         <Card key={label} style={{ marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 10, background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
-                {icon}
-              </div>
+              <IconTile icon={icon} color={CAT_COLORS[cat].color} bg={CAT_COLORS[cat].bg} size={19} tileSize={42} />
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600 }}>{label}</p>
                 <p style={{ fontSize: 11, color: '#9CA3AF' }}>{sub}</p>
@@ -136,9 +135,10 @@ export default function ExportDonneesPage() {
             <button onClick={fn} disabled={loading} style={{
               padding: '8px 14px', borderRadius: 10, border: 'none',
               background: THEME.gradient, color: '#fff',
-              fontSize: 12, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer'
+              fontSize: 12, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', gap: 5
             }}>
-              {loading ? '...' : '⬇️ CSV'}
+              {loading ? '...' : <><Download size={12} /> CSV</>}
             </button>
           </div>
         </Card>
