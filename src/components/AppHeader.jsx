@@ -46,7 +46,16 @@ export default function AppHeader() {
       boxShadow: '0 1px 4px rgba(0,0,0,.25)'
     }
   }
-  const CHIP = { search: '#0EA5E9', mode: '#F59E0B', profil: '#8B5CF6', trophy: '#EAB308', logout: '#F43F5E' }
+  const CHIP = { search: '#0EA5E9', profil: '#8B5CF6', trophy: '#EAB308', logout: '#F43F5E' }
+  // Mode sombre : bouton discret (silhouette) plutôt qu'une pastille colorée —
+  // action secondaire, pas besoin d'être mise en avant comme les autres.
+  const discreetStyle = {
+    background: 'rgba(255,255,255,.15)',
+    border: 'none', borderRadius: '50%',
+    width: 30, height: 30,
+    cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center'
+  }
 
   return (
     <header style={{
@@ -73,8 +82,8 @@ export default function AppHeader() {
         <button onClick={() => navigate('/search')} style={btnStyle(CHIP.search)}><Search size={15} color="#fff" /></button>
 
         {/* Mode sombre */}
-        <button onClick={toggleTheme} style={btnStyle(CHIP.mode)}>
-          {darkMode ? <Sun size={15} color="#fff" /> : <Moon size={15} color="#fff" />}
+        <button onClick={toggleTheme} style={discreetStyle}>
+          {darkMode ? <Sun size={15} color="rgba(255,255,255,.85)" /> : <Moon size={15} color="rgba(255,255,255,.85)" />}
         </button>
 
         {/* Profil staff */}
