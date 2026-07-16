@@ -5,9 +5,14 @@ import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Button, Input, Select, Spinner, Avatar } from '../components/UI'
 import PhotoCropModal from '../components/PhotoCropModal'
-import { THEME } from '../theme'
+import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import {
+  ArrowLeft, Camera, Pencil, Save, Mail, X, Hourglass, CheckCircle2,
+  Bandage, Target, User, Heart, TrendingUp, Swords, MessageSquare,
+  Dumbbell, Brain, Trophy, XCircle
+} from 'lucide-react'
 
 const RPE_ITEMS = [
   { key: 'difficulte', label: 'Difficulté' },
@@ -19,10 +24,10 @@ const RPE_ITEMS = [
 ]
 
 function rpeColor(v) {
-  if (v >= 4.5) return '#A32D2D'
+  if (v >= 4.5) return THEME.danger
   if (v >= 4) return '#D85A30'
-  if (v >= 3) return '#BA7517'
-  return '#3B6D11'
+  if (v >= 3) return THEME.warning
+  return THEME.success
 }
 
 const AVATAR_COLORS = [
@@ -117,8 +122,8 @@ export default function FicheJoueurPage() {
       if (res.ok) {
         const data = await res.json()
         alert(data.mode === 'reset'
-          ? `✅ Ce joueur avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à ${joueur.email}`
-          : `✅ Invitation renvoyée à ${joueur.email}`)
+          ? `Ce joueur avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à ${joueur.email}`
+          : `Invitation renvoyée à ${joueur.email}`)
       } else {
         const err = await res.json()
         alert('Erreur : ' + (err.error || "Impossible d'envoyer l'invitation"))
@@ -159,7 +164,7 @@ export default function FicheJoueurPage() {
           expediteur_role: 'coach',
           destinataire_id: joueur.auth_id,
           groupe: false,
-          contenu: `📋 Ton bilan de saison a été complété par le coach. Consulte-le dans Ma fiche → 🎯 Objectifs → Bilan saison.`
+          contenu: `Ton bilan de saison a été complété par le coach. Consulte-le dans Ma fiche → Objectifs → Bilan saison.`
         })
       }
     } catch(e) { console.error('Notif bilan:', e) }
@@ -261,14 +266,14 @@ export default function FicheJoueurPage() {
       })
       const data = await res.json()
       if (data.success) {
-        setInviteResult({ success: true, message: `✅ Invitation envoyée à ${inviteEmail}` })
+        setInviteResult({ success: true, message: `Invitation envoyée à ${inviteEmail}` })
         setShowInvite(false)
         setInviteEmail('')
       } else {
-        setInviteResult({ success: false, message: `❌ Erreur : ${data.error}` })
+        setInviteResult({ success: false, message: `Erreur : ${data.error}` })
       }
     } catch (err) {
-      setInviteResult({ success: false, message: '❌ Erreur réseau. Réessaie.' })
+      setInviteResult({ success: false, message: 'Erreur réseau. Réessaie.' })
     }
     setInviting(false)
   }
@@ -293,12 +298,12 @@ export default function FicheJoueurPage() {
   const blessureActive = blessures.find(b => !b.date_retour_effective)
 
   const tabs = [
-    { key: 'identite',  label: '👤 Identité' },
-    { key: 'physio',    label: '❤️ Physio' },
-    { key: 'perf',      label: '📈 Perfs' },
-    { key: 'stats',     label: '⚽ Stats' },
-    { key: 'objectifs', label: '🎯 Objectifs' },
-    { key: 'notes',     label: '💬 Notes' },
+    { key: 'identite',  icon: User, label: 'Identité' },
+    { key: 'physio',    icon: Heart, label: 'Physio' },
+    { key: 'perf',      icon: TrendingUp, label: 'Perfs' },
+    { key: 'stats',     icon: Swords, label: 'Stats' },
+    { key: 'objectifs', icon: Target, label: 'Objectifs' },
+    { key: 'notes',     icon: MessageSquare, label: 'Notes' },
   ]
 
   const inputStyle = (disabled) => ({
@@ -338,7 +343,7 @@ export default function FicheJoueurPage() {
       )}
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
+        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
         <div style={{ position: 'relative' }}>
           {joueur.photo_url
             ? <img src={joueur.photo_url} alt={joueur.nom} style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${THEME.primary}` }} />
@@ -346,8 +351,8 @@ export default function FicheJoueurPage() {
           }
           {isCoach && (
             <div onClick={() => document.getElementById(`photo-${id}`).click()}
-              style={{ position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, background: THEME.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 11 }}>
-              📷
+              style={{ position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, background: THEME.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Camera size={11} color="#fff" />
             </div>
           )}
           <input id={`photo-${id}`} type="file" accept="image/*" style={{ display: 'none' }}
@@ -358,40 +363,44 @@ export default function FicheJoueurPage() {
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>
             {joueur.poste} {joueur.numero ? `· N°${joueur.numero}` : ''} {joueur.groupe ? `· Pôle ${joueur.groupe}` : ''}
           </p>
-          {blessureActive && <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 6, background: '#FCEBEB', color: '#A32D2D' }}>🤕 {blessureActive.zone}</span>}
+          {blessureActive && (
+            <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 6, background: THEME.dangerBg, color: THEME.danger, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+              <Bandage size={10} /> {blessureActive.zone}
+            </span>
+          )}
         </div>
         {isCoach && (
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={() => { if (editing) saveIdentite(); else setEditing(true) }}
-              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: editing ? '#EAF3DE' : '#E6F1FB', color: editing ? '#3B6D11' : THEME.primary, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
-              {saving ? '...' : editing ? '💾' : '✏️'}
+              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: editing ? THEME.successBg : THEME.primaryBg, color: editing ? THEME.success : THEME.primary, cursor: 'pointer', display: 'flex' }}>
+              {saving ? '...' : editing ? <Save size={14} /> : <Pencil size={14} />}
             </button>
             <button onClick={renvoyerInvitation} disabled={inviting}
               title="Renvoyer l'invitation par email"
-              style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: inviting ? 'not-allowed' : 'pointer', fontSize: 12, opacity: inviting ? 0.5 : 1 }}>
-              {inviting ? '⏳' : '📧'}
+              style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: inviting ? 'not-allowed' : 'pointer', opacity: inviting ? 0.5 : 1, display: 'flex' }}>
+              {inviting ? <Hourglass size={14} /> : <Mail size={14} color={THEME.primary} />}
             </button>
             {editing && <button onClick={() => { setEditing(false); setForm({...joueur}) }}
-              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#6B7280', fontSize: 12, cursor: 'pointer' }}>✕</button>}
+              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#6B7280', cursor: 'pointer', display: 'flex' }}><X size={14} /></button>}
           </div>
         )}
       </div>
 
-      {photoUploading && <div style={{ background: '#E6F1FB', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.primary }}>📷 Upload en cours...</div>}
-      {saved && <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#3B6D11' }}>✅ Modifications enregistrées !</div>}
+      {photoUploading && <div style={{ background: THEME.primaryBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.primary, display: 'flex', alignItems: 'center', gap: 6 }}><Camera size={13} /> Upload en cours...</div>}
+      {saved && <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Modifications enregistrées !</div>}
 
       {/* Invitation email */}
       {isCoach && !joueur.auth_id && (
         <Card style={{ marginBottom: 14, background: '#FDF5EE', border: '0.5px solid #F5C4B3' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 600, color: '#854F0B' }}>📧 Joueur sans accès à l'app</p>
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={12} /> Joueur sans accès à l'app</p>
               <p style={{ fontSize: 11, color: '#9CA3AF' }}>Inviter par email pour créer son compte</p>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setShowInvite(!showInvite)}
-                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#854F0B', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
-                {showInvite ? '✕' : '📧 Inviter'}
+                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#854F0B', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {showInvite ? <X size={12} /> : <><Mail size={12} /> Inviter</>}
               </button>
             </div>
           </div>
@@ -407,7 +416,7 @@ export default function FicheJoueurPage() {
                 </button>
               </div>
               {inviteResult && (
-                <p style={{ fontSize: 12, marginTop: 6, color: inviteResult.success ? '#3B6D11' : '#A32D2D' }}>
+                <p style={{ fontSize: 12, marginTop: 6, color: inviteResult.success ? THEME.success : THEME.danger }}>
                   {inviteResult.message}
                 </p>
               )}
@@ -417,14 +426,14 @@ export default function FicheJoueurPage() {
       )}
 
       {isCoach && joueur.auth_id && (
-        <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: '#3B6D11', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>✅ Compte actif — joueur connecté à l'app</span>
+        <div style={{ background: THEME.successBg, borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: THEME.success, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={12} /> Compte actif — joueur connecté à l'app</span>
         </div>
       )}
 
       {isCoach && !joueur.auth_id && joueur.email && !showInvite && inviteResult?.success && (
-        <div style={{ background: '#E6F1FB', borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: '#185FA5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>📧 Invitation envoyée — lien valable 24h</span>
+        <div style={{ background: THEME.primaryBg, borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: THEME.primary, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={12} /> Invitation envoyée — lien valable 24h</span>
           <button onClick={() => { setShowInvite(true); setInviteResult(null) }}
             style={{ fontSize: 10, color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
             Renvoyer
@@ -448,10 +457,11 @@ export default function FicheJoueurPage() {
           <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-            background: activeTab === t.key ? '#E6F1FB' : 'transparent',
+            background: activeTab === t.key ? THEME.primaryBg : 'transparent',
             color: activeTab === t.key ? THEME.primary : '#6B7280',
-            fontWeight: activeTab === t.key ? 600 : 400
-          }}>{t.label}</button>
+            fontWeight: activeTab === t.key ? 600 : 400,
+            display: 'flex', alignItems: 'center', gap: 5
+          }}><t.icon size={12} /> {t.label}</button>
         ))}
       </div>
 
@@ -459,12 +469,12 @@ export default function FicheJoueurPage() {
       {isCoach && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
           <button onClick={() => navigate(`/joueurs/${id}/blessures`)}
-            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: blessureActive ? '#FCEBEB' : 'transparent', color: blessureActive ? '#A32D2D' : '#6B7280', fontSize: 11, cursor: 'pointer', fontWeight: blessureActive ? 600 : 400 }}>
-            🤕 Blessures {blessureActive ? '· 1 active' : ''}
+            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: blessureActive ? THEME.dangerBg : 'transparent', color: blessureActive ? THEME.danger : '#6B7280', fontSize: 11, cursor: 'pointer', fontWeight: blessureActive ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Bandage size={12} /> Blessures {blessureActive ? '· 1 active' : ''}
           </button>
           <button onClick={() => navigate(`/joueurs/${id}/objectifs`)}
-            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', color: '#6B7280', fontSize: 11, cursor: 'pointer' }}>
-            🎯 Objectifs · {objectifs.filter(o => o.statut === 'en_cours').length} en cours
+            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', color: '#6B7280', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Target size={12} /> Objectifs · {objectifs.filter(o => o.statut === 'en_cours').length} en cours
           </button>
         </div>
       )}
@@ -509,8 +519,8 @@ export default function FicheJoueurPage() {
             </div>
           </Card>
           {editing && (
-            <Button variant="primary" style={{ width: '100%' }} onClick={saveIdentite} disabled={saving}>
-              {saving ? 'Enregistrement...' : '💾 Enregistrer toutes les modifications'}
+            <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveIdentite} disabled={saving}>
+              {saving ? 'Enregistrement...' : <><Save size={13} /> Enregistrer toutes les modifications</>}
             </Button>
           )}
         </>
@@ -548,7 +558,7 @@ export default function FicheJoueurPage() {
                 ))}
               </>
             )}
-            {editing && <Button variant="primary" style={{ width: '100%', marginTop: 10 }} onClick={saveIdentite} disabled={saving}>💾 Enregistrer FC</Button>}
+            {editing && <Button variant="primary" style={{ width: '100%', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveIdentite} disabled={saving}><Save size={13} /> Enregistrer FC</Button>}
           </Card>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Suivi du poids</p>
@@ -558,7 +568,7 @@ export default function FicheJoueurPage() {
                   <span style={{ fontSize: 11, color: '#6B7280' }}>Dernier : <strong style={{ color: THEME.primary }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
                   {poidsHistory.length >= 2 && (() => {
                     const diff = (poidsHistory[poidsHistory.length-1].poids - poidsHistory[0].poids).toFixed(1)
-                    return <span style={{ fontSize: 11, color: parseFloat(diff) > 0 ? '#A32D2D' : '#3B6D11', fontWeight: 600 }}>{parseFloat(diff) > 0 ? '+' : ''}{diff} kg</span>
+                    return <span style={{ fontSize: 11, color: parseFloat(diff) > 0 ? THEME.danger : THEME.success, fontWeight: 600 }}>{parseFloat(diff) > 0 ? '+' : ''}{diff} kg</span>
                   })()}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 70, marginBottom: 4 }}>
@@ -592,14 +602,16 @@ export default function FicheJoueurPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {['points_forts','points_faibles'].map((field, i) => (
                 <div key={field}>
-                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>{i === 0 ? '✅ Points forts' : '⚠️ Axes de travail'}</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
+                    {i === 0 ? <><CheckCircle2 size={11} color={THEME.success} /> Points forts</> : <><Target size={11} color={THEME.warning} /> Axes de travail</>}
+                  </label>
                   <textarea value={form[field] || ''} onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
                     disabled={!editing} rows={4}
                     style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${editing ? '#D1D5DB' : '#F3F4F6'}`, borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', background: editing ? '#fff' : '#FAFAFA' }} />
                 </div>
               ))}
             </div>
-            {editing && <Button variant="primary" style={{ width: '100%' }} onClick={saveIdentite} disabled={saving}>💾 Enregistrer</Button>}
+            {editing && <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveIdentite} disabled={saving}><Save size={13} /> Enregistrer</Button>}
           </Card>
         </>
       )}
@@ -698,15 +710,15 @@ export default function FicheJoueurPage() {
               {/* Points forts */}
               {objJoueurData.points_forts && Object.values(objJoueurData.points_forts).some(v => v) && (
                 <Card>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11', marginBottom: 10 }}>✅ Points forts</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: THEME.success, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Points forts</p>
                   {[
-                    { key: 'athletique', label: '💪 Athlétique' },
-                    { key: 'tactique',   label: '🧠 Tactique' },
-                    { key: 'technique',  label: '⚽ Technique' },
-                    { key: 'mental',     label: '🎯 Mental' },
+                    { key: 'athletique', icon: Dumbbell, label: 'Athlétique' },
+                    { key: 'tactique',   icon: Brain, label: 'Tactique' },
+                    { key: 'technique',  icon: Swords, label: 'Technique' },
+                    { key: 'mental',     icon: Target, label: 'Mental' },
                   ].map(n => objJoueurData.points_forts[n.key] ? (
                     <div key={n.key} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-                      <span style={{ fontSize: 11, color: '#6B7280', width: 80 }}>{n.label}</span>
+                      <span style={{ fontSize: 11, color: '#6B7280', width: 80, display: 'flex', alignItems: 'center', gap: 4 }}><n.icon size={11} /> {n.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 500 }}>{objJoueurData.points_forts[n.key]}</span>
                     </div>
                   ) : null)}
@@ -716,15 +728,15 @@ export default function FicheJoueurPage() {
               {/* Axes amélioration */}
               {objJoueurData.axes_amelioration && Object.values(objJoueurData.axes_amelioration).some(v => v) && (
                 <Card>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#854F0B', marginBottom: 10 }}>⚠️ Axes d'amélioration</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#854F0B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={13} /> Axes d'amélioration</p>
                   {[
-                    { key: 'athletique', label: '💪 Athlétique' },
-                    { key: 'tactique',   label: '🧠 Tactique' },
-                    { key: 'technique',  label: '⚽ Technique' },
-                    { key: 'mental',     label: '🎯 Mental' },
+                    { key: 'athletique', icon: Dumbbell, label: 'Athlétique' },
+                    { key: 'tactique',   icon: Brain, label: 'Tactique' },
+                    { key: 'technique',  icon: Swords, label: 'Technique' },
+                    { key: 'mental',     icon: Target, label: 'Mental' },
                   ].map(n => objJoueurData.axes_amelioration[n.key] ? (
                     <div key={n.key} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-                      <span style={{ fontSize: 11, color: '#6B7280', width: 80 }}>{n.label}</span>
+                      <span style={{ fontSize: 11, color: '#6B7280', width: 80, display: 'flex', alignItems: 'center', gap: 4 }}><n.icon size={11} /> {n.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 500 }}>{objJoueurData.axes_amelioration[n.key]}</span>
                     </div>
                   ) : null)}
@@ -734,7 +746,7 @@ export default function FicheJoueurPage() {
               {/* Objectifs personnels */}
               {(objJoueurData.obj_perso_1 || objJoueurData.obj_perso_2 || objJoueurData.obj_perso_3) && (
                 <Card>
-                  <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>🏆 Objectifs personnels</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><Trophy size={13} color={CAT_COLORS.gold.color} /> Objectifs personnels</p>
                   {[objJoueurData.obj_perso_1, objJoueurData.obj_perso_2, objJoueurData.obj_perso_3].filter(Boolean).map((obj, i) => (
                     <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
                       <span style={{ fontSize: 11, color: '#9CA3AF' }}>{i+1}.</span>
@@ -747,7 +759,7 @@ export default function FicheJoueurPage() {
               {/* Objectifs collectifs */}
               {(objJoueurData.obj_collectif_1 || objJoueurData.obj_collectif_2 || objJoueurData.obj_collectif_3) && (
                 <Card>
-                  <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>⚽ Objectifs collectifs</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><Swords size={13} color={CAT_COLORS.blue.color} /> Objectifs collectifs</p>
                   {[objJoueurData.obj_collectif_1, objJoueurData.obj_collectif_2, objJoueurData.obj_collectif_3].filter(Boolean).map((obj, i) => (
                     <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
                       <span style={{ fontSize: 11, color: '#9CA3AF' }}>{i+1}.</span>
@@ -759,17 +771,18 @@ export default function FicheJoueurPage() {
 
               {/* Bilan — coach peut modifier */}
               <Card>
-                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>📋 Bilan saison — à remplir par le coach</p>
+                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={13} color={THEME.primary} /> Bilan saison — à remplir par le coach</p>
 
                 <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>1. Objectifs personnels atteints ?</p>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                   {['Oui', 'Non'].map(v => (
                     <button key={v} onClick={() => setBilanForm(p => ({...p, bilan_obj_perso_atteints: v === 'Oui'}))}
                       style={{ flex: 1, padding: 8, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                        border: `1.5px solid ${bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#E5E7EB'}`,
-                        background: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
-                        color: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#6B7280' }}>
-                      {v === 'Oui' ? '✅ Oui' : '❌ Non'}
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                        border: `1.5px solid ${bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.success : THEME.danger) : '#E5E7EB'}`,
+                        background: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.successBg : THEME.dangerBg) : 'transparent',
+                        color: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.success : THEME.danger) : '#6B7280' }}>
+                      {v === 'Oui' ? <CheckCircle2 size={13} /> : <XCircle size={13} />} {v}
                     </button>
                   ))}
                 </div>
@@ -786,10 +799,11 @@ export default function FicheJoueurPage() {
                   {['Oui', 'Non'].map(v => (
                     <button key={v} onClick={() => setBilanForm(p => ({...p, bilan_obj_collectifs_atteints: v === 'Oui'}))}
                       style={{ flex: 1, padding: 8, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                        border: `1.5px solid ${bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#E5E7EB'}`,
-                        background: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
-                        color: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#6B7280' }}>
-                      {v === 'Oui' ? '✅ Oui' : '❌ Non'}
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                        border: `1.5px solid ${bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.success : THEME.danger) : '#E5E7EB'}`,
+                        background: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.successBg : THEME.dangerBg) : 'transparent',
+                        color: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.success : THEME.danger) : '#6B7280' }}>
+                      {v === 'Oui' ? <CheckCircle2 size={13} /> : <XCircle size={13} />} {v}
                     </button>
                   ))}
                 </div>
@@ -808,10 +822,10 @@ export default function FicheJoueurPage() {
                     style={{ width: '100%', padding: '7px 10px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
                 </div>
 
-                {bilanSaved && <p style={{ fontSize: 12, color: '#3B6D11', marginBottom: 8 }}>✅ Bilan sauvegardé !</p>}
+                {bilanSaved && <p style={{ fontSize: 12, color: THEME.success, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Bilan sauvegardé !</p>}
                 <button onClick={saveBilan} disabled={savingBilan}
-                  style={{ width: '100%', padding: 10, borderRadius: 10, border: 'none', background: THEME.gradient, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  {savingBilan ? 'Enregistrement...' : '💾 Sauvegarder le bilan'}
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: 'none', background: THEME.gradient, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  {savingBilan ? 'Enregistrement...' : <><Save size={14} /> Sauvegarder le bilan</>}
                 </button>
               </Card>
             </>
