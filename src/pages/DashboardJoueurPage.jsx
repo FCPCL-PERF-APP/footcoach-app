@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Spinner, ListRow } from '../components/UI'
-import { THEME } from '../theme'
+import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO, subDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -214,14 +214,17 @@ export default function DashboardJoueurPage() {
           </p>
           {nbPresenceAConfirmer > 0 && (
             <ListRow icon={HelpCircle} label={`${nbPresenceAConfirmer} présence(s) à confirmer`}
+              iconColor={CAT_COLORS.amber.color} iconBg={CAT_COLORS.amber.bg}
               onClick={() => navigate('/calendrier')} last={!(eventsAFaire.length > 0 || blessureActive)} />
           )}
           {eventsAFaire.length > 0 && (
             <ListRow icon={FileText} label={`${eventsAFaire.length} RPE à remplir`}
+              iconColor={CAT_COLORS.rose.color} iconBg={CAT_COLORS.rose.bg}
               onClick={() => navigate('/mon-suivi')} last={!blessureActive} />
           )}
           {blessureActive && (
-            <ListRow icon={Bandage} label={`Blessure en cours — ${blessureActive.zone}`} last />
+            <ListRow icon={Bandage} label={`Blessure en cours — ${blessureActive.zone}`}
+              iconColor={THEME.danger} iconBg={THEME.dangerBg} last />
           )}
         </Card>
       )}
@@ -378,13 +381,13 @@ export default function DashboardJoueurPage() {
       {/* Navigation rapide */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginTop: 4 }}>
         {[
-          { icon: Calendar, label: 'Agenda', path: '/calendrier' },
-          { icon: User, label: 'Ma fiche', path: '/ma-fiche' },
-          { icon: MessageCircle, label: 'Messages', path: '/messages' },
+          { icon: Calendar, label: 'Agenda', path: '/calendrier', cat: 'blue' },
+          { icon: User, label: 'Ma fiche', path: '/ma-fiche', cat: 'violet' },
+          { icon: MessageCircle, label: 'Messages', path: '/messages', cat: 'teal' },
         ].map(item => (
           <button key={item.path} onClick={() => navigate(item.path)} style={{
             padding: 10, background: THEME.bgCard, border: `0.5px solid ${THEME.border}`,
-            borderRadius: THEME.radiusMd, fontSize: 12, color: THEME.primary,
+            borderRadius: THEME.radiusMd, fontSize: 12, color: CAT_COLORS[item.cat].color,
             fontWeight: 500, cursor: 'pointer', textAlign: 'center',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
           }}><item.icon size={14} /> {item.label}</button>

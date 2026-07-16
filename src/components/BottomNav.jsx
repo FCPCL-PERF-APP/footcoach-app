@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
-import { THEME } from '../theme'
+import { THEME, CAT_COLORS } from '../theme'
 import {
   Calendar, Users, MessageCircle, LayoutDashboard, Menu,
   Heart, Radio, BarChart3, Settings, Archive, Folder,
@@ -18,19 +18,19 @@ const NAV_COACH_MAIN = [
 ]
 const NAV_COACH_MORE = [
   { section: 'Suivi & analyse', items: [
-    { path: '/rpe',      icon: Heart,     label: 'RPE équipe' },
-    { path: '/footbar',  icon: Radio,     label: 'Footbar équipe' },
-    { path: '/analyse',  icon: BarChart3, label: 'Analyse' },
+    { path: '/rpe',      icon: Heart,     label: 'RPE équipe', cat: 'rose' },
+    { path: '/footbar',  icon: Radio,     label: 'Footbar équipe', cat: 'orange' },
+    { path: '/analyse',  icon: BarChart3, label: 'Analyse', cat: 'purple' },
   ]},
   { section: 'Administration', items: [
-    { path: '/staff',           icon: Settings, label: 'Staff' },
-    { path: '/archive-saison',  icon: Archive,  label: 'Archiver saison' },
-    { path: '/ressources',      icon: Folder,   label: 'Ressources' },
+    { path: '/staff',           icon: Settings, label: 'Staff', cat: 'slate' },
+    { path: '/archive-saison',  icon: Archive,  label: 'Archiver saison', cat: 'slate' },
+    { path: '/ressources',      icon: Folder,   label: 'Ressources', cat: 'teal' },
   ]},
   { section: 'Autres', items: [
-    { path: '/sondages', icon: ListChecks, label: 'Sondages' },
-    { path: '/fun',      icon: Gamepad2,   label: 'Fun & Jeux' },
-    { path: '/cpa',      icon: Compass,    label: 'CPA' },
+    { path: '/sondages', icon: ListChecks, label: 'Sondages', cat: 'amber' },
+    { path: '/fun',      icon: Gamepad2,   label: 'Fun & Jeux', cat: 'pink' },
+    { path: '/cpa',      icon: Compass,    label: 'CPA', cat: 'cyan' },
   ]},
 ]
 const NAV_STAFF_MAIN = [
@@ -42,9 +42,9 @@ const NAV_STAFF_MAIN = [
 ]
 const NAV_STAFF_MORE = [
   { section: null, items: [
-    { path: '/rpe',        icon: Heart,  label: 'RPE équipe' },
-    { path: '/footbar',    icon: Radio,  label: 'Footbar équipe' },
-    { path: '/ressources', icon: Folder, label: 'Ressources' },
+    { path: '/rpe',        icon: Heart,  label: 'RPE équipe', cat: 'rose' },
+    { path: '/footbar',    icon: Radio,  label: 'Footbar équipe', cat: 'orange' },
+    { path: '/ressources', icon: Folder, label: 'Ressources', cat: 'teal' },
   ]},
 ]
 const NAV_JOUEUR_MAIN = [
@@ -56,13 +56,13 @@ const NAV_JOUEUR_MAIN = [
 ]
 const NAV_JOUEUR_MORE = [
   { section: null, items: [
-    { path: '/mon-suivi',   icon: Heart,          label: 'Mon suivi' },
-    { path: '/mes-badges',  icon: Award,          label: 'Mes badges' },
-    { path: '/staff',       icon: ClipboardList,  label: 'Staff' },
-    { path: '/sondages',    icon: ListChecks,     label: 'Sondages' },
-    { path: '/cpa',         icon: Compass,        label: 'CPA' },
-    { path: '/fun',         icon: Gamepad2,       label: 'Fun & Jeux' },
-    { path: '/ressources',  icon: Folder,         label: 'Ressources' },
+    { path: '/mon-suivi',   icon: Heart,          label: 'Mon suivi', cat: 'rose' },
+    { path: '/mes-badges',  icon: Award,          label: 'Mes badges', cat: 'gold' },
+    { path: '/staff',       icon: ClipboardList,  label: 'Staff', cat: 'slate' },
+    { path: '/sondages',    icon: ListChecks,     label: 'Sondages', cat: 'amber' },
+    { path: '/cpa',         icon: Compass,        label: 'CPA', cat: 'cyan' },
+    { path: '/fun',         icon: Gamepad2,       label: 'Fun & Jeux', cat: 'pink' },
+    { path: '/ressources',  icon: Folder,         label: 'Ressources', cat: 'teal' },
   ]},
 ]
 
@@ -175,20 +175,28 @@ export default function BottomNav() {
                     padding: '10px 20px 4px'
                   }}>{section}</p>
                 )}
-                {items.map(item => (
-                  <button key={item.path} onClick={() => { navigate(item.path); setShowMore(false) }} style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-                    padding: '14px 20px', border: 'none',
-                    background: pathname.startsWith(item.path) ? 'rgba(255,255,255,.08)' : 'transparent',
-                    cursor: 'pointer', borderBottom: '0.5px solid rgba(255,255,255,.06)'
-                  }}>
-                    <item.icon size={20} color="rgba(255,255,255,.85)" strokeWidth={2} />
-                    <span style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{item.label}</span>
-                    {pathname.startsWith(item.path) && (
-                      <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>
-                    )}
-                  </button>
-                ))}
+                {items.map(item => {
+                  const cat = CAT_COLORS[item.cat] || { color: 'rgba(255,255,255,.85)', bg: 'rgba(255,255,255,.1)' }
+                  return (
+                    <button key={item.path} onClick={() => { navigate(item.path); setShowMore(false) }} style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '12px 20px', border: 'none',
+                      background: pathname.startsWith(item.path) ? 'rgba(255,255,255,.08)' : 'transparent',
+                      cursor: 'pointer', borderBottom: '0.5px solid rgba(255,255,255,.06)'
+                    }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: 9, background: item.cat ? cat.color + '33' : 'rgba(255,255,255,.1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                      }}>
+                        <item.icon size={17} color={item.cat ? cat.color : 'rgba(255,255,255,.85)'} strokeWidth={2} />
+                      </div>
+                      <span style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{item.label}</span>
+                      {pathname.startsWith(item.path) && (
+                        <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             ))}
           </div>

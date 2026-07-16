@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, BarChart, Spinner, ListRow, IconTile, StatTile } from '../components/UI'
-import { THEME } from '../theme'
+import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO, subWeeks } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -370,16 +370,16 @@ export default function DashboardPage() {
             const items = []
             aujourdhui.presencesAConfirmer.forEach(p => items.push({
               icon: HelpCircle, label: `Présence à confirmer — ${p.event.titre}`,
-              sub: `${p.nb} joueur(s) sans réponse`, action: () => navigate('/calendrier')
+              sub: `${p.nb} joueur(s) sans réponse`, action: () => navigate('/calendrier'), cat: 'amber'
             }))
             if (aujourdhui.rpeManquants > 0) items.push({
               icon: FileText, label: 'RPE à relancer',
-              sub: `${aujourdhui.rpeManquants} formulaire(s) manquant(s)`, action: () => navigate('/rpe')
+              sub: `${aujourdhui.rpeManquants} formulaire(s) manquant(s)`, action: () => navigate('/rpe'), cat: 'rose'
             })
             aujourdhui.convocationsManquantes.forEach(ev => items.push({
               icon: Send, label: `Convocation à envoyer — ${ev.titre}`,
               sub: format(parseISO(ev.date_heure), 'EEE d MMM', { locale: fr }),
-              action: () => navigate(`/convocations/${ev.id}`)
+              action: () => navigate(`/convocations/${ev.id}`), cat: 'blue'
             }))
 
             return (
@@ -393,6 +393,7 @@ export default function DashboardPage() {
                   </p>
                 ) : items.map((it, i) => (
                   <ListRow key={i} icon={it.icon} label={it.label} sublabel={it.sub}
+                    iconColor={CAT_COLORS[it.cat]?.color} iconBg={CAT_COLORS[it.cat]?.bg}
                     onClick={it.action} last={i === items.length - 1} />
                 ))}
               </Card>
@@ -419,18 +420,18 @@ export default function DashboardPage() {
           {/* RACCOURCIS RAPIDES */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 14 }}>
             {[
-              { icon: Calendar, label: 'Agenda', action: () => navigate('/calendrier') },
-              { icon: Users, label: 'Joueurs', action: () => navigate('/joueurs') },
-              { icon: BarChart3, label: 'Stats matchs', action: () => navigate('/stats-matchs') },
-              { icon: Heart, label: 'RPE équipe', action: () => navigate('/rpe') },
-            ].map(({ icon, label, action }) => (
+              { icon: Calendar, label: 'Agenda', action: () => navigate('/calendrier'), cat: 'blue' },
+              { icon: Users, label: 'Joueurs', action: () => navigate('/joueurs'), cat: 'violet' },
+              { icon: BarChart3, label: 'Stats matchs', action: () => navigate('/stats-matchs'), cat: 'purple' },
+              { icon: Heart, label: 'RPE équipe', action: () => navigate('/rpe'), cat: 'rose' },
+            ].map(({ icon, label, action, cat }) => (
               <button key={label} onClick={action} style={{
                 background: THEME.bgCard, border: `0.5px solid ${THEME.border}`,
                 borderRadius: THEME.radiusMd, padding: '12px 4px',
                 cursor: 'pointer', textAlign: 'center',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6
               }}>
-                <IconTile icon={icon} size={17} tileSize={32} />
+                <IconTile icon={icon} size={17} tileSize={32} color={CAT_COLORS[cat].color} bg={CAT_COLORS[cat].bg} />
                 <div style={{ fontSize: 9, color: THEME.textSecondary, lineHeight: 1.2 }}>{label}</div>
               </button>
             ))}

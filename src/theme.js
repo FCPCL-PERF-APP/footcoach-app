@@ -28,3 +28,21 @@ export const THEME = {
   // Dégradé header
   gradient: 'linear-gradient(135deg, #0F2347 0%, #1E4D8C 50%, #3B6FC4 100%)',
 }
+
+// Palette de couleurs par catégorie — donne à chaque type de raccourci/icône sa
+// propre teinte vive (au lieu du bleu uniforme) pour un repérage visuel rapide,
+// tout en gardant les couleurs fonctionnelles (succès/alerte/danger) de THEME
+// réservées aux statuts (présence, alertes...).
+export const CAT_COLORS = {
+  blue:   { color: '#1E5FCC', bg: '#E5EDFB' }, // Agenda
+  violet: { color: '#7C3AED', bg: '#F1E9FE' }, // Joueurs
+  teal:   { color: '#0D9488', bg: '#E1F5F2' }, // Messages
+  rose:   { color: '#E11D6E', bg: '#FCE4EF' }, // RPE / cœur
+  orange: { color: '#EA6C1F', bg: '#FDECDF' }, // Footbar
+  purple: { color: '#9333EA', bg: '#F4E7FD' }, // Analyse / stats
+  amber:  { color: '#D97706', bg: '#FDF0DA' }, // Sondages
+  pink:   { color: '#DB2777', bg: '#FCE4F0' }, // Fun & jeux
+  cyan:   { color: '#0891B2', bg: '#DFF4F8' }, // CPA
+  slate:  { color: '#475569', bg: '#E9EDF2' }, // Staff / administration
+  gold:   { color: '#B8860B', bg: '#FBF0D9' }, // Badges
+}
