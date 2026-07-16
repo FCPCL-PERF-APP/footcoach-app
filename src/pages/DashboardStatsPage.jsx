@@ -5,6 +5,7 @@ import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { BarChart3, Goal, Shield, Clock } from 'lucide-react'
 
 export default function DashboardStatsPage() {
   const navigate = useNavigate()
@@ -70,7 +71,7 @@ export default function DashboardStatsPage() {
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="📊 Bilan des matchs" />
+      <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={18} /> Bilan des matchs</span>} />
 
       {loading ? <Spinner /> : !stats ? (
         <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucune stat de match enregistrée.</p></Card>
@@ -95,14 +96,14 @@ export default function DashboardStatsPage() {
               ))}
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: 20, marginTop: 10, fontSize: 12 }}>
-              <span style={{ color: '#4ADE80' }}>⚽ {stats.totalButs} buts marqués</span>
-              <span style={{ color: '#F87171' }}>🥅 {stats.totalEnc} encaissés</span>
+              <span style={{ color: '#4ADE80', display: 'flex', alignItems: 'center', gap: 4 }}><Goal size={12} /> {stats.totalButs} buts marqués</span>
+              <span style={{ color: '#F87171', display: 'flex', alignItems: 'center', gap: 4 }}><Shield size={12} /> {stats.totalEnc} encaissés</span>
             </div>
           </div>
 
           {/* Buts marqués par type */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11', marginBottom: 10 }}>⚽ Buts marqués par type</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: THEME.success, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Goal size={14} /> Buts marqués par type</p>
             {[
               ['Attaque placée', stats.butMarqueAP],
               ['Contre-attaque', stats.butMarqueCA],
@@ -127,7 +128,7 @@ export default function DashboardStatsPage() {
 
           {/* Buts encaissés par type */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D', marginBottom: 10 }}>🥅 Buts encaissés par type</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: THEME.danger, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Shield size={14} /> Buts encaissés par type</p>
             {[
               ['Attaque placée', stats.butEncAP],
               ['Contre-attaque', stats.butEncCA],
@@ -152,7 +153,7 @@ export default function DashboardStatsPage() {
 
           {/* Buts par période */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>⏱️ Buts par période</p>
+            <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Clock size={14} color={THEME.primary} /> Buts par période</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4 }}>
               {periodeLabels.map((label, i) => {
                 const marques = stats.butsParPeriode[i]
@@ -172,7 +173,8 @@ export default function DashboardStatsPage() {
               })}
             </div>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 8, fontSize: 10 }}>
-              <span>🟩 Marqués</span><span>🟥 Encaissés</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: THEME.success, display: 'inline-block' }} /> Marqués</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: THEME.danger, display: 'inline-block' }} /> Encaissés</span>
             </div>
           </Card>
 
