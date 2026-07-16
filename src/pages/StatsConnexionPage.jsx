@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { differenceInDays, differenceInHours } from 'date-fns'
+import { ArrowLeft, Smartphone, Circle } from 'lucide-react'
 
 export default function StatsConnexionPage() {
   const navigate = useNavigate()
@@ -35,12 +36,12 @@ export default function StatsConnexionPage() {
   }
 
   const STATUTS = {
-    actif_jour:      { label: "Actif aujourd'hui", emoji: "🟢", color: '#3B6D11', bg: '#EAF3DE' },
-    actif_semaine:   { label: "Cette semaine",      emoji: "🟡", color: '#BA7517', bg: '#FDFAEE' },
-    actif_mois:      { label: "Ce mois",            emoji: "🔵", color: '#185FA5', bg: '#E6F1FB' },
-    inactif:         { label: "Inactif +30j",       emoji: "🔴", color: '#A32D2D', bg: '#FCEBEB' },
-    jamais_connecte: { label: "Jamais connecte",    emoji: "⚪", color: '#6B7280', bg: '#F3F4F6' },
-    non_invite:      { label: "Non invite",          emoji: "⬛", color: '#374151', bg: '#F9FAFB' },
+    actif_jour:      { label: "Actif aujourd'hui", color: THEME.success, bg: THEME.successBg },
+    actif_semaine:   { label: "Cette semaine",      color: THEME.warning, bg: '#FDFAEE' },
+    actif_mois:      { label: "Ce mois",            color: THEME.primary, bg: THEME.primaryBg },
+    inactif:         { label: "Inactif +30j",       color: THEME.danger, bg: THEME.dangerBg },
+    jamais_connecte: { label: "Jamais connecte",    color: '#6B7280', bg: '#F3F4F6' },
+    non_invite:      { label: "Non invite",          color: '#374151', bg: '#F9FAFB' },
   }
 
   const enriched = joueurs.map(j => ({ ...j, statut: getStatut(j) }))
@@ -62,8 +63,8 @@ export default function StatsConnexionPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
-        <h1 style={{ fontSize: 18, fontWeight: 600 }}>📱 Adoption de l'app</h1>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><Smartphone size={17} color={THEME.primary} /> Adoption de l'app</h1>
       </div>
 
       {/* Résumé 6 cases */}
@@ -121,8 +122,9 @@ export default function StatsConnexionPage() {
             border: `0.5px solid ${filter === key ? val.color : '#E5E7EB'}`,
             background: filter === key ? val.bg : 'transparent',
             color: filter === key ? val.color : '#6B7280',
-            fontWeight: filter === key ? 600 : 400
-          }}>{val.emoji} {val.label} ({counts[key]})</button>
+            fontWeight: filter === key ? 600 : 400,
+            display: 'inline-flex', alignItems: 'center', gap: 4
+          }}><Circle size={7} fill={val.color} color={val.color} /> {val.label} ({counts[key]})</button>
         ))}
       </div>
 
@@ -159,9 +161,10 @@ export default function StatsConnexionPage() {
               </div>
               <span style={{
                 fontSize: 10, fontWeight: 600, color: st.color, background: st.bg,
-                padding: '3px 8px', borderRadius: 8, whiteSpace: 'nowrap'
+                padding: '3px 8px', borderRadius: 8, whiteSpace: 'nowrap',
+                display: 'inline-flex', alignItems: 'center', gap: 4
               }}>
-                {st.emoji} {st.label}
+                <Circle size={7} fill={st.color} color={st.color} /> {st.label}
               </span>
             </div>
           )
