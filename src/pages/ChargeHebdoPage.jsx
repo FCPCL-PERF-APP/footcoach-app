@@ -5,6 +5,7 @@ import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO, endOfWeek, subWeeks, eachWeekOfInterval } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { TrendingUp, BarChart3, Heart, Frown, ArrowUpRight, ArrowDownRight, ArrowRight } from 'lucide-react'
 
 function rpeColor(v) {
   if (v >= 4.5) return '#A32D2D'
@@ -121,7 +122,7 @@ export default function ChargeHebdoPage() {
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="📈 Charge hebdomadaire" />
+      <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><TrendingUp size={18} /> Charge hebdomadaire</span>} />
 
       {loading ? <Spinner /> : (
         <>
@@ -150,8 +151,8 @@ export default function ChargeHebdoPage() {
                     {rpeLabel(derniereSemaine.rpeMoy)}
                   </span>
                   {tendance !== null && (
-                    <span style={{ fontSize: 12, color: tendance > 0.5 ? '#A32D2D' : tendance < -0.5 ? '#3B6D11' : '#9CA3AF' }}>
-                      {tendance > 0 ? '↗️' : tendance < 0 ? '↘️' : '→'} {tendance > 0 ? '+' : ''}{tendance.toFixed(1)} vs sem. précédente
+                    <span style={{ fontSize: 12, color: tendance > 0.5 ? THEME.danger : tendance < -0.5 ? THEME.success : '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {tendance > 0 ? <ArrowUpRight size={12} /> : tendance < 0 ? <ArrowDownRight size={12} /> : <ArrowRight size={12} />} {tendance > 0 ? '+' : ''}{tendance.toFixed(1)} vs sem. précédente
                     </span>
                   )}
                 </div>
@@ -161,14 +162,15 @@ export default function ChargeHebdoPage() {
 
           {/* Tabs */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-            {[['charge','📊 Charge'],['rpe','❤️ RPE'],['fatigue','😓 Fatigue / Motivation']].map(([tab, lbl]) => (
+            {[['charge', BarChart3, 'Charge'],['rpe', Heart, 'RPE'],['fatigue', Frown, 'Fatigue / Motivation']].map(([tab, Icon, lbl]) => (
               <button key={tab} onClick={() => setActiveView(tab)} style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                 border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-                background: activeView === tab ? '#E6F1FB' : 'transparent',
+                background: activeView === tab ? THEME.primaryBg : 'transparent',
                 color: activeView === tab ? THEME.primary : '#6B7280',
-                fontWeight: activeView === tab ? 600 : 400
-              }}>{lbl}</button>
+                fontWeight: activeView === tab ? 600 : 400,
+                display: 'inline-flex', alignItems: 'center', gap: 5
+              }}><Icon size={11} /> {lbl}</button>
             ))}
           </div>
 
