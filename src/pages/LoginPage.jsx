@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { THEME } from '../theme'
+import { CheckCircle2, Smartphone, ArrowLeft } from 'lucide-react'
 
 export default function LoginPage() {
   const { signIn, resetPassword } = useAuth()
@@ -64,7 +65,7 @@ export default function LoginPage() {
           <form onSubmit={handleLogin}>
             <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="ton@email.com" />
             <Field label="Mot de passe" type="password" value={password} onChange={setPassword} placeholder="••••••••" />
-            {error && <p style={{ color: '#A32D2D', fontSize: 12, marginBottom: 10 }}>{error}</p>}
+            {error && <p style={{ color: THEME.danger, fontSize: 12, marginBottom: 10 }}>{error}</p>}
             <button type="submit" disabled={loading} style={btnStyle}>
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
@@ -75,11 +76,11 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={handleReset}>
             {resetSent ? (
-              <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, marginBottom: 12 }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11', marginBottom: 6 }}>✅ Email envoyé !</p>
-                <p style={{ fontSize: 12, color: '#3B6D11', marginBottom: 8 }}>Vérifie ta boîte mail (et les spams) — le lien est valable 24h.</p>
-                <p style={{ fontSize: 11, color: '#6B7280' }}>
-                  📱 Ouvre le lien depuis Safari sur ton iPhone pour créer ton nouveau mot de passe.
+              <div style={{ background: THEME.successBg, borderRadius: 10, padding: 12, marginBottom: 12 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: THEME.success, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Email envoyé !</p>
+                <p style={{ fontSize: 12, color: THEME.success, marginBottom: 8 }}>Vérifie ta boîte mail (et les spams) — le lien est valable 24h.</p>
+                <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+                  <Smartphone size={12} style={{ flexShrink: 0, marginTop: 2 }} /> Ouvre le lien depuis Safari sur ton iPhone pour créer ton nouveau mot de passe.
                 </p>
                 <div style={{ marginTop: 10, padding: '8px 10px', background: '#FAEEDA', borderRadius: 8 }}>
                   <p style={{ fontSize: 11, color: '#854F0B', fontWeight: 600 }}>Email non reçu après 5 minutes ?</p>
@@ -89,14 +90,14 @@ export default function LoginPage() {
             ) : (
               <>
                 <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="ton@email.com" />
-                {error && <p style={{ color: '#A32D2D', fontSize: 12, marginBottom: 10 }}>{error}</p>}
+                {error && <p style={{ color: THEME.danger, fontSize: 12, marginBottom: 10 }}>{error}</p>}
                 <button type="submit" disabled={loading} style={btnStyle}>
                   {loading ? 'Envoi...' : 'Envoyer le lien'}
                 </button>
               </>
             )}
-            <button type="button" onClick={() => { setShowReset(false); setResetSent(false); setError('') }} style={linkStyle}>
-              ← Retour à la connexion
+            <button type="button" onClick={() => { setShowReset(false); setResetSent(false); setError('') }} style={{ ...linkStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              <ArrowLeft size={13} /> Retour à la connexion
             </button>
           </form>
         )}
@@ -129,13 +130,13 @@ function Field({ label, type, value, onChange, placeholder }) {
 
 const btnStyle = {
   width: '100%', padding: 12,
-  background: `linear-gradient(135deg, #0F2347 0%, #1A3A6B 50%, #2952A3 100%)`,
+  background: THEME.gradient,
   color: '#fff', border: 'none', borderRadius: 10,
   fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 10
 }
 
 const linkStyle = {
   width: '100%', background: 'transparent', border: 'none',
-  color: '#185FA5', fontSize: 13, cursor: 'pointer', padding: '4px 0',
+  color: THEME.primary, fontSize: 13, cursor: 'pointer', padding: '4px 0',
   display: 'block', textAlign: 'center'
 }
