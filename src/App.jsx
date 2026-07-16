@@ -74,7 +74,9 @@ function AppContent() {
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: THEME.gradient }}>
       <div style={{ textAlign: 'center' }}>
-        <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: 80, height: 80, borderRadius: '50%', marginBottom: 16, objectFit: 'cover' }} />
+        <div style={{ width: 80, height: 80, borderRadius: '50%', marginBottom: 16, background: '#fff', padding: 6, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        </div>
         <Spinner />
       </div>
     </div>

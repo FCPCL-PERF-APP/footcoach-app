@@ -111,8 +111,9 @@ export default function OnboardingPage() {
       padding: 20
     }}>
       {/* Logo */}
-      <img src="/icons/logo.jpg" alt="FC PCL"
-        style={{ width: 60, height: 60, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)', objectFit: 'cover', marginBottom: 20 }} />
+      <div style={{ width: 60, height: 60, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)', background: '#fff', padding: 5, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+        <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+      </div>
 
       {/* Carte */}
       <div style={{

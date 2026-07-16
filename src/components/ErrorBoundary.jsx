@@ -37,8 +37,9 @@ export class ErrorBoundary extends Component {
           alignItems: 'center', justifyContent: 'center',
           padding: 24, background: '#F9FAFB', textAlign: 'center'
         }}>
-          <img src="/icons/logo.jpg" alt="FC PCL"
-            style={{ width: 64, height: 64, borderRadius: '50%', marginBottom: 16, objectFit: 'cover' }} />
+          <div style={{ width: 64, height: 64, borderRadius: '50%', marginBottom: 16, background: '#fff', border: '1px solid #E5E7EB', padding: 5, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          </div>
           <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Oups, quelque chose s'est mal passé</h2>
           <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 24, maxWidth: 300 }}>
             L'application a rencontré une erreur inattendue. Essaie de recharger la page.
