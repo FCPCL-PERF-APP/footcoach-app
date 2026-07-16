@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
+import { ArrowLeft, ClipboardList, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 
 const AXES = [
   { key: 'perf_individuelle', label: 'Perf. indiv.' },
@@ -123,7 +124,7 @@ export default function RadarJoueurPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(`/joueurs/${id}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
+        <button onClick={() => navigate(`/joueurs/${id}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
         <div>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Radar RPE</p>
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>{joueur?.nom} {joueur?.prenom} · {joueur?.poste}</p>
@@ -175,14 +176,14 @@ export default function RadarJoueurPage() {
 
       {/* Analyse textuelle */}
       <Card>
-        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>📋 Analyse</p>
+        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><ClipboardList size={16} color={THEME.primary} /> Analyse</p>
         {AXES.map(a => {
           const diff = comparaison[a.key]
           if (Math.abs(diff) < 0.5) return null
           return (
             <div key={a.key} style={{ padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-              <p style={{ fontSize: 12, color: diff > 0 ? '#3B6D11' : '#A32D2D' }}>
-                {diff > 0 ? '↗️' : '↘️'} <strong>{a.label}</strong> : {diff > 0 ? 'au-dessus' : 'en dessous'} de la moyenne équipe ({diff > 0 ? '+' : ''}{diff} pts)
+              <p style={{ fontSize: 12, color: diff > 0 ? '#3B6D11' : '#A32D2D', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {diff > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />} <strong>{a.label}</strong> : {diff > 0 ? 'au-dessus' : 'en dessous'} de la moyenne équipe ({diff > 0 ? '+' : ''}{diff} pts)
               </p>
             </div>
           )
