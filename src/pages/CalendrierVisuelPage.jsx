@@ -6,8 +6,9 @@ import { THEME } from '../theme'
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval,
          isSameDay, isSameMonth, isToday, addMonths, subMonths } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { List, ChevronLeft, ChevronRight, MapPin, Clock, Send, BarChart3, Heart, Swords, Footprints, Plus } from 'lucide-react'
 
-const TYPE_COLORS = { match: '#1A3A6B', seance: '#3B6D11' }
+const TYPE_COLORS = { match: THEME.primary, seance: THEME.success }
 
 export default function CalendrierVisuelPage() {
   const navigate = useNavigate()
@@ -47,17 +48,17 @@ export default function CalendrierVisuelPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <button onClick={() => navigate('/calendrier')}
-          style={{ border: 'none', background: 'rgba(24,95,165,.1)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontSize: 12, color: THEME.primary, fontWeight: 600 }}>
-          ← Liste
+          style={{ border: 'none', background: THEME.primaryBg, borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontSize: 12, color: THEME.primary, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <List size={12} /> Liste
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20, color: '#6B7280' }}>‹</button>
+            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#6B7280', display: 'flex' }}><ChevronLeft size={20} /></button>
           <p style={{ fontSize: 15, fontWeight: 700, textTransform: 'capitalize', minWidth: 130, textAlign: 'center' }}>
             {format(currentMonth, 'MMMM yyyy', { locale: fr })}
           </p>
           <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20, color: '#6B7280' }}>›</button>
+            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#6B7280', display: 'flex' }}><ChevronRight size={20} /></button>
         </div>
         <button onClick={() => setCurrentMonth(new Date())}
           style={{ border: 'none', background: 'rgba(24,95,165,.1)', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontSize: 11, color: THEME.primary, fontWeight: 600 }}>
@@ -134,8 +135,8 @@ export default function CalendrierVisuelPage() {
               <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucun événement ce jour.</p>
               {isCoach && (
                 <button onClick={() => navigate('/calendrier')}
-                  style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer' }}>
-                  + Ajouter un événement
+                  style={{ marginTop: 8, padding: '6px 14px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <Plus size={12} /> Ajouter un événement
                 </button>
               )}
             </div>
@@ -147,8 +148,8 @@ export default function CalendrierVisuelPage() {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <div>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: TYPE_COLORS[ev.type], marginRight: 6 }}>
-                      {ev.type === 'match' ? '⚽ Match' : '🏃 Séance'}
+                    <span style={{ fontSize: 11, fontWeight: 600, color: TYPE_COLORS[ev.type], marginRight: 6, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      {ev.type === 'match' ? <Swords size={11} /> : <Footprints size={11} />} {ev.type === 'match' ? 'Match' : 'Séance'}
                     </span>
                     <span style={{ fontSize: 14, fontWeight: 700 }}>{ev.titre}</span>
                   </div>
@@ -156,34 +157,34 @@ export default function CalendrierVisuelPage() {
                     {format(parseISO(ev.date_heure), "HH'h'mm")}
                   </span>
                 </div>
-                {ev.lieu && <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 6 }}>📍 {ev.lieu}</p>}
+                {ev.lieu && <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} /> {ev.lieu}</p>}
                 {ev.type === 'match' && ev.rdv_heure && (
-                  <p style={{ fontSize: 11, color: THEME.primary, marginBottom: 8, fontWeight: 500 }}>
-                    🕐 RDV {ev.rdv_heure}{ev.rdv_lieu ? ` · ${ev.rdv_lieu}` : ''}
+                  <p style={{ fontSize: 11, color: THEME.primary, marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Clock size={11} /> RDV {ev.rdv_heure}{ev.rdv_lieu ? ` · ${ev.rdv_lieu}` : ''}
                   </p>
                 )}
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {isCoach && ev.type === 'match' && (
                     <button onClick={() => navigate(`/convocations/${ev.id}`)}
-                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📢 Convoquer</button>
+                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><Send size={11} /> Convoquer</button>
                   )}
                   {isStaff && ev.type === 'match' && (
                     <button onClick={() => navigate(`/stats/${ev.id}`)}
-                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📊 Stats</button>
+                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><BarChart3 size={11} /> Stats</button>
                   )}
                   {isStaff && (
                     <button onClick={() => navigate(`/rpe?event=${ev.id}`)}
-                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>❤️ RPE</button>
+                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><Heart size={11} /> RPE</button>
                   )}
                   {isJoueur && (
                     <button onClick={() => navigate('/mon-suivi')}
-                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>❤️ Mon suivi</button>
+                      style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><Heart size={11} /> Mon suivi</button>
                   )}
                   {/* Vue liste */}
                   <button onClick={() => navigate('/calendrier')}
-                    style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', color: THEME.primary }}>
-                    ≡ Vue liste
+                    style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', color: THEME.primary, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <List size={11} /> Vue liste
                   </button>
                 </div>
               </div>
