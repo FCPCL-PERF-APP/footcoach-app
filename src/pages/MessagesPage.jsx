@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner, Avatar, Button } from '../components/UI'
-import { THEME } from '../theme'
+import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { Mail, Users, MessageCircle, Search, ArrowLeft, ArrowRight, ChevronRight, Trash2, Send } from 'lucide-react'
 
 const AVATAR_COLORS = [
   { bg: '#B5D4F4', color: '#0C447C' },
@@ -179,20 +180,21 @@ export default function MessagesPage() {
         title="Messages"
         action={
           <Button variant="primary" size="sm" onClick={() => { setShowNewMsg(!showNewMsg); setActiveTab('prives'); setActiveConv(null) }}>
-            ✉️ Nouveau
+            <Mail size={12} style={{ marginRight: 4, verticalAlign: -2 }} />Nouveau
           </Button>
         }
       />
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {[['groupe','👥 Groupe'],['prives','💬 Privés']].map(([tab, lbl]) => (
+        {[['groupe', Users, 'Groupe'],['prives', MessageCircle, 'Privés']].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => { setActiveTab(tab); setActiveConv(null); setShowNewMsg(false) }} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === tab ? '#E6F1FB' : 'transparent',
+            background: activeTab === tab ? THEME.primaryBg : 'transparent',
             color: activeTab === tab ? THEME.primary : '#6B7280',
-            fontWeight: activeTab === tab ? 600 : 400
-          }}>{lbl}</button>
+            fontWeight: activeTab === tab ? 600 : 400,
+            display: 'flex', alignItems: 'center', gap: 5
+          }}><Icon size={12} /> {lbl}</button>
         ))}
       </div>
 
@@ -202,10 +204,15 @@ export default function MessagesPage() {
           {activeTab === 'groupe' && (
             <Card style={{ display: 'flex', flexDirection: 'column', height: '68vh' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
-                <p style={{ fontSize: 13, fontWeight: 600 }}>👥 Canal groupe</p>
-                <input value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="🔍 Rechercher..."
-                  style={{ padding: '4px 8px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 11, outline: 'none', width: 120 }} />
+                <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Users size={13} color={CAT_COLORS.violet.color} /> Canal groupe
+                </p>
+                <div style={{ position: 'relative' }}>
+                  <Search size={11} color="#9CA3AF" style={{ position: 'absolute', left: 7, top: '50%', transform: 'translateY(-50%)' }} />
+                  <input value={search} onChange={e => setSearch(e.target.value)}
+                    placeholder="Rechercher..."
+                    style={{ padding: '4px 8px 4px 24px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 11, outline: 'none', width: 120 }} />
+                </div>
               </div>
               <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
                 {filteredGroupMessages.length === 0 && (
@@ -232,9 +239,12 @@ export default function MessagesPage() {
               {showNewMsg && (
                 <Card>
                   <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Choisir un destinataire</p>
-                  <input value={searchContact} onChange={e => setSearchContact(e.target.value)}
-                    placeholder="🔍 Rechercher..."
-                    style={{ width: '100%', padding: '8px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 10 }} />
+                  <div style={{ position: 'relative', marginBottom: 10 }}>
+                    <Search size={13} color="#9CA3AF" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }} />
+                    <input value={searchContact} onChange={e => setSearchContact(e.target.value)}
+                      placeholder="Rechercher..."
+                      style={{ width: '100%', padding: '8px 12px 8px 32px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                  </div>
                   <div style={{ maxHeight: 300, overflowY: 'auto' }}>
                     {filteredContacts.length === 0 ? (
                       <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 16 }}>Aucun contact trouvé.</p>
@@ -248,7 +258,7 @@ export default function MessagesPage() {
                               <p style={{ fontSize: 13, fontWeight: 500 }}>{c.nom} {c.prenom}</p>
                               <p style={{ fontSize: 11, color: '#9CA3AF' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
                             </div>
-                            <span style={{ marginLeft: 'auto', color: THEME.primary, fontSize: 12 }}>Écrire →</span>
+                            <span style={{ marginLeft: 'auto', color: THEME.primary, fontSize: 12, display: 'flex', alignItems: 'center', gap: 3 }}>Écrire <ArrowRight size={11} /></span>
                           </div>
                         )
                       })
@@ -260,7 +270,7 @@ export default function MessagesPage() {
               {activeConv ? (
                 <Card style={{ display: 'flex', flexDirection: 'column', height: '65vh' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
-                    <button onClick={() => setActiveConv(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
+                    <button onClick={() => setActiveConv(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
                     <Avatar initials={`${activeConv.nom?.[0]}${activeConv.prenom?.[0]}`} bg={AVATAR_COLORS[0].bg} color={AVATAR_COLORS[0].color} size={32} />
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 600 }}>{activeConv.nom} {activeConv.prenom}</p>
@@ -312,7 +322,7 @@ export default function MessagesPage() {
                             <p style={{ fontSize: 13, fontWeight: 500 }}>{c.nom} {c.prenom}</p>
                             <p style={{ fontSize: 11, color: '#9CA3AF' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
                           </div>
-                          <span style={{ color: '#D1D5DB', fontSize: 18 }}>›</span>
+                          <ChevronRight size={18} color="#D1D5DB" />
                         </div>
                       )
                     })
@@ -375,8 +385,8 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
             {/* Supprimer */}
             {canDelete && (
               <button onClick={(e) => { e.stopPropagation(); onDelete(); setShowActions(false) }}
-                style={{ fontSize: 11, color: '#A32D2D', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}>
-                🗑️ Supprimer
+                style={{ fontSize: 11, color: THEME.danger, background: THEME.dangerBg, border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Trash2 size={11} /> Supprimer
               </button>
             )}
           </div>
@@ -393,7 +403,7 @@ function MsgInput({ value, onChange, onSend }) {
         onKeyDown={e => e.key === 'Enter' && !e.shiftKey && onSend()}
         placeholder="Écrire un message..."
         style={{ flex: 1, padding: '9px 12px', border: '0.5px solid #D1D5DB', borderRadius: 20, fontSize: 13, outline: 'none', background: '#F9FAFB' }} />
-      <button onClick={onSend} style={{ width: 38, height: 38, borderRadius: '50%', background: THEME.gradient, border: 'none', cursor: 'pointer', fontSize: 16, color: '#fff', flexShrink: 0 }}>→</button>
+      <button onClick={onSend} style={{ width: 38, height: 38, borderRadius: '50%', background: THEME.gradient, border: 'none', cursor: 'pointer', color: '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Send size={16} /></button>
     </div>
   )
 }
