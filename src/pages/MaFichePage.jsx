@@ -5,7 +5,7 @@ import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Button, Spinner } from '../components/UI'
 import PhotoCropModal from '../components/PhotoCropModal'
-import { THEME } from '../theme'
+import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -211,14 +211,14 @@ export default function MaFichePage() {
   })
 
   const tabs = [
-    { key: 'infos',    icon: User, label: 'Mes infos' },
-    { key: 'physio',   icon: Heart, label: 'Physio & FC' },
-    { key: 'rpe',      icon: BarChart3, label: 'Mon RPE' },
-    { key: 'stats',    icon: Swords, label: 'Mes stats' },
-    { key: 'poids',    icon: Scale, label: 'Mon poids' },
-    { key: 'objectifs',icon: Target, label: 'Objectifs' },
-    { key: 'blessures',icon: Bandage, label: 'Blessures' },
-    { key: 'compte',   icon: Lock, label: 'Compte' },
+    { key: 'infos',    icon: User, label: 'Mes infos', cat: 'blue' },
+    { key: 'physio',   icon: Heart, label: 'Physio & FC', cat: 'rose' },
+    { key: 'rpe',      icon: BarChart3, label: 'Mon RPE', cat: 'purple' },
+    { key: 'stats',    icon: Swords, label: 'Mes stats', cat: 'orange' },
+    { key: 'poids',    icon: Scale, label: 'Mon poids', cat: 'teal' },
+    { key: 'objectifs',icon: Target, label: 'Objectifs', cat: 'amber' },
+    { key: 'blessures',icon: Bandage, label: 'Blessures', cat: 'pink' },
+    { key: 'compte',   icon: Lock, label: 'Compte', cat: 'slate' },
   ]
 
   return (
@@ -261,16 +261,19 @@ export default function MaFichePage() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
-            padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-            background: activeTab === t.key ? THEME.primaryBg : 'transparent',
-            color: activeTab === t.key ? THEME.primary : '#6B7280',
-            fontWeight: activeTab === t.key ? 600 : 400,
-            display: 'flex', alignItems: 'center', gap: 5
-          }}><t.icon size={12} /> {t.label}</button>
-        ))}
+        {tabs.map(t => {
+          const c = CAT_COLORS[t.cat]
+          return (
+            <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
+              padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+              border: activeTab === t.key ? `0.5px solid ${c.color}` : '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+              background: activeTab === t.key ? c.bg : 'transparent',
+              color: activeTab === t.key ? c.color : '#6B7280',
+              fontWeight: activeTab === t.key ? 600 : 400,
+              display: 'flex', alignItems: 'center', gap: 5
+            }}><t.icon size={12} /> {t.label}</button>
+          )
+        })}
       </div>
 
       {saved && (

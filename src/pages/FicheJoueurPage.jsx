@@ -298,12 +298,12 @@ export default function FicheJoueurPage() {
   const blessureActive = blessures.find(b => !b.date_retour_effective)
 
   const tabs = [
-    { key: 'identite',  icon: User, label: 'Identité' },
-    { key: 'physio',    icon: Heart, label: 'Physio' },
-    { key: 'perf',      icon: TrendingUp, label: 'Perfs' },
-    { key: 'stats',     icon: Swords, label: 'Stats' },
-    { key: 'objectifs', icon: Target, label: 'Objectifs' },
-    { key: 'notes',     icon: MessageSquare, label: 'Notes' },
+    { key: 'identite',  icon: User, label: 'Identité', cat: 'blue' },
+    { key: 'physio',    icon: Heart, label: 'Physio', cat: 'rose' },
+    { key: 'perf',      icon: TrendingUp, label: 'Perfs', cat: 'purple' },
+    { key: 'stats',     icon: Swords, label: 'Stats', cat: 'orange' },
+    { key: 'objectifs', icon: Target, label: 'Objectifs', cat: 'teal' },
+    { key: 'notes',     icon: MessageSquare, label: 'Notes', cat: 'amber' },
   ]
 
   const inputStyle = (disabled) => ({
@@ -453,16 +453,19 @@ export default function FicheJoueurPage() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
-            padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-            background: activeTab === t.key ? THEME.primaryBg : 'transparent',
-            color: activeTab === t.key ? THEME.primary : '#6B7280',
-            fontWeight: activeTab === t.key ? 600 : 400,
-            display: 'flex', alignItems: 'center', gap: 5
-          }}><t.icon size={12} /> {t.label}</button>
-        ))}
+        {tabs.map(t => {
+          const c = CAT_COLORS[t.cat]
+          return (
+            <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
+              padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
+              border: activeTab === t.key ? `0.5px solid ${c.color}` : '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+              background: activeTab === t.key ? c.bg : 'transparent',
+              color: activeTab === t.key ? c.color : '#6B7280',
+              fontWeight: activeTab === t.key ? 600 : 400,
+              display: 'flex', alignItems: 'center', gap: 5
+            }}><t.icon size={12} /> {t.label}</button>
+          )
+        })}
       </div>
 
       {/* Liens rapides blessures/objectifs */}
