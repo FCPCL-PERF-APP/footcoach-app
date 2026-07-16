@@ -4,9 +4,13 @@ import { bornesSaison } from '../lib/saison'
 import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner } from '../components/UI'
-import { THEME } from '../theme'
+import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import {
+  ClipboardList, History, Footprints, Swords, WifiOff, CheckCircle2,
+  AlertTriangle, Heart, Radio, MessageSquare, Save
+} from 'lucide-react'
 
 const RPE_ITEMS = [
   { key: 'difficulte',        label: 'Difficulté ressentie' },
@@ -29,10 +33,10 @@ const FOOTBAR_FIELDS = [
 ]
 
 function rpeColor(v) {
-  if (v >= 4.5) return '#A32D2D'
+  if (v >= 4.5) return THEME.danger
   if (v >= 4) return '#D85A30'
-  if (v >= 3) return '#BA7517'
-  return '#3B6D11'
+  if (v >= 3) return THEME.warning
+  return THEME.success
 }
 
 function RpeBarChart({ rpeList, title }) {
@@ -252,14 +256,14 @@ export default function MonSuiviPage() {
   function formatEventLabel(ev) {
     if (!ev) return ''
     const dateStr = ev.date_heure ? format(parseISO(ev.date_heure), 'd MMM yyyy', { locale: fr }) : ''
-    return `${ev.type === 'match' ? '⚽' : '🏃'} ${ev.titre} — ${dateStr}`
+    return `${ev.titre} — ${dateStr}`
   }
 
   const tabs = [
-    ['afaire', `📝 À remplir${eventsAFaire.length > 0 ? ` (${eventsAFaire.length})` : ''}`],
-    ['historique', '📋 Historique'],
-    ['bilan-entrainement', '🏃 Bilan entr.'],
-    ['bilan-match', '⚽ Bilan match'],
+    ['afaire', ClipboardList, `À remplir${eventsAFaire.length > 0 ? ` (${eventsAFaire.length})` : ''}`],
+    ['historique', History, 'Historique'],
+    ['bilan-entrainement', Footprints, 'Bilan entr.'],
+    ['bilan-match', Swords, 'Bilan match'],
   ]
 
   return (
@@ -267,20 +271,21 @@ export default function MonSuiviPage() {
       <PageHeader title="Mon suivi" />
 
       {(queueCountRpe > 0 || queueCountFoot > 0) && (
-        <div style={{ background: '#FAEEDA', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center' }}>
-          📡 {[queueCountRpe > 0 && `${queueCountRpe} RPE`, queueCountFoot > 0 && `${queueCountFoot} Footbar`].filter(Boolean).join(' + ')} en attente de synchronisation
+        <div style={{ background: THEME.warningBg, color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <WifiOff size={13} /> {[queueCountRpe > 0 && `${queueCountRpe} RPE`, queueCountFoot > 0 && `${queueCountFoot} Footbar`].filter(Boolean).join(' + ')} en attente de synchronisation
         </div>
       )}
 
       <div style={{ display: 'flex', gap: 5, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
-        {tabs.map(([tab, lbl]) => (
+        {tabs.map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
-            border: `0.5px solid ${tab === 'afaire' && eventsAFaire.length > 0 ? '#A32D2D' : '#D1D5DB'}`,
-            background: activeTab === tab ? '#E6F1FB' : 'transparent',
-            color: activeTab === tab ? THEME.primary : tab === 'afaire' && eventsAFaire.length > 0 ? '#A32D2D' : '#6B7280',
-            fontWeight: activeTab === tab || (tab === 'afaire' && eventsAFaire.length > 0) ? 600 : 400
-          }}>{lbl}</button>
+            border: `0.5px solid ${tab === 'afaire' && eventsAFaire.length > 0 ? THEME.danger : '#D1D5DB'}`,
+            background: activeTab === tab ? THEME.primaryBg : 'transparent',
+            color: activeTab === tab ? THEME.primary : tab === 'afaire' && eventsAFaire.length > 0 ? THEME.danger : '#6B7280',
+            fontWeight: activeTab === tab || (tab === 'afaire' && eventsAFaire.length > 0) ? 600 : 400,
+            display: 'flex', alignItems: 'center', gap: 5
+          }}><Icon size={12} /> {lbl}</button>
         ))}
       </div>
 
@@ -291,8 +296,8 @@ export default function MonSuiviPage() {
             eventsAFaire.length === 0 ? (
               <Card>
                 <div style={{ textAlign: 'center', padding: 20 }}>
-                  <div style={{ fontSize: 36, marginBottom: 8 }}>✅</div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: '#3B6D11' }}>Tout est à jour !</p>
+                  <CheckCircle2 size={36} color={THEME.success} style={{ marginBottom: 8 }} />
+                  <p style={{ fontSize: 14, fontWeight: 600, color: THEME.success }}>Tout est à jour !</p>
                   <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>RPE et Footbar remplis pour tous les événements récents.</p>
                 </div>
               </Card>
@@ -309,13 +314,15 @@ export default function MonSuiviPage() {
                   <Card key={ev.id} style={{ marginBottom: 12 }}>
                     <div style={{ marginBottom: 14, paddingBottom: 10, borderBottom: '0.5px solid #F3F4F6' }}>
                       <p style={{ fontSize: 13, fontWeight: 700 }}>{ev.titre}</p>
-                      <p style={{ fontSize: 11, color: '#9CA3AF' }}>
-                        {ev.type === 'match' ? '⚽ Match' : '🏃 Séance'} · {ev.date_heure ? format(parseISO(ev.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
+                      <p style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {ev.type === 'match' ? <Swords size={11} /> : <Footprints size={11} />} {ev.type === 'match' ? 'Match' : 'Séance'} · {ev.date_heure ? format(parseISO(ev.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
                       </p>
                     </div>
 
                     {/* Bloc RPE */}
-                    <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}>❤️ RPE</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Heart size={13} color={CAT_COLORS.rose.color} /> RPE
+                    </p>
                     {RPE_ITEMS.map(item => {
                       const val = rpeForm[item.key]
                       return (
@@ -349,9 +356,11 @@ export default function MonSuiviPage() {
 
                     {/* Bloc Footbar */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                      <p style={{ fontSize: 12, fontWeight: 700 }}>📡 Footbar</p>
+                      <p style={{ fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <Radio size={13} color={CAT_COLORS.orange.color} /> Footbar
+                      </p>
                       {ev.type === 'match'
-                        ? <span style={{ fontSize: 10, color: '#185FA5', background: '#E6F1FB', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Recommandé</span>
+                        ? <span style={{ fontSize: 10, color: THEME.primary, background: THEME.primaryBg, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Recommandé</span>
                         : <span style={{ fontSize: 10, color: '#9CA3AF' }}>Optionnel</span>
                       }
                     </div>
@@ -371,24 +380,24 @@ export default function MonSuiviPage() {
 
                     {savedEventId === ev.id && queued.rpe !== undefined && (
                       queued.rpe
-                        ? <div style={{ background: '#FAEEDA', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600 }}>📡 RPE — pas de réseau, sera synchronisé automatiquement</div>
-                        : <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#3B6D11', textAlign: 'center', fontWeight: 600 }}>✅ RPE enregistré !</div>
+                        ? <div style={{ background: THEME.warningBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> RPE — pas de réseau, sera synchronisé automatiquement</div>
+                        : <div style={{ background: THEME.successBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: THEME.success, textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> RPE enregistré !</div>
                     )}
                     {savedEventId === ev.id && queued.footbar !== undefined && (
                       queued.footbar
-                        ? <div style={{ background: '#FAEEDA', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600 }}>📡 Footbar — pas de réseau, sera synchronisé automatiquement</div>
-                        : <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#3B6D11', textAlign: 'center', fontWeight: 600 }}>✅ Footbar enregistré !</div>
+                        ? <div style={{ background: THEME.warningBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> Footbar — pas de réseau, sera synchronisé automatiquement</div>
+                        : <div style={{ background: THEME.successBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: THEME.success, textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> Footbar enregistré !</div>
                     )}
                     {errors.rpe && (
-                      <div style={{ background: '#FCEBEB', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#A32D2D', textAlign: 'center', fontWeight: 600 }}>⚠️ RPE : {errors.rpe}</div>
+                      <div style={{ background: THEME.dangerBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: THEME.danger, textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> RPE : {errors.rpe}</div>
                     )}
                     {errors.footbar && (
-                      <div style={{ background: '#FCEBEB', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#A32D2D', textAlign: 'center', fontWeight: 600 }}>⚠️ Footbar : {errors.footbar}</div>
+                      <div style={{ background: THEME.dangerBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: THEME.danger, textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> Footbar : {errors.footbar}</div>
                     )}
 
                     <button onClick={() => handleSave(ev.id)} disabled={savingEventId === ev.id || !hasAny}
-                      style={{ width: '100%', padding: 13, background: hasAny ? THEME.gradient : '#E5E7EB', color: hasAny ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: hasAny ? 'pointer' : 'not-allowed' }}>
-                      {savingEventId === ev.id ? 'Enregistrement...' : '💾 Enregistrer'}
+                      style={{ width: '100%', padding: 13, background: hasAny ? THEME.gradient : '#E5E7EB', color: hasAny ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: hasAny ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      {savingEventId === ev.id ? 'Enregistrement...' : <><Save size={14} /> Enregistrer</>}
                     </button>
                   </Card>
                 )
@@ -413,7 +422,9 @@ export default function MonSuiviPage() {
                 </div>
 
                 <Card style={{ marginBottom: 12 }}>
-                  <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}>❤️ RPE</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <Heart size={13} color={CAT_COLORS.rose.color} /> RPE
+                  </p>
                   {!selectedRpe ? (
                     <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de RPE pour cet événement.</p>
                   ) : (
@@ -438,8 +449,9 @@ export default function MonSuiviPage() {
                         )
                       })}
                       {selectedRpe.commentaire && (
-                        <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 10px', marginTop: 10 }}>
-                          <p style={{ fontSize: 11, color: '#6B7280', fontStyle: 'italic' }}>💬 {selectedRpe.commentaire}</p>
+                        <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 10px', marginTop: 10, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                          <MessageSquare size={12} color="#9CA3AF" style={{ flexShrink: 0, marginTop: 2 }} />
+                          <p style={{ fontSize: 11, color: '#6B7280', fontStyle: 'italic' }}>{selectedRpe.commentaire}</p>
                         </div>
                       )}
                     </>
@@ -447,7 +459,9 @@ export default function MonSuiviPage() {
                 </Card>
 
                 <Card>
-                  <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}>📡 Footbar</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <Radio size={13} color={CAT_COLORS.orange.color} /> Footbar
+                  </p>
                   {!selectedFoot ? (
                     <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de Footbar pour cet événement.</p>
                   ) : (
@@ -474,10 +488,10 @@ export default function MonSuiviPage() {
                 <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>Moyennes sur {rpeEntrainement.length} séance(s)</p>
                 {rpeEntrainement.length === 0
                   ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de données d'entraînement.</p>
-                  : <RpeBarChart rpeList={rpeEntrainement} title="🏃 Bilan RPE entraînements" />
+                  : <RpeBarChart rpeList={rpeEntrainement} title="Bilan RPE entraînements" />
                 }
               </Card>
-              <Card><FootbarBilan footList={footEntrainement} title="🏃 Bilan Footbar entraînements" /></Card>
+              <Card><FootbarBilan footList={footEntrainement} title="Bilan Footbar entraînements" /></Card>
             </>
           )}
 
@@ -488,10 +502,10 @@ export default function MonSuiviPage() {
                 <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>Moyennes sur {rpeMatch.length} match(s)</p>
                 {rpeMatch.length === 0
                   ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de données de match.</p>
-                  : <RpeBarChart rpeList={rpeMatch} title="⚽ Bilan RPE matchs" />
+                  : <RpeBarChart rpeList={rpeMatch} title="Bilan RPE matchs" />
                 }
               </Card>
-              <Card><FootbarBilan footList={footMatch} title="⚽ Bilan Footbar matchs" /></Card>
+              <Card><FootbarBilan footList={footMatch} title="Bilan Footbar matchs" /></Card>
             </>
           )}
         </>
