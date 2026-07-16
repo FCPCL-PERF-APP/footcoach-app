@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Spinner, Avatar } from '../components/UI'
-import { THEME } from '../theme'
+import { THEME, CAT_COLORS } from '../theme'
+import { Download, Plus, AlertTriangle, ArrowRight, Search, Tag, Heart, Trash2, ChevronRight, Bandage } from 'lucide-react'
 
 const AVATAR_COLORS = [
   { bg: '#B5D4F4', color: '#0C447C' },
@@ -15,10 +16,10 @@ const AVATAR_COLORS = [
 
 function rpeColor(v) {
   if (!v) return '#9CA3AF'
-  if (v >= 4.5) return '#A32D2D'
+  if (v >= 4.5) return THEME.danger
   if (v >= 3.5) return '#D85A30'
-  if (v >= 2.5) return '#BA7517'
-  return '#3B6D11'
+  if (v >= 2.5) return THEME.warning
+  return THEME.success
 }
 
 export default function JoueursPage() {
@@ -93,22 +94,33 @@ export default function JoueursPage() {
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Joueurs</h1>
         {isCoach && (
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={() => navigate('/joueurs/import')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer' }}>📥 Import</button>
-            <button onClick={() => navigate('/joueurs/nouveau')} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>+ Ajouter</button>
+            <button onClick={() => navigate('/joueurs/import')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Download size={13} /> Import
+            </button>
+            <button onClick={() => navigate('/joueurs/nouveau')} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Plus size={13} /> Ajouter
+            </button>
           </div>
         )}
       </div>
 
       {/* Alerte surcharge */}
       {isStaff && nbSurcharge > 0 && (
-        <div style={{ background: '#FDF1F1', border: '0.5px solid #FCA5A5', borderRadius: 10, padding: '8px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#A32D2D' }}>🔴 {nbSurcharge} joueur(s) avec RPE ≥ 4</span>
-          <button onClick={() => setSortBy('rpe')} style={{ fontSize: 11, color: '#A32D2D', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Voir en premier →</button>
+        <div style={{ background: THEME.dangerBg, border: '0.5px solid #FCA5A5', borderRadius: 10, padding: '8px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: THEME.danger, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <AlertTriangle size={13} /> {nbSurcharge} joueur(s) avec RPE ≥ 4
+          </span>
+          <button onClick={() => setSortBy('rpe')} style={{ fontSize: 11, color: THEME.danger, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+            Voir en premier <ArrowRight size={11} />
+          </button>
         </div>
       )}
 
-      <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Rechercher un joueur..."
-        style={{ width: '100%', padding: '9px 12px', marginBottom: 10, border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
+      <div style={{ position: 'relative', marginBottom: 10 }}>
+        <Search size={14} color="#9CA3AF" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un joueur..."
+          style={{ width: '100%', padding: '9px 12px 9px 34px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
+      </div>
 
       {/* Filtre groupe */}
       {groupes.length > 2 && (
@@ -117,10 +129,11 @@ export default function JoueursPage() {
             <button key={g} onClick={() => setFilterGroupe(g)} style={{
               padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
               border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-              background: filterGroupe === g ? '#FAEEDA' : 'transparent',
-              color: filterGroupe === g ? '#854F0B' : '#6B7280',
-              fontWeight: filterGroupe === g ? 600 : 400
-            }}>{g === 'tous' ? '🏷️ Tous les groupes' : `Pôle ${g}`}</button>
+              background: filterGroupe === g ? CAT_COLORS.amber.bg : 'transparent',
+              color: filterGroupe === g ? CAT_COLORS.amber.color : '#6B7280',
+              fontWeight: filterGroupe === g ? 600 : 400,
+              display: 'inline-flex', alignItems: 'center', gap: 4
+            }}>{g === 'tous' ? <><Tag size={11} /> Tous les groupes</> : `Pôle ${g}`}</button>
           ))}
         </div>
       )}
@@ -145,10 +158,11 @@ export default function JoueursPage() {
           }}>A→Z</button>
           {isStaff && <button onClick={() => setSortBy('rpe')} style={{
             padding: '4px 8px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: `0.5px solid ${sortBy === 'rpe' ? '#A32D2D' : '#D1D5DB'}`,
-            background: sortBy === 'rpe' ? '#FCEBEB' : 'transparent',
-            color: sortBy === 'rpe' ? '#A32D2D' : '#6B7280',
-          }}>❤️ RPE</button>}
+            border: `0.5px solid ${sortBy === 'rpe' ? THEME.danger : '#D1D5DB'}`,
+            background: sortBy === 'rpe' ? THEME.dangerBg : 'transparent',
+            color: sortBy === 'rpe' ? THEME.danger : '#6B7280',
+            display: 'inline-flex', alignItems: 'center', gap: 4
+          }}><Heart size={11} /> RPE</button>}
         </div>
       </div>
 
@@ -196,7 +210,11 @@ export default function JoueursPage() {
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600 }}>
                       {j.nom} {j.prenom}
-                      {blessuresActives[j.id] && <span style={{ marginLeft: 6, fontSize: 11, background: '#FAEEDA', color: '#854F0B', borderRadius: 10, padding: '1px 6px' }}>🤕 Blessé</span>}
+                      {blessuresActives[j.id] && (
+                        <span style={{ marginLeft: 6, fontSize: 11, background: THEME.warningBg, color: '#854F0B', borderRadius: 10, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          <Bandage size={10} /> Blessé
+                        </span>
+                      )}
                     </p>
                     <p style={{ fontSize: 11, color: '#9CA3AF' }}>
                       {j.poste || '—'}{j.numero ? ` · N°${j.numero}` : ''}{j.groupe ? ` · Pôle ${j.groupe}` : ''}
@@ -212,11 +230,11 @@ export default function JoueursPage() {
                   )}
                   {isCoach && (
                     <button onClick={() => setConfirmDelete(j)}
-                      style={{ border: 'none', background: 'rgba(163,45,45,.1)', borderRadius: 6, padding: '4px 7px', cursor: 'pointer', fontSize: 13 }}>
-                      🗑️
+                      style={{ border: 'none', background: THEME.dangerBg, borderRadius: 6, padding: '5px 7px', cursor: 'pointer', display: 'flex' }}>
+                      <Trash2 size={13} color={THEME.danger} />
                     </button>
                   )}
-                  {isStaff && <span style={{ color: '#D1D5DB', fontSize: 20, cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)}>›</span>}
+                  {isStaff && <ChevronRight size={18} color="#D1D5DB" style={{ cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)} />}
                 </div>
               </div>
             )
