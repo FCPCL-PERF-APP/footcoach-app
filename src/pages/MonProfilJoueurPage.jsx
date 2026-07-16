@@ -4,6 +4,7 @@ import PushToggle from '../components/PushToggle'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Button } from '../components/UI'
 import { THEME } from '../theme'
+import { Lock, X, Save, LogOut } from 'lucide-react'
 
 export default function MonProfilJoueurPage() {
   const { profile, signOut } = useAuth()
@@ -22,7 +23,7 @@ export default function MonProfilJoueurPage() {
     if (error) {
       setPwdMsg({ ok: false, text: `Erreur : ${error.message}` })
     } else {
-      setPwdMsg({ ok: true, text: '✅ Mot de passe modifié avec succès !' })
+      setPwdMsg({ ok: true, text: 'Mot de passe modifié avec succès !' })
       setPwd({ new: '', confirm: '' })
       setTimeout(() => { setShowForm(false); setPwdMsg(null) }, 3000)
     }
@@ -50,12 +51,12 @@ export default function MonProfilJoueurPage() {
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showForm ? 14 : 0 }}>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 600 }}>🔐 Mot de passe</p>
+            <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Lock size={13} /> Mot de passe</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>Modifie ton mot de passe de connexion</p>
           </div>
           <button onClick={() => { setShowForm(!showForm); setPwdMsg(null); setPwd({ new: '', confirm: '' }) }}
-            style={{ padding: '6px 12px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
-            {showForm ? '✕ Annuler' : 'Modifier'}
+            style={{ padding: '6px 12px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+            {showForm ? <><X size={11} /> Annuler</> : 'Modifier'}
           </button>
         </div>
 
@@ -74,12 +75,12 @@ export default function MonProfilJoueurPage() {
                 style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             {pwdMsg && (
-              <p style={{ fontSize: 12, color: pwdMsg.ok ? '#3B6D11' : '#A32D2D', marginBottom: 10 }}>
+              <p style={{ fontSize: 12, color: pwdMsg.ok ? THEME.success : THEME.danger, marginBottom: 10 }}>
                 {pwdMsg.text}
               </p>
             )}
-            <Button variant="primary" style={{ width: '100%' }} onClick={changePassword} disabled={saving}>
-              {saving ? 'Enregistrement...' : '💾 Enregistrer le mot de passe'}
+            <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={changePassword} disabled={saving}>
+              {saving ? 'Enregistrement...' : <><Save size={13} /> Enregistrer le mot de passe</>}
             </Button>
           </>
         )}
@@ -114,9 +115,10 @@ export default function MonProfilJoueurPage() {
       <button onClick={signOut} style={{
         width: '100%', padding: 14, borderRadius: 12,
         border: '0.5px solid #FCEBEB', background: '#FDF1F1',
-        color: '#A32D2D', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4
+        color: THEME.danger, fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
       }}>
-        🚪 Se déconnecter
+        <LogOut size={14} /> Se déconnecter
       </button>
     </div>
   )
