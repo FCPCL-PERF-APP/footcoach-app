@@ -5,6 +5,8 @@ import { fr } from 'date-fns/locale'
 import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Badge, Button, Select, Textarea, BarChart, Spinner, AlertCard } from '../components/UI'
+import { THEME } from '../theme'
+import { BarChart3, Users, Hourglass, AlertTriangle, CheckCircle2, MessageSquare, Bell } from 'lucide-react'
 
 const RPE_ITEMS_SEANCE = [
   { key: 'difficulte',        label: 'Difficulté ressentie' },
@@ -102,9 +104,9 @@ export default function RpePage() {
         })
       })
       const data = await res.json()
-      setRelanceState(data.success ? `✅ ${data.sent} notification(s) envoyée(s)` : `❌ ${data.error || 'Erreur'}`)
+      setRelanceState(data.success ? `${data.sent} notification(s) envoyée(s)` : `Erreur : ${data.error || 'inconnue'}`)
     } catch {
-      setRelanceState('❌ Erreur réseau')
+      setRelanceState('Erreur réseau')
     }
     setTimeout(() => setRelanceState(null), 4000)
   }
@@ -120,20 +122,21 @@ export default function RpePage() {
         onChange={setSelectedEvent}
         options={events.map(e => ({
           value: e.id,
-          label: `${e.type === 'match' ? '⚽' : '🏃'} ${e.titre} — ${e.date_heure ? format(parseISO(e.date_heure), 'd MMM', { locale: fr }) : ''}`
+          label: `${e.titre} — ${e.date_heure ? format(parseISO(e.date_heure), 'd MMM', { locale: fr }) : ''}`
         }))}
       />
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {[['bilan','📊 Bilan groupe'],['detail','👥 Par joueur'],['manquants','⏳ Manquants']].map(([tab, lbl]) => (
+        {[['bilan', BarChart3, 'Bilan groupe'],['detail', Users, 'Par joueur'],['manquants', Hourglass, 'Manquants']].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === tab ? '#E6F1FB' : 'transparent',
-            color: activeTab === tab ? '#185FA5' : '#6B7280',
-            fontWeight: activeTab === tab ? 600 : 400, whiteSpace: 'nowrap'
-          }}>{lbl}</button>
+            background: activeTab === tab ? THEME.primaryBg : 'transparent',
+            color: activeTab === tab ? THEME.primary : '#6B7280',
+            fontWeight: activeTab === tab ? 600 : 400, whiteSpace: 'nowrap',
+            display: 'flex', alignItems: 'center', gap: 5
+          }}><Icon size={12} /> {lbl}</button>
         ))}
       </div>
 
@@ -146,7 +149,7 @@ export default function RpePage() {
                 <div style={{ marginBottom: 12 }}>
                   {alerts.map(r => (
                     <AlertCard key={r.id} type="red"
-                      title={`⚠️ ${r.joueurs?.nom} ${r.joueurs?.prenom} — Charge élevée`}
+                      title={<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><AlertTriangle size={13} /> {r.joueurs?.nom} {r.joueurs?.prenom} — Charge élevée</span>}
                       message="RPE moyen ≥ 4.5 sur cette session. Surveiller la récupération." />
                   ))}
                 </div>
@@ -171,7 +174,7 @@ export default function RpePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
                     width: 64, height: 64, borderRadius: '50%',
-                    border: `6px solid ${rpeData.length / Math.max(joueurs.length, 1) >= 0.8 ? '#3B6D11' : '#D85A30'}`,
+                    border: `6px solid ${rpeData.length / Math.max(joueurs.length, 1) >= 0.8 ? THEME.success : '#D85A30'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 16, fontWeight: 700
                   }}>
@@ -212,8 +215,8 @@ export default function RpePage() {
                           maxValue={5}
                         />
                         {r.commentaire && (
-                          <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '6px 10px', marginTop: 6, fontSize: 12, color: '#555' }}>
-                            💬 {r.commentaire}
+                          <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '6px 10px', marginTop: 6, fontSize: 12, color: '#555', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                            <MessageSquare size={12} color="#9CA3AF" style={{ flexShrink: 0, marginTop: 2 }} /> {r.commentaire}
                           </div>
                         )}
                       </div>
@@ -231,7 +234,7 @@ export default function RpePage() {
                 Envoie une notification push pour les relancer.
               </p>
               {joueursSansRpe.length === 0
-                ? <p style={{ fontSize: 13, color: '#3B6D11' }}>✅ Tous les joueurs ont rempli leur RPE !</p>
+                ? <p style={{ fontSize: 13, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Tous les joueurs ont rempli leur RPE !</p>
                 : <>
                     {joueursSansRpe.map(j => (
                       <div key={j.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
@@ -239,13 +242,13 @@ export default function RpePage() {
                           <div style={{ fontSize: 13, fontWeight: 500 }}>{j.nom} {j.prenom}</div>
                           <div style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}</div>
                         </div>
-                        <span style={{ fontSize: 11, color: '#D85A30' }}>⏳ En attente</span>
+                        <span style={{ fontSize: 11, color: '#D85A30', display: 'flex', alignItems: 'center', gap: 4 }}><Hourglass size={11} /> En attente</span>
                       </div>
                     ))}
-                    <Button variant="primary" style={{ width: '100%', marginTop: 12 }}
+                    <Button variant="primary" style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       disabled={relanceState === 'sending'}
                       onClick={relancerManquants}>
-                      {relanceState === 'sending' ? 'Envoi...' : relanceState || '📱 Relancer par notification push'}
+                      {relanceState === 'sending' ? 'Envoi...' : relanceState || <><Bell size={13} /> Relancer par notification push</>}
                     </Button>
                   </>
               }

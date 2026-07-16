@@ -6,6 +6,7 @@ import { Card, PageHeader, Select, Button, Spinner, BarChart } from '../componen
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { BarChart3, Users, ClipboardEdit, Hourglass, CheckCircle2, Save, Bell } from 'lucide-react'
 
 const FOOTBAR_FIELDS = [
   { key: 'distance_km',     label: 'Distance',        unit: 'km',   placeholder: '8.4',  step: '0.1', max: 15 },
@@ -24,7 +25,7 @@ function formatEventLabel(ev) {
   const dateStr = ev.date_heure
     ? format(parseISO(ev.date_heure), 'd MMM', { locale: fr })
     : ''
-  return `${ev.type === 'match' ? '⚽' : '🏃'} ${ev.titre} — ${dateStr}`
+  return `${ev.titre} — ${dateStr}`
 }
 
 export default function FootbarPage() {
@@ -107,9 +108,9 @@ export default function FootbarPage() {
         })
       })
       const data = await res.json()
-      setRelanceState(data.success ? `✅ ${data.sent} notification(s) envoyée(s)` : `❌ ${data.error || 'Erreur'}`)
+      setRelanceState(data.success ? `${data.sent} notification(s) envoyée(s)` : `Erreur : ${data.error || 'inconnue'}`)
     } catch {
-      setRelanceState('❌ Erreur réseau')
+      setRelanceState('Erreur réseau')
     }
     setTimeout(() => setRelanceState(null), 4000)
   }
@@ -153,18 +154,19 @@ export default function FootbarPage() {
       {/* Tabs identiques au RPE */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {[
-          ['bilan', '📊 Bilan groupe'],
-          ['detail', '👥 Par joueur'],
-          ['saisie', '📥 Saisie'],
-          ['manquants', '⏳ Manquants'],
-        ].map(([tab, lbl]) => (
+          ['bilan', BarChart3, 'Bilan groupe'],
+          ['detail', Users, 'Par joueur'],
+          ['saisie', ClipboardEdit, 'Saisie'],
+          ['manquants', Hourglass, 'Manquants'],
+        ].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-            background: activeTab === tab ? '#E6F1FB' : 'transparent',
+            background: activeTab === tab ? THEME.primaryBg : 'transparent',
             color: activeTab === tab ? THEME.primary : '#6B7280',
-            fontWeight: activeTab === tab ? 600 : 400
-          }}>{lbl}</button>
+            fontWeight: activeTab === tab ? 600 : 400,
+            display: 'flex', alignItems: 'center', gap: 5
+          }}><Icon size={12} /> {lbl}</button>
         ))}
       </div>
 
@@ -207,7 +209,7 @@ export default function FootbarPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
                     width: 64, height: 64, borderRadius: '50%',
-                    border: `6px solid ${footData.length / Math.max(joueurs.length, 1) >= 0.8 ? '#3B6D11' : '#D85A30'}`,
+                    border: `6px solid ${footData.length / Math.max(joueurs.length, 1) >= 0.8 ? THEME.success : '#D85A30'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 16, fontWeight: 700
                   }}>
@@ -275,13 +277,14 @@ export default function FootbarPage() {
                   </div>
                 ))}
               </div>
-              {saved && <div style={{ background: '#EAF3DE', borderRadius: 8, padding: '8px 12px', marginTop: 10, fontSize: 12, color: '#3B6D11' }}>✅ Données enregistrées !</div>}
+              {saved && <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginTop: 10, fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Données enregistrées !</div>}
               <button onClick={handleSave} disabled={saving} style={{
                 width: '100%', marginTop: 12, padding: 12,
                 background: THEME.gradient, color: '#fff',
-                border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer'
+                border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
               }}>
-                {saving ? 'Enregistrement...' : '💾 Enregistrer les données Footbar'}
+                {saving ? 'Enregistrement...' : <><Save size={14} /> Enregistrer les données Footbar</>}
               </button>
             </Card>
           )}
@@ -294,7 +297,7 @@ export default function FootbarPage() {
                 Envoie une notification pour les relancer.
               </p>
               {joueursSansFootbar.length === 0
-                ? <p style={{ fontSize: 13, color: '#3B6D11' }}>✅ Tous les joueurs ont rempli leur Footbar !</p>
+                ? <p style={{ fontSize: 13, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Tous les joueurs ont rempli leur Footbar !</p>
                 : <>
                     {joueursSansFootbar.map(j => (
                       <div key={j.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--border)' }}>
@@ -302,12 +305,12 @@ export default function FootbarPage() {
                           <div style={{ fontSize: 13, fontWeight: 500 }}>{j.nom} {j.prenom}</div>
                           <div style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}</div>
                         </div>
-                        <span style={{ fontSize: 11, color: '#D85A30' }}>⏳ En attente</span>
+                        <span style={{ fontSize: 11, color: '#D85A30', display: 'flex', alignItems: 'center', gap: 4 }}><Hourglass size={11} /> En attente</span>
                       </div>
                     ))}
                     <button onClick={relancerManquants} disabled={relanceState === 'sending'}
-                      style={{ width: '100%', marginTop: 12, padding: 10, background: THEME.gradient, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                      {relanceState === 'sending' ? 'Envoi...' : relanceState || '📱 Relancer par notification push'}
+                      style={{ width: '100%', marginTop: 12, padding: 10, background: THEME.gradient, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      {relanceState === 'sending' ? 'Envoi...' : relanceState || <><Bell size={12} /> Relancer par notification push</>}
                     </button>
                   </>
               }
