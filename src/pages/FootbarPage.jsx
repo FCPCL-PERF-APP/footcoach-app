@@ -50,8 +50,10 @@ export default function FootbarPage() {
   useEffect(() => { if (selectedEvent) { loadFootbar(); loadConvocations() } }, [selectedEvent])
 
   async function loadData() {
+    // Pas de limite arbitraire — cf. RpePage.jsx, sinon les événements les plus anciens
+    // disparaissaient du menu dès que plus de 30 événements plus récents/futurs existaient.
     const [{ data: evs }, { data: jrs }] = await Promise.all([
-      supabase.from('evenements').select('*').order('date_heure', { ascending: false }).limit(30),
+      supabase.from('evenements').select('*').order('date_heure', { ascending: false }),
       supabase.from('joueurs').select('id,nom,prenom,poste').order('nom')
     ])
     setEvents(evs || [])

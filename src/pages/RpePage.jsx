@@ -52,7 +52,11 @@ export default function RpePage() {
   useEffect(() => { if (selectedEvent) { loadRpe(); loadConvocations() } }, [selectedEvent])
 
   async function loadEvents() {
-    const { data } = await supabase.from('evenements').select('*').order('date_heure', { ascending: false }).limit(20)
+    // Pas de limite arbitraire — une saison ne dépasse jamais quelques centaines
+    // d'événements (cf. MonSuiviPage.jsx), sinon les événements les plus anciens
+    // (ex: matchs de préparation de juillet/août) disparaissaient du menu dès que
+    // plus de 20 événements plus récents/futurs existaient.
+    const { data } = await supabase.from('evenements').select('*').order('date_heure', { ascending: false })
     setEvents(data || [])
     if (!selectedEvent && data?.length) setSelectedEvent(data[0].id)
     setLoading(false)
