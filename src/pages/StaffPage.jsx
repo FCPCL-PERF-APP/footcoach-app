@@ -5,12 +5,16 @@ import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Input, Button, Spinner, Avatar } from '../components/UI'
 import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME } from '../theme'
+import {
+  Crown, Handshake, Settings, Dumbbell, Plus, X, Pencil, Trash2, Camera,
+  Mail, Phone, GraduationCap, Puzzle, CheckCircle2, Hourglass, Check
+} from 'lucide-react'
 
 const ROLES = [
-  { value: 'coach',    label: '👑 Coach principal', desc: 'Accès complet — modification, suppression, création', color: '#185FA5', canEdit: true },
-  { value: 'adjoint',  label: '🤝 Coach adjoint',   desc: 'Lecture seule — consultation de toutes les données', color: '#3B6D11', canEdit: false },
-  { value: 'admin',    label: '⚙️ Administrateur',  desc: 'Accès complet comme le coach principal', color: '#854F0B', canEdit: true },
-  { value: 'preparateur', label: '💪 Préparateur physique', desc: 'Accès RPE, Footbar et données physiques', color: '#A32D2D', canEdit: false },
+  { value: 'coach',    icon: Crown, label: 'Coach principal', desc: 'Accès complet — modification, suppression, création', color: '#185FA5', canEdit: true },
+  { value: 'adjoint',  icon: Handshake, label: 'Coach adjoint',   desc: 'Lecture seule — consultation de toutes les données', color: '#3B6D11', canEdit: false },
+  { value: 'admin',    icon: Settings, label: 'Administrateur',  desc: 'Accès complet comme le coach principal', color: '#854F0B', canEdit: true },
+  { value: 'preparateur', icon: Dumbbell, label: 'Préparateur physique', desc: 'Accès RPE, Footbar et données physiques', color: '#A32D2D', canEdit: false },
 ]
 
 const AVATAR_COLORS = [
@@ -83,13 +87,13 @@ export default function StaffPage() {
       const data = await res.json()
       if (data.success) {
         setResult({ ok: true, message: data.mode === 'reset'
-          ? `✅ ${form.prenom} ${form.nom} ajouté — ce membre avait déjà un compte, un email de réinitialisation de mot de passe a été envoyé à ${form.email}`
-          : `✅ ${form.prenom} ${form.nom} ajouté et invitation envoyée à ${form.email}` })
+          ? `${form.prenom} ${form.nom} ajouté — ce membre avait déjà un compte, un email de réinitialisation de mot de passe a été envoyé à ${form.email}`
+          : `${form.prenom} ${form.nom} ajouté et invitation envoyée à ${form.email}` })
       } else {
-        setResult({ ok: false, message: `⚠️ Fiche créée mais erreur invitation : ${data.error}` })
+        setResult({ ok: false, message: `Fiche créée mais erreur invitation : ${data.error}` })
       }
     } catch (err) {
-      setResult({ ok: false, message: '⚠️ Fiche créée mais erreur réseau pour l\'invitation.' })
+      setResult({ ok: false, message: 'Fiche créée mais erreur réseau pour l\'invitation.' })
     }
 
     setInviting(false)
@@ -108,9 +112,9 @@ export default function StaffPage() {
       })
       const data = await res.json()
       if (data.success) alert(data.mode === 'reset'
-        ? `✅ Ce membre avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à ${s.email}`
-        : `✅ Invitation renvoyée à ${s.email}`)
-      else alert(`❌ Erreur : ${data.error}`)
+        ? `Ce membre avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à ${s.email}`
+        : `Invitation renvoyée à ${s.email}`)
+      else alert(`Erreur : ${data.error}`)
     } catch (err) {
       alert('Erreur réseau.')
     }
@@ -210,8 +214,8 @@ export default function StaffPage() {
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Staff technique</h1>
         {isCoach && (
           <button onClick={() => { setShowAdd(!showAdd); setResult(null) }}
-            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
-            {showAdd ? '✕ Annuler' : '+ Ajouter'}
+            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+            {showAdd ? <><X size={13} /> Annuler</> : <><Plus size={13} /> Ajouter</>}
           </button>
         )}
       </div>
@@ -221,7 +225,7 @@ export default function StaffPage() {
         <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Niveaux d'accès</p>
         {ROLES.map(r => (
           <div key={r.value} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: r.color, width: 140 }}>{r.label}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: r.color, width: 140, display: 'flex', alignItems: 'center', gap: 5 }}><r.icon size={12} /> {r.label}</span>
             <span style={{ fontSize: 11, color: '#6B7280' }}>{r.desc}</span>
           </div>
         ))}
@@ -247,7 +251,7 @@ export default function StaffPage() {
                 <label key={r.value} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 10px', borderRadius: 10, border: `1.5px solid ${form.role === r.value ? r.color : '#E5E7EB'}`, background: form.role === r.value ? `${r.color}10` : 'transparent', cursor: 'pointer' }}>
                   <input type="radio" name="role" value={r.value} checked={form.role === r.value} onChange={() => setForm(p => ({...p, role: r.value}))} style={{ marginTop: 2 }} />
                   <div>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: r.color }}>{r.label}</p>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: r.color, display: 'flex', alignItems: 'center', gap: 5 }}><r.icon size={12} /> {r.label}</p>
                     <p style={{ fontSize: 11, color: '#6B7280' }}>{r.desc}</p>
                   </div>
                 </label>
@@ -256,13 +260,13 @@ export default function StaffPage() {
           </div>
 
           {result && (
-            <div style={{ background: result.ok ? '#EAF3DE' : '#FCEBEB', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: result.ok ? '#3B6D11' : '#A32D2D' }}>
+            <div style={{ background: result.ok ? THEME.successBg : THEME.dangerBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: result.ok ? THEME.success : THEME.danger }}>
               {result.message}
             </div>
           )}
 
-          <Button variant="primary" style={{ width: '100%' }} onClick={handleAdd} disabled={saving || inviting}>
-            {inviting ? 'Envoi invitation...' : saving ? 'Création...' : '✅ Créer et envoyer l\'invitation'}
+          <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={handleAdd} disabled={saving || inviting}>
+            {inviting ? 'Envoi invitation...' : saving ? 'Création...' : <><Check size={13} /> Créer et envoyer l'invitation</>}
           </Button>
         </Card>
       )}
@@ -285,8 +289,8 @@ export default function StaffPage() {
                     {isCoach && (
                       <>
                         <div onClick={() => document.getElementById(`staff-photo-${s.id}`).click()}
-                          style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, background: THEME.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 10 }}>
-                          📷
+                          style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, background: THEME.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                          <Camera size={10} color="#fff" />
                         </div>
                         <input id={`staff-photo-${s.id}`} type="file" accept="image/*" style={{ display: 'none' }}
                           onChange={e => e.target.files[0] && setPendingPhoto({ staffId: s.id, file: e.target.files[0] })} />
@@ -295,24 +299,24 @@ export default function StaffPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: 700 }}>{s.nom} {s.prenom}</p>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: roleInfo.color, background: `${roleInfo.color}15`, padding: '2px 8px', borderRadius: 20 }}>
-                      {roleInfo.label}
+                    <span style={{ fontSize: 11, fontWeight: 600, color: roleInfo.color, background: `${roleInfo.color}15`, padding: '2px 8px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <roleInfo.icon size={11} /> {roleInfo.label}
                     </span>
-                    {photoUploadingId === s.id && <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>📷 Upload en cours...</p>}
+                    {photoUploadingId === s.id && <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><Camera size={10} /> Upload en cours...</p>}
                   </div>
                   {isCoach && (
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={() => editingInfo === s.id ? setEditingInfo(null) : startEditingInfo(s)}
-                        style={{ border: 'none', background: '#EAF3DE', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 11, color: '#3B6D11', fontWeight: 600 }}>
-                        ✏️ Modifier
+                        style={{ border: 'none', background: THEME.successBg, borderRadius: 6, padding: '5px 8px', cursor: 'pointer', fontSize: 11, color: THEME.success, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Pencil size={11} /> Modifier
                       </button>
                       <button onClick={() => setEditingRole(editingRole === s.id ? null : s.id)}
-                        style={{ border: 'none', background: '#E6F1FB', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 11, color: THEME.primary, fontWeight: 600 }}>
-                        ✏️ Rôle
+                        style={{ border: 'none', background: THEME.primaryBg, borderRadius: 6, padding: '5px 8px', cursor: 'pointer', fontSize: 11, color: THEME.primary, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Pencil size={11} /> Rôle
                       </button>
                       <button onClick={() => deleteStaff(s.id)}
-                        style={{ border: 'none', background: '#FCEBEB', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 12 }}>
-                        🗑️
+                        style={{ border: 'none', background: THEME.dangerBg, borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex' }}>
+                        <Trash2 size={12} color={THEME.danger} />
                       </button>
                     </div>
                   )}
@@ -329,26 +333,26 @@ export default function StaffPage() {
                       <Input label="Diplôme" value={infoForm.diplome} onChange={v => setInfoForm(p => ({...p, diplome: v}))} />
                       <Input label="Spécialité" value={infoForm.specialite} onChange={v => setInfoForm(p => ({...p, specialite: v}))} />
                     </div>
-                    <Button variant="primary" style={{ width: '100%', marginTop: 4 }} onClick={() => saveInfo(s.id)} disabled={savingInfo}>
-                      {savingInfo ? 'Enregistrement...' : '💾 Enregistrer'}
+                    <Button variant="primary" style={{ width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={() => saveInfo(s.id)} disabled={savingInfo}>
+                      {savingInfo ? 'Enregistrement...' : <><Check size={13} /> Enregistrer</>}
                     </Button>
                   </div>
                 )}
 
                 {/* Infos contact */}
                 <div style={{ marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #F3F4F6' }}>
-                  {s.email && <p style={{ fontSize: 11, color: '#6B7280' }}>📧 {s.email}</p>}
-                  {s.telephone && <p style={{ fontSize: 11, color: '#6B7280' }}>📱 {s.telephone}</p>}
-                  {s.diplome && <p style={{ fontSize: 11, color: '#6B7280' }}>🎓 {s.diplome}</p>}
-                  {s.specialite && <p style={{ fontSize: 11, color: '#6B7280' }}>🧩 {s.specialite}</p>}
+                  {s.email && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={11} /> {s.email}</p>}
+                  {s.telephone && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><Phone size={11} /> {s.telephone}</p>}
+                  {s.diplome && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><GraduationCap size={11} /> {s.diplome}</p>}
+                  {s.specialite && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><Puzzle size={11} /> {s.specialite}</p>}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                    <p style={{ fontSize: 10, color: s.auth_id ? '#3B6D11' : '#9CA3AF' }}>
-                      {s.auth_id ? '✅ Compte actif' : '⏳ Invitation en attente'}
+                    <p style={{ fontSize: 10, color: s.auth_id ? THEME.success : '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      {s.auth_id ? <><CheckCircle2 size={10} /> Compte actif</> : <><Hourglass size={10} /> Invitation en attente</>}
                     </p>
                     {!s.auth_id && isCoach && (
                       <button onClick={() => renvoyerInvitation(s)}
-                        style={{ fontSize: 10, color: '#185FA5', background: '#E6F1FB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
-                        📧 Renvoyer l'invitation
+                        style={{ fontSize: 10, color: THEME.primary, background: THEME.primaryBg, border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Mail size={10} /> Renvoyer l'invitation
                       </button>
                     )}
                   </div>
@@ -361,9 +365,10 @@ export default function StaffPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {ROLES.map(r => (
                         <button key={r.value} onClick={() => updateRole(s.id, r.value)}
-                          style={{ padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${s.role === r.value ? r.color : '#E5E7EB'}`, background: s.role === r.value ? `${r.color}15` : '#fff', cursor: 'pointer', textAlign: 'left' }}>
+                          style={{ padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${s.role === r.value ? r.color : '#E5E7EB'}`, background: s.role === r.value ? `${r.color}15` : '#fff', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <r.icon size={12} color={r.color} />
                           <span style={{ fontSize: 12, fontWeight: 600, color: r.color }}>{r.label}</span>
-                          <span style={{ fontSize: 11, color: '#6B7280', marginLeft: 8 }}>{r.desc}</span>
+                          <span style={{ fontSize: 11, color: '#6B7280', marginLeft: 4 }}>{r.desc}</span>
                         </button>
                       ))}
                     </div>
