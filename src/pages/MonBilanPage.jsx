@@ -6,13 +6,14 @@ import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { ArrowLeft, Trophy, Swords, Heart, Calendar, Radio, Target } from 'lucide-react'
 
 function rpeColor(v) {
   if (!v) return '#9CA3AF'
-  if (v >= 4.5) return '#A32D2D'
+  if (v >= 4.5) return THEME.danger
   if (v >= 4) return '#D85A30'
-  if (v >= 3) return '#BA7517'
-  return '#3B6D11'
+  if (v >= 3) return THEME.warning
+  return THEME.success
 }
 
 export default function MonBilanPage() {
@@ -96,8 +97,8 @@ export default function MonBilanPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
-        <h1 style={{ fontSize: 18, fontWeight: 600 }}>🏆 Mon bilan saison {saisonLabel}</h1>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><Trophy size={17} color={THEME.primary} /> Mon bilan saison {saisonLabel}</h1>
       </div>
 
       {/* Hero */}
@@ -131,7 +132,7 @@ export default function MonBilanPage() {
       </div>
 
       {/* STATS MATCH */}
-      <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>⚽ Statistiques match</p>
+      <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Swords size={11} /> Statistiques match</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
         {[
           { label: 'Matchs joués', value: stats?.totalMatchs, color: THEME.primary },
@@ -140,7 +141,7 @@ export default function MonBilanPage() {
           { label: 'Minutes jouées', value: stats?.totalMin, color: THEME.primary },
           { label: 'Note moyenne', value: stats?.noteMoy, color: THEME.primary },
           { label: 'Titularisations', value: stats?.titulaire, color: THEME.primary },
-          { label: 'Cartons 🟡', value: stats?.cartons, color: '#BA7517' },
+          { label: 'Cartons', value: stats?.cartons, color: THEME.warning },
           { label: 'Dist. moy./match', value: stats?.distMoy ? `${stats.distMoy}km` : '—', color: THEME.primary },
           { label: 'Sprint max', value: stats?.sprintMax ? `${stats.sprintMax}km/h` : '—', color: THEME.primary },
         ].map(s => (
@@ -152,7 +153,7 @@ export default function MonBilanPage() {
       </div>
 
       {/* RPE */}
-      <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>❤️ Charge & bien-être</p>
+      <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Heart size={11} /> Charge & bien-être</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
         {[
           { label: 'RPE moyen', value: `${stats?.rpeMoy}/5`, color: rpeColor(parseFloat(stats?.rpeMoy)) },
@@ -167,7 +168,7 @@ export default function MonBilanPage() {
       </div>
 
       {/* PRÉSENCES */}
-      <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>📅 Présences</p>
+      <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={11} /> Présences</p>
       <Card style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{
@@ -181,8 +182,8 @@ export default function MonBilanPage() {
           </div>
           <div>
             <p style={{ fontSize: 14, fontWeight: 700 }}>
-              {stats?.tauxPresence >= 80 ? '✅ Excellent engagement' :
-               stats?.tauxPresence >= 60 ? '🟡 Présence correcte' : '🔴 Assiduité à améliorer'}
+              {stats?.tauxPresence >= 80 ? 'Excellent engagement' :
+               stats?.tauxPresence >= 60 ? 'Présence correcte' : 'Assiduité à améliorer'}
             </p>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
               {stats?.presents} présence(s) sur {stats?.totalPresences} événement(s)
@@ -194,7 +195,7 @@ export default function MonBilanPage() {
       {/* FOOTBAR */}
       {stats?.nbFootbar > 0 && (
         <>
-          <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>📡 Footbar saison</p>
+          <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Radio size={11} /> Footbar saison</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
             {[
               { label: 'Distance totale', value: `${stats?.totalDist}km`, color: THEME.primary },
@@ -213,14 +214,14 @@ export default function MonBilanPage() {
       {/* OBJECTIFS */}
       {stats?.objTotal > 0 && (
         <>
-          <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>🎯 Objectifs</p>
+          <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={11} /> Objectifs</p>
           <Card style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 700 }}>{stats?.objAtteints} / {stats?.objTotal} objectifs atteints</p>
                 <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
-                  {stats?.objAtteints === stats?.objTotal ? '🏆 Tous les objectifs accomplis !' :
-                   stats?.objAtteints > 0 ? '✅ Bonne progression' : '⏳ Continue tes efforts'}
+                  {stats?.objAtteints === stats?.objTotal ? 'Tous les objectifs accomplis !' :
+                   stats?.objAtteints > 0 ? 'Bonne progression' : 'Continue tes efforts'}
                 </p>
               </div>
               <div style={{ width: 52, height: 52, borderRadius: '50%', border: `4px solid ${stats?.objAtteints === stats?.objTotal ? '#3B6D11' : THEME.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: stats?.objAtteints === stats?.objTotal ? '#3B6D11' : THEME.primary }}>
@@ -233,7 +234,7 @@ export default function MonBilanPage() {
 
       {/* Message coach */}
       <div style={{ background: THEME.gradient, borderRadius: 12, padding: 14, textAlign: 'center' }}>
-        <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>⚽ FC PCL — Saison {saisonLabel}</p>
+        <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Trophy size={14} /> FC PCL — Saison {saisonLabel}</p>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,.8)' }}>
           Continue sur cette lancée pour la prochaine saison !
         </p>
