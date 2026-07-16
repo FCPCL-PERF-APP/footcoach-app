@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
+import { Archive, CheckCircle2, AlertTriangle, XCircle, Check, Hourglass, X } from 'lucide-react'
 
 export default function ArchiveSaisonPage() {
   const [loading, setLoading] = useState(true)
@@ -116,24 +117,24 @@ export default function ArchiveSaisonPage() {
 
   return (
     <div style={{ padding: 12 }}>
-      <PageHeader title="📦 Archiver la saison" />
+      <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Archive size={18} /> Archiver la saison</span>} />
 
       {step === 2 ? (
         <Card>
           <div style={{ textAlign: 'center', padding: 20 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#3B6D11', marginBottom: 8 }}>
+            <CheckCircle2 size={44} color={THEME.success} style={{ marginBottom: 12 }} />
+            <p style={{ fontSize: 16, fontWeight: 700, color: THEME.success, marginBottom: 8 }}>
               Saison {saisonLabel} archivée !
             </p>
             <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}>
               Les données ont été sauvegardées et l'app est prête pour la nouvelle saison.
             </p>
-            <div style={{ background: '#EAF3DE', borderRadius: 10, padding: 12, textAlign: 'left' }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: '#3B6D11', marginBottom: 6 }}>✅ Ce qui a été fait :</p>
-              <p style={{ fontSize: 11, color: '#3B6D11' }}>• Résumé de la saison sauvegardé</p>
-              <p style={{ fontSize: 11, color: '#3B6D11' }}>• RPE, Footbar, Stats, Présences effacés</p>
-              <p style={{ fontSize: 11, color: '#3B6D11' }}>• Événements passés supprimés</p>
-              <p style={{ fontSize: 11, color: '#3B6D11' }}>• Joueurs et fiches conservés</p>
+            <div style={{ background: THEME.successBg, borderRadius: 10, padding: 12, textAlign: 'left' }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: THEME.success, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={12} /> Ce qui a été fait :</p>
+              <p style={{ fontSize: 11, color: THEME.success }}>• Résumé de la saison sauvegardé</p>
+              <p style={{ fontSize: 11, color: THEME.success }}>• RPE, Footbar, Stats, Présences effacés</p>
+              <p style={{ fontSize: 11, color: THEME.success }}>• Événements passés supprimés</p>
+              <p style={{ fontSize: 11, color: THEME.success }}>• Joueurs et fiches conservés</p>
             </div>
           </div>
         </Card>
@@ -141,8 +142,8 @@ export default function ArchiveSaisonPage() {
         <>
           {/* Résumé saison */}
           <div style={{ background: THEME.gradient, borderRadius: 14, padding: 14, marginBottom: 14 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 12 }}>
-              📊 Bilan saison {saisonLabel}
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Archive size={14} /> Bilan saison {saisonLabel}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
               {[
@@ -152,8 +153,8 @@ export default function ArchiveSaisonPage() {
                 ['Victoires', stats.victoires],
                 ['Nuls', stats.nuls],
                 ['Défaites', stats.defaites],
-                ['Buts ⚽', stats.totalButs],
-                ['Enc. 🥅', stats.totalEnc],
+                ['Buts', stats.totalButs],
+                ['Encaissés', stats.totalEnc],
                 ['RPE', stats.nbRpe],
               ].map(([label, val]) => (
                 <div key={label} style={{ background: 'rgba(255,255,255,.15)', borderRadius: 10, padding: '8px 4px', textAlign: 'center' }}>
@@ -166,22 +167,24 @@ export default function ArchiveSaisonPage() {
 
           {/* Avertissement */}
           <Card style={{ background: '#FDFAEE', border: '0.5px solid #F5C4B3', marginBottom: 14 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#854F0B', marginBottom: 8 }}>⚠️ Action irréversible</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#854F0B', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> Action irréversible</p>
             <p style={{ fontSize: 12, color: '#854F0B', marginBottom: 6 }}>Cette action va :</p>
             {[
-              '✓ Sauvegarder le résumé de la saison',
-              '✓ Conserver les fiches joueurs et leur historique',
-              '✗ Effacer tous les RPE, Footbar, Stats, Présences',
-              '✗ Supprimer les événements passés',
-              '✗ Remettre les sondages à zéro',
+              { ok: true, text: 'Sauvegarder le résumé de la saison' },
+              { ok: true, text: 'Conserver les fiches joueurs et leur historique' },
+              { ok: false, text: 'Effacer tous les RPE, Footbar, Stats, Présences' },
+              { ok: false, text: 'Supprimer les événements passés' },
+              { ok: false, text: 'Remettre les sondages à zéro' },
             ].map(item => (
-              <p key={item} style={{ fontSize: 11, color: item.startsWith('✓') ? '#3B6D11' : '#A32D2D', marginBottom: 3 }}>{item}</p>
+              <p key={item.text} style={{ fontSize: 11, color: item.ok ? THEME.success : THEME.danger, marginBottom: 3, display: 'flex', alignItems: 'center', gap: 5 }}>
+                {item.ok ? <Check size={11} /> : <X size={11} />} {item.text}
+              </p>
             ))}
           </Card>
 
           {error && (
-            <Card style={{ background: '#FCEBEB', marginBottom: 14 }}>
-              <p style={{ fontSize: 12, color: '#A32D2D' }}>❌ {error}</p>
+            <Card style={{ background: THEME.dangerBg, marginBottom: 14 }}>
+              <p style={{ fontSize: 12, color: THEME.danger, display: 'flex', alignItems: 'center', gap: 5 }}><XCircle size={12} /> {error}</p>
             </Card>
           )}
 
@@ -189,18 +192,19 @@ export default function ArchiveSaisonPage() {
             <button onClick={() => setStep(1)} style={{
               width: '100%', padding: 14, borderRadius: 12,
               background: '#854F0B', color: '#fff',
-              border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+              border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
             }}>
-              📦 Archiver la saison {saisonLabel}
+              <Archive size={14} /> Archiver la saison {saisonLabel}
             </button>
           )}
 
           {step === 1 && (
-            <Card style={{ background: '#FCEBEB', border: '1px solid #A32D2D' }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#A32D2D', marginBottom: 8, textAlign: 'center' }}>
-                ⚠️ Confirmer l'archivage ?
+            <Card style={{ background: THEME.dangerBg, border: `1px solid ${THEME.danger}` }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: THEME.danger, marginBottom: 8, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <AlertTriangle size={14} /> Confirmer l'archivage ?
               </p>
-              <p style={{ fontSize: 12, color: '#A32D2D', marginBottom: 14, textAlign: 'center' }}>
+              <p style={{ fontSize: 12, color: THEME.danger, marginBottom: 14, textAlign: 'center' }}>
                 Cette action est définitive. Es-tu sûr de vouloir archiver la saison {saisonLabel} ?
               </p>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -211,10 +215,11 @@ export default function ArchiveSaisonPage() {
                 }}>Annuler</button>
                 <button onClick={archiverSaison} disabled={archiving} style={{
                   flex: 1, padding: 12, borderRadius: 10,
-                  background: '#A32D2D', color: '#fff',
-                  border: 'none', fontSize: 13, fontWeight: 700, cursor: archiving ? 'not-allowed' : 'pointer'
+                  background: THEME.danger, color: '#fff',
+                  border: 'none', fontSize: 13, fontWeight: 700, cursor: archiving ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
                 }}>
-                  {archiving ? '⏳ Archivage...' : '✅ Confirmer'}
+                  {archiving ? <><Hourglass size={13} /> Archivage...</> : <><Check size={13} /> Confirmer</>}
                 </button>
               </div>
             </Card>
