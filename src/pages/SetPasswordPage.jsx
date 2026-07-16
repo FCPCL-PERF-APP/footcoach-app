@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { THEME } from '../theme'
+import { CheckCircle2, AlertTriangle, Hourglass, Check } from 'lucide-react'
 
 export default function SetPasswordPage() {
   const navigate = useNavigate()
@@ -81,8 +82,8 @@ export default function SetPasswordPage() {
 
         {success ? (
           <div style={{ textAlign: 'center', padding: 10 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#3B6D11', marginBottom: 8 }}>Mot de passe créé !</p>
+            <CheckCircle2 size={44} color={THEME.success} style={{ marginBottom: 12 }} />
+            <p style={{ fontSize: 16, fontWeight: 700, color: THEME.success, marginBottom: 8 }}>Mot de passe créé !</p>
             <p style={{ fontSize: 13, color: '#6B7280' }}>Tu vas être redirigé vers l'app...</p>
           </div>
         ) : (
@@ -98,14 +99,14 @@ export default function SetPasswordPage() {
 
             {linkError ? (
               <div style={{ textAlign: 'center', padding: 20 }}>
-                <div style={{ fontSize: 36, marginBottom: 8 }}>⚠️</div>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#A32D2D', marginBottom: 6 }}>Ce lien ne fonctionne plus</p>
+                <AlertTriangle size={30} color={THEME.danger} style={{ marginBottom: 8 }} />
+                <p style={{ fontSize: 13, fontWeight: 600, color: THEME.danger, marginBottom: 6 }}>Ce lien ne fonctionne plus</p>
                 <p style={{ fontSize: 12, color: '#6B7280' }}>{linkError}</p>
                 <p style={{ fontSize: 12, color: '#6B7280', marginTop: 10 }}>Demande au coach de te renvoyer une invitation.</p>
               </div>
             ) : !sessionReady ? (
               <div style={{ textAlign: 'center', padding: 20 }}>
-                <div style={{ fontSize: 24 }}>⏳</div>
+                <Hourglass size={20} color="#9CA3AF" />
                 <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>Vérification du lien...</p>
               </div>
             ) : (
@@ -126,14 +127,15 @@ export default function SetPasswordPage() {
                     placeholder="Répète le mot de passe" required
                     style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#FAFAFA' }} />
                 </div>
-                {error && <p style={{ color: '#A32D2D', fontSize: 12, marginBottom: 12 }}>{error}</p>}
+                {error && <p style={{ color: THEME.danger, fontSize: 12, marginBottom: 12 }}>{error}</p>}
                 <button type="submit" disabled={loading} style={{
                   width: '100%', padding: 12,
                   background: THEME.gradient,
                   color: '#fff', border: 'none', borderRadius: 10,
-                  fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer'
+                  fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
                 }}>
-                  {loading ? 'Enregistrement...' : '✅ Créer mon mot de passe'}
+                  {loading ? 'Enregistrement...' : <><Check size={14} /> Créer mon mot de passe</>}
                 </button>
               </form>
             )}
