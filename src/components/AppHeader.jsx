@@ -32,20 +32,21 @@ export default function AppHeader() {
   const title = PAGE_TITLES[pathname] ||
     (pathname.startsWith('/joueurs/') ? 'Fiche joueur' : 'FC PCL')
 
-  // Teintes pastel réglées pour rester lisibles sur le dégradé sombre du header
-  // (distinctes de CAT_COLORS, pensé pour des fonds clairs) — une couleur par action
-  // pour un repérage rapide, comme sur le reste de la navigation.
-  function btnStyle(tint) {
+  // Pastilles pleines (au lieu d'un simple contour translucide) : une couleur vive par
+  // action, icône blanche dessus — se détache nettement du dégradé sombre du header,
+  // plus qu'une teinte pastel qui se noyait dedans.
+  function btnStyle(bg) {
     return {
-      background: `rgba(${tint},.18)`,
-      border: `1px solid rgba(${tint},.3)`,
-      borderRadius: 8,
-      padding: '6px',
+      background: bg,
+      border: 'none',
+      borderRadius: '50%',
+      width: 30, height: 30,
       cursor: 'pointer',
-      display: 'flex', alignItems: 'center', justifyContent: 'center'
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: '0 1px 4px rgba(0,0,0,.25)'
     }
   }
-  const TINT = { search: '125,211,252', mode: '253,224,71', profil: '196,181,253', trophy: '250,204,21', logout: '252,165,165' }
+  const CHIP = { search: '#0EA5E9', mode: '#F59E0B', profil: '#8B5CF6', trophy: '#EAB308', logout: '#F43F5E' }
 
   return (
     <header style={{
@@ -67,42 +68,42 @@ export default function AppHeader() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
         {/* Recherche */}
-        <button onClick={() => navigate('/search')} style={btnStyle(TINT.search)}><Search size={16} color={`rgb(${TINT.search})`} /></button>
+        <button onClick={() => navigate('/search')} style={btnStyle(CHIP.search)}><Search size={15} color="#fff" /></button>
 
         {/* Mode sombre */}
-        <button onClick={toggleTheme} style={btnStyle(TINT.mode)}>
-          {darkMode ? <Sun size={16} color={`rgb(${TINT.mode})`} /> : <Moon size={16} color={`rgb(${TINT.mode})`} />}
+        <button onClick={toggleTheme} style={btnStyle(CHIP.mode)}>
+          {darkMode ? <Sun size={15} color="#fff" /> : <Moon size={15} color="#fff" />}
         </button>
 
         {/* Profil staff */}
         {isStaff && (
-          <button onClick={() => navigate('/mon-profil')} style={btnStyle(TINT.profil)}><User size={16} color={`rgb(${TINT.profil})`} /></button>
+          <button onClick={() => navigate('/mon-profil')} style={btnStyle(CHIP.profil)}><User size={15} color="#fff" /></button>
         )}
 
         {/* Bilan saison coach */}
         {isCoach && (
-          <button onClick={() => navigate('/bilan-saison')} style={btnStyle(TINT.trophy)}><Trophy size={16} color={`rgb(${TINT.trophy})`} /></button>
+          <button onClick={() => navigate('/bilan-saison')} style={btnStyle(CHIP.trophy)}><Trophy size={15} color="#fff" /></button>
         )}
 
         {/* Profil joueur */}
         {isJoueur && (
-          <button onClick={() => navigate('/mon-profil-joueur')} style={btnStyle(TINT.profil)}><User size={16} color={`rgb(${TINT.profil})`} /></button>
+          <button onClick={() => navigate('/mon-profil-joueur')} style={btnStyle(CHIP.profil)}><User size={15} color="#fff" /></button>
         )}
 
         {/* Bilan saison joueur */}
         {isJoueur && (
-          <button onClick={() => navigate('/mon-bilan')} style={btnStyle(TINT.trophy)}><Trophy size={16} color={`rgb(${TINT.trophy})`} /></button>
+          <button onClick={() => navigate('/mon-bilan')} style={btnStyle(CHIP.trophy)}><Trophy size={15} color="#fff" /></button>
         )}
 
         {/* Déconnexion */}
         <button onClick={signOut} style={{
-          ...btnStyle(TINT.logout),
-          padding: '6px 10px',
-          fontSize: 12,
-          color: `rgb(${TINT.logout})`, fontWeight: 600,
-          gap: 5
+          background: CHIP.logout, border: 'none', borderRadius: 20,
+          padding: '6px 12px', boxShadow: '0 1px 4px rgba(0,0,0,.25)',
+          cursor: 'pointer', fontSize: 12,
+          color: '#fff', fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: 5
         }}>
           <LogOut size={14} /> Déconnexion
         </button>
