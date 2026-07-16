@@ -6,19 +6,23 @@ import { Card, Input, Select, Button, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import {
+  ArrowLeft, Plus, X, Target, Swords, Dumbbell, Brain, BarChart3,
+  Calendar, CheckCircle2, XCircle, Hourglass
+} from 'lucide-react'
 
 const CATEGORIES = [
-  { value: 'technique', label: '⚽ Technique' },
-  { value: 'physique', label: '💪 Physique' },
-  { value: 'tactique', label: '🧠 Tactique' },
-  { value: 'mental', label: '🎯 Mental' },
-  { value: 'statistique', label: '📊 Statistique' },
+  { value: 'technique', icon: Swords, label: 'Technique' },
+  { value: 'physique', icon: Dumbbell, label: 'Physique' },
+  { value: 'tactique', icon: Brain, label: 'Tactique' },
+  { value: 'mental', icon: Target, label: 'Mental' },
+  { value: 'statistique', icon: BarChart3, label: 'Statistique' },
 ]
 
 const STATUTS = [
-  { value: 'en_cours', label: '⏳ En cours', bg: '#E6F1FB', color: '#185FA5' },
-  { value: 'atteint', label: '✅ Atteint', bg: '#EAF3DE', color: '#3B6D11' },
-  { value: 'abandonne', label: '❌ Abandonné', bg: '#F3F4F6', color: '#9CA3AF' },
+  { value: 'en_cours', icon: Hourglass, label: 'En cours', bg: THEME.primaryBg, color: THEME.primary },
+  { value: 'atteint', icon: CheckCircle2, label: 'Atteint', bg: THEME.successBg, color: THEME.success },
+  { value: 'abandonne', icon: XCircle, label: 'Abandonné', bg: '#F3F4F6', color: '#9CA3AF' },
 ]
 
 export default function ObjectifsPage() {
@@ -98,14 +102,14 @@ export default function ObjectifsPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(`/joueurs/${joueurId}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 20 }}>←</button>
+        <button onClick={() => navigate(`/joueurs/${joueurId}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Objectifs individuels</p>
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>{joueur?.nom} {joueur?.prenom}</p>
         </div>
         {isCoach && (
-          <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#185FA5', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
-            {showAdd ? '✕' : '+ Objectif'}
+          <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+            {showAdd ? <X size={12} /> : <><Plus size={12} /> Objectif</>}
           </button>
         )}
       </div>
@@ -130,8 +134,8 @@ export default function ObjectifsPage() {
             <Input label="Unité" value={form.unite} onChange={v => setForm(p => ({...p, unite: v}))} placeholder="km/h" />
           </div>
           <Input label="Échéance" type="date" value={form.date_echeance} onChange={v => setForm(p => ({...p, date_echeance: v}))} />
-          <Button variant="primary" style={{ width: '100%' }} onClick={handleSave} disabled={saving}>
-            {saving ? 'Enregistrement...' : '🎯 Créer l\'objectif'}
+          <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={handleSave} disabled={saving}>
+            {saving ? 'Enregistrement...' : <><Target size={13} /> Créer l'objectif</>}
           </Button>
         </Card>
       )}
@@ -171,12 +175,12 @@ export default function ObjectifsPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 8, background: catStyle.bg, color: catStyle.color }}>
-                    {cat?.label || obj.categorie}
+                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 8, background: catStyle.bg, color: catStyle.color, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    {cat && <cat.icon size={10} />} {cat?.label || obj.categorie}
                   </span>
                   {obj.date_echeance && (
-                    <span style={{ fontSize: 10, color: '#9CA3AF' }}>
-                      📅 {format(parseISO(obj.date_echeance), 'd MMM', { locale: fr })}
+                    <span style={{ fontSize: 10, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <Calendar size={10} /> {format(parseISO(obj.date_echeance), 'd MMM', { locale: fr })}
                     </span>
                   )}
                 </div>
@@ -192,12 +196,12 @@ export default function ObjectifsPage() {
                   <span style={{ color: '#6B7280' }}>
                     {obj.valeur_actuelle ?? '—'} / {obj.valeur_cible} {obj.unite}
                   </span>
-                  <span style={{ fontWeight: 600, color: progress >= 100 ? '#3B6D11' : THEME.primary }}>
+                  <span style={{ fontWeight: 600, color: progress >= 100 ? THEME.success : THEME.primary }}>
                     {progress !== null ? `${progress}%` : '—'}
                   </span>
                 </div>
                 <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 4, background: progress >= 100 ? '#3B6D11' : THEME.primary, width: `${progress || 0}%`, transition: 'width .3s' }} />
+                  <div style={{ height: '100%', borderRadius: 4, background: progress >= 100 ? THEME.success : THEME.primary, width: `${progress || 0}%`, transition: 'width .3s' }} />
                 </div>
                 {/* Mise à jour progression */}
                 {isCoach && (
@@ -214,11 +218,11 @@ export default function ObjectifsPage() {
             {/* Actions */}
             {isCoach && (
               <div style={{ display: 'flex', gap: 6, marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #F3F4F6' }}>
-                <button onClick={() => updateStatut(obj.id, 'atteint')} style={{ flex: 1, padding: '5px', borderRadius: 8, border: 'none', background: '#EAF3DE', color: '#3B6D11', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                  ✅ Atteint
+                <button onClick={() => updateStatut(obj.id, 'atteint')} style={{ flex: 1, padding: '5px', borderRadius: 8, border: 'none', background: THEME.successBg, color: THEME.success, fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  <CheckCircle2 size={11} /> Atteint
                 </button>
-                <button onClick={() => updateStatut(obj.id, 'abandonne')} style={{ flex: 1, padding: '5px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#9CA3AF', fontSize: 11, cursor: 'pointer' }}>
-                  ❌ Abandonner
+                <button onClick={() => updateStatut(obj.id, 'abandonne')} style={{ flex: 1, padding: '5px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#9CA3AF', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                  <XCircle size={11} /> Abandonner
                 </button>
               </div>
             )}
@@ -239,8 +243,8 @@ export default function ObjectifsPage() {
               <div key={obj.id} style={{ background: '#F9FAFB', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 12, marginBottom: 8, opacity: 0.75 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontSize: 12, fontWeight: 600 }}>{obj.titre}</p>
-                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 8, background: st?.bg || '#F3F4F6', color: st?.color || '#9CA3AF' }}>
-                    {st?.label || obj.statut}
+                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 8, background: st?.bg || '#F3F4F6', color: st?.color || '#9CA3AF', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    {st && <st.icon size={10} />} {st?.label || obj.statut}
                   </span>
                 </div>
                 {obj.valeur_cible && <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>Cible : {obj.valeur_cible} {obj.unite} · Atteint : {obj.valeur_actuelle ?? '—'} {obj.unite}</p>}
