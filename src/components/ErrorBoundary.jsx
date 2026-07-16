@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component {
     // serveur. C'est transitoire et se résout systématiquement par un rechargement —
     // on le fait automatiquement une fois (marqueur sessionStorage pour éviter une
     // boucle infinie si l'erreur persiste pour une autre raison).
-    const isChunkLoadError = /dynamically imported module|Loading chunk|Importing a module script failed/i.test(error?.message || '')
+    const isChunkLoadError = /dynamically imported module|Loading chunk|Importing a module script failed|not a valid JavaScript MIME type|Unexpected token '<'/i.test(error?.message || '')
     if (isChunkLoadError && !sessionStorage.getItem('fc-chunk-reload')) {
       sessionStorage.setItem('fc-chunk-reload', '1')
       window.location.reload()
