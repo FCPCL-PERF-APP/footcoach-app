@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
 import { THEME } from '../theme'
+import { Search, Moon, Sun, User, Trophy, LogOut } from 'lucide-react'
 
 const PAGE_TITLES = {
   '/calendrier': 'Calendrier',
@@ -35,9 +36,9 @@ export default function AppHeader() {
     background: 'rgba(255,255,255,.15)',
     border: '1px solid rgba(255,255,255,.2)',
     borderRadius: 8,
-    padding: '5px 8px',
+    padding: '6px',
     cursor: 'pointer',
-    fontSize: 14
+    display: 'flex', alignItems: 'center', justifyContent: 'center'
   }
 
   return (
@@ -62,42 +63,43 @@ export default function AppHeader() {
 
       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
         {/* Recherche */}
-        <button onClick={() => navigate('/search')} style={btnStyle}>🔍</button>
+        <button onClick={() => navigate('/search')} style={btnStyle}><Search size={16} color="#fff" /></button>
 
         {/* Mode sombre */}
         <button onClick={toggleTheme} style={btnStyle}>
-          {darkMode ? '☀️' : '🌙'}
+          {darkMode ? <Sun size={16} color="#fff" /> : <Moon size={16} color="#fff" />}
         </button>
 
         {/* Profil staff */}
         {isStaff && (
-          <button onClick={() => navigate('/mon-profil')} style={btnStyle}>👤</button>
+          <button onClick={() => navigate('/mon-profil')} style={btnStyle}><User size={16} color="#fff" /></button>
         )}
 
         {/* Bilan saison coach */}
         {isCoach && (
-          <button onClick={() => navigate('/bilan-saison')} style={btnStyle}>🏆</button>
+          <button onClick={() => navigate('/bilan-saison')} style={btnStyle}><Trophy size={16} color="#fff" /></button>
         )}
 
         {/* Profil joueur */}
         {isJoueur && (
-          <button onClick={() => navigate('/mon-profil-joueur')} style={btnStyle}>👤</button>
+          <button onClick={() => navigate('/mon-profil-joueur')} style={btnStyle}><User size={16} color="#fff" /></button>
         )}
 
         {/* Bilan saison joueur */}
         {isJoueur && (
-          <button onClick={() => navigate('/mon-bilan')} style={btnStyle}>🏆</button>
+          <button onClick={() => navigate('/mon-bilan')} style={btnStyle}><Trophy size={16} color="#fff" /></button>
         )}
 
         {/* Déconnexion */}
         <button onClick={signOut} style={{
           background: 'rgba(255,255,255,.15)',
           border: '1px solid rgba(255,255,255,.2)',
-          borderRadius: 8, padding: '5px 10px',
+          borderRadius: 8, padding: '6px 10px',
           cursor: 'pointer', fontSize: 12,
-          color: '#fff', fontWeight: 600
+          color: '#fff', fontWeight: 600,
+          display: 'flex', alignItems: 'center', gap: 5
         }}>
-          Déconnexion
+          <LogOut size={14} /> Déconnexion
         </button>
       </div>
     </header>

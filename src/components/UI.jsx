@@ -1,4 +1,45 @@
 // Composants UI réutilisables
+import { ChevronRight } from 'lucide-react'
+import { THEME } from '../theme'
+
+export function IconTile({ icon: Icon, color = THEME.primary, bg = THEME.primaryBg, size = 20, tileSize = 36 }) {
+  return (
+    <div style={{
+      width: tileSize, height: tileSize, borderRadius: THEME.radiusMd * 0.6,
+      background: bg, color,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+    }}>
+      <Icon size={size} strokeWidth={2} />
+    </div>
+  )
+}
+
+export function ListRow({ icon: Icon, label, sublabel, onClick, trailing, iconColor = THEME.primary, iconBg = THEME.primaryBg, last = false }) {
+  return (
+    <div onClick={onClick} style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '9px 0', cursor: onClick ? 'pointer' : 'default',
+      borderBottom: last ? 'none' : `0.5px solid ${THEME.border}`
+    }}>
+      {Icon && <IconTile icon={Icon} color={iconColor} bg={iconBg} size={16} tileSize={30} />}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: THEME.textPrimary }}>{label}</div>
+        {sublabel && <div style={{ fontSize: 10, color: THEME.textMuted, marginTop: 2 }}>{sublabel}</div>}
+      </div>
+      {trailing !== undefined ? trailing : (onClick && <ChevronRight size={16} color={THEME.textMuted} />)}
+    </div>
+  )
+}
+
+export function StatTile({ label, value, sub, color = THEME.primary }) {
+  return (
+    <div style={{ background: THEME.bgCard, border: `0.5px solid ${THEME.border}`, borderRadius: THEME.radiusMd, padding: 12 }}>
+      <div style={{ fontSize: 10, color: THEME.textMuted, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 700, color }}>{value}</div>
+      {sub && <div style={{ fontSize: 10, color: THEME.textMuted, marginTop: 2 }}>{sub}</div>}
+    </div>
+  )
+}
 
 export function Card({ children, style = {} }) {
   return (

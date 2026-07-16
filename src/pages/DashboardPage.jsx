@@ -2,28 +2,34 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { Card, PageHeader, BarChart, Spinner } from '../components/UI'
+import { Card, PageHeader, BarChart, Spinner, ListRow, IconTile, StatTile } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO, subWeeks } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import {
+  ClipboardCheck, HelpCircle, FileText, Send, Calendar, Users, BarChart3, Heart,
+  AlertTriangle, CheckCircle2, TrendingUp, Circle, ArrowRight
+} from 'lucide-react'
 
 function AlertCard({ type, title, message, joueurId, navigate, onTraite }) {
   const colors = {
-    red:    { border: '#A32D2D', bg: '#FDF1F1', icon: '🔴' },
-    orange: { border: '#D85A30', bg: '#FDF5EE', icon: '🟠' },
-    yellow: { border: '#BA7517', bg: '#FDFAEE', icon: '🟡' },
+    red:    { border: THEME.danger, bg: THEME.dangerBg },
+    orange: { border: '#D08A1E', bg: THEME.warningBg },
+    yellow: { border: THEME.warning, bg: THEME.warningBg },
   }
   const c = colors[type] || colors.yellow
   return (
     <div style={{ borderLeft: `3px solid ${c.border}`, borderRadius: 8, padding: '10px 12px', marginBottom: 8, background: c.bg, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
       <div style={{ flex: 1, cursor: joueurId ? 'pointer' : 'default' }} onClick={() => joueurId && navigate(`/joueurs/${joueurId}`)}>
-        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{c.icon} {title}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Circle size={8} fill={c.border} color={c.border} /> {title}
+        </div>
         <div style={{ fontSize: 11, color: '#555' }}>{message}</div>
-        {joueurId && <div style={{ fontSize: 10, color: THEME.primary, marginTop: 4 }}>Voir la fiche →</div>}
+        {joueurId && <div style={{ fontSize: 10, color: THEME.primary, marginTop: 4, display: 'flex', alignItems: 'center', gap: 2 }}>Voir la fiche <ArrowRight size={11} /></div>}
       </div>
       <button onClick={(e) => { e.stopPropagation(); onTraite && onTraite() }}
-        style={{ flexShrink: 0, border: 'none', background: 'rgba(0,0,0,.08)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 10, color: '#555', fontWeight: 600, whiteSpace: 'nowrap' }}>
-        ✓ Traité
+        style={{ flexShrink: 0, border: 'none', background: 'rgba(0,0,0,.08)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 10, color: '#555', fontWeight: 600, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
+        <CheckCircle2 size={12} /> Traité
       </button>
     </div>
   )
@@ -363,36 +369,31 @@ export default function DashboardPage() {
           {(() => {
             const items = []
             aujourdhui.presencesAConfirmer.forEach(p => items.push({
-              icon: '❓', label: `Présence à confirmer — ${p.event.titre}`,
+              icon: HelpCircle, label: `Présence à confirmer — ${p.event.titre}`,
               sub: `${p.nb} joueur(s) sans réponse`, action: () => navigate('/calendrier')
             }))
             if (aujourdhui.rpeManquants > 0) items.push({
-              icon: '📝', label: 'RPE à relancer',
+              icon: FileText, label: 'RPE à relancer',
               sub: `${aujourdhui.rpeManquants} formulaire(s) manquant(s)`, action: () => navigate('/rpe')
             })
             aujourdhui.convocationsManquantes.forEach(ev => items.push({
-              icon: '📢', label: `Convocation à envoyer — ${ev.titre}`,
+              icon: Send, label: `Convocation à envoyer — ${ev.titre}`,
               sub: format(parseISO(ev.date_heure), 'EEE d MMM', { locale: fr }),
               action: () => navigate(`/convocations/${ev.id}`)
             }))
 
             return (
               <Card style={{ marginBottom: 14 }}>
-                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: items.length ? 8 : 0 }}>📋 Aujourd'hui</p>
+                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: items.length ? 8 : 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <ClipboardCheck size={15} color={THEME.primary} /> Aujourd'hui
+                </p>
                 {items.length === 0 ? (
-                  <p style={{ fontSize: 12, color: '#3B6D11' }}>✅ Tout est à jour</p>
+                  <p style={{ fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <CheckCircle2 size={14} /> Tout est à jour
+                  </p>
                 ) : items.map((it, i) => (
-                  <div key={i} onClick={it.action} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 0', borderBottom: i < items.length - 1 ? '0.5px solid #F3F4F6' : 'none',
-                    cursor: 'pointer'
-                  }}>
-                    <div>
-                      <span style={{ fontSize: 12, fontWeight: 500 }}>{it.icon} {it.label}</span>
-                      <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{it.sub}</div>
-                    </div>
-                    <span style={{ fontSize: 14, color: THEME.primary }}>→</span>
-                  </div>
+                  <ListRow key={i} icon={it.icon} label={it.label} sublabel={it.sub}
+                    onClick={it.action} last={i === items.length - 1} />
                 ))}
               </Card>
             )
@@ -401,35 +402,36 @@ export default function DashboardPage() {
           {/* STAT RPE MANQUANTS */}
           {nbAlertes > 0 && (
             <div onClick={() => navigate('/rpe')} style={{
-              background: '#FDF1F1', border: '0.5px solid #FCA5A5',
-              borderRadius: 12, padding: '10px 14px', marginBottom: 12,
+              background: THEME.dangerBg, border: `0.5px solid ${THEME.danger}55`,
+              borderRadius: THEME.radiusMd, padding: '10px 14px', marginBottom: 12,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer'
             }}>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D' }}>
-                  ⚠️ {Math.max(0, (alertes.length + alertesCollectives.length) - alertesTraitees.length)} point(s) à surveiller
+                <p style={{ fontSize: 13, fontWeight: 700, color: THEME.danger, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <AlertTriangle size={14} /> {Math.max(0, (alertes.length + alertesCollectives.length) - alertesTraitees.length)} point(s) à surveiller
                 </p>
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>Dont joueurs sans RPE et surcharges</p>
+                <p style={{ fontSize: 11, color: THEME.textMuted }}>Dont joueurs sans RPE et surcharges</p>
               </div>
-              <span style={{ color: '#A32D2D', fontSize: 18 }}>→</span>
+              <ArrowRight size={18} color={THEME.danger} />
             </div>
           )}
 
           {/* RACCOURCIS RAPIDES */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 14 }}>
             {[
-              { icon: '📅', label: 'Agenda', action: () => navigate('/calendrier') },
-              { icon: '👥', label: 'Joueurs', action: () => navigate('/joueurs') },
-              { icon: '📊', label: 'Stats matchs', action: () => navigate('/stats-matchs') },
-              { icon: '❤️', label: 'RPE équipe', action: () => navigate('/rpe') },
+              { icon: Calendar, label: 'Agenda', action: () => navigate('/calendrier') },
+              { icon: Users, label: 'Joueurs', action: () => navigate('/joueurs') },
+              { icon: BarChart3, label: 'Stats matchs', action: () => navigate('/stats-matchs') },
+              { icon: Heart, label: 'RPE équipe', action: () => navigate('/rpe') },
             ].map(({ icon, label, action }) => (
               <button key={label} onClick={action} style={{
-                background: '#fff', border: '0.5px solid #E5E7EB',
-                borderRadius: 12, padding: '10px 4px',
-                cursor: 'pointer', textAlign: 'center'
+                background: THEME.bgCard, border: `0.5px solid ${THEME.border}`,
+                borderRadius: THEME.radiusMd, padding: '12px 4px',
+                cursor: 'pointer', textAlign: 'center',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6
               }}>
-                <div style={{ fontSize: 20, marginBottom: 4 }}>{icon}</div>
-                <div style={{ fontSize: 9, color: '#6B7280', lineHeight: 1.2 }}>{label}</div>
+                <IconTile icon={icon} size={17} tileSize={32} />
+                <div style={{ fontSize: 9, color: THEME.textSecondary, lineHeight: 1.2 }}>{label}</div>
               </button>
             ))}
           </div>
@@ -447,8 +449,8 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', gap: 6 }}>
                 {prochainEvent.type === 'match' && (
                   <button onClick={() => navigate(`/convocations/${prochainEvent.id}`)}
-                    style={{ padding: '6px 10px', background: 'rgba(255,255,255,.2)', border: 'none', borderRadius: 8, color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>
-                    📢 Convoquer
+                    style={{ padding: '6px 10px', background: 'rgba(255,255,255,.2)', border: 'none', borderRadius: 8, color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <Send size={12} /> Convoquer
                   </button>
                 )}
               </div>
@@ -462,16 +464,18 @@ export default function DashboardPage() {
             const totalVisible = alertesCollFiltrees.length + alertesFiltrees.length
 
             return totalVisible > 0 ? (
-              <div style={{ background: '#FDF1F1', border: '0.5px solid #FCA5A5', borderRadius: 14, padding: 12, marginBottom: 14 }}>
+              <div style={{ background: THEME.dangerBg, border: `0.5px solid ${THEME.danger}55`, borderRadius: THEME.radiusLg, padding: 12, marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#A32D2D' }}>🚨 {totalVisible} point(s) à surveiller</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: THEME.danger, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <AlertTriangle size={14} /> {totalVisible} point(s) à surveiller
+                  </p>
                   <button onClick={() => marquerToutTraite(alertesCollectives, alertes)}
-                    style={{ fontSize: 10, color: '#A32D2D', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
-                    ✓ Tout traiter
+                    style={{ fontSize: 10, color: THEME.danger, background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
+                    Tout traiter
                   </button>
                 </div>
                 {alertesCollFiltrees.length > 0 && <>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: THEME.textMuted, textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
                   {alertesCollectives.map((a, i) => {
                     const key = alertKey(a)
                     if (alertesTraitees.includes(key)) return null
@@ -479,7 +483,7 @@ export default function DashboardPage() {
                   })}
                 </>}
                 {alertesFiltrees.length > 0 && <>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: THEME.textMuted, textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
                   {alertes.map((a, i) => {
                     const key = alertKey(a, a.joueurId)
                     if (alertesTraitees.includes(key)) return null
@@ -488,11 +492,10 @@ export default function DashboardPage() {
                 </>}
               </div>
             ) : (
-              <div style={{ background: '#EAF3DE', border: '0.5px solid #3B6D11', borderRadius: 12, padding: 12, marginBottom: 14 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#3B6D11' }}>✅ Aucune alerte — tout va bien !</p>
-
-                </div>
+              <div style={{ background: THEME.successBg, border: `0.5px solid ${THEME.success}55`, borderRadius: THEME.radiusMd, padding: 12, marginBottom: 14 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <CheckCircle2 size={15} /> Aucune alerte — tout va bien !
+                </p>
               </div>
             )
           })()}
@@ -501,16 +504,10 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 12 }}>
             {[
               { label: 'RPE moyen équipe', value: `${metrics.rpeMoy}/5`, sub: 'Toutes sessions', color: rpeColor(parseFloat(metrics.rpeMoy)) },
-              { label: 'Présence moy.', value: `${metrics.presence}%`, sub: 'Ce mois', color: metrics.presence >= 80 ? '#3B6D11' : '#D85A30' },
+              { label: 'Présence moy.', value: `${metrics.presence}%`, sub: 'Ce mois', color: metrics.presence >= 80 ? THEME.success : '#D08A1E' },
               { label: 'Dist. moy. match', value: `${metrics.distMoy} km`, sub: 'Footbar', color: THEME.primary },
               { label: 'Buts / match', value: metrics.butsMoy, sub: '2026/2027', color: THEME.primary },
-            ].map(m => (
-              <div key={m.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 12 }}>
-                <div style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 4 }}>{m.label}</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: m.color }}>{m.value}</div>
-                <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{m.sub}</div>
-              </div>
-            ))}
+            ].map(m => <StatTile key={m.label} {...m} />)}
           </div>
 
           {/* Résultats */}
@@ -520,15 +517,15 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
                 {statsMatchs.serie.map((r, i) => (
                   <div key={i} style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: r === 'V' ? '#EAF3DE' : r === 'N' ? '#FAEEDA' : '#FCEBEB',
-                    color: r === 'V' ? '#3B6D11' : r === 'N' ? '#854F0B' : '#A32D2D',
+                    background: r === 'V' ? THEME.successBg : r === 'N' ? THEME.warningBg : THEME.dangerBg,
+                    color: r === 'V' ? THEME.success : r === 'N' ? THEME.warning : THEME.danger,
                     fontSize: 12, fontWeight: 700 }}>{r}</div>
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 12, fontSize: 12 }}>
-                <span style={{ color: '#3B6D11' }}>✅ {statsMatchs.victoires}V</span>
-                <span style={{ color: '#854F0B' }}>〰️ {statsMatchs.nuls}N</span>
-                <span style={{ color: '#A32D2D' }}>❌ {statsMatchs.defaites}D</span>
+                <span style={{ color: THEME.success }}>{statsMatchs.victoires}V</span>
+                <span style={{ color: THEME.warning }}>{statsMatchs.nuls}N</span>
+                <span style={{ color: THEME.danger }}>{statsMatchs.defaites}D</span>
               </div>
             </Card>
           )}
@@ -536,7 +533,9 @@ export default function DashboardPage() {
           {/* Évolution RPE */}
           {rpeEvolution.length >= 2 && (
             <Card>
-              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📈 Évolution RPE équipe</p>
+              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <TrendingUp size={14} color={THEME.primary} /> Évolution RPE équipe
+              </p>
               <LineChart data={rpeEvolution} color={rpeColor(parseFloat(metrics.rpeMoy))} />
             </Card>
           )}
@@ -544,8 +543,10 @@ export default function DashboardPage() {
           {/* Évolution présences */}
           {presenceEvolution.length >= 2 && (
             <Card>
-              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>📈 Évolution présences (%)</p>
-              <LineChart data={presenceEvolution} color="#185FA5" />
+              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <TrendingUp size={14} color={THEME.primary} /> Évolution présences (%)
+              </p>
+              <LineChart data={presenceEvolution} color={THEME.primary} />
             </Card>
           )}
 
@@ -569,10 +570,11 @@ export default function DashboardPage() {
           )}
 
           <button onClick={() => navigate('/joueurs')} style={{
-            width: '100%', padding: 14, background: '#fff',
-            border: '0.5px solid #E5E7EB', borderRadius: 12,
-            fontSize: 13, color: THEME.primary, fontWeight: 600, cursor: 'pointer'
-          }}>👥 Voir les fiches joueurs →</button>
+            width: '100%', padding: 14, background: THEME.bgCard,
+            border: `0.5px solid ${THEME.border}`, borderRadius: THEME.radiusMd,
+            fontSize: 13, color: THEME.primary, fontWeight: 600, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+          }}><Users size={15} /> Voir les fiches joueurs <ArrowRight size={14} /></button>
         </>
       )}
     </div>

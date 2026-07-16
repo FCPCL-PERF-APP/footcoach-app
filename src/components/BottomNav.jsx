@@ -3,61 +3,66 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { THEME } from '../theme'
+import {
+  Calendar, Users, MessageCircle, LayoutDashboard, Menu,
+  Heart, Radio, BarChart3, Settings, Archive, Folder,
+  ListChecks, Gamepad2, Compass, Home, User, Award, ClipboardList
+} from 'lucide-react'
 
 const NAV_COACH_MAIN = [
-  { path: '/calendrier', icon: '📅', label: 'Agenda' },
-  { path: '/joueurs',    icon: '👥', label: 'Joueurs' },
-  { path: '/messages',   icon: '💬', label: 'Messages' },
-  { path: '/dashboard',  icon: '📊', label: 'Dashboard' },
-  { path: '/plus',       icon: '☰',  label: 'Plus' },
+  { path: '/calendrier', icon: Calendar,        label: 'Agenda' },
+  { path: '/joueurs',    icon: Users,           label: 'Joueurs' },
+  { path: '/messages',   icon: MessageCircle,   label: 'Messages' },
+  { path: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/plus',       icon: Menu,            label: 'Plus' },
 ]
 const NAV_COACH_MORE = [
   { section: 'Suivi & analyse', items: [
-    { path: '/rpe',      icon: '❤️', label: 'RPE équipe' },
-    { path: '/footbar',  icon: '📡', label: 'Footbar équipe' },
-    { path: '/analyse',  icon: '📊', label: 'Analyse' },
+    { path: '/rpe',      icon: Heart,     label: 'RPE équipe' },
+    { path: '/footbar',  icon: Radio,     label: 'Footbar équipe' },
+    { path: '/analyse',  icon: BarChart3, label: 'Analyse' },
   ]},
   { section: 'Administration', items: [
-    { path: '/staff',           icon: '⚙️', label: 'Staff' },
-    { path: '/archive-saison',  icon: '📦', label: 'Archiver saison' },
-    { path: '/ressources',      icon: '📁', label: 'Ressources' },
+    { path: '/staff',           icon: Settings, label: 'Staff' },
+    { path: '/archive-saison',  icon: Archive,  label: 'Archiver saison' },
+    { path: '/ressources',      icon: Folder,   label: 'Ressources' },
   ]},
   { section: 'Autres', items: [
-    { path: '/sondages', icon: '📊', label: 'Sondages' },
-    { path: '/fun',      icon: '🎮', label: 'Fun & Jeux' },
-    { path: '/cpa',      icon: '📐', label: 'CPA' },
+    { path: '/sondages', icon: ListChecks, label: 'Sondages' },
+    { path: '/fun',      icon: Gamepad2,   label: 'Fun & Jeux' },
+    { path: '/cpa',      icon: Compass,    label: 'CPA' },
   ]},
 ]
 const NAV_STAFF_MAIN = [
-  { path: '/calendrier', icon: '📅', label: 'Agenda' },
-  { path: '/joueurs',    icon: '👥', label: 'Joueurs' },
-  { path: '/messages',   icon: '💬', label: 'Messages' },
-  { path: '/dashboard',  icon: '📊', label: 'Dashboard' },
-  { path: '/plus',       icon: '☰',  label: 'Plus' },
+  { path: '/calendrier', icon: Calendar,        label: 'Agenda' },
+  { path: '/joueurs',    icon: Users,           label: 'Joueurs' },
+  { path: '/messages',   icon: MessageCircle,   label: 'Messages' },
+  { path: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/plus',       icon: Menu,            label: 'Plus' },
 ]
 const NAV_STAFF_MORE = [
   { section: null, items: [
-    { path: '/rpe',        icon: '❤️', label: 'RPE équipe' },
-    { path: '/footbar',    icon: '📡', label: 'Footbar équipe' },
-    { path: '/ressources', icon: '📁', label: 'Ressources' },
+    { path: '/rpe',        icon: Heart,  label: 'RPE équipe' },
+    { path: '/footbar',    icon: Radio,  label: 'Footbar équipe' },
+    { path: '/ressources', icon: Folder, label: 'Ressources' },
   ]},
 ]
 const NAV_JOUEUR_MAIN = [
-  { path: '/mon-dashboard', icon: '🏠', label: 'Dashboard' },
-  { path: '/calendrier',    icon: '📅', label: 'Agenda' },
-  { path: '/ma-fiche',      icon: '👤', label: 'Ma fiche' },
-  { path: '/messages',      icon: '💬', label: 'Messages' },
-  { path: '/plus',          icon: '☰',  label: 'Plus' },
+  { path: '/mon-dashboard', icon: Home,          label: 'Dashboard' },
+  { path: '/calendrier',    icon: Calendar,      label: 'Agenda' },
+  { path: '/ma-fiche',      icon: User,          label: 'Ma fiche' },
+  { path: '/messages',      icon: MessageCircle, label: 'Messages' },
+  { path: '/plus',          icon: Menu,          label: 'Plus' },
 ]
 const NAV_JOUEUR_MORE = [
   { section: null, items: [
-    { path: '/mon-suivi',   icon: '❤️', label: 'Mon suivi' },
-    { path: '/mes-badges',  icon: '🏅', label: 'Mes badges' },
-    { path: '/staff',       icon: '📋', label: 'Staff' },
-    { path: '/sondages',    icon: '📊', label: 'Sondages' },
-    { path: '/cpa',         icon: '📐', label: 'CPA' },
-    { path: '/fun',         icon: '🎮', label: 'Fun & Jeux' },
-    { path: '/ressources',  icon: '📁', label: 'Ressources' },
+    { path: '/mon-suivi',   icon: Heart,          label: 'Mon suivi' },
+    { path: '/mes-badges',  icon: Award,          label: 'Mes badges' },
+    { path: '/staff',       icon: ClipboardList,  label: 'Staff' },
+    { path: '/sondages',    icon: ListChecks,     label: 'Sondages' },
+    { path: '/cpa',         icon: Compass,        label: 'CPA' },
+    { path: '/fun',         icon: Gamepad2,       label: 'Fun & Jeux' },
+    { path: '/ressources',  icon: Folder,         label: 'Ressources' },
   ]},
 ]
 
@@ -177,7 +182,7 @@ export default function BottomNav() {
                     background: pathname.startsWith(item.path) ? 'rgba(255,255,255,.08)' : 'transparent',
                     cursor: 'pointer', borderBottom: '0.5px solid rgba(255,255,255,.06)'
                   }}>
-                    <span style={{ fontSize: 22 }}>{item.icon}</span>
+                    <item.icon size={20} color="rgba(255,255,255,.85)" strokeWidth={2} />
                     <span style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{item.label}</span>
                     {pathname.startsWith(item.path) && (
                       <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>
@@ -214,7 +219,7 @@ export default function BottomNav() {
               position: 'relative',
               borderTop: active || isMoreOpen ? `2px solid ${THEME.primaryLight}` : '2px solid transparent',
             }}>
-              <span style={{ fontSize: 18 }}>{item.icon}</span>
+              <item.icon size={19} color={active || isMoreOpen ? THEME.primaryLight : 'rgba(255,255,255,.6)'} strokeWidth={2} />
 
               {/* Badge messages non lus */}
               {showMsgBadge && (
