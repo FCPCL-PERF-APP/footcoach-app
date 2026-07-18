@@ -5,10 +5,30 @@ import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Input, Button, Spinner, Avatar } from '../components/UI'
 import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME } from '../theme'
+import { differenceInDays, differenceInHours } from 'date-fns'
 import {
   Crown, Handshake, Settings, Dumbbell, Plus, X, Pencil, Trash2, Camera,
-  Mail, Phone, GraduationCap, Puzzle, CheckCircle2, Hourglass, Check
+  Mail, Phone, GraduationCap, Puzzle, Check, Circle
 } from 'lucide-react'
+
+// Même logique que StatsConnexionPage.jsx (joueurs), appliquée au staff.
+function statutConnexion(s) {
+  if (!s.auth_id) return 'non_invite'
+  if (!s.last_seen) return 'jamais_connecte'
+  const heures = differenceInHours(new Date(), new Date(s.last_seen))
+  const jours = differenceInDays(new Date(), new Date(s.last_seen))
+  if (heures < 24) return 'actif_jour'
+  if (jours <= 7) return 'actif_semaine'
+  return 'inactif'
+}
+
+const STATUTS_CONNEXION = {
+  actif_jour:      { label: "Actif aujourd'hui", color: 'var(--success)' },
+  actif_semaine:   { label: 'Actif cette semaine', color: 'var(--warning)' },
+  inactif:         { label: 'Inactif depuis 7j+', color: 'var(--danger)' },
+  jamais_connecte: { label: 'Compte créé, jamais connecté', color: 'var(--text-secondary)' },
+  non_invite:      { label: 'Invitation en attente', color: 'var(--text-muted)' },
+}
 
 const ROLES = [
   { value: 'coach',    icon: Crown, label: 'Coach principal', desc: 'Accès complet — modification, suppression, création', color: 'var(--primary)', canEdit: true },
@@ -346,8 +366,8 @@ export default function StaffPage() {
                   {s.diplome && <p style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5 }}><GraduationCap size={11} /> {s.diplome}</p>}
                   {s.specialite && <p style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5 }}><Puzzle size={11} /> {s.specialite}</p>}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                    <p style={{ fontSize: 10, color: s.auth_id ? 'var(--success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {s.auth_id ? <><CheckCircle2 size={10} /> Compte créé</> : <><Hourglass size={10} /> Invitation en attente</>}
+                    <p style={{ fontSize: 10, color: STATUTS_CONNEXION[statutConnexion(s)].color, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Circle size={7} fill="currentColor" /> {STATUTS_CONNEXION[statutConnexion(s)].label}
                     </p>
                     {/* Toujours visible, même une fois auth_id renseigné : ce champ est posé
                         dès l'envoi de l'invitation (pas quand la personne clique dessus), donc

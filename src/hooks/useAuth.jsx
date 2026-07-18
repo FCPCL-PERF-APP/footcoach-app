@@ -36,17 +36,19 @@ export function AuthProvider({ children }) {
   async function fetchProfile(userId) {
     setProfileError(null)
     try {
-      // Mise à jour last_seen + onboarding_done dans joueurs
-      await supabase.from('joueurs').update({
-        last_seen: new Date().toISOString()
-      }).eq('auth_id', userId)
+      const now = new Date().toISOString()
 
       // 1. Cherche dans staff
       const { data: staffData } = await supabase
         .from('staff').select('*').eq('auth_id', userId).maybeSingle()
 
       if (staffData) {
-        setProfile({ ...staffData, type: 'staff' })
+        // Mise à jour last_seen dans staff — jusqu'ici seule la table joueurs était
+        // mise à jour ici, donc le staff n'avait aucune trace de connexion réelle
+        // (le badge "compte actif" ne reflétait que la création du compte, pas son
+        // utilisation).
+        await supabase.from('staff').update({ last_seen: now }).eq('id', staffData.id)
+        setProfile({ ...staffData, last_seen: now, type: 'staff' })
         setNeedsOnboarding(false)
         setLoading(false)
         return
@@ -57,7 +59,8 @@ export function AuthProvider({ children }) {
         .from('joueurs').select('*').eq('auth_id', userId).maybeSingle()
 
       if (joueurData) {
-        setProfile({ ...joueurData, type: 'joueur', role: 'joueur' })
+        await supabase.from('joueurs').update({ last_seen: now }).eq('id', joueurData.id)
+        setProfile({ ...joueurData, last_seen: now, type: 'joueur', role: 'joueur' })
         // Vérifie si onboarding nécessaire
         setNeedsOnboarding(!joueurData.onboarding_done)
         setLoading(false)
@@ -70,8 +73,8 @@ export function AuthProvider({ children }) {
         const { data: staffByEmail } = await supabase
           .from('staff').select('*').eq('email', authUser.email).maybeSingle()
         if (staffByEmail) {
-          await supabase.from('staff').update({ auth_id: userId }).eq('id', staffByEmail.id)
-          setProfile({ ...staffByEmail, auth_id: userId, type: 'staff' })
+          await supabase.from('staff').update({ auth_id: userId, last_seen: now }).eq('id', staffByEmail.id)
+          setProfile({ ...staffByEmail, auth_id: userId, last_seen: now, type: 'staff' })
           setNeedsOnboarding(false)
           setLoading(false)
           return
@@ -80,8 +83,8 @@ export function AuthProvider({ children }) {
         const { data: joueurByEmail } = await supabase
           .from('joueurs').select('*').eq('email', authUser.email).maybeSingle()
         if (joueurByEmail) {
-          await supabase.from('joueurs').update({ auth_id: userId }).eq('id', joueurByEmail.id)
-          setProfile({ ...joueurByEmail, auth_id: userId, type: 'joueur', role: 'joueur' })
+          await supabase.from('joueurs').update({ auth_id: userId, last_seen: now }).eq('id', joueurByEmail.id)
+          setProfile({ ...joueurByEmail, auth_id: userId, last_seen: now, type: 'joueur', role: 'joueur' })
           setNeedsOnboarding(!joueurByEmail.onboarding_done)
           setLoading(false)
           return
