@@ -15,7 +15,7 @@ function Top5({ title, icon: Icon, data, valueKey, valueLabel, valueSuffix = '' 
     <Card>
       <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Icon size={14} color={'var(--primary)'} /> {title}</p>
       {top5.length === 0 ? (
-        <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Pas encore de données.</p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>Pas encore de données.</p>
       ) : (
         top5.map((item, i) => (
           <div key={item.joueur_id} style={{ marginBottom: 10 }}>
@@ -26,14 +26,14 @@ function Top5({ title, icon: Icon, data, valueKey, valueLabel, valueSuffix = '' 
                 </span>
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 600 }}>{item.nom} {item.prenom}</p>
-                  <p style={{ fontSize: 10, color: '#9CA3AF' }}>{item.poste || '—'}</p>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{item.poste || '—'}</p>
                 </div>
               </div>
               <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--primary)' }}>
                 {typeof item[valueKey] === 'number' ? item[valueKey].toFixed(item[valueKey] % 1 !== 0 ? 1 : 0) : item[valueKey]}{valueSuffix}
               </span>
             </div>
-            <div style={{ height: 6, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: 6, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ height: '100%', borderRadius: 4, background: i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : 'var(--primary)', width: `${item[valueKey]/max*100}%` }} />
             </div>
           </div>
@@ -134,16 +134,16 @@ export default function ClassementButeursPage() {
         {tabs.map(t => (
           <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB',
+            border: '0.5px solid var(--border)',
             background: activeTab === t.key ? 'var(--primary-bg)' : 'transparent',
-            color: activeTab === t.key ? 'var(--primary)' : '#6B7280',
+            color: activeTab === t.key ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: activeTab === t.key ? 600 : 400,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
           }}><t.icon size={12} /> {t.label}</button>
         ))}
       </div>
 
-      <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10 }}>
+      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
         * Saison en cours · matchs de championnat et de coupe uniquement (préparation exclus)
       </p>
 

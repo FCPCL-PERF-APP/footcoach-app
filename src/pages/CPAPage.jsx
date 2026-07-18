@@ -15,7 +15,7 @@ const CPA_TYPES = [
   { key: 'cf_def',      icon: Square, label: 'Coup-franc défensif',  color: '#A32D2D' },
   { key: 'penalty_off', icon: Target, label: 'Pénalty offensif',    color: '#3B6D11' },
   { key: 'penalty_def', icon: Hand,   label: 'Pénalty défensif',    color: '#185FA5' },
-  { key: 'remise_jeu',  icon: RefreshCw, label: 'Remise en jeu',    color: '#6B7280' },
+  { key: 'remise_jeu',  icon: RefreshCw, label: 'Remise en jeu',    color: 'var(--text-secondary)' },
 ]
 
 const COULEURS = ['#FFDD57','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD','#F0B27A','#BB8FCE']
@@ -158,7 +158,7 @@ export default function CPAPage() {
         <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Compass size={17} color={'var(--primary)'} /> CPA</h1>
         {isCoach && (
           <button onClick={() => { setShowCreate(!showCreate); setSelectedCpa(null); if (showCreate) resetForm() }}
-            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: showCreate ? '#6B7280' : 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: showCreate ? 'var(--text-secondary)' : 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
             {showCreate ? <><X size={12} /> Annuler</> : <><Plus size={12} /> Créer</>}
           </button>
         )}
@@ -166,9 +166,9 @@ export default function CPAPage() {
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: 5, marginBottom: 14, overflowX: 'auto', paddingBottom: 2 }}>
-        <button onClick={() => setActiveFilter('tous')} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: '0.5px solid #D1D5DB', background: activeFilter === 'tous' ? 'var(--primary-bg)' : 'transparent', color: activeFilter === 'tous' ? 'var(--primary)' : '#6B7280', fontWeight: activeFilter === 'tous' ? 600 : 400 }}>Tous</button>
+        <button onClick={() => setActiveFilter('tous')} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: '0.5px solid var(--border)', background: activeFilter === 'tous' ? 'var(--primary-bg)' : 'transparent', color: activeFilter === 'tous' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: activeFilter === 'tous' ? 600 : 400 }}>Tous</button>
         {CPA_TYPES.map(t => (
-          <button key={t.key} onClick={() => setActiveFilter(t.key)} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: `0.5px solid ${activeFilter === t.key ? t.color : '#D1D5DB'}`, background: activeFilter === t.key ? `${t.color}15` : 'transparent', color: activeFilter === t.key ? t.color : '#6B7280', fontWeight: activeFilter === t.key ? 600 : 400, display: 'inline-flex', alignItems: 'center', gap: 4 }}><t.icon size={11} /> {t.label}</button>
+          <button key={t.key} onClick={() => setActiveFilter(t.key)} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: `0.5px solid ${activeFilter === t.key ? t.color : 'var(--border)'}`, background: activeFilter === t.key ? `${t.color}15` : 'transparent', color: activeFilter === t.key ? t.color : 'var(--text-secondary)', fontWeight: activeFilter === t.key ? 600 : 400, display: 'inline-flex', alignItems: 'center', gap: 4 }}><t.icon size={11} /> {t.label}</button>
         ))}
       </div>
 
@@ -178,34 +178,34 @@ export default function CPAPage() {
           <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Nouveau schéma CPA</p>
 
           <div style={{ marginBottom: 10 }}>
-            <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>Titre *</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Titre *</label>
             <input value={form.titre} onChange={e => setForm(p => ({...p, titre: e.target.value}))}
               placeholder="Corner côté gauche — option 1"
-              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
           </div>
           <div style={{ marginBottom: 10 }}>
-            <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>Type</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Type</label>
             <select value={form.type} onChange={e => setForm(p => ({...p, type: e.target.value}))}
-              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
+              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
               {CPA_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </div>
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>Consignes</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Consignes</label>
             <textarea value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))}
               placeholder="Déplacements, options, timing..." rows={2}
-              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
+              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
           </div>
 
           {/* Modes d'édition */}
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>Mode d'édition :</p>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>Mode d'édition :</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 8 }}>
             {MODES.map(m => (
               <button key={m.key} onClick={() => { setModeEdition(m.key); setDrawStart(null) }} style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-                border: `0.5px solid ${modeEdition === m.key ? 'var(--primary)' : '#D1D5DB'}`,
+                border: `0.5px solid ${modeEdition === m.key ? 'var(--primary)' : 'var(--border)'}`,
                 background: modeEdition === m.key ? 'var(--primary-bg)' : 'transparent',
-                color: modeEdition === m.key ? 'var(--primary)' : '#6B7280',
+                color: modeEdition === m.key ? 'var(--primary)' : 'var(--text-secondary)',
                 fontWeight: modeEdition === m.key ? 600 : 400,
                 display: 'inline-flex', alignItems: 'center', gap: 4
               }}><m.icon size={11} /> {m.label}</button>
@@ -215,14 +215,14 @@ export default function CPAPage() {
           {/* Sélecteur joueur */}
           {modeEdition === 'joueur' && (
             <select value={selectedJoueur} onChange={e => setSelectedJoueur(e.target.value)}
-              style={{ width: '100%', padding: '7px 10px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}>
+              style={{ width: '100%', padding: '7px 10px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}>
               <option value="">— Choisir un joueur —</option>
               {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}{j.numero ? ` (${j.numero})` : ''}</option>)}
             </select>
           )}
 
           {(modeEdition === 'fleche_bal' || modeEdition === 'fleche_crs' || modeEdition === 'zone') && (
-            <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5 }}>
               {drawStart ? <><Check size={12} /> Point de départ placé — clique pour le point d'arrivée</> : <><MousePointerClick size={12} /> Clique sur le terrain pour le point de départ</>}
             </div>
           )}
@@ -237,13 +237,13 @@ export default function CPAPage() {
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             {placements.length > 0 && (
               <button onClick={() => setPlacements(p => p.slice(0,-1))}
-                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Undo2 size={11} /> Annuler joueur
               </button>
             )}
             {fleches.length > 0 && (
               <button onClick={() => setFleches(f => f.slice(0,-1))}
-                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Undo2 size={11} /> Annuler flèche
               </button>
             )}
@@ -252,7 +252,7 @@ export default function CPAPage() {
           {saveError && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{saveError}</p>}
 
           <button onClick={saveCpa} disabled={saving || !form.titre}
-            style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none', background: form.titre ? 'var(--gradient)' : '#E5E7EB', color: form.titre ? '#fff' : '#9CA3AF', fontSize: 14, fontWeight: 700, cursor: form.titre ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none', background: form.titre ? 'var(--gradient)' : 'var(--border)', color: form.titre ? '#fff' : 'var(--text-muted)', fontSize: 14, fontWeight: 700, cursor: form.titre ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             {saving ? <><Hourglass size={14} /> Enregistrement...</> : <><Check size={14} /> Sauvegarder le schéma</>}
           </button>
         </Card>
@@ -268,22 +268,22 @@ export default function CPAPage() {
                 {(() => { const T = CPA_TYPES.find(t => t.key === selectedCpa.type); return T ? <><T.icon size={11} /> {T.label}</> : null })()}
               </span>
             </div>
-            <button onClick={() => setSelectedCpa(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><X size={20} color="#6B7280" /></button>
+            <button onClick={() => setSelectedCpa(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><X size={20} color="var(--text-secondary)" /></button>
           </div>
           <div style={{ background: '#2d7a27', borderRadius: 10, overflow: 'hidden', marginBottom: 10 }}>
             <TerrainSVG placements={selectedCpa.joueurs_placements || []} ballonPos={selectedCpa.ballon_pos || {x:50,y:50}} fleches={selectedCpa.fleches || []} />
           </div>
           {selectedCpa.description && (
-            <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 12px', marginBottom: 10 }}>
+            <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: '8px 12px', marginBottom: 10 }}>
               <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}><MessageSquare size={12} /> Consignes</p>
-              <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.5 }}>{selectedCpa.description}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>{selectedCpa.description}</p>
             </div>
           )}
           {/* Légende */}
           {selectedCpa.joueurs_placements?.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
               {selectedCpa.joueurs_placements.map(pl => (
-                <span key={pl.joueurId} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F3F4F6', borderRadius: 6, padding: '2px 8px', fontSize: 11 }}>
+                <span key={pl.joueurId} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'var(--bg-secondary)', borderRadius: 6, padding: '2px 8px', fontSize: 11 }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: pl.couleur, display: 'inline-block' }} />
                   {pl.numero ? `N°${pl.numero} ` : ''}{pl.nom}
                 </span>
@@ -292,7 +292,7 @@ export default function CPAPage() {
           )}
           {/* Légende flèches */}
           {selectedCpa.fleches?.length > 0 && (
-            <div style={{ display: 'flex', gap: 12, marginBottom: 10, fontSize: 10, color: '#6B7280' }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 10, fontSize: 10, color: 'var(--text-secondary)' }}>
               {selectedCpa.fleches.some(f => f.type === 'fleche_bal') && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MoveRight size={11} /> Trajectoire ballon</span>}
               {selectedCpa.fleches.some(f => f.type === 'fleche_crs') && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Route size={11} /> Course joueur</span>}
               {selectedCpa.fleches.some(f => f.type === 'zone') && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Square size={11} /> Zone</span>}
@@ -312,7 +312,7 @@ export default function CPAPage() {
       {/* Liste */}
       {loading ? <Spinner /> : !showCreate && !selectedCpa && (
         cpaFiltres.length === 0 ? (
-          <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>
+          <Card><p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
             {isCoach ? 'Aucun schéma. Clique sur "+ Créer" !' : 'Aucun schéma CPA disponible pour l\'instant.'}
           </p></Card>
         ) : (
@@ -321,7 +321,7 @@ export default function CPAPage() {
               const typeInfo = CPA_TYPES.find(t => t.key === cpa.type)
               return (
                 <div key={cpa.id} onClick={() => setSelectedCpa(cpa)}
-                  style={{ background: '#fff', border: `1.5px solid ${typeInfo?.color || '#E5E7EB'}`, borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }}>
+                  style={{ background: '#fff', border: `1.5px solid ${typeInfo?.color || 'var(--border)'}`, borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }}>
                   <div style={{ background: '#2d7a27', height: 90 }}>
                     <TerrainSVG placements={cpa.joueurs_placements || []} ballonPos={cpa.ballon_pos || {x:50,y:50}} fleches={cpa.fleches || []} mini />
                   </div>
@@ -408,7 +408,7 @@ function TerrainSVG({ placements = [], ballonPos = { x: 50, y: 50 }, fleches = [
           <circle cx={pl.x} cy={pl.y * 0.7} r={mini ? 3.5 : 5}
             fill={pl.couleur || '#FFDD57'} stroke="#fff" strokeWidth=".8" />
           <text x={pl.x} y={pl.y * 0.7 + (mini ? 1.4 : 2)}
-            textAnchor="middle" fontSize={mini ? 3 : 3.8} fontWeight="700" fill="#111">
+            textAnchor="middle" fontSize={mini ? 3 : 3.8} fontWeight="700" fill="var(--text-primary)">
             {pl.numero || (i + 1)}
           </text>
           {!mini && pl.nom && (

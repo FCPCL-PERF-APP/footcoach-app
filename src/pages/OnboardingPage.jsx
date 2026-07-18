@@ -127,7 +127,7 @@ export default function OnboardingPage() {
           {STEPS.map((_, i) => (
             <div key={i} style={{
               height: 4, flex: 1, borderRadius: 2,
-              background: i <= step ? 'var(--primary)' : '#E5E7EB',
+              background: i <= step ? 'var(--primary)' : 'var(--border)',
               transition: 'background .3s'
             }} />
           ))}
@@ -143,16 +143,16 @@ export default function OnboardingPage() {
           <current.icon size={30} color={current.color} strokeWidth={1.8} />
         </div>
 
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 10 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10 }}>
           {current.title}
         </h2>
-        <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6, marginBottom: current.image || current.pushStep ? 16 : 28 }}>
+        <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: current.image || current.pushStep ? 16 : 28 }}>
           {current.desc}
         </p>
 
         {/* Activation des notifications */}
         {current.pushStep && (
-          <div style={{ textAlign: 'left', background: '#F9FAFB', borderRadius: 12, padding: '4px 14px', marginBottom: 24 }}>
+          <div style={{ textAlign: 'left', background: 'var(--bg-secondary)', borderRadius: 12, padding: '4px 14px', marginBottom: 24 }}>
             <PushToggle />
           </div>
         )}
@@ -170,8 +170,8 @@ export default function OnboardingPage() {
           {step > 0 && (
             <button onClick={() => setStep(s => s - 1)} style={{
               flex: 1, padding: 12, borderRadius: 10,
-              border: '0.5px solid #D1D5DB', background: 'transparent',
-              fontSize: 13, cursor: 'pointer', color: '#6B7280',
+              border: '0.5px solid var(--border)', background: 'transparent',
+              fontSize: 13, cursor: 'pointer', color: 'var(--text-secondary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
             }}><ArrowLeft size={13} /> Retour</button>
           )}
@@ -187,7 +187,7 @@ export default function OnboardingPage() {
 
         {/* Skip */}
         {!isLast && (
-          <button onClick={finish} style={{ marginTop: 10, background: 'none', border: 'none', fontSize: 12, color: '#9CA3AF', cursor: 'pointer' }}>
+          <button onClick={finish} style={{ marginTop: 10, background: 'none', border: 'none', fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer' }}>
             Passer l'introduction
           </button>
         )}

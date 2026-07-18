@@ -197,9 +197,9 @@ export default function MessagesPage() {
         {[['groupe', Users, 'Groupe'],['prives', MessageCircle, 'Privés']].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => { setActiveTab(tab); setActiveConv(null); setShowNewMsg(false) }} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB',
+            border: '0.5px solid var(--border)',
             background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
-            color: activeTab === tab ? 'var(--primary)' : '#6B7280',
+            color: activeTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: activeTab === tab ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -211,20 +211,20 @@ export default function MessagesPage() {
           {/* GROUPE */}
           {activeTab === 'groupe' && (
             <Card style={{ display: 'flex', flexDirection: 'column', height: '68vh' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid var(--bg-secondary)' }}>
                 <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <Users size={13} color={CAT_COLORS.violet.color} /> Canal groupe
                 </p>
                 <div style={{ position: 'relative' }}>
-                  <Search size={11} color="#9CA3AF" style={{ position: 'absolute', left: 7, top: '50%', transform: 'translateY(-50%)' }} />
+                  <Search size={11} color="var(--text-muted)" style={{ position: 'absolute', left: 7, top: '50%', transform: 'translateY(-50%)' }} />
                   <input value={search} onChange={e => setSearch(e.target.value)}
                     placeholder="Rechercher..."
-                    style={{ padding: '4px 8px 4px 24px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 11, outline: 'none', width: 120 }} />
+                    style={{ padding: '4px 8px 4px 24px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', width: 120 }} />
                 </div>
               </div>
               <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
                 {filteredGroupMessages.length === 0 && (
-                  <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 13, padding: 20 }}>
+                  <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: 20 }}>
                     {search ? `Aucun message pour "${search}"` : 'Aucun message pour l\'instant.'}
                   </p>
                 )}
@@ -248,23 +248,23 @@ export default function MessagesPage() {
                 <Card>
                   <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Choisir un destinataire</p>
                   <div style={{ position: 'relative', marginBottom: 10 }}>
-                    <Search size={13} color="#9CA3AF" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }} />
+                    <Search size={13} color="var(--text-muted)" style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)' }} />
                     <input value={searchContact} onChange={e => setSearchContact(e.target.value)}
                       placeholder="Rechercher..."
-                      style={{ width: '100%', padding: '8px 12px 8px 32px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                      style={{ width: '100%', padding: '8px 12px 8px 32px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                   <div style={{ maxHeight: 300, overflowY: 'auto' }}>
                     {filteredContacts.length === 0 ? (
-                      <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 16 }}>Aucun contact trouvé.</p>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>Aucun contact trouvé.</p>
                     ) : (
                       filteredContacts.map((c, i) => {
                         const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
                         return (
-                          <div key={c.id} onClick={() => openConv(c)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', cursor: 'pointer', borderBottom: '0.5px solid #F3F4F6' }}>
+                          <div key={c.id} onClick={() => openConv(c)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', cursor: 'pointer', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                             <Avatar initials={`${c.nom?.[0]}${c.prenom?.[0]}`} bg={col.bg} color={col.color} size={36} />
                             <div>
                               <p style={{ fontSize: 13, fontWeight: 500 }}>{c.nom} {c.prenom}</p>
-                              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
+                              <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
                             </div>
                             <span style={{ marginLeft: 'auto', color: 'var(--primary)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 3 }}>Écrire <ArrowRight size={11} /></span>
                           </div>
@@ -277,17 +277,17 @@ export default function MessagesPage() {
 
               {activeConv ? (
                 <Card style={{ display: 'flex', flexDirection: 'column', height: '65vh' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid var(--bg-secondary)' }}>
                     <button onClick={() => setActiveConv(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
                     <Avatar initials={`${activeConv.nom?.[0]}${activeConv.prenom?.[0]}`} bg={AVATAR_COLORS[0].bg} color={AVATAR_COLORS[0].color} size={32} />
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 600 }}>{activeConv.nom} {activeConv.prenom}</p>
-                      <p style={{ fontSize: 10, color: '#9CA3AF' }}>{activeConv.type === 'joueur' ? activeConv.poste : activeConv.role}</p>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{activeConv.type === 'joueur' ? activeConv.poste : activeConv.role}</p>
                     </div>
                   </div>
                   <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
                     {convMessages.length === 0 && (
-                      <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 13, padding: 20 }}>Début de la conversation.</p>
+                      <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: 20 }}>Début de la conversation.</p>
                     )}
                     {convMessages.map(msg => (
                       <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime}
@@ -313,24 +313,24 @@ export default function MessagesPage() {
                 </Card>
               ) : !showNewMsg && (
                 <Card style={{ padding: 0 }}>
-                  <div style={{ padding: '12px 14px', borderBottom: '0.5px solid #F3F4F6' }}>
-                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>{contacts.length} contact(s)</p>
+                  <div style={{ padding: '12px 14px', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{contacts.length} contact(s)</p>
                   </div>
                   {contacts.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 24 }}>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 24 }}>
                       Les contacts apparaîtront ici une fois que les joueurs auront un compte.
                     </p>
                   ) : (
                     contacts.slice(0, 10).map((c, i) => {
                       const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
                       return (
-                        <div key={c.id} onClick={() => openConv(c)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', cursor: 'pointer', borderBottom: '0.5px solid #F3F4F6' }}>
+                        <div key={c.id} onClick={() => openConv(c)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', cursor: 'pointer', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                           <Avatar initials={`${c.nom?.[0]}${c.prenom?.[0]}`} bg={col.bg} color={col.color} size={38} />
                           <div style={{ flex: 1 }}>
                             <p style={{ fontSize: 13, fontWeight: 500 }}>{c.nom} {c.prenom}</p>
-                            <p style={{ fontSize: 11, color: '#9CA3AF' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
                           </div>
-                          <ChevronRight size={18} color="#D1D5DB" />
+                          <ChevronRight size={18} color="var(--border)" />
                         </div>
                       )
                     })
@@ -358,8 +358,8 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
         <div style={{
           padding: '8px 12px',
           borderRadius: isMe ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
-          background: isMe ? 'var(--gradient)' : '#F3F4F6',
-          color: isMe ? '#fff' : '#111',
+          background: isMe ? 'var(--gradient)' : 'var(--bg-secondary)',
+          color: isMe ? '#fff' : 'var(--text-primary)',
           cursor: 'pointer'
         }} onClick={() => setShowActions(!showActions)}>
           {!isMe && msg.expediteur_nom && (
@@ -372,8 +372,8 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
         {/* Réactions affichées */}
         {(nbUp > 0 || nbDown > 0) && (
           <div style={{ display: 'flex', gap: 4, marginTop: 3, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
-            {nbUp > 0 && <span style={{ fontSize: 11, background: '#F3F4F6', borderRadius: 20, padding: '1px 6px' }}>👍 {nbUp}</span>}
-            {nbDown > 0 && <span style={{ fontSize: 11, background: '#F3F4F6', borderRadius: 20, padding: '1px 6px' }}>👎 {nbDown}</span>}
+            {nbUp > 0 && <span style={{ fontSize: 11, background: 'var(--bg-secondary)', borderRadius: 20, padding: '1px 6px' }}>👍 {nbUp}</span>}
+            {nbDown > 0 && <span style={{ fontSize: 11, background: 'var(--bg-secondary)', borderRadius: 20, padding: '1px 6px' }}>👎 {nbDown}</span>}
           </div>
         )}
 
@@ -384,7 +384,7 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
             {['👍', '👎'].map(emoji => (
               <button key={emoji} onClick={(e) => { e.stopPropagation(); onReact(msg.id, emoji); setShowActions(false) }}
                 style={{
-                  fontSize: 16, padding: '3px 8px', border: `1.5px solid ${myReaction === emoji ? '#185FA5' : '#E5E7EB'}`,
+                  fontSize: 16, padding: '3px 8px', border: `1.5px solid ${myReaction === emoji ? '#185FA5' : 'var(--border)'}`,
                   borderRadius: 20, background: myReaction === emoji ? '#E6F1FB' : '#fff', cursor: 'pointer'
                 }}>
                 {emoji}
@@ -406,11 +406,11 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
 
 function MsgInput({ value, onChange, onSend }) {
   return (
-    <div style={{ display: 'flex', gap: 6, borderTop: '0.5px solid #F3F4F6', paddingTop: 10 }}>
+    <div style={{ display: 'flex', gap: 6, borderTop: '0.5px solid var(--bg-secondary)', paddingTop: 10 }}>
       <input value={value} onChange={e => onChange(e.target.value)}
         onKeyDown={e => e.key === 'Enter' && !e.shiftKey && onSend()}
         placeholder="Écrire un message..."
-        style={{ flex: 1, padding: '9px 12px', border: '0.5px solid #D1D5DB', borderRadius: 20, fontSize: 13, outline: 'none', background: '#F9FAFB' }} />
+        style={{ flex: 1, padding: '9px 12px', border: '0.5px solid var(--border)', borderRadius: 20, fontSize: 13, outline: 'none', background: 'var(--bg-secondary)' }} />
       <button onClick={onSend} style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--gradient)', border: 'none', cursor: 'pointer', color: '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Send size={16} /></button>
     </div>
   )

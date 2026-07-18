@@ -10,7 +10,7 @@ import { ArrowLeft, Trophy, Swords, Heart, Calendar, Radio, Target, CheckCircle2
 import { computePresenceBreakdown } from '../lib/presenceStats'
 
 function rpeColor(v) {
-  if (!v) return '#9CA3AF'
+  if (!v) return 'var(--text-muted)'
   if (v >= 4.5) return 'var(--danger)'
   if (v >= 4) return '#D85A30'
   if (v >= 3) return 'var(--warning)'
@@ -134,7 +134,7 @@ export default function MonBilanPage() {
       </div>
 
       {/* STATS MATCH */}
-      <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Swords size={11} /> Statistiques match</p>
+      <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Swords size={11} /> Statistiques match</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
         {[
           { label: 'Matchs joués', value: stats?.totalMatchs, color: 'var(--primary)' },
@@ -147,30 +147,30 @@ export default function MonBilanPage() {
           { label: 'Dist. moy./match', value: stats?.distMoy ? `${stats.distMoy}km` : '—', color: 'var(--primary)' },
           { label: 'Sprint max', value: stats?.sprintMax ? `${stats.sprintMax}km/h` : '—', color: 'var(--primary)' },
         ].map(s => (
-          <div key={s.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
+          <div key={s.label} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* RPE */}
-      <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Heart size={11} /> Charge & bien-être</p>
+      <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Heart size={11} /> Charge & bien-être</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
         {[
           { label: 'RPE moyen', value: `${stats?.rpeMoy}/5`, color: rpeColor(parseFloat(stats?.rpeMoy)) },
           { label: 'Motivation moy.', value: `${stats?.motivMoy}/5`, color: rpeColor(parseFloat(stats?.motivMoy)) },
           { label: 'Sessions RPE', value: stats?.nbRpe, color: 'var(--primary)' },
         ].map(s => (
-          <div key={s.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
+          <div key={s.label} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* PRÉSENCES */}
-      <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={11} /> Présences</p>
+      <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={11} /> Présences</p>
       <Card style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
           <div style={{
@@ -187,7 +187,7 @@ export default function MonBilanPage() {
               {stats?.tauxPresence >= 80 ? 'Excellent engagement' :
                stats?.tauxPresence >= 60 ? 'Présence correcte' : 'Assiduité à améliorer'}
             </p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
               Taux d'engagement · présent + extérieur, hors blessures
             </p>
           </div>
@@ -212,16 +212,16 @@ export default function MonBilanPage() {
       {/* FOOTBAR */}
       {stats?.nbFootbar > 0 && (
         <>
-          <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Radio size={11} /> Footbar saison</p>
+          <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Radio size={11} /> Footbar saison</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
             {[
               { label: 'Distance totale', value: `${stats?.totalDist}km`, color: 'var(--primary)' },
               { label: 'Dist. moy./match', value: `${stats?.distMoy}km`, color: 'var(--primary)' },
               { label: 'Sprint max saison', value: `${stats?.sprintMax}km/h`, color: '#3B6D11' },
             ].map(s => (
-              <div key={s.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
+              <div key={s.label} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: s.color }}>{s.value}</div>
-                <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
+                <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -231,12 +231,12 @@ export default function MonBilanPage() {
       {/* OBJECTIFS */}
       {stats?.objTotal > 0 && (
         <>
-          <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={11} /> Objectifs</p>
+          <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={11} /> Objectifs</p>
           <Card style={{ marginBottom: 14 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 700 }}>{stats?.objAtteints} / {stats?.objTotal} objectifs atteints</p>
-                <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                   {stats?.objAtteints === stats?.objTotal ? 'Tous les objectifs accomplis !' :
                    stats?.objAtteints > 0 ? 'Bonne progression' : 'Continue tes efforts'}
                 </p>

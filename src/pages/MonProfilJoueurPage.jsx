@@ -52,10 +52,10 @@ export default function MonProfilJoueurPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showForm ? 14 : 0 }}>
           <div>
             <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Lock size={13} /> Mot de passe</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>Modifie ton mot de passe de connexion</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Modifie ton mot de passe de connexion</p>
           </div>
           <button onClick={() => { setShowForm(!showForm); setPwdMsg(null); setPwd({ new: '', confirm: '' }) }}
-            style={{ padding: '6px 12px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+            style={{ padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
             {showForm ? <><X size={11} /> Annuler</> : 'Modifier'}
           </button>
         </div>
@@ -63,16 +63,16 @@ export default function MonProfilJoueurPage() {
         {showForm && (
           <>
             <div style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Nouveau mot de passe</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Nouveau mot de passe</label>
               <input type="password" value={pwd.new} onChange={e => setPwd(p => ({...p, new: e.target.value}))}
                 placeholder="Au moins 6 caractères"
-                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Confirmer le mot de passe</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Confirmer le mot de passe</label>
               <input type="password" value={pwd.confirm} onChange={e => setPwd(p => ({...p, confirm: e.target.value}))}
                 placeholder="Répète le mot de passe"
-                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             {pwdMsg && (
               <p style={{ fontSize: 12, color: pwdMsg.ok ? 'var(--success)' : 'var(--danger)', marginBottom: 10 }}>
@@ -95,12 +95,12 @@ export default function MonProfilJoueurPage() {
           ['Numéro', profile?.numero ? `N°${profile.numero}` : '—'],
           ['Groupe', profile?.groupe ? `Pôle ${profile.groupe}` : '—'],
         ].map(([label, value]) => (
-          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-            <span style={{ fontSize: 12, color: '#6B7280' }}>{label}</span>
+          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{label}</span>
             <span style={{ fontSize: 12, fontWeight: 500 }}>{value}</span>
           </div>
         ))}
-        <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 10 }}>
+        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 10 }}>
           Pour modifier ces informations, va dans <strong>Ma fiche</strong>.
         </p>
       </Card>

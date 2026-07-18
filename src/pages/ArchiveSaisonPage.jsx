@@ -126,7 +126,7 @@ export default function ArchiveSaisonPage() {
             <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)', marginBottom: 8 }}>
               Saison {saisonLabel} archivée !
             </p>
-            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
               Les données ont été sauvegardées et l'app est prête pour la nouvelle saison.
             </p>
             <div style={{ background: 'var(--success-bg)', borderRadius: 10, padding: 12, textAlign: 'left' }}>
@@ -210,7 +210,7 @@ export default function ArchiveSaisonPage() {
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => setStep(0)} style={{
                   flex: 1, padding: 12, borderRadius: 10,
-                  border: '0.5px solid #D1D5DB', background: '#fff',
+                  border: '0.5px solid var(--border)', background: '#fff',
                   fontSize: 13, cursor: 'pointer'
                 }}>Annuler</button>
                 <button onClick={archiverSaison} disabled={archiving} style={{

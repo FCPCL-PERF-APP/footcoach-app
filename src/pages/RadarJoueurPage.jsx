@@ -41,12 +41,12 @@ function RadarChart({ joueurData, equipeData, joueurNom, size = 220 }) {
       {/* Cercles de référence */}
       {[1,2,3,4,5].map(v => (
         <polygon key={v} points={AXES.map((_, i) => { const p = getPoint(i, v); return `${p.x},${p.y}` }).join(' ')}
-          fill="none" stroke="#E5E7EB" strokeWidth="0.5" />
+          fill="none" stroke="var(--border)" strokeWidth="0.5" />
       ))}
       {/* Axes */}
       {AXES.map((_, i) => {
         const p = getPoint(i, 5)
-        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="#E5E7EB" strokeWidth="0.5" />
+        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="var(--border)" strokeWidth="0.5" />
       })}
       {/* Zone équipe */}
       <path d={toPath(equipePoints)} fill="rgba(24,95,165,.08)" stroke="rgba(24,95,165,.3)" strokeWidth="1.5" strokeDasharray="4,3" />
@@ -59,7 +59,7 @@ function RadarChart({ joueurData, equipeData, joueurNom, size = 220 }) {
         const p = getLabelPoint(i)
         return (
           <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
-            fontSize="9" fill="#6B7280" fontWeight="500">{a.label}</text>
+            fontSize="9" fill="var(--text-secondary)" fontWeight="500">{a.label}</text>
         )
       })}
       {/* Valeurs joueur */}
@@ -127,7 +127,7 @@ export default function RadarJoueurPage() {
         <button onClick={() => navigate(`/joueurs/${id}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Radar RPE</p>
-          <p style={{ fontSize: 12, color: '#9CA3AF' }}>{joueur?.nom} {joueur?.prenom} · {joueur?.poste}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{joueur?.nom} {joueur?.prenom} · {joueur?.poste}</p>
         </div>
       </div>
 
@@ -140,7 +140,7 @@ export default function RadarJoueurPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 12, height: 3, background: 'rgba(24,95,165,.5)', borderRadius: 2, borderStyle: 'dashed' }} />
-            <span style={{ color: '#6B7280' }}>Moyenne équipe</span>
+            <span style={{ color: 'var(--text-secondary)' }}>Moyenne équipe</span>
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -156,16 +156,16 @@ export default function RadarJoueurPage() {
           const isAbove = diff > 0.3
           const isBelow = diff < -0.3
           return (
-            <div key={a.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-              <span style={{ fontSize: 12, color: '#374151', width: 90 }}>{a.label}</span>
+            <div key={a.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+              <span style={{ fontSize: 12, color: 'var(--text-primary)', width: 90 }}>{a.label}</span>
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: '#A32D2D', width: 28 }}>{joueurData[a.key] || '—'}</span>
-                <div style={{ flex: 1, height: 6, background: '#F3F4F6', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ flex: 1, height: 6, background: 'var(--bg-secondary)', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ height: '100%', borderRadius: 3, background: '#A32D2D', width: `${(joueurData[a.key] || 0) / 5 * 100}%` }} />
                 </div>
-                <span style={{ fontSize: 12, color: '#9CA3AF', width: 28 }}>{equipeData[a.key] || '—'}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', width: 28 }}>{equipeData[a.key] || '—'}</span>
                 <span style={{ fontSize: 11, fontWeight: 600, width: 36, textAlign: 'right',
-                  color: isAbove ? '#3B6D11' : isBelow ? '#A32D2D' : '#9CA3AF' }}>
+                  color: isAbove ? '#3B6D11' : isBelow ? '#A32D2D' : 'var(--text-muted)' }}>
                   {diff > 0 ? '+' : ''}{diff}
                 </span>
               </div>
@@ -181,7 +181,7 @@ export default function RadarJoueurPage() {
           const diff = comparaison[a.key]
           if (Math.abs(diff) < 0.5) return null
           return (
-            <div key={a.key} style={{ padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+            <div key={a.key} style={{ padding: '6px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
               <p style={{ fontSize: 12, color: diff > 0 ? '#3B6D11' : '#A32D2D', display: 'flex', alignItems: 'center', gap: 6 }}>
                 {diff > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />} <strong>{a.label}</strong> : {diff > 0 ? 'au-dessus' : 'en dessous'} de la moyenne équipe ({diff > 0 ? '+' : ''}{diff} pts)
               </p>
@@ -189,7 +189,7 @@ export default function RadarJoueurPage() {
           )
         }).filter(Boolean)}
         {Object.values(comparaison).every(v => Math.abs(v) < 0.5) && (
-          <p style={{ fontSize: 12, color: '#9CA3AF' }}>Dans la moyenne de l'équipe sur tous les items.</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Dans la moyenne de l'équipe sur tous les items.</p>
         )}
       </Card>
     </div>

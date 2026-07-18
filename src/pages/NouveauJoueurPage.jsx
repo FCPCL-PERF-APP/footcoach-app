@@ -190,7 +190,7 @@ export default function NouveauJoueurPage() {
               style={{ width: 18, height: 18 }} />
             <div>
               <p style={{ fontSize: 13, fontWeight: 500 }}>Envoyer une invitation par email</p>
-              <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                 Le joueur recevra un email pour créer son mot de passe et accéder à l'app.
               </p>
             </div>

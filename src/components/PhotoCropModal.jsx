@@ -42,13 +42,13 @@ export default function PhotoCropModal({ file, onCancel, onCropped }) {
         />
       </div>
       <div style={{ padding: '16px 20px', background: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
-        <p style={{ fontSize: 12, color: '#6B7280', textAlign: 'center', marginBottom: 10 }}>Déplace et zoome pour cadrer la photo</p>
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)', textAlign: 'center', marginBottom: 10 }}>Déplace et zoome pour cadrer la photo</p>
         <input type="range" min={1} max={3} step={0.01} value={zoom}
           onChange={e => setZoom(parseFloat(e.target.value))}
           style={{ width: '100%', marginBottom: 16 }} />
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={onCancel} disabled={processing} style={{
-            flex: 1, padding: 13, borderRadius: 12, border: '0.5px solid #D1D5DB',
+            flex: 1, padding: 13, borderRadius: 12, border: '0.5px solid var(--border)',
             background: 'transparent', fontSize: 14, fontWeight: 600, cursor: processing ? 'not-allowed' : 'pointer'
           }}>
             Annuler

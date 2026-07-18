@@ -222,7 +222,7 @@ export default function StatsPage() {
         <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 15, fontWeight: 700 }}>Stats match</p>
-          <p style={{ fontSize: 12, color: '#9CA3AF' }}>{event?.titre} · {event?.date_heure ? format(parseISO(event.date_heure), 'd MMM yyyy', { locale: fr }) : ''}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{event?.titre} · {event?.date_heure ? format(parseISO(event.date_heure), 'd MMM yyyy', { locale: fr }) : ''}</p>
         </div>
       </div>
 
@@ -252,9 +252,9 @@ export default function StatsPage() {
         {tabs.map(t => (
           <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
-            border: '0.5px solid #D1D5DB',
+            border: '0.5px solid var(--border)',
             background: activeTab === t.key ? 'var(--primary-bg)' : 'transparent',
-            color: activeTab === t.key ? 'var(--primary)' : '#6B7280',
+            color: activeTab === t.key ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: activeTab === t.key ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><t.icon size={12} /> {t.label}</button>
@@ -266,22 +266,22 @@ export default function StatsPage() {
         <>
           <Card>
             <div style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Joueur</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Joueur</label>
               <select value={selectedJoueur} onChange={e => {
                 setSelectedJoueur(e.target.value)
                 const ex = statsIndiv.find(s => s.joueur_id === e.target.value)
                 if (ex) setFormJ({ note: ex.note || '', temps_jeu: ex.temps_jeu || '', buts: ex.buts || 0, passes_decisives: ex.passes_decisives || 0, titulaire: ex.titulaire !== false, carton_jaune: ex.carton_jaune || false, carton_rouge: ex.carton_rouge || false })
                 else setFormJ({ note: '', temps_jeu: '', buts: 0, passes_decisives: 0, titulaire: true, carton_jaune: false, carton_rouge: false })
-              }} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
+              }} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
                 {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom} — {j.poste}</option>)}
               </select>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
               {[['Note (/10)', 'note', '0.5'], ['Temps jeu (min)', 'temps_jeu', '1'], ['Buts', 'buts', '1'], ['Passes déc.', 'passes_decisives', '1']].map(([label, field, step]) => (
                 <div key={field}>
-                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>{label}</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
                   <input type="number" step={step} value={formJ[field] || ''} onChange={e => setFormJ(p => ({...p, [field]: e.target.value}))}
-                    style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                 </div>
               ))}
             </div>
@@ -307,18 +307,18 @@ export default function StatsPage() {
               {statsIndiv.map(s => {
                 const j = joueurs.find(j => j.id === s.joueur_id)
                 return (
-                  <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                  <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                     <div>
                       <p style={{ fontSize: 12, fontWeight: 600 }}>{j?.nom} {j?.prenom}</p>
-                      <p style={{ fontSize: 10, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
                         {s.temps_jeu}min · {s.titulaire ? 'Titu.' : 'Rempl.'}
                         {s.carton_jaune && <span style={{ width: 8, height: 10, background: 'var(--warning)', borderRadius: 1, display: 'inline-block' }} />}
                         {s.carton_rouge && <span style={{ width: 8, height: 10, background: 'var(--danger)', borderRadius: 1, display: 'inline-block' }} />}
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note || '—'}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Note</div></div>
-                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Buts</div></div>
+                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note || '—'}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Note</div></div>
+                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Buts</div></div>
                     </div>
                   </div>
                 )
@@ -338,10 +338,10 @@ export default function StatsPage() {
             {[['Score mi-temps', 'score_mi_temps', 'text'], ['Score final', 'score_final', 'text'],
               ['Buts marqués', 'buts_marques', 'number'], ['Buts encaissés', 'buts_encaisses', 'number']].map(([label, field, type]) => (
               <div key={field}>
-                <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>{label}</label>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
                 <input type={type} value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
                   placeholder={type === 'text' ? '2-1' : ''}
-                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
               </div>
             ))}
           </div>
@@ -352,7 +352,7 @@ export default function StatsPage() {
             {[['Att. placée', 'but_marque_attaque_placee'], ['Contre-att.', 'but_marque_contre_attaque'],
               ['Corner', 'but_marque_corner'], ['Pénalty', 'but_marque_penalty'], ['Coup-franc', 'but_marque_coup_franc']].map(([label, field]) => (
               <div key={field}>
-                <label style={{ display: 'block', fontSize: 10, color: '#6B7280', marginBottom: 2, textAlign: 'center' }}>{label}</label>
+                <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2, textAlign: 'center' }}>{label}</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
                   style={{ width: '100%', padding: '6px 8px', border: '0.5px solid #3B6D11', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
               </div>
@@ -365,7 +365,7 @@ export default function StatsPage() {
             {[['Att. placée', 'but_enc_attaque_placee'], ['Contre-att.', 'but_enc_contre_attaque'],
               ['Corner', 'but_enc_corner'], ['Pénalty', 'but_enc_penalty'], ['Coup-franc', 'but_enc_coup_franc']].map(([label, field]) => (
               <div key={field}>
-                <label style={{ display: 'block', fontSize: 10, color: '#6B7280', marginBottom: 2, textAlign: 'center' }}>{label}</label>
+                <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2, textAlign: 'center' }}>{label}</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
                   style={{ width: '100%', padding: '6px 8px', border: '0.5px solid #A32D2D', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
               </div>
@@ -377,7 +377,7 @@ export default function StatsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4, marginBottom: 12 }}>
             {[['0-15', 'buts_0_15'], ['15-30', 'buts_15_30'], ['30-45', 'buts_30_45'], ['45-60', 'buts_45_60'], ['60-75', 'buts_60_75'], ['75-90', 'buts_75_90']].map(([label, field]) => (
               <div key={field}>
-                <label style={{ display: 'block', fontSize: 9, color: '#9CA3AF', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
+                <label style={{ display: 'block', fontSize: 9, color: 'var(--text-muted)', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
                   style={{ width: '100%', padding: '6px 4px', border: '0.5px solid #3B6D11', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
               </div>
@@ -389,7 +389,7 @@ export default function StatsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4, marginBottom: 12 }}>
             {[['0-15', 'buts_enc_0_15'], ['15-30', 'buts_enc_15_30'], ['30-45', 'buts_enc_30_45'], ['45-60', 'buts_enc_45_60'], ['60-75', 'buts_enc_60_75'], ['75-90', 'buts_enc_75_90']].map(([label, field]) => (
               <div key={field}>
-                <label style={{ display: 'block', fontSize: 9, color: '#9CA3AF', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
+                <label style={{ display: 'block', fontSize: 9, color: 'var(--text-muted)', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
                   style={{ width: '100%', padding: '6px 4px', border: '0.5px solid #A32D2D', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
               </div>
@@ -410,9 +410,9 @@ export default function StatsPage() {
             {Object.entries(FORMATIONS).map(([key, f]) => (
               <button key={key} onClick={() => setFormation(key)} style={{
                 flex: 1, padding: '8px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-                border: `1.5px solid ${formation === key ? 'var(--primary)' : '#E5E7EB'}`,
+                border: `1.5px solid ${formation === key ? 'var(--primary)' : 'var(--border)'}`,
                 background: formation === key ? '#E6F1FB' : 'transparent',
-                color: formation === key ? 'var(--primary)' : '#6B7280',
+                color: formation === key ? 'var(--primary)' : 'var(--text-secondary)',
                 fontWeight: formation === key ? 700 : 400
               }}>{f.label}</button>
             ))}
@@ -465,9 +465,9 @@ export default function StatsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
             {currentFormation.positions.map(pos => (
               <div key={pos.id}>
-                <label style={{ display: 'block', fontSize: 10, color: '#6B7280', marginBottom: 2 }}>{pos.label}</label>
+                <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>{pos.label}</label>
                 <select value={compo[pos.id] || ''} onChange={e => setCompo(p => ({...p, [pos.id]: e.target.value}))}
-                  style={{ width: '100%', padding: '5px 8px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 11, outline: 'none', boxSizing: 'border-box' }}>
+                  style={{ width: '100%', padding: '5px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', boxSizing: 'border-box' }}>
                   <option value="">— Choisir —</option>
                   {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}{j.numero ? ` (${j.numero})` : ''}</option>)}
                 </select>
@@ -499,9 +499,9 @@ export default function StatsPage() {
             ['Composition adversaire', 'compo_adversaire'],
           ].map(([label, field]) => (
             <div key={field} style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>{label}</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
               <textarea value={formRapport[field] || ''} onChange={e => setFormRapport(p => ({...p, [field]: e.target.value}))}
-                rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+                rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
             </div>
           ))}
           <Input label="Arbitre" value={formRapport.arbitre || ''} onChange={v => setFormRapport(p => ({...p, arbitre: v}))} />

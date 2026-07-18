@@ -113,11 +113,11 @@ export default function CorrelationPage() {
   }
 
   function getCorrelationLabel(r) {
-    if (r === null) return { label: 'Pas assez de données', color: '#9CA3AF' }
+    if (r === null) return { label: 'Pas assez de données', color: 'var(--text-muted)' }
     const abs = Math.abs(r)
     if (abs >= 0.7) return { label: r > 0 ? 'Forte corrélation positive' : 'Forte corrélation négative', color: r > 0 ? '#3B6D11' : '#A32D2D' }
     if (abs >= 0.4) return { label: r > 0 ? 'Corrélation modérée positive' : 'Corrélation modérée négative', color: r > 0 ? '#BA7517' : '#D85A30' }
-    return { label: 'Faible corrélation', color: '#9CA3AF' }
+    return { label: 'Faible corrélation', color: 'var(--text-muted)' }
   }
 
   const corrLabelCharge = getCorrelationLabel(correlationCharge)
@@ -143,7 +143,7 @@ export default function CorrelationPage() {
           {/* Coefficients de corrélation — deux dimensions distinctes */}
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Charge perçue ↔ Résultats</p>
-            <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 12 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
               Relation entre la difficulté/fatigue ressentie et la différence de buts en match.
             </p>
             {correlationCharge !== null ? (
@@ -153,7 +153,7 @@ export default function CorrelationPage() {
                 </div>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: corrLabelCharge.color }}>{corrLabelCharge.label}</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                     {correlationCharge > 0.4 ? 'Plus la charge perçue est élevée, meilleurs sont les résultats.' :
                      correlationCharge < -0.4 ? 'Une charge perçue élevée est associée à de moins bons résultats.' :
                      'Pas de lien clair entre charge perçue et résultats sur les données actuelles.'}
@@ -161,13 +161,13 @@ export default function CorrelationPage() {
                 </div>
               </div>
             ) : (
-              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Il faut au moins 3 matchs avec RPE rempli pour calculer la corrélation.</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Il faut au moins 3 matchs avec RPE rempli pour calculer la corrélation.</p>
             )}
           </Card>
 
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Ressenti de performance ↔ Résultats</p>
-            <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 12 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
               Relation entre l'implication/motivation/perf. ressentie et la différence de buts.
             </p>
             {correlationPerf !== null ? (
@@ -177,7 +177,7 @@ export default function CorrelationPage() {
                 </div>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: corrLabelPerf.color }}>{corrLabelPerf.label}</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                     {correlationPerf > 0.4 ? 'Le ressenti des joueurs est cohérent avec le résultat réel.' :
                      correlationPerf < -0.4 ? 'Le ressenti des joueurs diverge du résultat réel.' :
                      'Pas de lien clair entre ressenti de performance et résultats sur les données actuelles.'}
@@ -185,7 +185,7 @@ export default function CorrelationPage() {
                 </div>
               </div>
             ) : (
-              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Il faut au moins 3 matchs avec RPE rempli pour calculer la corrélation.</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Il faut au moins 3 matchs avec RPE rempli pour calculer la corrélation.</p>
             )}
           </Card>
 
@@ -194,9 +194,9 @@ export default function CorrelationPage() {
             {[['charge', Dumbbell, 'Charge perçue'], ['perf', Star, 'Ressenti perf.']].map(([key, Icon, lbl]) => (
               <button key={key} onClick={() => setDimension(key)} style={{
                 padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-                border: '0.5px solid #D1D5DB',
+                border: '0.5px solid var(--border)',
                 background: dimension === key ? 'var(--primary-bg)' : 'transparent',
-                color: dimension === key ? 'var(--primary)' : '#6B7280',
+                color: dimension === key ? 'var(--primary)' : 'var(--text-secondary)',
                 fontWeight: dimension === key ? 600 : 400,
                 display: 'inline-flex', alignItems: 'center', gap: 5
               }}><Icon size={11} /> {lbl}</button>
@@ -207,7 +207,7 @@ export default function CorrelationPage() {
           {dimData.length >= 2 && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{dimLabel} vs Différence de buts</p>
-              <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span>Chaque point = un match</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={'var(--success)'} color={'var(--success)'} /> Victoire</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={'var(--warning)'} color={'var(--warning)'} /> Nul</span>
@@ -215,13 +215,13 @@ export default function CorrelationPage() {
               </p>
               <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 160 }}>
                 {/* Axes */}
-                <line x1={PAD} y1={PAD} x2={PAD} y2={H-PAD} stroke="#E5E7EB" strokeWidth="1" />
-                <line x1={PAD} y1={H-PAD} x2={W-PAD} y2={H-PAD} stroke="#E5E7EB" strokeWidth="1" />
+                <line x1={PAD} y1={PAD} x2={PAD} y2={H-PAD} stroke="var(--border)" strokeWidth="1" />
+                <line x1={PAD} y1={H-PAD} x2={W-PAD} y2={H-PAD} stroke="var(--border)" strokeWidth="1" />
                 {/* Ligne zéro */}
-                <line x1={PAD} y1={yPos(0)} x2={W-PAD} y2={yPos(0)} stroke="#E5E7EB" strokeWidth="1" strokeDasharray="4,4" />
+                <line x1={PAD} y1={yPos(0)} x2={W-PAD} y2={yPos(0)} stroke="var(--border)" strokeWidth="1" strokeDasharray="4,4" />
                 {/* Labels axes */}
-                <text x={W/2} y={H-4} textAnchor="middle" fontSize="9" fill="#9CA3AF">{dimLabel}</text>
-                <text x={6} y={H/2} textAnchor="middle" fontSize="9" fill="#9CA3AF" transform={`rotate(-90, 6, ${H/2})`}>Diff. buts</text>
+                <text x={W/2} y={H-4} textAnchor="middle" fontSize="9" fill="var(--text-muted)">{dimLabel}</text>
+                <text x={6} y={H/2} textAnchor="middle" fontSize="9" fill="var(--text-muted)" transform={`rotate(-90, 6, ${H/2})`}>Diff. buts</text>
                 {/* Points */}
                 {dimData.map((p, i) => {
                   const cx = xPos(p[dimKey])
@@ -230,7 +230,7 @@ export default function CorrelationPage() {
                   return (
                     <g key={i}>
                       <circle cx={cx} cy={cy} r="6" fill={color} opacity="0.85" />
-                      <text x={cx} y={cy-9} textAnchor="middle" fontSize="8" fill="#6B7280">
+                      <text x={cx} y={cy-9} textAnchor="middle" fontSize="8" fill="var(--text-secondary)">
                         {p[dimKey]}
                       </text>
                     </g>
@@ -244,23 +244,23 @@ export default function CorrelationPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Détail par match</p>
             {dimData.length === 0
-              ? <p style={{ fontSize: 12, color: '#9CA3AF' }}>Aucune donnée disponible. Assure-toi que les joueurs remplissent leur RPE après chaque match.</p>
+              ? <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune donnée disponible. Assure-toi que les joueurs remplissent leur RPE après chaque match.</p>
               : dimData.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                     <div>
                       <p style={{ fontSize: 12, fontWeight: 600 }}>{p.titre}</p>
-                      <p style={{ fontSize: 10, color: '#9CA3AF' }}>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>
                         {p.date ? format(parseISO(p.date), 'd MMM', { locale: fr }) : ''} · {p.nb_reponses} réponses
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: rpeColor(p[dimKey]) }}>{p[dimKey]}</div>
-                        <div style={{ fontSize: 9, color: '#9CA3AF' }}>{dimension === 'charge' ? 'Charge' : 'Perf.'}</div>
+                        <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{dimension === 'charge' ? 'Charge' : 'Perf.'}</div>
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: 13, fontWeight: 700 }}>{p.buts_marques}-{p.buts_encaisses}</div>
-                        <div style={{ fontSize: 9, color: '#9CA3AF' }}>Score</div>
+                        <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Score</div>
                       </div>
                       <div style={{
                         width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',

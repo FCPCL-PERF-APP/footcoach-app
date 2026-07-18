@@ -131,9 +131,9 @@ export default function MesObjectifsPage() {
         {tabs.map(t => (
           <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             padding: '6px 14px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB',
+            border: '0.5px solid var(--border)',
             background: activeTab === t.key ? 'var(--primary-bg)' : 'transparent',
-            color: activeTab === t.key ? 'var(--primary)' : '#6B7280',
+            color: activeTab === t.key ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: activeTab === t.key ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><t.icon size={12} /> {t.label}</button>
@@ -152,14 +152,14 @@ export default function MesObjectifsPage() {
           {/* Points forts */}
           <Card>
             <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} color={'var(--success)'} /> Mes points forts</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Un point fort par domaine</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>Un point fort par domaine</p>
             {NIVEAUX.map(n => (
               <div key={n.key} style={{ marginBottom: 10 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 4 }}><n.icon size={12} /> Niveau {n.text}</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}><n.icon size={12} /> Niveau {n.text}</label>
                 <input value={data.points_forts?.[n.key] || ''}
                   onChange={e => setNested('points_forts', n.key, e.target.value)}
                   placeholder={`Mon point fort ${n.text}...`}
-                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
               </div>
             ))}
           </Card>
@@ -167,14 +167,14 @@ export default function MesObjectifsPage() {
           {/* Axes d'amélioration */}
           <Card>
             <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Target size={14} color={'var(--warning)'} /> Mes axes d'amélioration</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Un axe à travailler par domaine</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>Un axe à travailler par domaine</p>
             {NIVEAUX.map(n => (
               <div key={n.key} style={{ marginBottom: 10 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 4 }}><n.icon size={12} /> Niveau {n.text}</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}><n.icon size={12} /> Niveau {n.text}</label>
                 <input value={data.axes_amelioration?.[n.key] || ''}
                   onChange={e => setNested('axes_amelioration', n.key, e.target.value)}
                   placeholder={`Axe à améliorer...`}
-                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
               </div>
             ))}
           </Card>
@@ -182,14 +182,14 @@ export default function MesObjectifsPage() {
           {/* Objectifs personnels */}
           <Card>
             <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={14} color={'var(--warning)'} /> Mes objectifs personnels</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>3 objectifs pour la saison 2026/2027</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>3 objectifs pour la saison 2026/2027</p>
             {[1,2,3].map(i => (
               <div key={i} style={{ marginBottom: 10 }}>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Objectif {i}</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Objectif {i}</label>
                 <input value={data[`obj_perso_${i}`] || ''}
                   onChange={e => setField(`obj_perso_${i}`, e.target.value)}
                   placeholder={`Mon objectif personnel ${i}...`}
-                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
               </div>
             ))}
           </Card>
@@ -197,14 +197,14 @@ export default function MesObjectifsPage() {
           {/* Objectifs collectifs */}
           <Card>
             <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Swords size={14} color={'var(--primary)'} /> Mes objectifs collectifs</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>3 objectifs d'équipe pour la saison 2026/2027</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>3 objectifs d'équipe pour la saison 2026/2027</p>
             {[1,2,3].map(i => (
               <div key={i} style={{ marginBottom: 10 }}>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Objectif {i}</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Objectif {i}</label>
                 <input value={data[`obj_collectif_${i}`] || ''}
                   onChange={e => setField(`obj_collectif_${i}`, e.target.value)}
                   placeholder={`Objectif collectif ${i}...`}
-                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
               </div>
             ))}
           </Card>
@@ -228,7 +228,7 @@ export default function MesObjectifsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr style={{ background: '#F9FAFB' }}>
+                    <tr style={{ background: 'var(--bg-secondary)' }}>
                       {[stats.nbMatchs, `${stats.tempsMoy}'`, stats.titulaire, stats.remplacant, stats.totalButs, stats.totalPD, stats.cartonsJ, stats.cartonsR, stats.noteMoy].map((v, i) => (
                         <td key={i} style={{ padding: '8px 4px', textAlign: 'center', fontWeight: 600, fontSize: 13 }}>{v}</td>
                       ))}
@@ -247,17 +247,17 @@ export default function MesObjectifsPage() {
                 <button key={v} onClick={() => setField('bilan_obj_perso_atteints', v === 'Oui')}
                   style={{
                     flex: 1, padding: '10px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    border: `1.5px solid ${data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#E5E7EB'}`,
+                    border: `1.5px solid ${data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : 'var(--border)'}`,
                     background: data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
-                    color: data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#6B7280',
+                    color: data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : 'var(--text-secondary)',
                   }}>{v === 'Oui' ? <><CheckCircle2 size={13} style={{marginRight:4,verticalAlign:-2}} />Oui</> : <><XCircle size={13} style={{marginRight:4,verticalAlign:-2}} />Non</>}</button>
               ))}
             </div>
-            <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Comment y remédier :</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Comment y remédier :</label>
             <textarea value={data.bilan_obj_perso_comment || ''}
               onChange={e => setField('bilan_obj_perso_comment', e.target.value)}
               placeholder="Ce que je vais faire différemment..."
-              rows={3} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              rows={3} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
           </Card>
 
           {/* 2. Objectifs collectifs atteints */}
@@ -268,9 +268,9 @@ export default function MesObjectifsPage() {
                 <button key={v} onClick={() => setField('bilan_obj_collectifs_atteints', v === 'Oui')}
                   style={{
                     flex: 1, padding: '10px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    border: `1.5px solid ${data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#E5E7EB'}`,
+                    border: `1.5px solid ${data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : 'var(--border)'}`,
                     background: data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
-                    color: data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : '#6B7280',
+                    color: data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : 'var(--text-secondary)',
                   }}>{v === 'Oui' ? <><CheckCircle2 size={13} style={{marginRight:4,verticalAlign:-2}} />Oui</> : <><XCircle size={13} style={{marginRight:4,verticalAlign:-2}} />Non</>}</button>
               ))}
             </div>
@@ -282,7 +282,7 @@ export default function MesObjectifsPage() {
             <textarea value={data.bilan_axes_saison_prochaine || ''}
               onChange={e => setField('bilan_axes_saison_prochaine', e.target.value)}
               placeholder="Ce que je veux améliorer la saison prochaine..."
-              rows={4} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              rows={4} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
           </Card>
 
           {/* 4. Projection saison prochaine */}
@@ -291,7 +291,7 @@ export default function MesObjectifsPage() {
             <textarea value={data.bilan_projection || ''}
               onChange={e => setField('bilan_projection', e.target.value)}
               placeholder="Mes ambitions pour la saison prochaine..."
-              rows={4} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              rows={4} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
           </Card>
 
           {/* Commentaire général */}
@@ -300,7 +300,7 @@ export default function MesObjectifsPage() {
             <textarea value={data.bilan_commentaire || ''}
               onChange={e => setField('bilan_commentaire', e.target.value)}
               placeholder="Bilan général de ma saison 2026/2027..."
-              rows={4} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              rows={4} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
           </Card>
         </>
       )}

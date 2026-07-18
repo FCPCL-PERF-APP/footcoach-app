@@ -142,9 +142,9 @@ export default function CalendrierPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
             <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Supprimer cet événement ?</p>
-            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}><strong>{deleteConfirm.titre}</strong> sera définitivement supprimé.</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}><strong>{deleteConfirm.titre}</strong> sera définitivement supprimé.</p>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: 10, border: '0.5px solid #D1D5DB', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
+              <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: 10, border: '0.5px solid var(--border)', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
               <button onClick={() => deleteEvent(deleteConfirm)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: '#A32D2D', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
             </div>
           </div>
@@ -154,10 +154,10 @@ export default function CalendrierPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Agenda</h1>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => navigate('/calendrier-visuel')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <button onClick={() => navigate('/calendrier-visuel')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
             <CalendarDays size={13} /> Vue mois
           </button>
-          {isCoach && <button onClick={() => setShowRecurring(!showRecurring)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          {isCoach && <button onClick={() => setShowRecurring(!showRecurring)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <Repeat size={14} />
           </button>}
           {isCoach && <button onClick={() => { setEditingEvent(null); setShowAdd(!showAdd) }}
@@ -172,9 +172,9 @@ export default function CalendrierPage() {
         {['tous','match','seance'].map(f => (
           <button key={f} onClick={() => setFilterType(f)} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB',
+            border: '0.5px solid var(--border)',
             background: filterType === f ? 'var(--primary-bg)' : 'transparent',
-            color: filterType === f ? 'var(--primary)' : '#6B7280',
+            color: filterType === f ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: filterType === f ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}>
@@ -190,9 +190,9 @@ export default function CalendrierPage() {
         {[['avenir', CalendarDays, 'À venir'],['passes', History, 'Passés']].map(([p, Icon, lbl]) => (
           <button key={p} onClick={() => setFilterPeriode(p)} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: `0.5px solid ${filterPeriode === p ? 'var(--primary)' : '#D1D5DB'}`,
+            border: `0.5px solid ${filterPeriode === p ? 'var(--primary)' : 'var(--border)'}`,
             background: filterPeriode === p ? 'var(--primary-bg)' : 'transparent',
-            color: filterPeriode === p ? 'var(--primary)' : '#6B7280',
+            color: filterPeriode === p ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: filterPeriode === p ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl} ({p === 'avenir' ? upcoming.length : past.length})</button>
@@ -252,7 +252,7 @@ export default function CalendrierPage() {
           {/* À VENIR — liste ordonnée */}
           {filterPeriode === 'avenir' && (
             upcoming.length === 0 ? (
-              <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucun événement à venir.{isCoach && ' Clique sur "+ Ajouter".'}</p></Card>
+              <Card><p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>Aucun événement à venir.{isCoach && ' Clique sur "+ Ajouter".'}</p></Card>
             ) : (
               upcoming.map(ev => (
                 <EventCard key={ev.id} ev={ev} isCoach={isCoach} isAdjoint={isAdjoint} isJoueur={isJoueur}
@@ -265,13 +265,13 @@ export default function CalendrierPage() {
           {/* PASSÉS — menu déroulant */}
           {filterPeriode === 'passes' && (
             past.length === 0 ? (
-              <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucun événement passé.</p></Card>
+              <Card><p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>Aucun événement passé.</p></Card>
             ) : (
               <>
                 <div style={{ marginBottom: 14 }}>
-                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Choisir un événement</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Choisir un événement</label>
                   <select value={selectedPastEvent} onChange={e => setSelectedPastEvent(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+                    style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
                     {past.map(ev => (
                       <option key={ev.id} value={ev.id}>{formatEventLabel(ev)}</option>
                     ))}
@@ -341,8 +341,8 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
           {isJoueur && ev.type === 'match' && convoque !== null && (
             <span style={{
               fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-              background: convoque ? 'var(--primary-bg)' : '#F3F4F6',
-              color: convoque ? 'var(--primary)' : '#9CA3AF',
+              background: convoque ? 'var(--primary-bg)' : 'var(--bg-secondary)',
+              color: convoque ? 'var(--primary)' : 'var(--text-muted)',
               display: 'inline-flex', alignItems: 'center', gap: 4
             }}>
               {convoque ? <Send size={10} /> : <Hourglass size={10} />} {convoque ? 'Convoqué' : 'Non convoqué'}
@@ -357,10 +357,10 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
         )}
       </div>
 
-      <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+      <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
         <CalendarDays size={11} color={'var(--primary)'} /> {dateStr}{ev.type === 'match' ? (ev.domicile ? ' · Domicile' : ' · Déplacement') : ''}
       </p>
-      {ev.lieu && <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} color={CAT_COLORS.violet.color} /> {ev.lieu}</p>}
+      {ev.lieu && <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} color={CAT_COLORS.violet.color} /> {ev.lieu}</p>}
       {ev.type === 'match' && ev.rdv_heure && (
         <p style={{ fontSize: 11, color: 'var(--primary)', marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
           <Clock size={11} /> RDV {ev.rdv_heure}{ev.rdv_lieu ? ` · ${ev.rdv_lieu}` : ''}
@@ -369,12 +369,12 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
 
       {/* Résumé présences staff */}
       {isStaff && presenceCount !== null && (
-        <div style={{ display: 'flex', gap: 10, marginBottom: 8, padding: '6px 10px', background: '#F9FAFB', borderRadius: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 8, padding: '6px 10px', background: 'var(--bg-secondary)', borderRadius: 8, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 3 }}><CheckCircle2 size={11} /> {presenceCount.present}</span>
           {presenceCount.exterieur > 0 && <span style={{ fontSize: 11, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 3 }}><RefreshCw size={11} /> {presenceCount.exterieur}</span>}
           <span style={{ fontSize: 11, color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: 3 }}><XCircle size={11} /> {presenceCount.absent}</span>
           <span style={{ fontSize: 11, color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 3 }}><Bandage size={11} /> {presenceCount.blesse}</span>
-          <span style={{ fontSize: 11, color: '#9CA3AF' }}>· {presenceCount.total} réponse(s)</span>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>· {presenceCount.total} réponse(s)</span>
         </div>
       )}
 
@@ -468,8 +468,8 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
   const enAttenteSelection = isMatch && convoque !== true
 
   return (
-    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid #F3F4F6' }}>
-      <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>
+    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '0.5px solid var(--bg-secondary)' }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
         {isMatch ? (convoque === true ? 'Ma présence au match :' : 'Ma disponibilité pour ce match :') : 'Ma présence à l\'entraînement :'}
       </p>
 
@@ -479,14 +479,14 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
         </div>
       )}
 
-      {loading ? <p style={{ fontSize: 11, color: '#9CA3AF' }}>Chargement...</p> : (
+      {loading ? <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Chargement...</p> : (
         <div style={{ display: 'flex', gap: 5, marginBottom: 10, flexWrap: isMatch ? 'nowrap' : 'wrap' }}>
           {STATUTS.map(s => (
             <button key={s.key} onClick={() => handleStatut(s.key)} disabled={saving} style={{
               flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: isMatch ? 10 : 11,
-              border: `1.5px solid ${statut === s.key ? s.border : '#E5E7EB'}`,
+              border: `1.5px solid ${statut === s.key ? s.border : 'var(--border)'}`,
               background: statut === s.key ? s.bg : 'transparent',
-              color: statut === s.key ? s.color : '#9CA3AF',
+              color: statut === s.key ? s.color : 'var(--text-muted)',
               fontWeight: statut === s.key ? 600 : 400,
               cursor: saving ? 'not-allowed' : 'pointer', transition: 'all .15s',
               whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4
@@ -512,7 +512,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
 
       {/* Disponible mais pas encore convoqué/retenu par le coach */}
       {!estEmpêche && enAttenteSelection && (statut === 'present' || statut === 'exterieur') && (
-        <div style={{ background: '#F3F4F6', borderRadius: 8, padding: '7px 10px', fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: '7px 10px', fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
           <Hourglass size={12} /> En attente de la sélection du coach — RPE et Footbar débloqués si tu es convoqué.
         </div>
       )}
@@ -520,7 +520,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
       {/* Bouton RPE + Footbar si présent/extérieur et (séance, ou match + convoqué) */}
       {peutRemplir && (
         <button onClick={() => navigate('/mon-suivi')}
-          style={{ width: '100%', padding: '7px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid #D1D5DB', background: 'transparent', cursor: 'pointer', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          style={{ width: '100%', padding: '7px 4px', borderRadius: 8, fontSize: 11, border: '0.5px solid var(--border)', background: 'transparent', cursor: 'pointer', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <Heart size={12} color={CAT_COLORS.rose.color} /> RPE / <Radio size={12} color={CAT_COLORS.orange.color} /> Footbar
         </button>
       )}
@@ -532,7 +532,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
 
       {/* Pas encore répondu */}
       {!statut && !loading && (
-        <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', marginTop: 4 }}>
+        <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', marginTop: 4 }}>
           {isMatch ? 'Indique ta disponibilité pour ce match' : 'Indique ta présence pour accéder au RPE et Footbar'}
         </p>
       )}
@@ -564,13 +564,13 @@ function FormeWidget({ evenementId, joueurId }) {
   }
 
   return (
-    <div style={{ marginTop: 8, padding: '8px 10px', background: '#F9FAFB', borderRadius: 10 }}>
-      <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 6 }}>Comment tu te sens aujourd'hui ?</p>
+    <div style={{ marginTop: 8, padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: 10 }}>
+      <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>Comment tu te sens aujourd'hui ?</p>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
         {[['var(--success)', 'bien', 'Bien'], ['var(--warning)', 'moyen', 'Moyen'], ['var(--danger)', 'fatigue', 'Fatigué']].map(([dotColor, val, label]) => (
           <button key={val} onClick={() => saveForme(val)} style={{
             flex: 1, padding: '6px 4px', borderRadius: 8, cursor: 'pointer', textAlign: 'center',
-            border: `1.5px solid ${forme === val ? 'var(--primary)' : '#E5E7EB'}`,
+            border: `1.5px solid ${forme === val ? 'var(--primary)' : 'var(--border)'}`,
             background: forme === val ? 'var(--primary-bg)' : 'transparent',
             fontSize: 11, fontWeight: forme === val ? 600 : 400,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
@@ -587,7 +587,7 @@ function RecurringModal({ onClose, onSave }) {
   const [form, setForm] = useState({ titre: 'Entraînement', jour: '2', heure: '19:30', lieu: '', dateDebut: '', dateFin: '' })
   const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
   const [saving, setSaving] = useState(false)
-  const iStyle = { width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }
+  const iStyle = { width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }
 
   async function handleSave() {
     if (!form.titre || !form.dateDebut || !form.dateFin) return
@@ -617,18 +617,18 @@ function RecurringModal({ onClose, onSave }) {
           <Repeat size={15} color={'var(--primary)'} /> Séances récurrentes
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Intitulé</label><input value={form.titre} onChange={e => setForm(p => ({...p, titre: e.target.value}))} style={iStyle} /></div>
-          <div><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Jour</label><select value={form.jour} onChange={e => setForm(p => ({...p, jour: e.target.value}))} style={iStyle}>{JOURS.map((j,i) => <option key={i} value={i}>{j}</option>)}</select></div>
-          <div><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Heure</label><input type="time" value={form.heure} onChange={e => setForm(p => ({...p, heure: e.target.value}))} style={iStyle} /></div>
-          <div><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Date début</label><input type="date" value={form.dateDebut} onChange={e => setForm(p => ({...p, dateDebut: e.target.value}))} style={iStyle} /></div>
-          <div><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Date fin</label><input type="date" value={form.dateFin} onChange={e => setForm(p => ({...p, dateFin: e.target.value}))} style={iStyle} /></div>
-          <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Lieu</label><input value={form.lieu} onChange={e => setForm(p => ({...p, lieu: e.target.value}))} placeholder="Terrain 1" style={iStyle} /></div>
+          <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Intitulé</label><input value={form.titre} onChange={e => setForm(p => ({...p, titre: e.target.value}))} style={iStyle} /></div>
+          <div><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Jour</label><select value={form.jour} onChange={e => setForm(p => ({...p, jour: e.target.value}))} style={iStyle}>{JOURS.map((j,i) => <option key={i} value={i}>{j}</option>)}</select></div>
+          <div><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Heure</label><input type="time" value={form.heure} onChange={e => setForm(p => ({...p, heure: e.target.value}))} style={iStyle} /></div>
+          <div><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Date début</label><input type="date" value={form.dateDebut} onChange={e => setForm(p => ({...p, dateDebut: e.target.value}))} style={iStyle} /></div>
+          <div><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Date fin</label><input type="date" value={form.dateFin} onChange={e => setForm(p => ({...p, dateFin: e.target.value}))} style={iStyle} /></div>
+          <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Lieu</label><input value={form.lieu} onChange={e => setForm(p => ({...p, lieu: e.target.value}))} placeholder="Terrain 1" style={iStyle} /></div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: 12, background: 'var(--gradient)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
             {saving ? 'Création...' : 'Créer toutes les séances'}
           </button>
-          <button onClick={onClose} style={{ padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, cursor: 'pointer' }}>Annuler</button>
+          <button onClick={onClose} style={{ padding: '12px 16px', background: 'var(--bg-secondary)', border: 'none', borderRadius: 10, cursor: 'pointer' }}>Annuler</button>
         </div>
       </div>
     </div>

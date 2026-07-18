@@ -94,7 +94,7 @@ export default function BlessuresPage() {
         <button onClick={() => navigate(`/joueurs/${joueurId}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Suivi des blessures</p>
-          <p style={{ fontSize: 12, color: '#9CA3AF' }}>{joueur?.nom} {joueur?.prenom} · {joueur?.poste}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{joueur?.nom} {joueur?.prenom} · {joueur?.poste}</p>
         </div>
         {isCoach && (
           <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -120,16 +120,16 @@ export default function BlessuresPage() {
             <Input label="Retour prévu" type="date" value={form.date_retour_prevue} onChange={v => setForm(p => ({...p, date_retour_prevue: v}))} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Description</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Description</label>
             <textarea value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))}
               placeholder="Circonstances, localisation précise..." rows={2}
-              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Traitement / soins</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Traitement / soins</label>
             <textarea value={form.traitement} onChange={e => setForm(p => ({...p, traitement: e.target.value}))}
               placeholder="Kinésithérapie, repos, glace..." rows={2}
-              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
           </div>
           <Button variant="primary" style={{ width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={handleSave} disabled={saving}>
             {saving ? 'Enregistrement...' : <><Save size={13} /> Enregistrer</>}
@@ -159,13 +159,13 @@ export default function BlessuresPage() {
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 16, fontWeight: 700, color: '#A32D2D' }}>{jours}j</div>
-                    <div style={{ fontSize: 10, color: '#9CA3AF' }}>absent</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>absent</div>
                   </div>
                 </div>
-                {b.description && <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 6, display: 'flex', alignItems: 'flex-start', gap: 5 }}><FileText size={11} style={{ flexShrink: 0, marginTop: 2 }} /> {b.description}</p>}
-                {b.traitement && <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 6, display: 'flex', alignItems: 'flex-start', gap: 5 }}><Pill size={11} style={{ flexShrink: 0, marginTop: 2 }} /> {b.traitement}</p>}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #F3F4F6' }}>
-                  <div style={{ fontSize: 11, color: '#9CA3AF' }}>
+                {b.description && <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6, display: 'flex', alignItems: 'flex-start', gap: 5 }}><FileText size={11} style={{ flexShrink: 0, marginTop: 2 }} /> {b.description}</p>}
+                {b.traitement && <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6, display: 'flex', alignItems: 'flex-start', gap: 5 }}><Pill size={11} style={{ flexShrink: 0, marginTop: 2 }} /> {b.traitement}</p>}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '0.5px solid var(--bg-secondary)' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                     Depuis le {format(parseISO(b.date_debut), 'd MMM yyyy', { locale: fr })}
                     {b.date_retour_prevue && <span> · Retour prévu le {format(parseISO(b.date_retour_prevue), 'd MMM', { locale: fr })}</span>}
                   </div>
@@ -193,7 +193,7 @@ export default function BlessuresPage() {
       {/* Historique */}
       {blessuresPassees.length > 0 && (
         <>
-          <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', margin: '14px 0 8px' }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', margin: '14px 0 8px' }}>
             Historique ({blessuresPassees.length})
           </p>
           {blessuresPassees.map(b => {
@@ -202,17 +202,17 @@ export default function BlessuresPage() {
               ? differenceInDays(parseISO(b.date_retour_effective), parseISO(b.date_debut))
               : null
             return (
-              <div key={b.id} style={{ background: '#F9FAFB', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 12, marginBottom: 8, opacity: 0.8 }}>
+              <div key={b.id} style={{ background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 12, marginBottom: 8, opacity: 0.8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <span style={{ fontSize: 12, fontWeight: 600 }}>{b.zone} · {b.type_blessure}</span>
-                    <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
                       {format(parseISO(b.date_debut), 'd MMM yyyy', { locale: fr })} → {b.date_retour_effective ? format(parseISO(b.date_retour_effective), 'd MMM yyyy', { locale: fr }) : '—'}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: g.bg, color: g.color }}>{g.label}</span>
-                    {duree !== null && <span style={{ fontSize: 12, fontWeight: 600, color: '#6B7280' }}>{duree}j</span>}
+                    {duree !== null && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>{duree}j</span>}
                   </div>
                 </div>
               </div>

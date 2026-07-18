@@ -35,13 +35,13 @@ export class ErrorBoundary extends Component {
         <div style={{
           minHeight: '100vh', display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
-          padding: 24, background: '#F9FAFB', textAlign: 'center'
+          padding: 24, background: 'var(--bg-secondary)', textAlign: 'center'
         }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', marginBottom: 16, background: '#fff', border: '1px solid #E5E7EB', padding: 5, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', marginBottom: 16, background: '#fff', border: '1px solid var(--border)', padding: 5, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Oups, quelque chose s'est mal passé</h2>
-          <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 24, maxWidth: 300 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24, maxWidth: 300 }}>
             L'application a rencontré une erreur inattendue. Essaie de recharger la page.
           </p>
           <button
@@ -57,15 +57,15 @@ export class ErrorBoundary extends Component {
             onClick={() => window.location.reload()}
             style={{
               padding: '10px 20px', borderRadius: 12,
-              border: '0.5px solid #D1D5DB', background: 'transparent',
-              fontSize: 13, cursor: 'pointer', color: '#6B7280'
+              border: '0.5px solid var(--border)', background: 'transparent',
+              fontSize: 13, cursor: 'pointer', color: 'var(--text-secondary)'
             }}>
             Recharger la page
           </button>
           {import.meta.env.DEV && (
-            <details style={{ marginTop: 20, fontSize: 11, color: '#9CA3AF', textAlign: 'left', maxWidth: 400 }}>
+            <details style={{ marginTop: 20, fontSize: 11, color: 'var(--text-muted)', textAlign: 'left', maxWidth: 400 }}>
               <summary>Détails de l'erreur</summary>
-              <pre style={{ overflow: 'auto', padding: 8, background: '#F3F4F6', borderRadius: 8, marginTop: 8 }}>
+              <pre style={{ overflow: 'auto', padding: 8, background: 'var(--bg-secondary)', borderRadius: 8, marginTop: 8 }}>
                 {this.state.error?.toString()}
               </pre>
             </details>

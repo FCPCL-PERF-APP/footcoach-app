@@ -72,10 +72,10 @@ export default function ExportFicheJoueurPage() {
   return (
     <>
       {/* Boutons non imprimés */}
-      <div style={{ padding: '10px 12px', display: 'flex', gap: 8, background: '#F9FAFB', borderBottom: '0.5px solid #E5E7EB' }} className="no-print">
-        <button onClick={() => navigate(-1)} style={{ padding: '7px 14px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Retour</button>
+      <div style={{ padding: '10px 12px', display: 'flex', gap: 8, background: 'var(--bg-secondary)', borderBottom: '0.5px solid var(--border)' }} className="no-print">
+        <button onClick={() => navigate(-1)} style={{ padding: '7px 14px', borderRadius: 8, border: '0.5px solid var(--border)', background: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Retour</button>
         <button onClick={handlePrint} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: 'var(--gradient)', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Printer size={13} /> Imprimer / PDF</button>
-        <p style={{ fontSize: 11, color: '#9CA3AF', alignSelf: 'center' }}>Sur iPhone : Partager → "Enregistrer en PDF"</p>
+        <p style={{ fontSize: 11, color: 'var(--text-muted)', alignSelf: 'center' }}>Sur iPhone : Partager → "Enregistrer en PDF"</p>
       </div>
 
       {/* Fiche imprimable */}
@@ -92,20 +92,20 @@ export default function ExportFicheJoueurPage() {
             }
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1A3A6B', margin: 0 }}>{joueur.nom} {joueur.prenom}</h1>
-              <p style={{ fontSize: 14, color: '#6B7280', margin: '4px 0' }}>{joueur.poste}{joueur.numero ? ` · N°${joueur.numero}` : ''}{joueur.groupe ? ` · Pôle ${joueur.groupe}` : ''}</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>{joueur.date_naissance ? `Né le ${format(parseISO(joueur.date_naissance), 'd MMMM yyyy', { locale: fr })}` : ''}</p>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '4px 0' }}>{joueur.poste}{joueur.numero ? ` · N°${joueur.numero}` : ''}{joueur.groupe ? ` · Pôle ${joueur.groupe}` : ''}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>{joueur.date_naissance ? `Né le ${format(parseISO(joueur.date_naissance), 'd MMMM yyyy', { locale: fr })}` : ''}</p>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#1A3A6B' }}>FC PCL</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF' }}>Saison 2026/2027</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF' }}>{format(new Date(), 'd MMMM yyyy', { locale: fr })}</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Saison 2026/2027</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{format(new Date(), 'd MMMM yyyy', { locale: fr })}</p>
           </div>
         </div>
 
         {/* Stats saison */}
         <section style={{ marginBottom: 24 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1A3A6B', marginBottom: 12, paddingBottom: 6, borderBottom: '1px solid #E5E7EB' }}>⚽ Statistiques saison</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1A3A6B', marginBottom: 12, paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>⚽ Statistiques saison</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
             {[
               ['Matchs joués', officiels.length],
@@ -117,9 +117,9 @@ export default function ExportFicheJoueurPage() {
               ['RPE moyen', `${rpeMoy}/5`],
               ['Engagement entr.', `${tauxPres}%`],
             ].map(([label, val]) => (
-              <div key={label} style={{ background: '#F9FAFB', borderRadius: 10, padding: '10px 8px', textAlign: 'center', border: '0.5px solid #E5E7EB' }}>
+              <div key={label} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: '10px 8px', textAlign: 'center', border: '0.5px solid var(--border)' }}>
                 <div style={{ fontSize: 20, fontWeight: 800, color: '#1A3A6B' }}>{val}</div>
-                <div style={{ fontSize: 10, color: '#6B7280', marginTop: 3 }}>{label}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 3 }}>{label}</div>
               </div>
             ))}
           </div>
@@ -128,7 +128,7 @@ export default function ExportFicheJoueurPage() {
         {/* Objectifs */}
         {objJoueur && (
           <section style={{ marginBottom: 24 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1A3A6B', marginBottom: 12, paddingBottom: 6, borderBottom: '1px solid #E5E7EB' }}>🎯 Objectifs & développement</h2>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1A3A6B', marginBottom: 12, paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>🎯 Objectifs & développement</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               {/* Points forts */}
@@ -138,7 +138,7 @@ export default function ExportFicheJoueurPage() {
                   {[['💪', 'athletique', 'Athlétique'], ['🧠', 'tactique', 'Tactique'], ['⚽', 'technique', 'Technique'], ['🎯', 'mental', 'Mental']].map(([icon, key, label]) =>
                     objJoueur.points_forts[key] ? (
                       <div key={key} style={{ marginBottom: 6 }}>
-                        <span style={{ fontSize: 11, color: '#6B7280' }}>{icon} {label} : </span>
+                        <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{icon} {label} : </span>
                         <span style={{ fontSize: 11, fontWeight: 500 }}>{objJoueur.points_forts[key]}</span>
                       </div>
                     ) : null
@@ -153,7 +153,7 @@ export default function ExportFicheJoueurPage() {
                   {[['💪', 'athletique', 'Athlétique'], ['🧠', 'tactique', 'Tactique'], ['⚽', 'technique', 'Technique'], ['🎯', 'mental', 'Mental']].map(([icon, key, label]) =>
                     objJoueur.axes_amelioration[key] ? (
                       <div key={key} style={{ marginBottom: 6 }}>
-                        <span style={{ fontSize: 11, color: '#6B7280' }}>{icon} {label} : </span>
+                        <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{icon} {label} : </span>
                         <span style={{ fontSize: 11, fontWeight: 500 }}>{objJoueur.axes_amelioration[key]}</span>
                       </div>
                     ) : null
@@ -174,7 +174,7 @@ export default function ExportFicheJoueurPage() {
 
             {/* Bilan */}
             {(objJoueur.bilan_obj_perso_atteints !== null || objJoueur.bilan_commentaire) && (
-              <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 12, border: '0.5px solid #E5E7EB' }}>
+              <div style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: 12, border: '0.5px solid var(--border)' }}>
                 <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 8 }}>📋 Bilan de saison</p>
                 {objJoueur.bilan_obj_perso_atteints !== null && (
                   <p style={{ fontSize: 11, marginBottom: 4 }}>
@@ -190,7 +190,7 @@ export default function ExportFicheJoueurPage() {
                   <p style={{ fontSize: 11, marginBottom: 4 }}>Axes saison prochaine : {objJoueur.bilan_axes_saison_prochaine}</p>
                 )}
                 {objJoueur.bilan_commentaire && (
-                  <p style={{ fontSize: 11, fontStyle: 'italic', color: '#6B7280', marginTop: 6 }}>"{objJoueur.bilan_commentaire}"</p>
+                  <p style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--text-secondary)', marginTop: 6 }}>"{objJoueur.bilan_commentaire}"</p>
                 )}
               </div>
             )}
@@ -200,14 +200,14 @@ export default function ExportFicheJoueurPage() {
         {/* Blessures */}
         {blessures.length > 0 && (
           <section style={{ marginBottom: 24 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1A3A6B', marginBottom: 12, paddingBottom: 6, borderBottom: '1px solid #E5E7EB' }}>🤕 Historique blessures</h2>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1A3A6B', marginBottom: 12, paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>🤕 Historique blessures</h2>
             {blessures.map(b => (
-              <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6', fontSize: 12 }}>
+              <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)', fontSize: 12 }}>
                 <div>
                   <span style={{ fontWeight: 600 }}>{b.zone || b.type}</span>
-                  <span style={{ color: '#6B7280', marginLeft: 8 }}>{b.gravite}</span>
+                  <span style={{ color: 'var(--text-secondary)', marginLeft: 8 }}>{b.gravite}</span>
                 </div>
-                <div style={{ color: '#9CA3AF' }}>
+                <div style={{ color: 'var(--text-muted)' }}>
                   {b.date_debut ? format(parseISO(b.date_debut), 'd MMM yyyy', { locale: fr }) : '—'}
                   {b.date_retour_effective ? ` → ${format(parseISO(b.date_retour_effective), 'd MMM yyyy', { locale: fr })}` : ' → En cours'}
                 </div>
@@ -217,17 +217,17 @@ export default function ExportFicheJoueurPage() {
         )}
 
         {/* Signature */}
-        <div style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
           <div>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 24 }}>Signature du joueur</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 24 }}>Signature du joueur</p>
             <div style={{ width: 180, borderBottom: '1px solid #000' }} />
           </div>
           <div>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 24 }}>Signature du coach</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 24 }}>Signature du coach</p>
             <div style={{ width: 180, borderBottom: '1px solid #000' }} />
           </div>
         </div>
-        <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', marginTop: 16 }}>FC PCL · Plouagat Châtelaudren Lanrodec · Saison 2026/2027</p>
+        <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', marginTop: 16 }}>FC PCL · Plouagat Châtelaudren Lanrodec · Saison 2026/2027</p>
       </div>
 
       <style>{`

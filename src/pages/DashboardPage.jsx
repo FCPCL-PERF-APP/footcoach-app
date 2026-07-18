@@ -51,7 +51,7 @@ function alertKey(a, joueurId) {
 }
 
 function LineChart({ data, color = 'var(--primary)' }) {
-  if (!data || data.length < 2) return <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', padding: 12 }}>Pas assez de données</p>
+  if (!data || data.length < 2) return <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: 12 }}>Pas assez de données</p>
   const W = 300, H = 80, PAD = 10
   const minV = Math.min(...data.map(d => d.value)) - 0.5
   const maxV = Math.max(...data.map(d => d.value)) + 0.5
@@ -65,11 +65,11 @@ function LineChart({ data, color = 'var(--primary)' }) {
         {data.map((d, i) => (
           <g key={i}>
             <circle cx={PAD + i * xStep} cy={yScale(d.value)} r="4" fill={color} />
-            <text x={PAD + i * xStep} y={yScale(d.value) - 8} textAnchor="middle" fontSize="9" fill="#6B7280">{d.value}</text>
+            <text x={PAD + i * xStep} y={yScale(d.value) - 8} textAnchor="middle" fontSize="9" fill="var(--text-secondary)">{d.value}</text>
           </g>
         ))}
       </svg>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
         {data.map((d, i) => <span key={i}>{d.label}</span>)}
       </div>
     </div>

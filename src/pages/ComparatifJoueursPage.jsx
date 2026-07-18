@@ -7,7 +7,7 @@ import { THEME } from '../theme'
 import { Scale, Heart, Radio } from 'lucide-react'
 
 function rpeColor(v) {
-  if (!v) return '#9CA3AF'
+  if (!v) return 'var(--text-muted)'
   if (v >= 4.5) return '#A32D2D'
   if (v >= 4) return '#D85A30'
   if (v >= 3) return '#BA7517'
@@ -95,20 +95,20 @@ export default function ComparatifJoueursPage() {
     return (
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={{ fontSize: 12, fontWeight: winner === 1 ? 700 : 400, color: winner === 1 ? 'var(--primary)' : '#374151' }}>
+          <span style={{ fontSize: 12, fontWeight: winner === 1 ? 700 : 400, color: winner === 1 ? 'var(--primary)' : 'var(--text-primary)' }}>
             {v1 ?? '—'}{unit}
           </span>
-          <span style={{ fontSize: 11, color: '#9CA3AF' }}>{label}</span>
-          <span style={{ fontSize: 12, fontWeight: winner === 2 ? 700 : 400, color: winner === 2 ? '#A32D2D' : '#374151' }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{label}</span>
+          <span style={{ fontSize: 12, fontWeight: winner === 2 ? 700 : 400, color: winner === 2 ? '#A32D2D' : 'var(--text-primary)' }}>
             {v2 ?? '—'}{unit}
           </span>
         </div>
         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-          <div style={{ flex: 1, height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden', direction: 'rtl' }}>
+          <div style={{ flex: 1, height: 8, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden', direction: 'rtl' }}>
             <div style={{ height: '100%', borderRadius: 4, background: 'var(--primary)', width: `${p1}%` }} />
           </div>
-          <div style={{ width: 2, height: 12, background: '#E5E7EB' }} />
-          <div style={{ flex: 1, height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ width: 2, height: 12, background: 'var(--border)' }} />
+          <div style={{ flex: 1, height: 8, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{ height: '100%', borderRadius: 4, background: '#A32D2D', width: `${p2}%` }} />
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function ComparatifJoueursPage() {
             style={{ padding: '8px 10px', border: `2px solid ${'var(--primary)'}`, borderRadius: 10, fontSize: 12, outline: 'none', color: 'var(--primary)', fontWeight: 600 }}>
             {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
           </select>
-          <span style={{ textAlign: 'center', fontSize: 14, fontWeight: 700, color: '#9CA3AF' }}>VS</span>
+          <span style={{ textAlign: 'center', fontSize: 14, fontWeight: 700, color: 'var(--text-muted)' }}>VS</span>
           <select value={joueur2} onChange={e => setJoueur2(e.target.value)}
             style={{ padding: '8px 10px', border: '2px solid #A32D2D', borderRadius: 10, fontSize: 12, outline: 'none', color: '#A32D2D', fontWeight: 600 }}>
             {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
@@ -138,8 +138,8 @@ export default function ComparatifJoueursPage() {
         </div>
         {j1 && j2 && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 }}>
-            <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center' }}>{j1.poste} {j1.numero ? `· N°${j1.numero}` : ''}</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center' }}>{j2.poste} {j2.numero ? `· N°${j2.numero}` : ''}</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>{j1.poste} {j1.numero ? `· N°${j1.numero}` : ''}</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>{j2.poste} {j2.numero ? `· N°${j2.numero}` : ''}</p>
           </div>
         )}
       </Card>
@@ -158,12 +158,12 @@ export default function ComparatifJoueursPage() {
             ].map(({ label, v1, v2, noCompare }) => {
               const w = noCompare ? 0 : (v1 > v2 ? 1 : v2 > v1 ? 2 : 0)
               return (
-                <div key={label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10 }}>
-                  <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', marginBottom: 6 }}>{label}</p>
+                <div key={label} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10 }}>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 6 }}>{label}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: w === 1 ? 'var(--primary)' : '#374151' }}>{v1 ?? '—'}</span>
-                    <span style={{ fontSize: 10, color: '#D1D5DB' }}>·</span>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: w === 2 ? '#A32D2D' : '#374151' }}>{v2 ?? '—'}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: w === 1 ? 'var(--primary)' : 'var(--text-primary)' }}>{v1 ?? '—'}</span>
+                    <span style={{ fontSize: 10, color: 'var(--border)' }}>·</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: w === 2 ? '#A32D2D' : 'var(--text-primary)' }}>{v2 ?? '—'}</span>
                   </div>
                 </div>
               )
@@ -175,9 +175,9 @@ export default function ComparatifJoueursPage() {
             {[['rpe', Heart, 'RPE'],['footbar', Radio, 'Footbar']].map(([tab, Icon, lbl]) => (
               <button key={tab} onClick={() => setActiveTab(tab)} style={{
                 padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-                border: '0.5px solid #D1D5DB',
+                border: '0.5px solid var(--border)',
                 background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
-                color: activeTab === tab ? 'var(--primary)' : '#6B7280',
+                color: activeTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
                 fontWeight: activeTab === tab ? 600 : 400,
                 display: 'inline-flex', alignItems: 'center', gap: 5
               }}><Icon size={11} /> {lbl}</button>

@@ -40,8 +40,8 @@ export default function StatsConnexionPage() {
     actif_semaine:   { label: "Cette semaine",      color: 'var(--warning)', bg: '#FDFAEE' },
     actif_mois:      { label: "Ce mois",            color: 'var(--primary)', bg: 'var(--primary-bg)' },
     inactif:         { label: "Inactif +30j",       color: 'var(--danger)', bg: 'var(--danger-bg)' },
-    jamais_connecte: { label: "Jamais connecte",    color: '#6B7280', bg: '#F3F4F6' },
-    non_invite:      { label: "Non invite",          color: '#374151', bg: '#F9FAFB' },
+    jamais_connecte: { label: "Jamais connecte",    color: 'var(--text-secondary)', bg: 'var(--bg-secondary)' },
+    non_invite:      { label: "Non invite",          color: 'var(--text-primary)', bg: 'var(--bg-secondary)' },
   }
 
   const enriched = joueurs.map(j => ({ ...j, statut: getStatut(j) }))
@@ -74,8 +74,8 @@ export default function StatsConnexionPage() {
           ["Cette semaine",      counts.actif_semaine,   '#BA7517', '#FDFAEE'],
           ["Ce mois",            counts.actif_mois,      '#185FA5', '#E6F1FB'],
           ["Inactifs +30j",      counts.inactif,         '#A32D2D', '#FCEBEB'],
-          ["Jamais connectes",   counts.jamais_connecte, '#6B7280', '#F3F4F6'],
-          ["Non invites",        counts.non_invite,      '#374151', '#F9FAFB'],
+          ["Jamais connectes",   counts.jamais_connecte, 'var(--text-secondary)', 'var(--bg-secondary)'],
+          ["Non invites",        counts.non_invite,      'var(--text-primary)', 'var(--bg-secondary)'],
         ].map(([label, val, color, bg]) => (
           <div key={label} style={{ background: bg, borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
             <p style={{ fontSize: 22, fontWeight: 800, color }}>{val}</p>
@@ -86,13 +86,13 @@ export default function StatsConnexionPage() {
 
       {/* Taux adoption */}
       <Card style={{ marginBottom: 14 }}>
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', marginBottom: 8 }}>Taux d'adoption</p>
+        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>Taux d'adoption</p>
         <div style={{ marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
             <span>Invites</span>
             <span style={{ fontWeight: 700 }}>{invites}/{total} ({tauxInvit}%)</span>
           </div>
-          <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ height: 8, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{ width: `${tauxInvit}%`, height: '100%', background: 'var(--primary)', borderRadius: 4 }} />
           </div>
         </div>
@@ -101,7 +101,7 @@ export default function StatsConnexionPage() {
             <span>Connectes au moins 1 fois</span>
             <span style={{ fontWeight: 700 }}>{connectes}/{invites} ({tauxConnex}%)</span>
           </div>
-          <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ height: 8, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{ width: `${tauxConnex}%`, height: '100%', background: '#3B6D11', borderRadius: 4 }} />
           </div>
         </div>
@@ -111,17 +111,17 @@ export default function StatsConnexionPage() {
       <div style={{ display: 'flex', gap: 5, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
         <button onClick={() => setFilter('tous')} style={{
           padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
-          border: `0.5px solid ${filter === 'tous' ? 'var(--primary)' : '#E5E7EB'}`,
+          border: `0.5px solid ${filter === 'tous' ? 'var(--primary)' : 'var(--border)'}`,
           background: filter === 'tous' ? '#E6F1FB' : 'transparent',
-          color: filter === 'tous' ? 'var(--primary)' : '#6B7280',
+          color: filter === 'tous' ? 'var(--primary)' : 'var(--text-secondary)',
           fontWeight: filter === 'tous' ? 600 : 400
         }}>Tous ({enriched.length})</button>
         {Object.entries(STATUTS).map(([key, val]) => (
           <button key={key} onClick={() => setFilter(key)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
-            border: `0.5px solid ${filter === key ? val.color : '#E5E7EB'}`,
+            border: `0.5px solid ${filter === key ? val.color : 'var(--border)'}`,
             background: filter === key ? val.bg : 'transparent',
-            color: filter === key ? val.color : '#6B7280',
+            color: filter === key ? val.color : 'var(--text-secondary)',
             fontWeight: filter === key ? 600 : 400,
             display: 'inline-flex', alignItems: 'center', gap: 4
           }}><Circle size={7} fill={val.color} color={val.color} /> {val.label} ({counts[key]})</button>
@@ -131,7 +131,7 @@ export default function StatsConnexionPage() {
       {/* Liste joueurs */}
       <Card>
         {filtered.length === 0 ? (
-          <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucun joueur dans cette categorie.</p>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>Aucun joueur dans cette categorie.</p>
         ) : filtered.map(j => {
           const st = STATUTS[j.statut]
           const jours = j.last_seen ? differenceInDays(new Date(), new Date(j.last_seen)) : null
@@ -142,7 +142,7 @@ export default function StatsConnexionPage() {
             : `Il y a ${jours}j`
             : null
           return (
-            <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+            <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
@@ -152,7 +152,7 @@ export default function StatsConnexionPage() {
                     </span>
                   )}
                 </div>
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                   {j.poste || ''}
                   {vuIlYa && ` · Vu ${vuIlYa}`}
                   {!j.last_seen && j.auth_id && ' · Invitation envoyee'}

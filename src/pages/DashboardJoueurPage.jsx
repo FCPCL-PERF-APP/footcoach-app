@@ -283,7 +283,7 @@ export default function DashboardJoueurPage() {
             <TrendingUp size={14} color={'var(--primary)'} /> Mon RPE — évolution
           </p>
           <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 80 }}>
-            <line x1={PAD} y1={yPos(2.5)} x2={W-PAD} y2={yPos(2.5)} stroke="#F3F4F6" strokeWidth="1" strokeDasharray="4,4" />
+            <line x1={PAD} y1={yPos(2.5)} x2={W-PAD} y2={yPos(2.5)} stroke="var(--bg-secondary)" strokeWidth="1" strokeDasharray="4,4" />
             <polyline
               points={rpeParSession.map((d,i) => `${xPos(i,rpeParSession.length)},${yPos(d.value)}`).join(' ')}
               fill="none" stroke={rpeColor(parseFloat(rpeMoySaison))} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -291,7 +291,7 @@ export default function DashboardJoueurPage() {
               <g key={i}>
                 <circle cx={xPos(i,rpeParSession.length)} cy={yPos(d.value)} r="4"
                   fill={d.type === 'match' ? 'var(--primary-dark)' : rpeColor(d.value)} />
-                <text x={xPos(i,rpeParSession.length)} y={yPos(d.value)-8} textAnchor="middle" fontSize="9" fill="#6B7280">{d.value}</text>
+                <text x={xPos(i,rpeParSession.length)} y={yPos(d.value)-8} textAnchor="middle" fontSize="9" fill="var(--text-secondary)">{d.value}</text>
               </g>
             ))}
           </svg>

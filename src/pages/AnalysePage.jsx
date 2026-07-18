@@ -20,14 +20,14 @@ export default function AnalysePage() {
       <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={18} /> Analyse</span>} />
       {ANALYSES.map(a => (
         <div key={a.path} onClick={() => navigate(a.path)} style={{
-          background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 14,
+          background: '#fff', border: '0.5px solid var(--border)', borderRadius: 14,
           padding: '12px 14px', marginBottom: 8, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 12
         }}>
           <IconTile icon={a.icon} color={CAT_COLORS[a.cat].color} bg={CAT_COLORS[a.cat].bg} size={20} tileSize={40} />
           <div style={{ flex: 1 }}>
             <p style={{ fontSize: 13, fontWeight: 700 }}>{a.label}</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF' }}>{a.desc}</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{a.desc}</p>
           </div>
           <ChevronRight size={18} color={'var(--primary)'} />
         </div>

@@ -224,9 +224,9 @@ export default function StaffPage() {
       <Card style={{ marginBottom: 14 }}>
         <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Niveaux d'accès</p>
         {ROLES.map(r => (
-          <div key={r.value} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+          <div key={r.value} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: r.color, width: 140, display: 'flex', alignItems: 'center', gap: 5 }}><r.icon size={12} /> {r.label}</span>
-            <span style={{ fontSize: 11, color: '#6B7280' }}>{r.desc}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{r.desc}</span>
           </div>
         ))}
       </Card>
@@ -245,14 +245,14 @@ export default function StaffPage() {
           <Input label="Diplôme / Qualification" value={form.diplome} onChange={v => setForm(p => ({...p, diplome: v}))} placeholder="UEFA B, BPJEPS..." />
 
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Rôle et niveau d'accès *</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Rôle et niveau d'accès *</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {ROLES.map(r => (
-                <label key={r.value} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 10px', borderRadius: 10, border: `1.5px solid ${form.role === r.value ? r.color : '#E5E7EB'}`, background: form.role === r.value ? `${r.color}10` : 'transparent', cursor: 'pointer' }}>
+                <label key={r.value} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 10px', borderRadius: 10, border: `1.5px solid ${form.role === r.value ? r.color : 'var(--border)'}`, background: form.role === r.value ? `${r.color}10` : 'transparent', cursor: 'pointer' }}>
                   <input type="radio" name="role" value={r.value} checked={form.role === r.value} onChange={() => setForm(p => ({...p, role: r.value}))} style={{ marginTop: 2 }} />
                   <div>
                     <p style={{ fontSize: 12, fontWeight: 600, color: r.color, display: 'flex', alignItems: 'center', gap: 5 }}><r.icon size={12} /> {r.label}</p>
-                    <p style={{ fontSize: 11, color: '#6B7280' }}>{r.desc}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{r.desc}</p>
                   </div>
                 </label>
               ))}
@@ -274,7 +274,7 @@ export default function StaffPage() {
       {/* Liste staff */}
       {loading ? <Spinner /> : (
         <>
-          <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>{staff.length} membre(s) du staff</p>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>{staff.length} membre(s) du staff</p>
           {staff.map((s, i) => {
             const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
             const roleInfo = getRoleInfo(s.role)
@@ -302,7 +302,7 @@ export default function StaffPage() {
                     <span style={{ fontSize: 11, fontWeight: 600, color: roleInfo.color, background: `${roleInfo.color}15`, padding: '2px 8px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <roleInfo.icon size={11} /> {roleInfo.label}
                     </span>
-                    {photoUploadingId === s.id && <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><Camera size={10} /> Upload en cours...</p>}
+                    {photoUploadingId === s.id && <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><Camera size={10} /> Upload en cours...</p>}
                   </div>
                   {isCoach && (
                     <div style={{ display: 'flex', gap: 6 }}>
@@ -324,7 +324,7 @@ export default function StaffPage() {
 
                 {/* Formulaire de modification des coordonnées */}
                 {editingInfo === s.id && isCoach && (
-                  <div style={{ marginTop: 10, padding: 10, background: '#F9FAFB', borderRadius: 10 }}>
+                  <div style={{ marginTop: 10, padding: 10, background: 'var(--bg-secondary)', borderRadius: 10 }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                       <Input label="Nom" value={infoForm.nom} onChange={v => setInfoForm(p => ({...p, nom: v}))} />
                       <Input label="Prénom" value={infoForm.prenom} onChange={v => setInfoForm(p => ({...p, prenom: v}))} />
@@ -340,13 +340,13 @@ export default function StaffPage() {
                 )}
 
                 {/* Infos contact */}
-                <div style={{ marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #F3F4F6' }}>
-                  {s.email && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={11} /> {s.email}</p>}
-                  {s.telephone && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><Phone size={11} /> {s.telephone}</p>}
-                  {s.diplome && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><GraduationCap size={11} /> {s.diplome}</p>}
-                  {s.specialite && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><Puzzle size={11} /> {s.specialite}</p>}
+                <div style={{ marginTop: 8, paddingTop: 8, borderTop: '0.5px solid var(--bg-secondary)' }}>
+                  {s.email && <p style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={11} /> {s.email}</p>}
+                  {s.telephone && <p style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5 }}><Phone size={11} /> {s.telephone}</p>}
+                  {s.diplome && <p style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5 }}><GraduationCap size={11} /> {s.diplome}</p>}
+                  {s.specialite && <p style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5 }}><Puzzle size={11} /> {s.specialite}</p>}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                    <p style={{ fontSize: 10, color: s.auth_id ? 'var(--success)' : '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <p style={{ fontSize: 10, color: s.auth_id ? 'var(--success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                       {s.auth_id ? <><CheckCircle2 size={10} /> Compte actif</> : <><Hourglass size={10} /> Invitation en attente</>}
                     </p>
                     {!s.auth_id && isCoach && (
@@ -360,15 +360,15 @@ export default function StaffPage() {
 
                 {/* Modifier le rôle */}
                 {editingRole === s.id && isCoach && (
-                  <div style={{ marginTop: 10, padding: 10, background: '#F9FAFB', borderRadius: 10 }}>
+                  <div style={{ marginTop: 10, padding: 10, background: 'var(--bg-secondary)', borderRadius: 10 }}>
                     <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Changer le rôle :</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {ROLES.map(r => (
                         <button key={r.value} onClick={() => updateRole(s.id, r.value)}
-                          style={{ padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${s.role === r.value ? r.color : '#E5E7EB'}`, background: s.role === r.value ? `${r.color}15` : '#fff', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          style={{ padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${s.role === r.value ? r.color : 'var(--border)'}`, background: s.role === r.value ? `${r.color}15` : '#fff', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6 }}>
                           <r.icon size={12} color={r.color} />
                           <span style={{ fontSize: 12, fontWeight: 600, color: r.color }}>{r.label}</span>
-                          <span style={{ fontSize: 11, color: '#6B7280', marginLeft: 4 }}>{r.desc}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginLeft: 4 }}>{r.desc}</span>
                         </button>
                       ))}
                     </div>
@@ -380,7 +380,7 @@ export default function StaffPage() {
 
           {staff.length === 0 && (
             <Card>
-              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
                 Aucun membre du staff. Clique sur "+ Ajouter".
               </p>
             </Card>

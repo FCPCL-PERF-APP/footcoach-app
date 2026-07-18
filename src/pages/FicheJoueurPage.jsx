@@ -316,17 +316,17 @@ export default function FicheJoueurPage() {
 
   const inputStyle = (disabled) => ({
     width: '100%', padding: '8px 10px',
-    border: `0.5px solid ${disabled ? '#F3F4F6' : '#D1D5DB'}`,
+    border: `0.5px solid ${disabled ? 'var(--bg-secondary)' : 'var(--border)'}`,
     borderRadius: 10, fontSize: 13, outline: 'none',
     boxSizing: 'border-box',
     background: disabled ? '#FAFAFA' : '#fff',
-    color: disabled ? '#9CA3AF' : '#111'
+    color: disabled ? 'var(--text-muted)' : 'var(--text-primary)'
   })
 
   function Field({ label, field, type = 'text', disabled = false, options = null, step }) {
     if (options) return (
       <div style={{ marginBottom: 8 }}>
-        <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>{label}</label>
+        <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
         <select value={form[field] || ''} onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
           disabled={disabled} style={inputStyle(disabled)}>
           {options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -335,7 +335,7 @@ export default function FicheJoueurPage() {
     )
     return (
       <div style={{ marginBottom: 8 }}>
-        <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>{label}</label>
+        <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
         <input type={type} step={step} value={form[field] || ''} disabled={disabled}
           onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
           style={inputStyle(disabled)} />
@@ -368,7 +368,7 @@ export default function FicheJoueurPage() {
         </div>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 16, fontWeight: 700 }}>{joueur.nom} {joueur.prenom}</p>
-          <p style={{ fontSize: 12, color: '#9CA3AF' }}>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
             {joueur.poste} {joueur.numero ? `· N°${joueur.numero}` : ''} {joueur.groupe ? `· Pôle ${joueur.groupe}` : ''}
           </p>
           {blessureActive && (
@@ -385,11 +385,11 @@ export default function FicheJoueurPage() {
             </button>
             <button onClick={renvoyerInvitation} disabled={inviting}
               title="Renvoyer l'invitation par email"
-              style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: inviting ? 'not-allowed' : 'pointer', opacity: inviting ? 0.5 : 1, display: 'flex' }}>
+              style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: '#fff', cursor: inviting ? 'not-allowed' : 'pointer', opacity: inviting ? 0.5 : 1, display: 'flex' }}>
               {inviting ? <Hourglass size={14} /> : <Mail size={14} color={'var(--primary)'} />}
             </button>
             {editing && <button onClick={() => { setEditing(false); setForm({...joueur}) }}
-              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#6B7280', cursor: 'pointer', display: 'flex' }}><X size={14} /></button>}
+              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}><X size={14} /></button>}
           </div>
         )}
       </div>
@@ -403,7 +403,7 @@ export default function FicheJoueurPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <p style={{ fontSize: 12, fontWeight: 600, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={12} /> Joueur sans accès à l'app</p>
-              <p style={{ fontSize: 11, color: '#9CA3AF' }}>Inviter par email pour créer son compte</p>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Inviter par email pour créer son compte</p>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setShowInvite(!showInvite)}
@@ -417,7 +417,7 @@ export default function FicheJoueurPage() {
               <div style={{ display: 'flex', gap: 8 }}>
                 <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
                   placeholder="email@joueur.com"
-                  style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none' }} />
+                  style={{ flex: 1, padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none' }} />
                 <button onClick={handleInvite} disabled={inviting || !inviteEmail}
                   style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
                   {inviting ? '...' : 'Envoyer'}
@@ -452,9 +452,9 @@ export default function FicheJoueurPage() {
       {/* Stats rapides */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
         {[['Matchs', statsOfficielles.length], ['Buts', totalButs], ['PD', totalPD], ['Note', noteMoy]].map(([l, v]) => (
-          <div key={l} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 10, padding: 8, textAlign: 'center' }}>
+          <div key={l} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
             <div style={{ fontSize: 17, fontWeight: 700 }}>{v}</div>
-            <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{l}</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{l}</div>
           </div>
         ))}
       </div>
@@ -492,9 +492,9 @@ export default function FicheJoueurPage() {
           return (
             <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
               padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-              border: activeTab === t.key ? `0.5px solid ${c.color}` : '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+              border: activeTab === t.key ? `0.5px solid ${c.color}` : '0.5px solid var(--border)', whiteSpace: 'nowrap',
               background: activeTab === t.key ? c.bg : 'transparent',
-              color: activeTab === t.key ? c.color : '#6B7280',
+              color: activeTab === t.key ? c.color : 'var(--text-secondary)',
               fontWeight: activeTab === t.key ? 600 : 400,
               display: 'flex', alignItems: 'center', gap: 5
             }}><t.icon size={12} /> {t.label}</button>
@@ -506,11 +506,11 @@ export default function FicheJoueurPage() {
       {isCoach && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
           <button onClick={() => navigate(`/joueurs/${id}/blessures`)}
-            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: blessureActive ? 'var(--danger-bg)' : 'transparent', color: blessureActive ? 'var(--danger)' : '#6B7280', fontSize: 11, cursor: 'pointer', fontWeight: blessureActive ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid var(--border)', background: blessureActive ? 'var(--danger-bg)' : 'transparent', color: blessureActive ? 'var(--danger)' : 'var(--text-secondary)', fontSize: 11, cursor: 'pointer', fontWeight: blessureActive ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
             <Bandage size={12} /> Blessures {blessureActive ? '· 1 active' : ''}
           </button>
           <button onClick={() => navigate(`/joueurs/${id}/objectifs`)}
-            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', color: '#6B7280', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
             <Target size={12} /> Objectifs · {objectifs.filter(o => o.statut === 'en_cours').length} en cours
           </button>
         </div>
@@ -550,7 +550,7 @@ export default function FicheJoueurPage() {
               <Field label="Taille (cm)" field="taille" type="number" disabled={!editing} />
               <Field label="Poids (kg)" field="poids" type="number" step="0.1" disabled={!editing} />
               <div style={{ marginBottom: 8 }}>
-                <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>IMC</label>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>IMC</label>
                 <input value={imc} disabled style={inputStyle(true)} />
               </div>
             </div>
@@ -572,7 +572,7 @@ export default function FicheJoueurPage() {
               <Field label="FC max" field="fc_max" type="number" disabled={!editing} />
               <Field label="FC repos" field="fc_repos" type="number" disabled={!editing} />
               <div style={{ marginBottom: 8 }}>
-                <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>FC réserve</label>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>FC réserve</label>
                 <input value={fcReserve || '—'} disabled style={inputStyle(true)} />
               </div>
             </div>
@@ -602,7 +602,7 @@ export default function FicheJoueurPage() {
             {poidsHistory.length > 1 && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 11, color: '#6B7280' }}>Dernier : <strong style={{ color: 'var(--primary)' }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Dernier : <strong style={{ color: 'var(--primary)' }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
                   {poidsHistory.length >= 2 && (() => {
                     const diff = (poidsHistory[poidsHistory.length-1].poids - poidsHistory[0].poids).toFixed(1)
                     return <span style={{ fontSize: 11, color: parseFloat(diff) > 0 ? 'var(--danger)' : 'var(--success)', fontWeight: 600 }}>{parseFloat(diff) > 0 ? '+' : ''}{diff} kg</span>
@@ -622,7 +622,7 @@ export default function FicheJoueurPage() {
                     )
                   })}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#9CA3AF', marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--text-muted)', marginBottom: 8 }}>
                   <span>{poidsHistory[0]?.poids} kg</span>
                   <span>{poidsHistory[poidsHistory.length-1]?.poids} kg</span>
                 </div>
@@ -630,7 +630,7 @@ export default function FicheJoueurPage() {
             )}
             <div style={{ display: 'flex', gap: 8 }}>
               <input type="number" step="0.1" placeholder="Nouvelle pesée (kg)" value={newPoids} onChange={e => setNewPoids(e.target.value)}
-                style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none' }} />
+                style={{ flex: 1, padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none' }} />
               <button onClick={savePoids} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>+ Ajouter</button>
             </div>
           </Card>
@@ -639,12 +639,12 @@ export default function FicheJoueurPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {['points_forts','points_faibles'].map((field, i) => (
                 <div key={field}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>
                     {i === 0 ? <><CheckCircle2 size={11} color={'var(--success)'} /> Points forts</> : <><Target size={11} color={'var(--warning)'} /> Axes de travail</>}
                   </label>
                   <textarea value={form[field] || ''} onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
                     disabled={!editing} rows={4}
-                    style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${editing ? '#D1D5DB' : '#F3F4F6'}`, borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', background: editing ? '#fff' : '#FAFAFA' }} />
+                    style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${editing ? 'var(--border)' : 'var(--bg-secondary)'}`, borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', background: editing ? '#fff' : '#FAFAFA' }} />
                 </div>
               ))}
             </div>
@@ -659,17 +659,17 @@ export default function FicheJoueurPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>RPE moyen — toutes sessions</p>
             {rpeHistory.length === 0
-              ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucune donnée RPE.</p>
+              ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune donnée RPE.</p>
               : <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {RPE_ITEMS.map(item => {
                     const vals = rpeHistory.map(r => r[item.key]).filter(v => v != null)
                     const avg = vals.length ? vals.reduce((a,b) => a+b,0)/vals.length : 0
                     return (
                       <div key={item.key}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#6B7280', marginBottom: 2 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>
                           <span>{item.label}</span><span style={{ color: rpeColor(avg), fontWeight: 600 }}>{avg.toFixed(1)}/5</span>
                         </div>
-                        <div style={{ height: 6, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ height: 6, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
                           <div style={{ height: '100%', borderRadius: 4, background: rpeColor(avg), width: `${avg/5*100}%` }} />
                         </div>
                       </div>
@@ -681,15 +681,15 @@ export default function FicheJoueurPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Footbar — historique</p>
             {footHistory.length === 0
-              ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucune donnée Footbar.</p>
+              ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune donnée Footbar.</p>
               : footHistory.map(f => (
-                  <div key={f.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '0.5px solid #F3F4F6' }}>
+                  <div key={f.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '0.5px solid var(--bg-secondary)' }}>
                     <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>{f.evenements?.titre} — {f.evenements?.date_heure ? format(parseISO(f.evenements.date_heure), 'd MMM', { locale: fr }) : ''}</p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 4 }}>
                       {[['Distance',f.distance_km?`${f.distance_km}km`:'—'],['V.max',f.sprint_max?`${f.sprint_max}km/h`:'—'],['Sprints',f.sprints??'—'],['Ballons',f.ballons_touches??'—'],['Passes',f.nb_passes??'—'],['Tirs',f.nb_tirs??'—'],['HI',f.distance_hi?`${f.distance_hi}m`:'—'],['Tps jeu',f.temps_jeu?`${f.temps_jeu}min`:'—']].map(([l,v]) => (
-                        <div key={l} style={{ background: '#F9FAFB', borderRadius: 6, padding: '4px', textAlign: 'center' }}>
+                        <div key={l} style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: '4px', textAlign: 'center' }}>
                           <div style={{ fontSize: 11, fontWeight: 600 }}>{v}</div>
-                          <div style={{ fontSize: 9, color: '#9CA3AF' }}>{l}</div>
+                          <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{l}</div>
                         </div>
                       ))}
                     </div>
@@ -706,24 +706,24 @@ export default function FicheJoueurPage() {
           {/* Stats enrichies */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
             {[['Matchs',statsOfficielles.length],['Titu.',statsOfficielles.filter(s=>s.titulaire).length],['Rempl.',statsOfficielles.filter(s=>!s.titulaire).length],['Buts',totalButs],['PD',totalPD],['Note moy.',noteMoy],['Tps jeu moy.',statsOfficielles.filter(s=>s.temps_jeu>0).length ? Math.round(statsOfficielles.filter(s=>s.temps_jeu>0).reduce((a,b)=>a+b.temps_jeu,0)/statsOfficielles.filter(s=>s.temps_jeu>0).length)+"'" : '—'],['🟡',statsOfficielles.filter(s=>s.carton_jaune).length],['🔴',statsOfficielles.filter(s=>s.carton_rouge).length]].map(([l,v]) => (
-              <div key={l} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
+              <div key={l} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{v}</div>
-                <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{l}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{l}</div>
               </div>
             ))}
           </div>
           <Card>
             {statsHistory.length === 0
-              ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucune statistique.</p>
+              ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune statistique.</p>
               : statsHistory.map(s => (
-                  <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                  <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                     <div>
                       <p style={{ fontSize: 12, fontWeight: 600 }}>{s.evenements?.titre}</p>
-                      <p style={{ fontSize: 10, color: '#9CA3AF' }}>{s.temps_jeu}min · {s.titulaire ? 'Titu.' : 'Rempl.'} {s.carton_jaune ? '🟡' : ''}{s.carton_rouge ? '🔴' : ''}</p>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{s.temps_jeu}min · {s.titulaire ? 'Titu.' : 'Rempl.'} {s.carton_jaune ? '🟡' : ''}{s.carton_rouge ? '🔴' : ''}</p>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note||'—'}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Note</div></div>
-                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11' }}>{s.buts||0}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Buts</div></div>
+                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note||'—'}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Note</div></div>
+                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11' }}>{s.buts||0}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Buts</div></div>
                     </div>
                   </div>
                 ))
@@ -738,7 +738,7 @@ export default function FicheJoueurPage() {
         <>
           {!objJoueurData ? (
             <Card>
-              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
                 Ce joueur n'a pas encore rempli ses objectifs.
               </p>
             </Card>
@@ -754,8 +754,8 @@ export default function FicheJoueurPage() {
                     { key: 'technique',  icon: Swords, label: 'Technique' },
                     { key: 'mental',     icon: Target, label: 'Mental' },
                   ].map(n => objJoueurData.points_forts[n.key] ? (
-                    <div key={n.key} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-                      <span style={{ fontSize: 11, color: '#6B7280', width: 80, display: 'flex', alignItems: 'center', gap: 4 }}><n.icon size={11} /> {n.label}</span>
+                    <div key={n.key} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-secondary)', width: 80, display: 'flex', alignItems: 'center', gap: 4 }}><n.icon size={11} /> {n.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 500 }}>{objJoueurData.points_forts[n.key]}</span>
                     </div>
                   ) : null)}
@@ -772,8 +772,8 @@ export default function FicheJoueurPage() {
                     { key: 'technique',  icon: Swords, label: 'Technique' },
                     { key: 'mental',     icon: Target, label: 'Mental' },
                   ].map(n => objJoueurData.axes_amelioration[n.key] ? (
-                    <div key={n.key} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-                      <span style={{ fontSize: 11, color: '#6B7280', width: 80, display: 'flex', alignItems: 'center', gap: 4 }}><n.icon size={11} /> {n.label}</span>
+                    <div key={n.key} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-secondary)', width: 80, display: 'flex', alignItems: 'center', gap: 4 }}><n.icon size={11} /> {n.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 500 }}>{objJoueurData.axes_amelioration[n.key]}</span>
                     </div>
                   ) : null)}
@@ -785,8 +785,8 @@ export default function FicheJoueurPage() {
                 <Card>
                   <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><Trophy size={13} color={CAT_COLORS.gold.color} /> Objectifs personnels</p>
                   {[objJoueurData.obj_perso_1, objJoueurData.obj_perso_2, objJoueurData.obj_perso_3].filter(Boolean).map((obj, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-                      <span style={{ fontSize: 11, color: '#9CA3AF' }}>{i+1}.</span>
+                    <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{i+1}.</span>
                       <span style={{ fontSize: 12 }}>{obj}</span>
                     </div>
                   ))}
@@ -798,8 +798,8 @@ export default function FicheJoueurPage() {
                 <Card>
                   <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><Swords size={13} color={CAT_COLORS.blue.color} /> Objectifs collectifs</p>
                   {[objJoueurData.obj_collectif_1, objJoueurData.obj_collectif_2, objJoueurData.obj_collectif_3].filter(Boolean).map((obj, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-                      <span style={{ fontSize: 11, color: '#9CA3AF' }}>{i+1}.</span>
+                    <div key={i} style={{ display: 'flex', gap: 10, padding: '6px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{i+1}.</span>
                       <span style={{ fontSize: 12 }}>{obj}</span>
                     </div>
                   ))}
@@ -810,53 +810,53 @@ export default function FicheJoueurPage() {
               <Card>
                 <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={13} color={'var(--primary)'} /> Bilan saison — à remplir par le coach</p>
 
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>1. Objectifs personnels atteints ?</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>1. Objectifs personnels atteints ?</p>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                   {['Oui', 'Non'].map(v => (
                     <button key={v} onClick={() => setBilanForm(p => ({...p, bilan_obj_perso_atteints: v === 'Oui'}))}
                       style={{ flex: 1, padding: 8, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                        border: `1.5px solid ${bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : '#E5E7EB'}`,
+                        border: `1.5px solid ${bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--border)'}`,
                         background: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success-bg)' : 'var(--danger-bg)') : 'transparent',
-                        color: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : '#6B7280' }}>
+                        color: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--text-secondary)' }}>
                       {v === 'Oui' ? <CheckCircle2 size={13} /> : <XCircle size={13} />} {v}
                     </button>
                   ))}
                 </div>
 
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Comment y remédier :</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Comment y remédier :</label>
                   <textarea value={bilanForm.bilan_obj_perso_comment || ''} onChange={e => setBilanForm(p => ({...p, bilan_obj_perso_comment: e.target.value}))}
                     placeholder="Commentaire..." rows={2}
-                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
                 </div>
 
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>2. Objectifs collectifs atteints ?</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>2. Objectifs collectifs atteints ?</p>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                   {['Oui', 'Non'].map(v => (
                     <button key={v} onClick={() => setBilanForm(p => ({...p, bilan_obj_collectifs_atteints: v === 'Oui'}))}
                       style={{ flex: 1, padding: 8, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                        border: `1.5px solid ${bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : '#E5E7EB'}`,
+                        border: `1.5px solid ${bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--border)'}`,
                         background: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success-bg)' : 'var(--danger-bg)') : 'transparent',
-                        color: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : '#6B7280' }}>
+                        color: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--text-secondary)' }}>
                       {v === 'Oui' ? <CheckCircle2 size={13} /> : <XCircle size={13} />} {v}
                     </button>
                   ))}
                 </div>
 
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>3. Axes saison prochaine :</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>3. Axes saison prochaine :</label>
                   <textarea value={bilanForm.bilan_axes_saison_prochaine || ''} onChange={e => setBilanForm(p => ({...p, bilan_axes_saison_prochaine: e.target.value}))}
                     placeholder="Ce qu'il doit améliorer..." rows={2}
-                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
                 </div>
 
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>4. Commentaire général :</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>4. Commentaire général :</label>
                   <textarea value={bilanForm.bilan_commentaire || ''} onChange={e => setBilanForm(p => ({...p, bilan_commentaire: e.target.value}))}
                     placeholder="Bilan général du joueur..." rows={2}
-                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
                 </div>
 
                 {bilanSaved && <p style={{ fontSize: 12, color: 'var(--success)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Bilan sauvegardé !</p>}
@@ -877,19 +877,19 @@ export default function FicheJoueurPage() {
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Ajouter une note</p>
               <textarea value={newComment} onChange={e => setNewComment(e.target.value)}
                 placeholder="Observation technique, tactique, comportementale..." rows={3}
-                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }} />
+                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }} />
               <Button variant="primary" style={{ width: '100%' }} onClick={addComment}>Publier</Button>
             </Card>
           )}
           {commentaires.length === 0
-            ? <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 16 }}>Aucune note pour l'instant.</p></Card>
+            ? <Card><p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>Aucune note pour l'instant.</p></Card>
             : commentaires.map(c => (
                 <Card key={c.id}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <Avatar initials={(c.auteur_nom || 'S').slice(0,2).toUpperCase()} size={28} />
                     <div>
                       <p style={{ fontSize: 12, fontWeight: 600 }}>{c.auteur_nom}</p>
-                      <p style={{ fontSize: 10, color: '#9CA3AF' }}>{c.auteur_role} · {c.created_at ? format(parseISO(c.created_at), 'd MMM HH:mm', { locale: fr }) : ''}</p>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{c.auteur_role} · {c.created_at ? format(parseISO(c.created_at), 'd MMM HH:mm', { locale: fr }) : ''}</p>
                     </div>
                   </div>
                   <p style={{ fontSize: 13, lineHeight: 1.5 }}>{c.contenu}</p>

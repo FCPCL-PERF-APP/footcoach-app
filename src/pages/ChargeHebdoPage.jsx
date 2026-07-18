@@ -139,9 +139,9 @@ export default function ChargeHebdoPage() {
                   { label: 'Séances', value: derniereSemaine.nbSeances, color: '#3B6D11' },
                   { label: 'Matchs', value: derniereSemaine.nbMatchs, color: '#185FA5' },
                 ].map(m => (
-                  <div key={m.label} style={{ background: '#F9FAFB', borderRadius: 10, padding: 8, textAlign: 'center' }}>
+                  <div key={m.label} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
                     <div style={{ fontSize: 18, fontWeight: 700, color: m.color }}>{m.value}</div>
-                    <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{m.label}</div>
+                    <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{m.label}</div>
                   </div>
                 ))}
               </div>
@@ -151,7 +151,7 @@ export default function ChargeHebdoPage() {
                     {rpeLabel(derniereSemaine.rpeMoy)}
                   </span>
                   {tendance !== null && (
-                    <span style={{ fontSize: 12, color: tendance > 0.5 ? 'var(--danger)' : tendance < -0.5 ? 'var(--success)' : '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 12, color: tendance > 0.5 ? 'var(--danger)' : tendance < -0.5 ? 'var(--success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                       {tendance > 0 ? <ArrowUpRight size={12} /> : tendance < 0 ? <ArrowDownRight size={12} /> : <ArrowRight size={12} />} {tendance > 0 ? '+' : ''}{tendance.toFixed(1)} vs sem. précédente
                     </span>
                   )}
@@ -165,9 +165,9 @@ export default function ChargeHebdoPage() {
             {[['charge', BarChart3, 'Charge'],['rpe', Heart, 'RPE'],['fatigue', Frown, 'Fatigue / Motivation']].map(([tab, Icon, lbl]) => (
               <button key={tab} onClick={() => setActiveView(tab)} style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-                border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+                border: '0.5px solid var(--border)', whiteSpace: 'nowrap',
                 background: activeView === tab ? 'var(--primary-bg)' : 'transparent',
-                color: activeView === tab ? 'var(--primary)' : '#6B7280',
+                color: activeView === tab ? 'var(--primary)' : 'var(--text-secondary)',
                 fontWeight: activeView === tab ? 600 : 400,
                 display: 'inline-flex', alignItems: 'center', gap: 5
               }}><Icon size={11} /> {lbl}</button>
@@ -178,7 +178,7 @@ export default function ChargeHebdoPage() {
           {activeView === 'charge' && activeData.length >= 2 && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Charge d'entraînement — 12 semaines</p>
-              <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10 }}>Charge = RPE moyen × nombre de séances</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>Charge = RPE moyen × nombre de séances</p>
               <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 120 }}>
                 {/* Zones de danger */}
                 <rect x={PAD} y={PAD} width={W-PAD*2} height={(H-PAD*2)*0.15} fill="#FCEBEB" opacity="0.5" />
@@ -191,7 +191,7 @@ export default function ChargeHebdoPage() {
                   <g key={i}>
                     <circle cx={xPos(i)} cy={yPosCharge(s.charge)} r="4"
                       fill={s.charge > maxCharge * 0.85 ? '#A32D2D' : 'var(--primary)'} />
-                    <text x={xPos(i)} y={H-4} textAnchor="middle" fontSize="8" fill="#9CA3AF">{s.label}</text>
+                    <text x={xPos(i)} y={H-4} textAnchor="middle" fontSize="8" fill="var(--text-muted)">{s.label}</text>
                   </g>
                 ))}
               </svg>
@@ -212,7 +212,7 @@ export default function ChargeHebdoPage() {
                   <g key={i}>
                     <circle cx={xPos(i)} cy={yPosRpe(s.rpeMoy)} r="4" fill={rpeColor(s.rpeMoy)} />
                     <text x={xPos(i)} y={yPosRpe(s.rpeMoy)-8} textAnchor="middle" fontSize="9" fill={rpeColor(s.rpeMoy)}>{s.rpeMoy}</text>
-                    <text x={xPos(i)} y={H-4} textAnchor="middle" fontSize="8" fill="#9CA3AF">{s.label}</text>
+                    <text x={xPos(i)} y={H-4} textAnchor="middle" fontSize="8" fill="var(--text-muted)">{s.label}</text>
                   </g>
                 ))}
               </svg>
@@ -238,7 +238,7 @@ export default function ChargeHebdoPage() {
                   <g key={i}>
                     {s.fatigueMoy !== null && <circle cx={xPos(i)} cy={yPosRpe(s.fatigueMoy)} r="3" fill="#A32D2D" />}
                     {s.motivationMoy !== null && <circle cx={xPos(i)} cy={yPosRpe(s.motivationMoy)} r="3" fill="#3B6D11" />}
-                    <text x={xPos(i)} y={H-4} textAnchor="middle" fontSize="8" fill="#9CA3AF">{s.label}</text>
+                    <text x={xPos(i)} y={H-4} textAnchor="middle" fontSize="8" fill="var(--text-muted)">{s.label}</text>
                   </g>
                 ))}
               </svg>
@@ -249,21 +249,21 @@ export default function ChargeHebdoPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Récapitulatif par semaine</p>
             {semaines.slice(-8).reverse().map((s, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 600 }}>{s.label} — {s.dateLabel}</p>
-                  <p style={{ fontSize: 10, color: '#9CA3AF' }}>{s.nbSeances} séance(s) · {s.nbMatchs} match(s) · {s.nbReponses} réponses</p>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{s.nbSeances} séance(s) · {s.nbMatchs} match(s) · {s.nbReponses} réponses</p>
                 </div>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   {s.rpeMoy && <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: rpeColor(s.rpeMoy) }}>{s.rpeMoy}</div>
-                    <div style={{ fontSize: 9, color: '#9CA3AF' }}>RPE</div>
+                    <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>RPE</div>
                   </div>}
                   {s.charge && <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary)' }}>{s.charge}</div>
-                    <div style={{ fontSize: 9, color: '#9CA3AF' }}>Charge</div>
+                    <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Charge</div>
                   </div>}
-                  {!s.rpeMoy && <span style={{ fontSize: 11, color: '#9CA3AF' }}>Pas de données</span>}
+                  {!s.rpeMoy && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Pas de données</span>}
                 </div>
               </div>
             ))}

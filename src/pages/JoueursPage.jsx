@@ -15,7 +15,7 @@ const AVATAR_COLORS = [
 ]
 
 function rpeColor(v) {
-  if (!v) return '#9CA3AF'
+  if (!v) return 'var(--text-muted)'
   if (v >= 4.5) return 'var(--danger)'
   if (v >= 3.5) return '#D85A30'
   if (v >= 2.5) return 'var(--warning)'
@@ -94,7 +94,7 @@ export default function JoueursPage() {
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Joueurs</h1>
         {isCoach && (
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={() => navigate('/joueurs/import')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <button onClick={() => navigate('/joueurs/import')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
               <Download size={13} /> Import
             </button>
             <button onClick={() => navigate('/joueurs/nouveau')} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -117,9 +117,9 @@ export default function JoueursPage() {
       )}
 
       <div style={{ position: 'relative', marginBottom: 10 }}>
-        <Search size={14} color="#9CA3AF" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+        <Search size={14} color="var(--text-muted)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un joueur..."
-          style={{ width: '100%', padding: '9px 12px 9px 34px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
+          style={{ width: '100%', padding: '9px 12px 9px 34px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
       </div>
 
       {/* Filtre groupe */}
@@ -128,9 +128,9 @@ export default function JoueursPage() {
           {groupes.map(g => (
             <button key={g} onClick={() => setFilterGroupe(g)} style={{
               padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-              border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+              border: '0.5px solid var(--border)', whiteSpace: 'nowrap',
               background: filterGroupe === g ? CAT_COLORS.amber.bg : 'transparent',
-              color: filterGroupe === g ? CAT_COLORS.amber.color : '#6B7280',
+              color: filterGroupe === g ? CAT_COLORS.amber.color : 'var(--text-secondary)',
               fontWeight: filterGroupe === g ? 600 : 400,
               display: 'inline-flex', alignItems: 'center', gap: 4
             }}>{g === 'tous' ? <><Tag size={11} /> Tous les groupes</> : `Pôle ${g}`}</button>
@@ -143,24 +143,24 @@ export default function JoueursPage() {
         {postes.map(p => (
           <button key={p} onClick={() => setFilterPoste(p)} style={{
             padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+            border: '0.5px solid var(--border)', whiteSpace: 'nowrap',
             background: filterPoste === p ? '#E6F1FB' : 'transparent',
-            color: filterPoste === p ? 'var(--primary)' : '#6B7280',
+            color: filterPoste === p ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: filterPoste === p ? 600 : 400
           }}>{p === 'tous' ? 'Tous' : p}</button>
         ))}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
           <button onClick={() => setSortBy('nom')} style={{
             padding: '4px 8px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+            border: '0.5px solid var(--border)', whiteSpace: 'nowrap',
             background: sortBy === 'nom' ? '#E6F1FB' : 'transparent',
-            color: sortBy === 'nom' ? 'var(--primary)' : '#6B7280',
+            color: sortBy === 'nom' ? 'var(--primary)' : 'var(--text-secondary)',
           }}>A→Z</button>
           {isStaff && <button onClick={() => setSortBy('rpe')} style={{
             padding: '4px 8px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: `0.5px solid ${sortBy === 'rpe' ? 'var(--danger)' : '#D1D5DB'}`,
+            border: `0.5px solid ${sortBy === 'rpe' ? 'var(--danger)' : 'var(--border)'}`,
             background: sortBy === 'rpe' ? 'var(--danger-bg)' : 'transparent',
-            color: sortBy === 'rpe' ? 'var(--danger)' : '#6B7280',
+            color: sortBy === 'rpe' ? 'var(--danger)' : 'var(--text-secondary)',
             display: 'inline-flex', alignItems: 'center', gap: 4
           }}><Heart size={11} /> RPE</button>}
         </div>
@@ -171,11 +171,11 @@ export default function JoueursPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
             <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Supprimer ce joueur ?</p>
-            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
               <strong>{confirmDelete.nom} {confirmDelete.prenom}</strong> sera définitivement supprimé avec toutes ses données.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: 10, border: '0.5px solid #D1D5DB', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
+              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: 10, border: '0.5px solid var(--border)', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
               <button onClick={() => deleteJoueur(confirmDelete)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: '#A32D2D', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function JoueursPage() {
 
       {loading ? <Spinner /> : (
         <>
-          <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
             {filtered.length} joueur(s)
             {sortBy === 'rpe' && <span style={{ color: '#A32D2D' }}> · Trié par RPE décroissant</span>}
           </p>
@@ -197,7 +197,7 @@ export default function JoueursPage() {
             return (
               <div key={j.id} style={{
                 background: '#fff',
-                border: `0.5px solid ${enSurcharge ? '#FCA5A5' : '#E5E7EB'}`,
+                border: `0.5px solid ${enSurcharge ? '#FCA5A5' : 'var(--border)'}`,
                 borderLeft: enSurcharge ? `3px solid #A32D2D` : '3px solid transparent',
                 borderRadius: 14, padding: '12px 14px', marginBottom: 8,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between'
@@ -216,7 +216,7 @@ export default function JoueursPage() {
                         </span>
                       )}
                     </p>
-                    <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                       {j.poste || '—'}{j.numero ? ` · N°${j.numero}` : ''}{j.groupe ? ` · Pôle ${j.groupe}` : ''}
                     </p>
                   </div>
@@ -225,7 +225,7 @@ export default function JoueursPage() {
                   {isStaff && rpe && (
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: rpeColor(parseFloat(rpe)) }}>{rpe}</div>
-                      <div style={{ fontSize: 9, color: '#9CA3AF' }}>RPE</div>
+                      <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>RPE</div>
                     </div>
                   )}
                   {isCoach && (
@@ -234,13 +234,13 @@ export default function JoueursPage() {
                       <Trash2 size={13} color={'var(--danger)'} />
                     </button>
                   )}
-                  {isStaff && <ChevronRight size={18} color="#D1D5DB" style={{ cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)} />}
+                  {isStaff && <ChevronRight size={18} color="var(--border)" style={{ cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)} />}
                 </div>
               </div>
             )
           })}
           {filtered.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 40, color: '#9CA3AF', fontSize: 13 }}>
+            <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)', fontSize: 13 }}>
               {joueurs.length === 0 ? 'Aucun joueur. Clique sur "+ Ajouter".' : 'Aucun joueur trouvé.'}
             </div>
           )}

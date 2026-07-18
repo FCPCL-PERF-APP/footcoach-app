@@ -57,7 +57,7 @@ export default function LoginPage() {
         <h2 style={{ fontSize: 18, fontWeight: 700, color: THEME.black, marginBottom: 4 }}>
           {showReset ? 'Réinitialiser' : 'Connexion'}
         </h2>
-        <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20 }}>
           {showReset ? 'Entre ton email pour recevoir un lien' : 'Application de suivi — Équipe A'}
         </p>
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
               <div style={{ background: 'var(--success-bg)', borderRadius: 10, padding: 12, marginBottom: 12 }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Email envoyé !</p>
                 <p style={{ fontSize: 12, color: 'var(--success)', marginBottom: 8 }}>Vérifie ta boîte mail (et les spams) — le lien est valable 24h.</p>
-                <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
                   <Smartphone size={12} style={{ flexShrink: 0, marginTop: 2 }} /> Ouvre le lien depuis Safari sur ton iPhone pour créer ton nouveau mot de passe.
                 </p>
                 <div style={{ marginTop: 10, padding: '8px 10px', background: '#FAEEDA', borderRadius: 8 }}>
@@ -123,7 +123,7 @@ function Field({ label, type, value, onChange, placeholder }) {
       <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 4 }}>{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} required
-        style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#FAFAFA' }} />
+        style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#FAFAFA' }} />
     </div>
   )
 }

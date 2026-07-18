@@ -40,7 +40,7 @@ function rpeColor(v) {
 }
 
 function RpeBarChart({ rpeList, title }) {
-  if (!rpeList.length) return <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de données.</p>
+  if (!rpeList.length) return <p style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>Pas de données.</p>
   const avgGlobal = (() => {
     const vals = rpeList.map(r => {
       const items = RPE_ITEMS.map(i => r[i.key]).filter(v => v != null)
@@ -61,10 +61,10 @@ function RpeBarChart({ rpeList, title }) {
         return avg !== null ? (
           <div key={item.key} style={{ marginBottom: 7 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 3 }}>
-              <span style={{ color: '#6B7280' }}>{item.label}</span>
+              <span style={{ color: 'var(--text-secondary)' }}>{item.label}</span>
               <span style={{ color: rpeColor(avg), fontWeight: 600 }}>{avg.toFixed(1)}/5</span>
             </div>
-            <div style={{ height: 7, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ height: '100%', borderRadius: 4, background: rpeColor(avg), width: `${avg/5*100}%` }} />
             </div>
           </div>
@@ -75,7 +75,7 @@ function RpeBarChart({ rpeList, title }) {
 }
 
 function FootbarBilan({ footList, title }) {
-  if (!footList.length) return <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de données.</p>
+  if (!footList.length) return <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Pas de données.</p>
   return (
     <div>
       <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 10 }}>{title} — {footList.length} session(s)</p>
@@ -85,12 +85,12 @@ function FootbarBilan({ footList, title }) {
           const avg = vals.length ? (vals.reduce((a,b) => a+b,0)/vals.length) : null
           const max = vals.length ? Math.max(...vals) : null
           return (
-            <div key={f.key} style={{ background: '#F9FAFB', borderRadius: 10, padding: '10px 12px' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: avg !== null ? 'var(--primary)' : '#D1D5DB' }}>
+            <div key={f.key} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: '10px 12px' }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: avg !== null ? 'var(--primary)' : 'var(--border)' }}>
                 {avg !== null ? `${parseFloat(avg.toFixed(1))}${f.unit}` : '—'}
               </div>
-              <div style={{ fontSize: 9, color: '#9CA3AF' }}>{f.label} (moy.)</div>
-              {max !== null && <div style={{ fontSize: 9, color: '#6B7280', marginTop: 2 }}>Max : {max}{f.unit}</div>}
+              <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{f.label} (moy.)</div>
+              {max !== null && <div style={{ fontSize: 9, color: 'var(--text-secondary)', marginTop: 2 }}>Max : {max}{f.unit}</div>}
             </div>
           )
         })}
@@ -289,9 +289,9 @@ export default function MonSuiviPage() {
         {tabs.map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
-            border: `0.5px solid ${tab === 'afaire' && eventsAFaire.length > 0 ? 'var(--danger)' : '#D1D5DB'}`,
+            border: `0.5px solid ${tab === 'afaire' && eventsAFaire.length > 0 ? 'var(--danger)' : 'var(--border)'}`,
             background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
-            color: activeTab === tab ? 'var(--primary)' : tab === 'afaire' && eventsAFaire.length > 0 ? 'var(--danger)' : '#6B7280',
+            color: activeTab === tab ? 'var(--primary)' : tab === 'afaire' && eventsAFaire.length > 0 ? 'var(--danger)' : 'var(--text-secondary)',
             fontWeight: activeTab === tab || (tab === 'afaire' && eventsAFaire.length > 0) ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -307,7 +307,7 @@ export default function MonSuiviPage() {
                 <div style={{ textAlign: 'center', padding: 20 }}>
                   <CheckCircle2 size={36} color={'var(--success)'} style={{ marginBottom: 8 }} />
                   <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--success)' }}>Tout est à jour !</p>
-                  <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>RPE et Footbar remplis pour tous les événements récents.</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>RPE et Footbar remplis pour tous les événements récents.</p>
                 </div>
               </Card>
             ) : (
@@ -321,9 +321,9 @@ export default function MonSuiviPage() {
                 const queued = savedWasQueued[ev.id] || {}
                 return (
                   <Card key={ev.id} style={{ marginBottom: 12 }}>
-                    <div style={{ marginBottom: 14, paddingBottom: 10, borderBottom: '0.5px solid #F3F4F6' }}>
+                    <div style={{ marginBottom: 14, paddingBottom: 10, borderBottom: '0.5px solid var(--bg-secondary)' }}>
                       <p style={{ fontSize: 13, fontWeight: 700 }}>{ev.titre}</p>
-                      <p style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <p style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                         {ev.type === 'match' ? <Swords size={11} /> : <Footprints size={11} />} {ev.type === 'match' ? 'Match' : 'Séance'} · {ev.date_heure ? format(parseISO(ev.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
                       </p>
                     </div>
@@ -338,15 +338,15 @@ export default function MonSuiviPage() {
                         <div key={item.key} style={{ marginBottom: 14 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                             <label style={{ fontSize: 12, fontWeight: 600 }}>{item.label}</label>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: val !== undefined ? rpeColor(val) : '#D1D5DB' }}>{val !== undefined ? val : '—'}</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: val !== undefined ? rpeColor(val) : 'var(--border)' }}>{val !== undefined ? val : '—'}</span>
                           </div>
                           <div style={{ display: 'flex', gap: 5 }}>
                             {[0,1,2,3,4,5].map(v => (
                               <button key={v} onClick={() => setRpeForms(p => ({ ...p, [ev.id]: { ...(p[ev.id]||{}), [item.key]: v } }))} style={{
                                 flex: 1, padding: '9px 4px', borderRadius: 8,
-                                border: `1.5px solid ${val === v ? rpeColor(v) : '#E5E7EB'}`,
+                                border: `1.5px solid ${val === v ? rpeColor(v) : 'var(--border)'}`,
                                 background: val === v ? `${rpeColor(v)}20` : '#fff',
-                                color: val === v ? rpeColor(v) : '#6B7280',
+                                color: val === v ? rpeColor(v) : 'var(--text-secondary)',
                                 fontSize: 13, fontWeight: val === v ? 700 : 400, cursor: 'pointer'
                               }}>{v}</button>
                             ))}
@@ -355,13 +355,13 @@ export default function MonSuiviPage() {
                       )
                     })}
                     <div style={{ marginBottom: 4 }}>
-                      <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Commentaire (optionnel)</label>
+                      <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Commentaire (optionnel)</label>
                       <textarea value={commentaires[ev.id] || ''} onChange={e => setCommentaires(p => ({ ...p, [ev.id]: e.target.value }))}
                         placeholder="Comment tu t'es senti ?" rows={2}
-                        style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+                        style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
                     </div>
 
-                    <div style={{ borderTop: '0.5px solid #F3F4F6', margin: '14px 0' }} />
+                    <div style={{ borderTop: '0.5px solid var(--bg-secondary)', margin: '14px 0' }} />
 
                     {/* Bloc Footbar */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -370,19 +370,19 @@ export default function MonSuiviPage() {
                       </p>
                       {ev.type === 'match'
                         ? <span style={{ fontSize: 10, color: 'var(--primary)', background: 'var(--primary-bg)', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Recommandé</span>
-                        : <span style={{ fontSize: 10, color: '#9CA3AF' }}>Optionnel</span>
+                        : <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Optionnel</span>
                       }
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
                       {FOOTBAR_FIELDS.map(f => (
                         <div key={f.key}>
-                          <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>
-                            {f.label} {f.unit && <span style={{ color: '#9CA3AF' }}>({f.unit})</span>}
+                          <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>
+                            {f.label} {f.unit && <span style={{ color: 'var(--text-muted)' }}>({f.unit})</span>}
                           </label>
                           <input type="number" step={f.step} placeholder={f.placeholder}
                             value={footForm[f.key] || ''}
                             onChange={e => setFootForms(p => ({ ...p, [ev.id]: { ...(p[ev.id]||{}), [f.key]: e.target.value } }))}
-                            style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                            style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                         </div>
                       ))}
                     </div>
@@ -405,7 +405,7 @@ export default function MonSuiviPage() {
                     )}
 
                     <button onClick={() => handleSave(ev.id)} disabled={savingEventId === ev.id || !hasAny}
-                      style={{ width: '100%', padding: 13, background: hasAny ? 'var(--gradient)' : '#E5E7EB', color: hasAny ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: hasAny ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      style={{ width: '100%', padding: 13, background: hasAny ? 'var(--gradient)' : 'var(--border)', color: hasAny ? '#fff' : 'var(--text-muted)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: hasAny ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                       {savingEventId === ev.id ? 'Enregistrement...' : <><Save size={14} /> Enregistrer</>}
                     </button>
                   </Card>
@@ -417,13 +417,13 @@ export default function MonSuiviPage() {
           {/* HISTORIQUE — menu déroulant */}
           {activeTab === 'historique' && (
             histEvents.length === 0 ? (
-              <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 16 }}>Aucune donnée enregistrée.</p></Card>
+              <Card><p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>Aucune donnée enregistrée.</p></Card>
             ) : (
               <>
                 <div style={{ marginBottom: 14 }}>
-                  <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Choisir un événement</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Choisir un événement</label>
                   <select value={selectedHistEvent} onChange={e => setSelectedHistEvent(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+                    style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
                     {histEvents.map(({ id, ev }) => (
                       <option key={id} value={id}>{formatEventLabel(ev)}</option>
                     ))}
@@ -435,7 +435,7 @@ export default function MonSuiviPage() {
                     <Heart size={13} color={CAT_COLORS.rose.color} /> RPE
                   </p>
                   {!selectedRpe ? (
-                    <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de RPE pour cet événement.</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>Pas de RPE pour cet événement.</p>
                   ) : (
                     <>
                       <div style={{ textAlign: 'right', marginBottom: 8 }}>
@@ -449,18 +449,18 @@ export default function MonSuiviPage() {
                           <div key={item.key} style={{ marginBottom: 10 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
                               <span>{item.label}</span>
-                              <span style={{ fontWeight: 700, color: val != null ? rpeColor(val) : '#9CA3AF' }}>{val ?? '—'}/5</span>
+                              <span style={{ fontWeight: 700, color: val != null ? rpeColor(val) : 'var(--text-muted)' }}>{val ?? '—'}/5</span>
                             </div>
-                            <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
-                              <div style={{ height: '100%', borderRadius: 4, background: val != null ? rpeColor(val) : '#E5E7EB', width: `${val != null ? val/5*100 : 0}%` }} />
+                            <div style={{ height: 8, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
+                              <div style={{ height: '100%', borderRadius: 4, background: val != null ? rpeColor(val) : 'var(--border)', width: `${val != null ? val/5*100 : 0}%` }} />
                             </div>
                           </div>
                         )
                       })}
                       {selectedRpe.commentaire && (
-                        <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '8px 10px', marginTop: 10, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                          <MessageSquare size={12} color="#9CA3AF" style={{ flexShrink: 0, marginTop: 2 }} />
-                          <p style={{ fontSize: 11, color: '#6B7280', fontStyle: 'italic' }}>{selectedRpe.commentaire}</p>
+                        <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: '8px 10px', marginTop: 10, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                          <MessageSquare size={12} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: 2 }} />
+                          <p style={{ fontSize: 11, color: 'var(--text-secondary)', fontStyle: 'italic' }}>{selectedRpe.commentaire}</p>
                         </div>
                       )}
                     </>
@@ -472,15 +472,15 @@ export default function MonSuiviPage() {
                     <Radio size={13} color={CAT_COLORS.orange.color} /> Footbar
                   </p>
                   {!selectedFoot ? (
-                    <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de Footbar pour cet événement.</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>Pas de Footbar pour cet événement.</p>
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
                       {FOOTBAR_FIELDS.map(f => (
-                        <div key={f.key} style={{ background: '#F9FAFB', borderRadius: 10, padding: '10px 12px' }}>
-                          <div style={{ fontSize: 18, fontWeight: 700, color: selectedFoot[f.key] != null ? 'var(--primary)' : '#D1D5DB' }}>
+                        <div key={f.key} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: '10px 12px' }}>
+                          <div style={{ fontSize: 18, fontWeight: 700, color: selectedFoot[f.key] != null ? 'var(--primary)' : 'var(--border)' }}>
                             {selectedFoot[f.key] != null ? `${selectedFoot[f.key]}${f.unit}` : '—'}
                           </div>
-                          <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{f.label}</div>
+                          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{f.label}</div>
                         </div>
                       ))}
                     </div>
@@ -494,9 +494,9 @@ export default function MonSuiviPage() {
           {activeTab === 'bilan-entrainement' && (
             <>
               <Card style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>Moyennes sur {rpeEntrainement.length} séance(s)</p>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>Moyennes sur {rpeEntrainement.length} séance(s)</p>
                 {rpeEntrainement.length === 0
-                  ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de données d'entraînement.</p>
+                  ? <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Pas de données d'entraînement.</p>
                   : <RpeBarChart rpeList={rpeEntrainement} title="Bilan RPE entraînements" />
                 }
               </Card>
@@ -508,9 +508,9 @@ export default function MonSuiviPage() {
           {activeTab === 'bilan-match' && (
             <>
               <Card style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>Moyennes sur {rpeMatch.length} match(s)</p>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>Moyennes sur {rpeMatch.length} match(s)</p>
                 {rpeMatch.length === 0
-                  ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Pas de données de match.</p>
+                  ? <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Pas de données de match.</p>
                   : <RpeBarChart rpeList={rpeMatch} title="Bilan RPE matchs" />
                 }
               </Card>

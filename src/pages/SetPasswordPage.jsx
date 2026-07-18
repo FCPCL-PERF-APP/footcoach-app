@@ -85,7 +85,7 @@ export default function SetPasswordPage() {
           <div style={{ textAlign: 'center', padding: 10 }}>
             <CheckCircle2 size={44} color={'var(--success)'} style={{ marginBottom: 12 }} />
             <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)', marginBottom: 8 }}>Mot de passe créé !</p>
-            <p style={{ fontSize: 13, color: '#6B7280' }}>Tu vas être redirigé vers l'app...</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Tu vas être redirigé vers l'app...</p>
           </div>
         ) : (
           <>
@@ -93,7 +93,7 @@ export default function SetPasswordPage() {
               {sessionReady ? 'Crée ton mot de passe' : linkError ? 'Lien invalide' : 'Chargement...'}
             </h2>
             {!linkError && (
-              <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20 }}>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20 }}>
                 Choisis un mot de passe pour accéder à l'app FC PCL
               </p>
             )}
@@ -102,13 +102,13 @@ export default function SetPasswordPage() {
               <div style={{ textAlign: 'center', padding: 20 }}>
                 <AlertTriangle size={30} color={'var(--danger)'} style={{ marginBottom: 8 }} />
                 <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--danger)', marginBottom: 6 }}>Ce lien ne fonctionne plus</p>
-                <p style={{ fontSize: 12, color: '#6B7280' }}>{linkError}</p>
-                <p style={{ fontSize: 12, color: '#6B7280', marginTop: 10 }}>Demande au coach de te renvoyer une invitation.</p>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{linkError}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 10 }}>Demande au coach de te renvoyer une invitation.</p>
               </div>
             ) : !sessionReady ? (
               <div style={{ textAlign: 'center', padding: 20 }}>
-                <Hourglass size={20} color="#9CA3AF" />
-                <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>Vérification du lien...</p>
+                <Hourglass size={20} color="var(--text-muted)" />
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>Vérification du lien...</p>
               </div>
             ) : (
               <form onSubmit={handleSave}>
@@ -118,7 +118,7 @@ export default function SetPasswordPage() {
                   </label>
                   <input type="password" value={pwd} onChange={e => setPwd(e.target.value)}
                     placeholder="Au moins 6 caractères" required
-                    style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#FAFAFA' }} />
+                    style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#FAFAFA' }} />
                 </div>
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 4 }}>
@@ -126,7 +126,7 @@ export default function SetPasswordPage() {
                   </label>
                   <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
                     placeholder="Répète le mot de passe" required
-                    style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#FAFAFA' }} />
+                    style={{ width: '100%', padding: '10px 12px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#FAFAFA' }} />
                 </div>
                 {error && <p style={{ color: 'var(--danger)', fontSize: 12, marginBottom: 12 }}>{error}</p>}
                 <button type="submit" disabled={loading} style={{

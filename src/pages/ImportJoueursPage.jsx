@@ -137,7 +137,7 @@ export default function ImportJoueursPage() {
       {/* Étapes */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
         {[1,2,3].map(s => (
-          <div key={s} style={{ flex: 1, height: 4, borderRadius: 2, background: step >= s ? 'var(--primary)' : '#E5E7EB', transition: 'background .3s' }} />
+          <div key={s} style={{ flex: 1, height: 4, borderRadius: 2, background: step >= s ? 'var(--primary)' : 'var(--border)', transition: 'background .3s' }} />
         ))}
       </div>
 
@@ -149,15 +149,15 @@ export default function ImportJoueursPage() {
             Exporte ton Excel en CSV depuis Excel (Fichier → Enregistrer sous → CSV) puis importe-le ici.
           </p>
 
-          <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 12, marginBottom: 12, fontSize: 11, color: 'var(--text-secondary)' }}>
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: 12, marginBottom: 12, fontSize: 11, color: 'var(--text-secondary)' }}>
             <p style={{ fontWeight: 600, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}><ClipboardList size={11} /> Format attendu :</p>
             <p>Le fichier doit avoir une ligne d'en-tête avec les noms des colonnes.</p>
             <p style={{ marginTop: 4 }}>Colonnes reconnues automatiquement : <strong>Nom, Prénom, Poste, Numéro, Groupe, Date naissance, Licence, Pied, Téléphone, Email, Taille, Poids</strong></p>
           </div>
 
           <div onClick={() => document.getElementById('csv-input').click()}
-            style={{ border: '2px dashed #D1D5DB', borderRadius: 12, padding: 24, textAlign: 'center', cursor: 'pointer', background: '#FAFAFA' }}>
-            <FolderOpen size={28} color="#9CA3AF" style={{ marginBottom: 8 }} />
+            style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: 24, textAlign: 'center', cursor: 'pointer', background: '#FAFAFA' }}>
+            <FolderOpen size={28} color="var(--text-muted)" style={{ marginBottom: 8 }} />
             <p style={{ fontSize: 13, fontWeight: 500 }}>Appuyer pour choisir un fichier</p>
             <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>CSV ou Excel exporté en CSV</p>
           </div>
@@ -183,7 +183,7 @@ export default function ImportJoueursPage() {
               <select
                 value={mapping[field.key] || ''}
                 onChange={e => setMapping(p => ({ ...p, [field.key]: e.target.value }))}
-                style={{ padding: '6px 8px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}>
+                style={{ padding: '6px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}>
                 <option value="">— Ignorer —</option>
                 {headers.map(h => <option key={h} value={h}>{h}</option>)}
               </select>
@@ -192,7 +192,7 @@ export default function ImportJoueursPage() {
 
           {/* Aperçu */}
           {csvData.length > 0 && (
-            <div style={{ background: '#F9FAFB', borderRadius: 8, padding: 10, marginTop: 10, marginBottom: 10 }}>
+            <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: 10, marginTop: 10, marginBottom: 10 }}>
               <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6 }}>Aperçu — 3 premiers joueurs :</p>
               {csvData.slice(0,3).map((row, i) => {
                 const obj = {}
@@ -233,9 +233,9 @@ export default function ImportJoueursPage() {
                 <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--success)' }}>{result.success}</div>
                 <div style={{ fontSize: 11, color: 'var(--success)' }}>Importés</div>
               </div>
-              <div style={{ background: result.errors > 0 ? 'var(--danger-bg)' : '#F3F4F6', borderRadius: 10, padding: 10 }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: result.errors > 0 ? 'var(--danger)' : '#6B7280' }}>{result.errors}</div>
-                <div style={{ fontSize: 11, color: result.errors > 0 ? 'var(--danger)' : '#6B7280' }}>Erreurs</div>
+              <div style={{ background: result.errors > 0 ? 'var(--danger-bg)' : 'var(--bg-secondary)', borderRadius: 10, padding: 10 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: result.errors > 0 ? 'var(--danger)' : 'var(--text-secondary)' }}>{result.errors}</div>
+                <div style={{ fontSize: 11, color: result.errors > 0 ? 'var(--danger)' : 'var(--text-secondary)' }}>Erreurs</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>

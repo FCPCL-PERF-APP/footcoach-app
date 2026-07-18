@@ -81,7 +81,7 @@ function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
 
   if (nbReponses === 0) return (
     <Card style={{ marginBottom: 14 }}>
-      <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 12 }}>
+      <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 12 }}>
         Aucun joueur n'a encore composé son 11 idéal.
       </p>
     </Card>
@@ -128,9 +128,9 @@ function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
           {Object.keys(FORMATIONS).map(f => (
             <button key={f} onClick={() => setActiveFormation(f)} style={{
               padding: '3px 8px', borderRadius: 6, fontSize: 10, cursor: 'pointer', fontWeight: 600,
-              border: `1px solid ${activeFormation === f ? 'var(--primary)' : '#E5E7EB'}`,
+              border: `1px solid ${activeFormation === f ? 'var(--primary)' : 'var(--border)'}`,
               background: activeFormation === f ? '#E6F1FB' : 'transparent',
-              color: activeFormation === f ? 'var(--primary)' : '#9CA3AF',
+              color: activeFormation === f ? 'var(--primary)' : 'var(--text-muted)',
             }}>{f}</button>
           ))}
         </div>
@@ -181,8 +181,8 @@ function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
 
       {/* Détail poste sélectionné */}
       {showPosteStats && statsByPoste[showPosteStats]?.length > 0 && (
-        <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 10, marginBottom: 8 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 8 }}>
+        <div style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: 10, marginBottom: 8 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
             {formConfig.postes.find(p => p.key === showPosteStats)?.label} — détail des votes
           </p>
           {statsByPoste[showPosteStats].map(({ joueur, nb, pct }, i) => joueur ? (
@@ -190,7 +190,7 @@ function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
               <span style={{ fontSize: 12, width: 20 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
               <span style={{ flex: 1, fontSize: 12, fontWeight: i === 0 ? 700 : 400 }}>{joueur.nom} {joueur.prenom}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 60, height: 6, background: '#E5E7EB', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: 60, height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ width: `${pct}%`, height: '100%', background: 'var(--primary)', borderRadius: 3 }} />
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--primary)', minWidth: 32 }}>{pct}%</span>
@@ -200,7 +200,7 @@ function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
         </div>
       )}
 
-      <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center' }}>
+      <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center' }}>
         Clique sur un poste pour voir le détail des votes
       </p>
     </Card>
@@ -372,9 +372,9 @@ export default function FunPage() {
         {[['onze', Trophy, 'Mon 11 idéal'], ['pronos', Target, 'Pronostics']].map(([key, Icon, label]) => (
           <button key={key} onClick={() => setActiveTab(key)} style={{
             flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-            border: `1.5px solid ${activeTab === key ? 'var(--primary)' : '#E5E7EB'}`,
+            border: `1.5px solid ${activeTab === key ? 'var(--primary)' : 'var(--border)'}`,
             background: activeTab === key ? 'var(--primary-bg)' : 'transparent',
-            color: activeTab === key ? 'var(--primary)' : '#6B7280',
+            color: activeTab === key ? 'var(--primary)' : 'var(--text-secondary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
           }}><Icon size={13} /> {label}</button>
         ))}
@@ -385,16 +385,16 @@ export default function FunPage() {
         <>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={14} /> Mon 11 idéal FC PCL</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Choisis ta formation et compose ton 11 de rêve.</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>Choisis ta formation et compose ton 11 de rêve.</p>
 
             {/* Choix formation */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
               {Object.keys(FORMATIONS).map(f => (
                 <button key={f} onClick={() => { setFormation(f); setMonOnze({}) }} style={{
                   padding: '5px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontWeight: 600,
-                  border: `1.5px solid ${formation === f ? 'var(--primary)' : '#E5E7EB'}`,
+                  border: `1.5px solid ${formation === f ? 'var(--primary)' : 'var(--border)'}`,
                   background: formation === f ? '#E6F1FB' : 'transparent',
-                  color: formation === f ? 'var(--primary)' : '#6B7280',
+                  color: formation === f ? 'var(--primary)' : 'var(--text-secondary)',
                 }}>{f}</button>
               ))}
             </div>
@@ -439,8 +439,8 @@ export default function FunPage() {
 
             {/* Sélecteur joueur */}
             {selectingPoste && (
-              <div style={{ background: '#F9FAFB', borderRadius: 10, padding: 10, marginBottom: 12 }}>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 8 }}>
+              <div style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: 10, marginBottom: 12 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
                   Choisir : {formationConfig.postes.find(p => p.key === selectingPoste)?.label}
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, maxHeight: 150, overflowY: 'auto' }}>
@@ -450,9 +450,9 @@ export default function FunPage() {
                       setSelectingPoste(null)
                     }} style={{
                       padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-                      border: `1px solid ${monOnze[selectingPoste] === j.id ? 'var(--primary)' : '#E5E7EB'}`,
+                      border: `1px solid ${monOnze[selectingPoste] === j.id ? 'var(--primary)' : 'var(--border)'}`,
                       background: monOnze[selectingPoste] === j.id ? '#E6F1FB' : '#fff',
-                      color: monOnze[selectingPoste] === j.id ? 'var(--primary)' : '#374151',
+                      color: monOnze[selectingPoste] === j.id ? 'var(--primary)' : 'var(--text-primary)',
                     }}>
                       {j.nom} {j.prenom[0]}.
                     </button>
@@ -471,8 +471,8 @@ export default function FunPage() {
 
             <button onClick={saveOnze} disabled={Object.keys(monOnze).length < nbPostes}
               style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none',
-                background: Object.keys(monOnze).length >= nbPostes ? 'var(--gradient)' : '#E5E7EB',
-                color: Object.keys(monOnze).length >= nbPostes ? '#fff' : '#9CA3AF',
+                background: Object.keys(monOnze).length >= nbPostes ? 'var(--gradient)' : 'var(--border)',
+                color: Object.keys(monOnze).length >= nbPostes ? '#fff' : 'var(--text-muted)',
                 fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               {onzeSaved ? <><CheckCircle2 size={14} /> Sauvegardé !</> : <><Save size={14} /> Valider mon 11 ({Object.keys(monOnze).length}/{nbPostes})</>}
             </button>
@@ -483,7 +483,7 @@ export default function FunPage() {
             <Card>
               <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Award size={14} /> Les plus choisis dans le groupe</p>
               {topChoisis.map((j, i) => (
-                <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                   <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span>
                   <p style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
                   <span style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 700 }}>{statsOnze[j.id]?.total} votes</span>
@@ -499,7 +499,7 @@ export default function FunPage() {
         <>
           {matchs.length === 0 ? (
             <Card>
-              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
                 Aucun match à venir pour l'instant.
               </p>
             </Card>
@@ -512,29 +512,29 @@ export default function FunPage() {
             const exterieur = match.domicile !== false ? adversaire : 'FC PCL'
             return (
               <Card key={match.id}>
-                <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 4 }}>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
                   {format(parseISO(match.date_heure), 'EEEE d MMMM', { locale: fr })}
                 </p>
                 <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, textAlign: 'center' }}>{titre}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                   <div style={{ flex: 1, textAlign: 'center' }}>
-                    <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 6 }}>{domicile}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>{domicile}</p>
                     <input type="number" min="0" max="20" value={input.dom}
                       onChange={e => setScoreInputs(p => ({ ...p, [match.id]: { ...p[match.id], dom: e.target.value } }))}
-                      style={{ width: 64, padding: '10px 8px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 24, fontWeight: 700, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
+                      style={{ width: 64, padding: '10px 8px', border: '2px solid var(--border)', borderRadius: 10, fontSize: 24, fontWeight: 700, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
-                  <span style={{ fontSize: 20, color: '#9CA3AF', fontWeight: 700 }}>—</span>
+                  <span style={{ fontSize: 20, color: 'var(--text-muted)', fontWeight: 700 }}>—</span>
                   <div style={{ flex: 1, textAlign: 'center' }}>
-                    <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 6 }}>{exterieur}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>{exterieur}</p>
                     <input type="number" min="0" max="20" value={input.ext}
                       onChange={e => setScoreInputs(p => ({ ...p, [match.id]: { ...p[match.id], ext: e.target.value } }))}
-                      style={{ width: 64, padding: '10px 8px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 24, fontWeight: 700, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
+                      style={{ width: 64, padding: '10px 8px', border: '2px solid var(--border)', borderRadius: 10, fontSize: 24, fontWeight: 700, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 </div>
                 <button onClick={() => saveProno(match.id)} disabled={input.dom === '' || input.ext === '' || savingProno === match.id}
                   style={{ width: '100%', padding: 10, borderRadius: 10, border: 'none',
-                    background: input.dom !== '' && input.ext !== '' ? 'var(--gradient)' : '#E5E7EB',
-                    color: input.dom !== '' && input.ext !== '' ? '#fff' : '#9CA3AF',
+                    background: input.dom !== '' && input.ext !== '' ? 'var(--gradient)' : 'var(--border)',
+                    color: input.dom !== '' && input.ext !== '' ? '#fff' : 'var(--text-muted)',
                     fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   {savingProno === match.id ? <Hourglass size={13} /> : monProno ? <><Pencil size={13} /> Modifier mon pronostic</> : <><Target size={13} /> Valider mon pronostic</>}
                 </button>
@@ -551,13 +551,13 @@ export default function FunPage() {
             <Card>
               <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={14} /> Classement pronostics</p>
               {classementPronos.map((j, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                   <span style={{ fontSize: 16, width: 24 }}>{i < 3 ? ['🥇','🥈','🥉'][i] : `${i+1}.`}</span>
                   <p style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
                   <span style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 700 }}>{j.pts} pts</span>
                 </div>
               ))}
-              <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 8 }}>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 8 }}>
                 Score exact = 3pts · Bonne tendance = 1pt · Mauvais = 0pt
               </p>
             </Card>

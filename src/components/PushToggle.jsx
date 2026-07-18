@@ -10,7 +10,7 @@ export default function PushToggle() {
   const [msg, setMsg] = useState(null)
 
   if (!pushSupported) return (
-    <div style={{ background: '#F3F4F6', borderRadius: 10, padding: '10px 12px', fontSize: 11, color: '#9CA3AF' }}>
+    <div style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: '10px 12px', fontSize: 11, color: 'var(--text-muted)' }}>
       📵 Les notifications push ne sont pas supportées sur ce navigateur. Installe l'app depuis Safari sur iPhone.
     </div>
   )
@@ -34,7 +34,7 @@ export default function PushToggle() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
         <div>
           <p style={{ fontSize: 13, fontWeight: 600 }}>🔔 Notifications push</p>
-          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
             {pushEnabled ? 'Activées — convocations, rappels RPE' : 'Désactivées'}
           </p>
         </div>

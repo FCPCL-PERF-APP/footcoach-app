@@ -156,9 +156,9 @@ export default function RpePage() {
         {[['bilan', BarChart3, 'Bilan groupe'],['detail', Users, 'Par joueur'],['manquants', Hourglass, 'Manquants']].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB',
+            border: '0.5px solid var(--border)',
             background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
-            color: activeTab === tab ? 'var(--primary)' : '#6B7280',
+            color: activeTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: activeTab === tab ? 600 : 400, whiteSpace: 'nowrap',
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -184,11 +184,11 @@ export default function RpePage() {
                 <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
                   Moyenne équipe — {rpeData.length} réponse(s)
                 </p>
-                <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 12 }}>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
                   0 = Très faible · 5 = Très élevé
                 </p>
                 {rpeData.length === 0
-                  ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Aucune donnée RPE pour cet événement.</p>
+                  ? <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Aucune donnée RPE pour cet événement.</p>
                   : <BarChart data={bilanData} maxValue={5} />
                 }
               </Card>
@@ -205,9 +205,9 @@ export default function RpePage() {
                   }}>
                     {joueursCibles.length ? Math.round(rpeData.length / joueursCibles.length * 100) : 0}%
                   </div>
-                  <div style={{ fontSize: 12, color: '#6B7280' }}>
-                    <strong style={{ color: '#111' }}>{rpeData.length}</strong> joueur(s) ont rempli leur RPE<br />
-                    sur <strong style={{ color: '#111' }}>{joueursCibles.length}</strong> {convoqueIds ? 'convoqué(s)' : 'dans l\'effectif'}
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>{rpeData.length}</strong> joueur(s) ont rempli leur RPE<br />
+                    sur <strong style={{ color: 'var(--text-primary)' }}>{joueursCibles.length}</strong> {convoqueIds ? 'convoqué(s)' : 'dans l\'effectif'}
                   </div>
                 </div>
               </Card>
@@ -219,15 +219,15 @@ export default function RpePage() {
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>RPE par joueur</p>
               {rpeData.length === 0
-                ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Aucune donnée.</p>
+                ? <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Aucune donnée.</p>
                 : rpeData.map(r => {
                     const avg = (items.reduce((s, i) => s + (r[i.key] || 0), 0) / items.length).toFixed(1)
                     return (
-                      <div key={r.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '0.5px solid #F3F4F6' }}>
+                      <div key={r.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '0.5px solid var(--bg-secondary)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                           <div>
                             <span style={{ fontSize: 13, fontWeight: 600 }}>{r.joueurs?.nom} {r.joueurs?.prenom}</span>
-                            <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 6 }}>{r.joueurs?.poste}</span>
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>{r.joueurs?.poste}</span>
                           </div>
                           <span style={{
                             fontSize: 13, fontWeight: 700, color: '#fff',
@@ -240,8 +240,8 @@ export default function RpePage() {
                           maxValue={5}
                         />
                         {r.commentaire && (
-                          <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '6px 10px', marginTop: 6, fontSize: 12, color: '#555', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                            <MessageSquare size={12} color="#9CA3AF" style={{ flexShrink: 0, marginTop: 2 }} /> {r.commentaire}
+                          <div style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: '6px 10px', marginTop: 6, fontSize: 12, color: '#555', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                            <MessageSquare size={12} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: 2 }} /> {r.commentaire}
                           </div>
                         )}
                       </div>
@@ -255,17 +255,17 @@ export default function RpePage() {
           {activeTab === 'manquants' && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Joueurs n'ayant pas rempli leur RPE</p>
-              <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>
                 Envoie une notification push pour les relancer.
               </p>
               {joueursSansRpe.length === 0
                 ? <p style={{ fontSize: 13, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Tous les joueurs ont rempli leur RPE !</p>
                 : <>
                     {joueursSansRpe.map(j => (
-                      <div key={j.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                      <div key={j.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 500 }}>{j.nom} {j.prenom}</div>
-                          <div style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{j.poste}</div>
                         </div>
                         <span style={{ fontSize: 11, color: '#D85A30', display: 'flex', alignItems: 'center', gap: 4 }}><Hourglass size={11} /> En attente</span>
                       </div>

@@ -180,9 +180,9 @@ export default function FootbarPage() {
         ].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+            border: '0.5px solid var(--border)', whiteSpace: 'nowrap',
             background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
-            color: activeTab === tab ? 'var(--primary)' : '#6B7280',
+            color: activeTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: activeTab === tab ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -202,7 +202,7 @@ export default function FootbarPage() {
                   {currentEvent?.titre} — {currentEvent?.date_heure ? format(parseISO(currentEvent.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
                 </p>
                 {footData.length === 0
-                  ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Aucune donnée Footbar pour cet événement.</p>
+                  ? <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Aucune donnée Footbar pour cet événement.</p>
                   : FOOTBAR_FIELDS.map(f => {
                       const vals = footData.map(d => d[f.key]).filter(v => v !== null && v !== undefined)
                       if (!vals.length) return null
@@ -248,13 +248,13 @@ export default function FootbarPage() {
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Footbar par joueur</p>
               {footData.length === 0
-                ? <p style={{ fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' }}>Aucune donnée.</p>
+                ? <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Aucune donnée.</p>
                 : footData.map(d => (
                     <div key={d.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '0.5px solid var(--border)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                         <div>
                           <span style={{ fontSize: 13, fontWeight: 600 }}>{d.joueurs?.nom} {d.joueurs?.prenom}</span>
-                          <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 6 }}>{d.joueurs?.poste}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>{d.joueurs?.poste}</span>
                         </div>
                         {d.distance_km && <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)' }}>{d.distance_km} km</span>}
                       </div>
@@ -262,7 +262,7 @@ export default function FootbarPage() {
                         {FOOTBAR_FIELDS.map(f => (
                           <div key={f.key} style={{ background: 'var(--bg-secondary)', borderRadius: 8, padding: '5px 6px', textAlign: 'center' }}>
                             <div style={{ fontSize: 12, fontWeight: 600 }}>{d[f.key] != null ? `${d[f.key]}${f.unit ? f.unit : ''}` : '—'}</div>
-                            <div style={{ fontSize: 9, color: '#9CA3AF' }}>{f.label}</div>
+                            <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{f.label}</div>
                           </div>
                         ))}
                       </div>
@@ -287,7 +287,7 @@ export default function FootbarPage() {
                 {FOOTBAR_FIELDS.map(f => (
                   <div key={f.key}>
                     <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>
-                      {f.label} {f.unit && <span style={{ color: '#9CA3AF' }}>({f.unit})</span>}
+                      {f.label} {f.unit && <span style={{ color: 'var(--text-muted)' }}>({f.unit})</span>}
                     </label>
                     <input type="number" step={f.step} placeholder={f.placeholder}
                       value={form[f.key] || ''}
@@ -322,7 +322,7 @@ export default function FootbarPage() {
                       <div key={j.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--border)' }}>
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 500 }}>{j.nom} {j.prenom}</div>
-                          <div style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{j.poste}</div>
                         </div>
                         <span style={{ fontSize: 11, color: '#D85A30', display: 'flex', alignItems: 'center', gap: 4 }}><Hourglass size={11} /> En attente</span>
                       </div>

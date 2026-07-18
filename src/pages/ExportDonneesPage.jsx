@@ -129,7 +129,7 @@ export default function ExportDonneesPage() {
               <IconTile icon={icon} color={CAT_COLORS[cat].color} bg={CAT_COLORS[cat].bg} size={19} tileSize={42} />
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600 }}>{label}</p>
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{sub}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{sub}</p>
               </div>
             </div>
             <button onClick={fn} disabled={loading} style={{

@@ -74,7 +74,7 @@ export default function DashboardStatsPage() {
       <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={18} /> Bilan des matchs</span>} />
 
       {loading ? <Spinner /> : !stats ? (
-        <Card><p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucune stat de match enregistrée.</p></Card>
+        <Card><p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>Aucune stat de match enregistrée.</p></Card>
       ) : (
         <>
           {/* Résultats globaux */}
@@ -118,7 +118,7 @@ export default function DashboardStatsPage() {
                     <span>{label}</span>
                     <span style={{ fontWeight: 600, color: '#3B6D11' }}>{val} but(s) ({pct}%)</span>
                   </div>
-                  <div style={{ height: 7, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
                     <div style={{ height: '100%', borderRadius: 4, background: '#3B6D11', width: `${pct}%` }} />
                   </div>
                 </div>
@@ -143,7 +143,7 @@ export default function DashboardStatsPage() {
                     <span>{label}</span>
                     <span style={{ fontWeight: 600, color: '#A32D2D' }}>{val} but(s) ({pct}%)</span>
                   </div>
-                  <div style={{ height: 7, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
                     <div style={{ height: '100%', borderRadius: 4, background: '#A32D2D', width: `${pct}%` }} />
                   </div>
                 </div>
@@ -161,7 +161,7 @@ export default function DashboardStatsPage() {
                 const maxVal = Math.max(1, ...stats.butsParPeriode, ...stats.butsEncParPeriode)
                 return (
                   <div key={label} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 9, color: '#9CA3AF', marginBottom: 4 }}>{label}</div>
+                    <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
                     <div style={{ display: 'flex', gap: 2, justifyContent: 'center', alignItems: 'flex-end', height: 50 }}>
                       <div style={{ width: 8, background: '#3B6D11', borderRadius: 2, height: `${marques/maxVal*100}%`, minHeight: marques > 0 ? 4 : 0 }} />
                       <div style={{ width: 8, background: '#A32D2D', borderRadius: 2, height: `${enc/maxVal*100}%`, minHeight: enc > 0 ? 4 : 0 }} />
@@ -186,14 +186,14 @@ export default function DashboardStatsPage() {
               const n = (m.buts_marques||0) === (m.buts_encaisses||0)
               return (
                 <div key={m.id} onClick={() => navigate(`/stats/${m.evenement_id}`)}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6', cursor: 'pointer' }}>
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)', cursor: 'pointer' }}>
                   <div>
                     <p style={{ fontSize: 12, fontWeight: 600 }}>
                   {m.evenements?.match_type === 'preparation' && <span style={{ fontSize: 9, background: '#E6F1FB', color: '#185FA5', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Prépa</span>}
                   {m.evenements?.match_type === 'coupe' && <span style={{ fontSize: 9, background: '#FAEEDA', color: '#854F0B', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Coupe</span>}
                   {m.evenements?.titre}
                 </p>
-                    <p style={{ fontSize: 10, color: '#9CA3AF' }}>{m.evenements?.date_heure ? format(parseISO(m.evenements.date_heure), 'd MMM yyyy', { locale: fr }) : ''}</p>
+                    <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{m.evenements?.date_heure ? format(parseISO(m.evenements.date_heure), 'd MMM yyyy', { locale: fr }) : ''}</p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: 14, fontWeight: 700 }}>{m.buts_marques}-{m.buts_encaisses}</span>

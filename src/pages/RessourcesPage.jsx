@@ -129,28 +129,28 @@ export default function RessourcesPage() {
               <button key={tab} onClick={() => setAddTab(tab)} style={{
                 flex: 1, padding: '10px 6px', borderRadius: 10, fontSize: 12,
                 cursor: 'pointer', fontWeight: 600,
-                border: addTab === tab ? `2px solid ${'var(--primary)'}` : '1px solid #D1D5DB',
+                border: addTab === tab ? `2px solid ${'var(--primary)'}` : '1px solid var(--border)',
                 background: addTab === tab ? 'var(--primary-bg)' : 'transparent',
-                color: addTab === tab ? 'var(--primary)' : '#6B7280',
+                color: addTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
               }}><Icon size={13} /> {lbl}</button>
             ))}
           </div>
 
           <div style={{ marginBottom: 10 }}>
-            <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>Titre *</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Titre *</label>
             <input value={form.titre} onChange={e => setForm(p => ({ ...p, titre: e.target.value }))}
               placeholder={addTab === 'pdf' ? 'Ex : Programme de reprise' : 'Ex : Match vs RC Metz B'}
-              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
           </div>
 
           {addTab === 'pdf' ? (
             <div style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Fichier PDF</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Fichier PDF</label>
               <div onClick={() => document.getElementById('file-input').click()}
-                style={{ border: file ? `2px solid ${'var(--success)'}` : '1.5px dashed #D1D5DB', borderRadius: 12, padding: 16, textAlign: 'center', cursor: 'pointer', background: file ? 'var(--success-bg)' : '#F9FAFB' }}>
-                {file ? <CheckCircle2 size={26} color={'var(--success)'} style={{ marginBottom: 6 }} /> : <Upload size={26} color="#9CA3AF" style={{ marginBottom: 6 }} />}
-                <p style={{ fontSize: 12, color: file ? 'var(--success)' : '#6B7280', fontWeight: file ? 600 : 400 }}>
+                style={{ border: file ? `2px solid ${'var(--success)'}` : '1.5px dashed var(--border)', borderRadius: 12, padding: 16, textAlign: 'center', cursor: 'pointer', background: file ? 'var(--success-bg)' : 'var(--bg-secondary)' }}>
+                {file ? <CheckCircle2 size={26} color={'var(--success)'} style={{ marginBottom: 6 }} /> : <Upload size={26} color="var(--text-muted)" style={{ marginBottom: 6 }} />}
+                <p style={{ fontSize: 12, color: file ? 'var(--success)' : 'var(--text-secondary)', fontWeight: file ? 600 : 400 }}>
                   {file ? file.name : 'Appuyer pour choisir un PDF'}
                 </p>
               </div>
@@ -159,18 +159,18 @@ export default function RessourcesPage() {
             </div>
           ) : (
             <div style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Lien YouTube ou Vimeo</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Lien YouTube ou Vimeo</label>
               <input type="url" value={form.url} onChange={e => checkVideoUrl(e.target.value)}
                 placeholder="https://youtube.com/watch?v=..."
-                style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${videoValid ? 'var(--success)' : '#D1D5DB'}`, borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${videoValid ? 'var(--success)' : 'var(--border)'}`, borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
               {videoValid && <p style={{ fontSize: 11, color: 'var(--success)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={11} /> Lien valide</p>}
             </div>
           )}
 
           <div style={{ marginBottom: 10 }}>
-            <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>Catégorie</label>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Catégorie</label>
             <select value={form.categorie} onChange={e => setForm(p => ({ ...p, categorie: e.target.value }))}
-              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
+              style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
               <option value="general">Général (visible par tous)</option>
               <option value="match">Lié à un match</option>
               <option value="seance">Lié à une séance</option>
@@ -179,9 +179,9 @@ export default function RessourcesPage() {
 
           {form.categorie !== 'general' && (
             <div style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>Événement associé</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Événement associé</label>
               <select value={form.evenement_id} onChange={e => setForm(p => ({ ...p, evenement_id: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
+                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
                 <option value="">— Choisir —</option>
                 {events.map(e => <option key={e.id} value={e.id}>{e.titre}</option>)}
               </select>
@@ -199,9 +199,9 @@ export default function RessourcesPage() {
         {[['pdf', FileText, 'Documents PDF'],['video', Video, 'Vidéos']].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: '0.5px solid #D1D5DB',
+            border: '0.5px solid var(--border)',
             background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
-            color: activeTab === tab ? 'var(--primary)' : '#6B7280',
+            color: activeTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: activeTab === tab ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -210,16 +210,16 @@ export default function RessourcesPage() {
 
       {/* Recherche */}
       <div style={{ position: 'relative', marginBottom: 12 }}>
-        <Search size={14} color="#9CA3AF" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+        <Search size={14} color="var(--text-muted)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Rechercher une ressource..."
-          style={{ width: '100%', padding: '8px 12px 8px 34px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
+          style={{ width: '100%', padding: '8px 12px 8px 34px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
       </div>
 
       {loading ? <Spinner /> : (
         Object.keys(grouped).length === 0 ? (
           <Card>
-            <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 24 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 24 }}>
               {search ? `Aucune ressource pour "${search}"` : 'Aucune ressource pour l\'instant.'}
               {canAdd && !search && <><br /><span style={{ color: 'var(--primary)' }}>Clique sur "+ Ajouter".</span></>}
             </p>
@@ -227,20 +227,20 @@ export default function RessourcesPage() {
         ) : (
           Object.entries(grouped).map(([groupe, items]) => (
             <div key={groupe}>
-              <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', margin: '12px 0 6px', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', margin: '12px 0 6px', display: 'flex', alignItems: 'center', gap: 5 }}>
                 {groupe === 'Général' ? <Folder size={11} /> : <Swords size={11} />} {groupe}
               </p>
               <Card style={{ padding: '4px 14px' }}>
                 {items.map((r, i) => {
                   const VideoIcon = getVideoIcon(r.url)
                   return (
-                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: i < items.length - 1 ? '0.5px solid #F3F4F6' : 'none' }}>
+                  <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: i < items.length - 1 ? '0.5px solid var(--bg-secondary)' : 'none' }}>
                     <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: r.type === 'pdf' ? 'var(--danger-bg)' : 'var(--primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {r.type === 'pdf' ? <FileText size={17} color={'var(--danger)'} /> : <VideoIcon size={17} color={'var(--primary)'} />}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.titre}</p>
-                      <p style={{ fontSize: 10, color: '#9CA3AF' }}>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>
                         {r.type === 'pdf' ? 'PDF' : r.url?.includes('youtube') || r.url?.includes('youtu.be') ? 'YouTube' : 'Vimeo'}
                         {' · '}{new Date(r.created_at).toLocaleDateString('fr-FR')}
                       </p>

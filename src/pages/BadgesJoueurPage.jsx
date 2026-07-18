@@ -121,10 +121,10 @@ export default function BadgesJoueurPage() {
           <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} color={'var(--success)'} /> Débloqués</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
             {badges.map(b => (
-              <div key={b.id} style={{ textAlign: 'center', padding: 10, background: '#F9FAFB', borderRadius: 12, border: '1.5px solid #FFD700' }}>
+              <div key={b.id} style={{ textAlign: 'center', padding: 10, background: 'var(--bg-secondary)', borderRadius: 12, border: '1.5px solid #FFD700' }}>
                 <div style={{ fontSize: 28, marginBottom: 4 }}>{b.icon}</div>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>{b.label}</p>
-                <p style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{b.desc}</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>{b.label}</p>
+                <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{b.desc}</p>
               </div>
             ))}
           </div>
@@ -134,13 +134,13 @@ export default function BadgesJoueurPage() {
       {/* Badges verrouillés */}
       {locked.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 6 }}><Lock size={13} /> À débloquer</p>
+          <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}><Lock size={13} /> À débloquer</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
             {locked.map(b => (
-              <div key={b.id} style={{ textAlign: 'center', padding: 10, background: '#F3F4F6', borderRadius: 12, border: '1px solid #E5E7EB', opacity: 0.6 }}>
+              <div key={b.id} style={{ textAlign: 'center', padding: 10, background: 'var(--bg-secondary)', borderRadius: 12, border: '1px solid var(--border)', opacity: 0.6 }}>
                 <div style={{ fontSize: 28, marginBottom: 4, filter: 'grayscale(1)' }}>{b.icon}</div>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF' }}>{b.label}</p>
-                <p style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{b.desc}</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>{b.label}</p>
+                <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{b.desc}</p>
               </div>
             ))}
           </div>
@@ -160,9 +160,9 @@ export default function BadgesJoueurPage() {
               ['Matchs', stats.totalMatchs],
               ['RPE remplis', stats.totalRpe],
             ].map(([label, val]) => (
-              <div key={label} style={{ background: '#F9FAFB', borderRadius: 10, padding: '8px', textAlign: 'center' }}>
+              <div key={label} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: '8px', textAlign: 'center' }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary)' }}>{val}</div>
-                <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{label}</div>
+                <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{label}</div>
               </div>
             ))}
           </div>

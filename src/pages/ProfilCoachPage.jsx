@@ -139,7 +139,7 @@ export default function ProfilCoachPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: changingPwd ? 12 : 0 }}>
           <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Lock size={13} /> Mot de passe</p>
           <button onClick={() => { setChangingPwd(!changingPwd); setPwdMsg(null) }}
-            style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
             {changingPwd ? <><X size={11} /> Annuler</> : 'Modifier'}
           </button>
         </div>

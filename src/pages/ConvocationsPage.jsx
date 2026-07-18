@@ -11,7 +11,7 @@ const DISPO = {
   present: { label: 'Disponible', icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
   absent:  { label: 'Indisponible', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
   blesse:  { label: 'Blessé', icon: Bandage, color: '#854F0B', bg: 'var(--warning-bg)' },
-  inconnu: { label: 'Sans réponse', icon: HelpCircle, color: '#9CA3AF', bg: '#F3F4F6' },
+  inconnu: { label: 'Sans réponse', icon: HelpCircle, color: 'var(--text-muted)', bg: 'var(--bg-secondary)' },
 }
 
 const AVATAR_COLORS = [
@@ -145,7 +145,7 @@ export default function ConvocationsPage() {
         <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Convocations</p>
-          <p style={{ fontSize: 12, color: '#9CA3AF' }}>{event?.titre} · {dateStr}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{event?.titre} · {dateStr}</p>
         </div>
       </div>
 
@@ -154,7 +154,7 @@ export default function ConvocationsPage() {
           <div style={{ textAlign: 'center', padding: 24 }}>
             <CheckCircle2 size={44} color={'var(--success)'} style={{ marginBottom: 12 }} />
             <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)' }}>Convocations enregistrées !</p>
-            <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{selected.size} joueur(s) convoqué(s)</p>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>{selected.size} joueur(s) convoqué(s)</p>
             <Button variant="primary" style={{ marginTop: 16, width: '100%' }} onClick={() => navigate('/calendrier')}>
               Retour au calendrier
             </Button>
@@ -167,15 +167,15 @@ export default function ConvocationsPage() {
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><MapPin size={13} color={'var(--primary)'} /> Informations de rendez-vous</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div>
-                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>Heure de RDV</label>
+                <label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Heure de RDV</label>
                 <input type="time" value={rdvHeure} onChange={e => setRdvHeure(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>Lieu de RDV</label>
+                <label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Lieu de RDV</label>
                 <input type="text" value={rdvLieu} onChange={e => setRdvLieu(e.target.value)}
                   placeholder={event?.lieu || 'Vestiaires...'}
-                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
               </div>
             </div>
           </Card>
@@ -188,14 +188,14 @@ export default function ConvocationsPage() {
                 {selected.size}/{cap}
               </span>
             </div>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10, marginTop: -6 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, marginTop: -6 }}>
               {event?.match_type === 'coupe' ? 'Match de coupe' : event?.match_type === 'preparation' ? 'Match de préparation' : 'Championnat'} · {cap} convocables — les joueurs disponibles sont affichés en premier.
             </p>
 
             {/* Aperçu SMS */}
             <div style={{ background: 'var(--primary-bg)', borderRadius: 10, padding: 10, marginBottom: 12, borderLeft: `3px solid ${'var(--primary)'}` }}>
               <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--primary)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}><Bell size={12} /> Notification push envoyée</p>
-              <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+              <p style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 5 }}>
                 <Send size={12} style={{ flexShrink: 0, marginTop: 2 }} />
                 <span><strong>Convocation — {event?.titre}</strong>{'\n'}
                 {dateStr} · RDV {rdvHeure} · {rdvLieu || event?.lieu || 'Vestiaires'}</span>
@@ -210,14 +210,14 @@ export default function ConvocationsPage() {
               return (
                 <div key={j.id} onClick={() => toggleJoueur(j.id)} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '10px 0', borderBottom: '0.5px solid #F3F4F6', cursor: 'pointer',
+                  padding: '10px 0', borderBottom: '0.5px solid var(--bg-secondary)', cursor: 'pointer',
                   opacity: !isSelected && selected.size >= cap ? 0.4 : 1
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <Avatar initials={initials} bg={col.bg} color={col.color} size={36} />
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 500 }}>{j.nom} {j.prenom}</p>
-                      <p style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <p style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                         {j.poste} {j.numero ? `· N°${j.numero}` : ''}
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, color: d.color, background: d.bg, borderRadius: 6, padding: '1px 5px', fontWeight: 600, marginLeft: 2 }}>
                           <d.icon size={9} /> {d.label}
@@ -227,7 +227,7 @@ export default function ConvocationsPage() {
                   </div>
                   <div style={{
                     width: 26, height: 26, borderRadius: '50%',
-                    border: `2px solid ${isSelected ? 'var(--success)' : '#D1D5DB'}`,
+                    border: `2px solid ${isSelected ? 'var(--success)' : 'var(--border)'}`,
                     background: isSelected ? 'var(--success)' : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 14, color: '#fff', flexShrink: 0, transition: 'all .15s'

@@ -55,15 +55,15 @@ export default function SearchPage() {
           autoFocus
           style={{
             width: '100%', padding: '12px 14px 12px 40px',
-            border: '1.5px solid #E5E7EB', borderRadius: 12,
+            border: '1.5px solid var(--border)', borderRadius: 12,
             fontSize: 14, outline: 'none', boxSizing: 'border-box',
             background: '#fff'
           }}
         />
-        <Search size={16} color="#9CA3AF" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+        <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
         {query && (
           <button onClick={() => { setQuery(''); setResults(null) }}
-            style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#9CA3AF', display: 'flex' }}>
+            style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}>
             <X size={16} />
           </button>
         )}
@@ -75,7 +75,7 @@ export default function SearchPage() {
         <>
           {total === 0 ? (
             <Card>
-              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
                 Aucun résultat pour "{query}"
               </p>
             </Card>
@@ -84,15 +84,15 @@ export default function SearchPage() {
               {/* Joueurs */}
               {results.joueurs.length > 0 && (
                 <Card>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 8 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                     <Users size={12} style={{marginRight:5,verticalAlign:-2}} />Joueurs ({results.joueurs.length})
                   </p>
                   {results.joueurs.map(j => (
                     <div key={j.id} onClick={() => navigate(`/joueurs/${j.id}`)}
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6', cursor: 'pointer' }}>
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)', cursor: 'pointer' }}>
                       <div>
                         <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}{j.numero ? ` · N°${j.numero}` : ''}</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{j.poste}{j.numero ? ` · N°${j.numero}` : ''}</p>
                       </div>
                       <ChevronRight size={16} color={'var(--primary)'} />
                     </div>
@@ -103,15 +103,15 @@ export default function SearchPage() {
               {/* Événements */}
               {results.events.length > 0 && (
                 <Card>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 8 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                     <Calendar size={12} style={{marginRight:5,verticalAlign:-2}} />Événements ({results.events.length})
                   </p>
                   {results.events.map(e => (
                     <div key={e.id} onClick={() => navigate('/calendrier')}
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6', cursor: 'pointer' }}>
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)', cursor: 'pointer' }}>
                       <div>
                         <p style={{ fontSize: 13, fontWeight: 600 }}>{e.titre}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <p style={{ fontSize: 11, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                           {e.type === 'match' ? <Swords size={10} /> : <Footprints size={10} />} {e.type === 'match' ? 'Match' : 'Séance'} · {e.date_heure ? format(parseISO(e.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
                         </p>
                       </div>
@@ -124,15 +124,15 @@ export default function SearchPage() {
               {/* Messages */}
               {results.messages.length > 0 && (
                 <Card>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', marginBottom: 8 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8 }}>
                     <MessageCircle size={12} style={{marginRight:5,verticalAlign:-2}} />Messages ({results.messages.length})
                   </p>
                   {results.messages.map(m => (
                     <div key={m.id} onClick={() => navigate('/messages')}
-                      style={{ padding: '8px 0', borderBottom: '0.5px solid #F3F4F6', cursor: 'pointer' }}>
+                      style={{ padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)', cursor: 'pointer' }}>
                       <p style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 600, marginBottom: 2 }}>{m.expediteur_nom}</p>
-                      <p style={{ fontSize: 12, color: '#374151' }}>{m.contenu?.slice(0, 80)}{m.contenu?.length > 80 ? '...' : ''}</p>
-                      <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{m.created_at ? format(parseISO(m.created_at), 'd MMM à HH:mm', { locale: fr }) : ''}</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-primary)' }}>{m.contenu?.slice(0, 80)}{m.contenu?.length > 80 ? '...' : ''}</p>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{m.created_at ? format(parseISO(m.created_at), 'd MMM à HH:mm', { locale: fr }) : ''}</p>
                     </div>
                   ))}
                 </Card>
@@ -144,9 +144,9 @@ export default function SearchPage() {
 
       {!query && (
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-          <Search size={40} color="#D1D5DB" style={{ marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: '#9CA3AF' }}>Tape au moins 2 caractères pour lancer la recherche</p>
-          <p style={{ fontSize: 12, color: '#D1D5DB', marginTop: 8 }}>Joueurs · Événements · Messages</p>
+          <Search size={40} color="var(--border)" style={{ marginBottom: 12 }} />
+          <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>Tape au moins 2 caractères pour lancer la recherche</p>
+          <p style={{ fontSize: 12, color: 'var(--border)', marginTop: 8 }}>Joueurs · Événements · Messages</p>
         </div>
       )}
     </div>

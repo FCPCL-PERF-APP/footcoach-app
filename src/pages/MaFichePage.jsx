@@ -33,8 +33,8 @@ const RPE_ITEMS = [
 function Field({ label, value, onChange, type = 'text', step, disabled = false, note }) {
   return (
     <div style={{ marginBottom: 8 }}>
-      <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>
-        {label} {note && <span style={{ color: '#9CA3AF', fontSize: 10 }}>({note})</span>}
+      <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>
+        {label} {note && <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>({note})</span>}
       </label>
       <input
         type={type} step={step} value={value || ''}
@@ -42,10 +42,10 @@ function Field({ label, value, onChange, type = 'text', step, disabled = false, 
         disabled={disabled}
         style={{
           width: '100%', padding: '8px 10px',
-          border: `0.5px solid ${disabled ? '#F3F4F6' : '#D1D5DB'}`,
+          border: `0.5px solid ${disabled ? 'var(--bg-secondary)' : 'var(--border)'}`,
           borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box',
           background: disabled ? '#FAFAFA' : '#fff',
-          color: disabled ? '#9CA3AF' : '#111'
+          color: disabled ? 'var(--text-muted)' : 'var(--text-primary)'
         }}
       />
     </div>
@@ -260,9 +260,9 @@ export default function MaFichePage() {
       {/* Stats rapides */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
         {[['Matchs', statsHistory.length], ['Buts', totalButs], ['PD', totalPD], ['Note', noteMoy]].map(([l, v]) => (
-          <div key={l} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 10, padding: 8, textAlign: 'center' }}>
+          <div key={l} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
             <div style={{ fontSize: 17, fontWeight: 700 }}>{v}</div>
-            <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{l}</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{l}</div>
           </div>
         ))}
       </div>
@@ -300,9 +300,9 @@ export default function MaFichePage() {
           return (
             <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
               padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-              border: activeTab === t.key ? `0.5px solid ${c.color}` : '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
+              border: activeTab === t.key ? `0.5px solid ${c.color}` : '0.5px solid var(--border)', whiteSpace: 'nowrap',
               background: activeTab === t.key ? c.bg : 'transparent',
-              color: activeTab === t.key ? c.color : '#6B7280',
+              color: activeTab === t.key ? c.color : 'var(--text-secondary)',
               fontWeight: activeTab === t.key ? 600 : 400,
               display: 'flex', alignItems: 'center', gap: 5
             }}><t.icon size={12} /> {t.label}</button>
@@ -321,15 +321,15 @@ export default function MaFichePage() {
         <>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Informations personnelles</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>Toutes ces informations sont modifiables par toi.</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Toutes ces informations sont modifiables par toi.</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <Field label="Nom" value={f('nom')} onChange={s('nom')} />
               <Field label="Prénom" value={f('prenom')} onChange={s('prenom')} />
               <Field label="Date de naissance" type="date" value={f('date_naissance')} onChange={s('date_naissance')} />
               <div style={{ marginBottom: 8 }}>
-                <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3 }}>Pied fort</label>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Pied fort</label>
                 <select value={f('pied')} onChange={e => setForm(p => ({...p, pied: e.target.value}))}
-                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
                   {['Droit','Gauche','Les deux'].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
@@ -369,13 +369,13 @@ export default function MaFichePage() {
         <>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>VMA</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>Vitesse Maximale Aérobie — issue de ton dernier test</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Vitesse Maximale Aérobie — issue de ton dernier test</p>
             <Field label="VMA (km/h)" type="number" step="0.1" value={f('vma')} onChange={s('vma')} note="modifiable" />
           </Card>
 
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Fréquence cardiaque</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>Renseigne ta FC max et ta FC de repos pour calculer tes zones d'entraînement.</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Renseigne ta FC max et ta FC de repos pour calculer tes zones d'entraînement.</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
               <Field label="FC max (bpm)" type="number" value={f('fc_max')} onChange={s('fc_max')} note="modifiable" />
               <Field label="FC repos (bpm)" type="number" value={f('fc_repos')} onChange={s('fc_repos')} note="modifiable" />
@@ -384,13 +384,13 @@ export default function MaFichePage() {
             {/* FC calculées */}
             {fcReserve && (
               <div style={{ marginTop: 10 }}>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 8 }}>Zones calculées (méthode Karvonen)</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>Zones calculées (méthode Karvonen)</p>
 
                 <ZoneFC label="FC à 70% — Endurance fondamentale" pct={0.70} fcRepos={fcRepos} fcReserve={fcReserve} color="#3B6D11" />
                 <ZoneFC label="FC à 85% — Seuil anaérobie" pct={0.85} fcRepos={fcRepos} fcReserve={fcReserve} color="#BA7517" />
                 <ZoneFC label="FC à 95% — Effort maximal" pct={0.95} fcRepos={fcRepos} fcReserve={fcReserve} color="#A32D2D" />
 
-                <div style={{ marginTop: 10, background: '#F9FAFB', borderRadius: 10, padding: 10 }}>
+                <div style={{ marginTop: 10, background: 'var(--bg-secondary)', borderRadius: 10, padding: 10 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6 }}>Toutes les zones</p>
                   {[
                     ['Zone 1 — Récupération (50-60%)', 0.5, 0.6, '#185FA5'],
@@ -419,16 +419,16 @@ export default function MaFichePage() {
 
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Points forts / axes de travail</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>Visible et modifiable par toi et ton coach.</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Visible et modifiable par toi et ton coach.</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {['points_forts', 'points_faibles'].map((field, i) => (
                 <div key={field}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>
                     {i === 0 ? <><CheckCircle2 size={11} color={'var(--success)'} /> Points forts</> : <><Target size={11} color={'var(--warning)'} /> Axes de travail</>}
                   </label>
                   <textarea value={form[field] || ''} onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
                     rows={4}
-                    style={{ width: '100%', padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+                    style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
                 </div>
               ))}
             </div>
@@ -446,15 +446,15 @@ export default function MaFichePage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Mes moyennes RPE — saison</p>
             {rpeHistory.length === 0
-              ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucune donnée RPE pour l'instant.</p>
+              ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune donnée RPE pour l'instant.</p>
               : <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {rpeAvg.map(item => (
                     <div key={item.label}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#6B7280', marginBottom: 2 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>
                         <span>{item.label}</span>
                         <span style={{ color: item.color, fontWeight: 600 }}>{item.value}/5</span>
                       </div>
-                      <div style={{ height: 6, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ height: 6, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
                         <div style={{ height: '100%', borderRadius: 4, background: item.color, width: `${item.value/5*100}%` }} />
                       </div>
                     </div>
@@ -469,7 +469,7 @@ export default function MaFichePage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                   <div>
                     <p style={{ fontSize: 12, fontWeight: 600 }}>{r.evenements?.titre}</p>
-                    <p style={{ fontSize: 10, color: '#9CA3AF' }}>
+                    <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>
                       {r.evenements?.date_heure ? format(parseISO(r.evenements.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
                     </p>
                   </div>
@@ -477,14 +477,14 @@ export default function MaFichePage() {
                 </div>
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {RPE_ITEMS.map(item => (
-                    <div key={item.key} style={{ background: '#F9FAFB', borderRadius: 6, padding: '3px 7px', fontSize: 10 }}>
-                      <span style={{ color: '#9CA3AF' }}>{item.label.split(' ')[0]} </span>
+                    <div key={item.key} style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: '3px 7px', fontSize: 10 }}>
+                      <span style={{ color: 'var(--text-muted)' }}>{item.label.split(' ')[0]} </span>
                       <span style={{ fontWeight: 600, color: rpeColor(r[item.key] || 0) }}>{r[item.key] ?? '—'}</span>
                     </div>
                   ))}
                 </div>
                 {r.commentaire && (
-                  <p style={{ fontSize: 11, color: '#6B7280', marginTop: 6, fontStyle: 'italic', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 6, fontStyle: 'italic', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
                     <MessageSquare size={11} style={{ flexShrink: 0, marginTop: 2 }} /> {r.commentaire}
                   </p>
                 )}
@@ -499,20 +499,20 @@ export default function MaFichePage() {
         <Card>
           <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Mes statistiques match</p>
           {statsHistory.length === 0
-            ? <p style={{ fontSize: 13, color: '#9CA3AF' }}>Aucune statistique enregistrée.</p>
+            ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune statistique enregistrée.</p>
             : statsHistory.map(s => (
-                <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
+                <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                   <div>
                     <p style={{ fontSize: 12, fontWeight: 600 }}>{s.evenements?.titre}</p>
-                    <p style={{ fontSize: 10, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <p style={{ fontSize: 10, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
                       {s.temps_jeu}min · {s.titulaire ? 'Titulaire' : 'Remplaçant'}
                       {s.carton_jaune && <span style={{ width: 8, height: 10, background: 'var(--warning)', borderRadius: 1, display: 'inline-block' }} />}
                       {s.carton_rouge && <span style={{ width: 8, height: 10, background: 'var(--danger)', borderRadius: 1, display: 'inline-block' }} />}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note || '—'}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Note</div></div>
-                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Buts</div></div>
+                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note || '—'}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Note</div></div>
+                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Buts</div></div>
                   </div>
                 </div>
               ))
@@ -525,7 +525,7 @@ export default function MaFichePage() {
         <div style={{ textAlign: 'center', padding: 20 }}>
           <Target size={44} color={'var(--primary)'} style={{ marginBottom: 12 }} />
           <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Mes objectifs & bilan</p>
-          <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 20 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
             Points forts, axes d'amélioration, objectifs saison et bilan de fin de saison.
           </p>
           <button onClick={() => navigate('/mes-objectifs')} style={{
@@ -546,7 +546,7 @@ export default function MaFichePage() {
               <div style={{ textAlign: 'center', padding: 20 }}>
                 <CheckCircle2 size={36} color={'var(--success)'} style={{ marginBottom: 8 }} />
                 <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--success)' }}>Aucune blessure enregistrée</p>
-                <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>Continue comme ça !</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Continue comme ça !</p>
               </div>
             </Card>
           ) : (
@@ -555,7 +555,7 @@ export default function MaFichePage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700 }}>{b.zone || b.type}</p>
-                    <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{b.type}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{b.type}</p>
                   </div>
                   <span style={{
                     fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
@@ -566,7 +566,7 @@ export default function MaFichePage() {
                     {!b.date_retour_effective ? <><Bandage size={10} /> En cours</> : <><CheckCircle2 size={10} /> Guéri</>}
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 11, color: '#6B7280' }}>
+                <div style={{ display: 'flex', gap: 12, marginTop: 8, fontSize: 11, color: 'var(--text-secondary)' }}>
                   <span>Début : {b.date_debut ? new Date(b.date_debut).toLocaleDateString('fr-FR') : '—'}</span>
                   {b.date_retour_prevue && <span>Retour prévu : {new Date(b.date_retour_prevue).toLocaleDateString('fr-FR')}</span>}
                 </div>
@@ -576,17 +576,17 @@ export default function MaFichePage() {
                   </p>
                 )}
                 {b.description && (
-                  <p style={{ fontSize: 11, color: '#6B7280', marginTop: 6, fontStyle: 'italic' }}>{b.description}</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 6, fontStyle: 'italic' }}>{b.description}</p>
                 )}
                 <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center' }}>
                   <span style={{
                     fontSize: 10, padding: '2px 8px', borderRadius: 6,
-                    background: b.gravite === 'legere' ? 'var(--warning-bg)' : b.gravite === 'moderee' ? '#FDF5EE' : b.gravite === 'grave' ? 'var(--danger-bg)' : '#F3F4F6',
-                    color: b.gravite === 'legere' ? 'var(--warning)' : b.gravite === 'moderee' ? '#D85A30' : b.gravite === 'grave' ? 'var(--danger)' : '#6B7280'
+                    background: b.gravite === 'legere' ? 'var(--warning-bg)' : b.gravite === 'moderee' ? '#FDF5EE' : b.gravite === 'grave' ? 'var(--danger-bg)' : 'var(--bg-secondary)',
+                    color: b.gravite === 'legere' ? 'var(--warning)' : b.gravite === 'moderee' ? '#D85A30' : b.gravite === 'grave' ? 'var(--danger)' : 'var(--text-secondary)'
                   }}>
                     {b.gravite === 'legere' ? 'Légère' : b.gravite === 'moderee' ? 'Modérée' : b.gravite === 'grave' ? 'Grave' : '—'}
                   </span>
-                  {b.duree_estimee && <span style={{ fontSize: 10, color: '#9CA3AF' }}>~{b.duree_estimee} jours</span>}
+                  {b.duree_estimee && <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>~{b.duree_estimee} jours</span>}
                 </div>
               </Card>
             ))
@@ -599,20 +599,20 @@ export default function MaFichePage() {
         <>
           <Card>
             <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Lock size={14} /> Changer mon mot de passe</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
               Choisis un mot de passe sécurisé d'au moins 6 caractères.
             </p>
             <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Nouveau mot de passe</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Nouveau mot de passe</label>
               <input type="password" value={pwd.new} onChange={e => setPwd(p => ({...p, new: e.target.value}))}
                 placeholder="Au moins 6 caractères"
-                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div style={{ marginBottom: 14 }}>
-              <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Confirmer le mot de passe</label>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Confirmer le mot de passe</label>
               <input type="password" value={pwd.confirm} onChange={e => setPwd(p => ({...p, confirm: e.target.value}))}
                 placeholder="Répète le mot de passe"
-                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             {pwdMsg && (
               <div style={{ background: pwdMsg.ok ? 'var(--success-bg)' : 'var(--danger-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: pwdMsg.ok ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -633,8 +633,8 @@ export default function MaFichePage() {
               ['Groupe', joueur?.groupe ? `Pôle ${joueur.groupe}` : '—'],
               ['Email', joueur?.email || '—'],
             ].map(([label, value]) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>
-                <span style={{ fontSize: 12, color: '#6B7280' }}>{label}</span>
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{label}</span>
                 <span style={{ fontSize: 12, fontWeight: 500 }}>{value}</span>
               </div>
             ))}
@@ -660,15 +660,15 @@ export default function MaFichePage() {
             </div>
           )}
           {poidsHistory.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>
-              <span>Dernier : <strong style={{ color: '#111' }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>
+              <span>Dernier : <strong style={{ color: 'var(--text-primary)' }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
               <span>Min : {Math.min(...poidsHistory.map(p => p.poids))} · Max : {Math.max(...poidsHistory.map(p => p.poids))} kg</span>
             </div>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
             <input type="number" step="0.1" placeholder="Nouvelle pesée (kg)" value={newPoids}
               onChange={e => setNewPoids(e.target.value)}
-              style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none' }} />
+              style={{ flex: 1, padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none' }} />
             <button onClick={savePoids} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
               + Ajouter
             </button>

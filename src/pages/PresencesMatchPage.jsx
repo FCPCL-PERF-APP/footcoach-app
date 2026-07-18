@@ -23,7 +23,7 @@ const STATUTS = {
   exterieur: { icon: RefreshCw,    label: 'Extérieur', bg: 'var(--primary-bg)', color: 'var(--primary)', border: 'var(--primary)' },
   absent:    { icon: XCircle,      label: 'Absent',    bg: 'var(--danger-bg)',  color: 'var(--danger)',  border: 'var(--danger)' },
   blesse:    { icon: Bandage,      label: 'Blessé',    bg: 'var(--warning-bg)', color: '#854F0B',     border: '#854F0B' },
-  inconnu:   { icon: HelpCircle,   label: 'Inconnu',   bg: '#F3F4F6',       color: '#6B7280',     border: '#D1D5DB' },
+  inconnu:   { icon: HelpCircle,   label: 'Inconnu',   bg: 'var(--bg-secondary)',       color: 'var(--text-secondary)',     border: 'var(--border)' },
 }
 
 const FORMES = {
@@ -164,9 +164,9 @@ export default function PresencesMatchPage() {
           <p style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
             {event?.type === 'seance' ? <Footprints size={15} /> : <Swords size={15} />} {event?.type === 'seance' ? 'Présences séance' : 'Présences match'}
           </p>
-          <p style={{ fontSize: 12, color: '#9CA3AF' }}>{event?.titre}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{event?.titre}</p>
           {event?.date_heure && (
-            <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
               {format(parseISO(event.date_heure), 'EEEE d MMMM yyyy', { locale: fr })}
             </p>
           )}
@@ -181,13 +181,13 @@ export default function PresencesMatchPage() {
           ['Extérieur', 'exterieur', nbExterieurs, '#185FA5', '#E6F1FB'],
           ['Absents', 'absent', nbAbsents, '#A32D2D', '#FCEBEB'],
           ['Blessés', 'blesse', nbBlesses, '#854F0B', '#FAEEDA'],
-          ['Inconnus', 'inconnu', nbInconnus, '#6B7280', '#F3F4F6'],
+          ['Inconnus', 'inconnu', nbInconnus, 'var(--text-secondary)', 'var(--bg-secondary)'],
         ].map(([lbl, key, val, color, bg]) => (
           <button key={key} onClick={() => setFilterStatut(key)} style={{
             padding: '8px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
             background: filterStatut === key ? bg : '#fff',
-            border: `1.5px solid ${filterStatut === key ? color : '#E5E7EB'}`,
-            color: filterStatut === key ? color : '#6B7280',
+            border: `1.5px solid ${filterStatut === key ? color : 'var(--border)'}`,
+            color: filterStatut === key ? color : 'var(--text-secondary)',
           }}>
             <div style={{ fontSize: 16, fontWeight: 700 }}>{val}</div>
             <div style={{ fontSize: 9 }}>{lbl}</div>
@@ -206,13 +206,13 @@ export default function PresencesMatchPage() {
       {/* Recherche */}
       <input value={search} onChange={e => setSearch(e.target.value)}
         placeholder="Rechercher un joueur..."
-        style={{ width: '100%', padding: '8px 12px', border: '0.5px solid #E5E7EB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 12 }} />
+        style={{ width: '100%', padding: '8px 12px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', marginBottom: 12 }} />
 
       {/* Réinitialiser filtre */}
       {(filterStatut !== 'tous' || search) && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
           <button onClick={() => { setFilterStatut('tous'); setSearch('') }}
-            style={{ fontSize: 11, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer' }}>
+            style={{ fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
             Tout afficher
           </button>
         </div>
@@ -221,7 +221,7 @@ export default function PresencesMatchPage() {
       {/* Liste joueurs */}
       <Card>
         {filteredConvocations.length === 0 ? (
-          <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 20 }}>Aucun joueur trouvé.</p>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>Aucun joueur trouvé.</p>
         ) : (
           filteredConvocations.map((c, i) => {
             const j = c.joueurs
@@ -231,7 +231,7 @@ export default function PresencesMatchPage() {
             const st = STATUTS[statut]
             const forme = formes[j.id] ? FORMES[formes[j.id]] : null
             return (
-              <div key={j.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '0.5px solid #F3F4F6' }}>
+              <div key={j.id} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '0.5px solid var(--bg-secondary)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                   {j.photo_url
                     ? <img src={j.photo_url} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
@@ -246,14 +246,14 @@ export default function PresencesMatchPage() {
                         <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--primary)', background: 'var(--primary-bg)', padding: '1px 5px', borderRadius: 6 }}>Convoqué</span>
                       )}
                     </p>
-                    <p style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}{j.numero ? ` · N°${j.numero}` : ''}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{j.poste}{j.numero ? ` · N°${j.numero}` : ''}</p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
                     <span style={{ fontSize: 11, fontWeight: 600, color: st.color, background: st.bg, padding: '3px 8px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <st.icon size={11} /> {st.label}
                     </span>
                     {forme && (
-                      <span style={{ fontSize: 10, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ fontSize: 10, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Circle size={7} fill={forme.color} color={forme.color} /> {forme.label}
                       </span>
                     )}
@@ -263,9 +263,9 @@ export default function PresencesMatchPage() {
                   {Object.entries(STATUTS).map(([key, val]) => (
                     <button key={key} onClick={() => setStatut(j.id, key)} style={{
                       flex: 1, padding: '6px 2px', borderRadius: 8, fontSize: 10,
-                      border: `1.5px solid ${statut === key ? val.border : '#E5E7EB'}`,
+                      border: `1.5px solid ${statut === key ? val.border : 'var(--border)'}`,
                       background: statut === key ? val.bg : 'transparent',
-                      color: statut === key ? val.color : '#9CA3AF',
+                      color: statut === key ? val.color : 'var(--text-muted)',
                       cursor: 'pointer', fontWeight: statut === key ? 700 : 400,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3
                     }}>
