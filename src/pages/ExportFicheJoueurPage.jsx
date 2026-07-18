@@ -135,7 +135,7 @@ export default function ExportFicheJoueurPage() {
               {/* Points forts */}
               {objJoueur.points_forts && Object.values(objJoueur.points_forts).some(v => v) && (
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: '#3B6D11', marginBottom: 8 }}>✅ Points forts</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--success)', marginBottom: 8 }}>✅ Points forts</p>
                   {[['💪', 'athletique', 'Athlétique'], ['🧠', 'tactique', 'Tactique'], ['⚽', 'technique', 'Technique'], ['🎯', 'mental', 'Mental']].map(([icon, key, label]) =>
                     objJoueur.points_forts[key] ? (
                       <div key={key} style={{ marginBottom: 6 }}>

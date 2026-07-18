@@ -12,9 +12,9 @@ import {
 
 const ROLES = [
   { value: 'coach',    icon: Crown, label: 'Coach principal', desc: 'Accès complet — modification, suppression, création', color: 'var(--primary)', canEdit: true },
-  { value: 'adjoint',  icon: Handshake, label: 'Coach adjoint',   desc: 'Lecture seule — consultation de toutes les données', color: '#3B6D11', canEdit: false },
+  { value: 'adjoint',  icon: Handshake, label: 'Coach adjoint',   desc: 'Lecture seule — consultation de toutes les données', color: 'var(--success)', canEdit: false },
   { value: 'admin',    icon: Settings, label: 'Administrateur',  desc: 'Accès complet comme le coach principal', color: 'var(--warning)', canEdit: true },
-  { value: 'preparateur', icon: Dumbbell, label: 'Préparateur physique', desc: 'Accès RPE, Footbar et données physiques', color: '#A32D2D', canEdit: false },
+  { value: 'preparateur', icon: Dumbbell, label: 'Préparateur physique', desc: 'Accès RPE, Footbar et données physiques', color: 'var(--danger)', canEdit: false },
 ]
 
 const AVATAR_COLORS = [

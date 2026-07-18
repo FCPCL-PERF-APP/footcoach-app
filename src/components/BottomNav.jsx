@@ -256,7 +256,7 @@ export default function BottomNav() {
               {showPlusBadgeItem && (
                 <span style={{
                   position: 'absolute', top: 6, right: 'calc(50% - 16px)',
-                  background: '#A32D2D', color: '#fff',
+                  background: 'var(--danger)', color: '#fff',
                   fontSize: 9, fontWeight: 700,
                   minWidth: 15, height: 15, borderRadius: 8,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

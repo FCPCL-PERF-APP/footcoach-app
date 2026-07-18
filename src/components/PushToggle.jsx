@@ -41,14 +41,14 @@ export default function PushToggle() {
         <button onClick={toggle} disabled={loading} style={{
           padding: '7px 14px', borderRadius: 20, border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
           background: pushEnabled ? '#EAF3DE' : 'var(--primary-bg)',
-          color: pushEnabled ? '#3B6D11' : 'var(--primary)',
+          color: pushEnabled ? 'var(--success)' : 'var(--primary)',
           fontSize: 12, fontWeight: 600
         }}>
           {loading ? '...' : pushEnabled ? '✅ Activées' : 'Activer'}
         </button>
       </div>
       {msg && (
-        <p style={{ fontSize: 11, color: msg.ok ? '#3B6D11' : '#A32D2D', marginTop: 4 }}>{msg.text}</p>
+        <p style={{ fontSize: 11, color: msg.ok ? 'var(--success)' : 'var(--danger)', marginTop: 4 }}>{msg.text}</p>
       )}
     </div>
   )

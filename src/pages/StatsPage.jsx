@@ -432,7 +432,7 @@ export default function StatsPage() {
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2, textAlign: 'center' }}>{label}</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
-                  style={{ width: '100%', padding: '6px 8px', border: '0.5px solid #3B6D11', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+                  style={{ width: '100%', padding: '6px 8px', border: '0.5px solid var(--success)', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
               </div>
             ))}
           </div>
@@ -445,7 +445,7 @@ export default function StatsPage() {
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2, textAlign: 'center' }}>{label}</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
-                  style={{ width: '100%', padding: '6px 8px', border: '0.5px solid #A32D2D', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+                  style={{ width: '100%', padding: '6px 8px', border: '0.5px solid var(--danger)', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
               </div>
             ))}
           </div>
@@ -457,7 +457,7 @@ export default function StatsPage() {
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 9, color: 'var(--text-muted)', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
-                  style={{ width: '100%', padding: '6px 4px', border: '0.5px solid #3B6D11', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+                  style={{ width: '100%', padding: '6px 4px', border: '0.5px solid var(--success)', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
               </div>
             ))}
           </div>
@@ -469,7 +469,7 @@ export default function StatsPage() {
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 9, color: 'var(--text-muted)', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
-                  style={{ width: '100%', padding: '6px 4px', border: '0.5px solid #A32D2D', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+                  style={{ width: '100%', padding: '6px 4px', border: '0.5px solid var(--danger)', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
               </div>
             ))}
           </div>

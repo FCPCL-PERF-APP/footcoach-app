@@ -199,9 +199,9 @@ export default function PresencesMatchPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 6, marginBottom: 12 }}>
         {[
           ['Tous', 'tous', convocations.length, 'var(--primary)', 'var(--primary-bg)'],
-          ['Présents', 'present', nbPresents, '#3B6D11', '#EAF3DE'],
+          ['Présents', 'present', nbPresents, 'var(--success)', '#EAF3DE'],
           ['Extérieur', 'exterieur', nbExterieurs, 'var(--primary)', 'var(--primary-bg)'],
-          ['Absents', 'absent', nbAbsents, '#A32D2D', '#FCEBEB'],
+          ['Absents', 'absent', nbAbsents, 'var(--danger)', '#FCEBEB'],
           ['Blessés', 'blesse', nbBlesses, 'var(--warning)', '#FAEEDA'],
           ['Inconnus', 'inconnu', nbInconnus, 'var(--text-secondary)', 'var(--bg-secondary)'],
         ].map(([lbl, key, val, color, bg]) => (

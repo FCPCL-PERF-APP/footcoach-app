@@ -70,10 +70,10 @@ export default function StatsConnexionPage() {
       {/* Résumé 6 cases */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
         {[
-          ["Actifs aujourd'hui", counts.actif_jour,      '#3B6D11', '#EAF3DE'],
+          ["Actifs aujourd'hui", counts.actif_jour,      'var(--success)', '#EAF3DE'],
           ["Cette semaine",      counts.actif_semaine,   '#BA7517', '#FDFAEE'],
           ["Ce mois",            counts.actif_mois,      'var(--primary)', 'var(--primary-bg)'],
-          ["Inactifs +30j",      counts.inactif,         '#A32D2D', '#FCEBEB'],
+          ["Inactifs +30j",      counts.inactif,         'var(--danger)', '#FCEBEB'],
           ["Jamais connectes",   counts.jamais_connecte, 'var(--text-secondary)', 'var(--bg-secondary)'],
           ["Non invites",        counts.non_invite,      'var(--text-primary)', 'var(--bg-secondary)'],
         ].map(([label, val, color, bg]) => (
@@ -102,7 +102,7 @@ export default function StatsConnexionPage() {
             <span style={{ fontWeight: 700 }}>{connectes}/{invites} ({tauxConnex}%)</span>
           </div>
           <div style={{ height: 8, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ width: `${tauxConnex}%`, height: '100%', background: '#3B6D11', borderRadius: 4 }} />
+            <div style={{ width: `${tauxConnex}%`, height: '100%', background: 'var(--success)', borderRadius: 4 }} />
           </div>
         </div>
       </Card>
@@ -147,7 +147,7 @@ export default function StatsConnexionPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
                   {j.onboarding_done && (
-                    <span style={{ fontSize: 9, background: '#EAF3DE', color: '#3B6D11', borderRadius: 6, padding: '1px 5px' }}>
+                    <span style={{ fontSize: 9, background: '#EAF3DE', color: 'var(--success)', borderRadius: 6, padding: '1px 5px' }}>
                       App installee
                     </span>
                   )}

@@ -248,9 +248,9 @@ export default function MesObjectifsPage() {
                 <button key={v} onClick={() => setField('bilan_obj_perso_atteints', v === 'Oui')}
                   style={{
                     flex: 1, padding: '10px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    border: `1.5px solid ${data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : 'var(--border)'}`,
+                    border: `1.5px solid ${data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--border)'}`,
                     background: data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
-                    color: data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : 'var(--text-secondary)',
+                    color: data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--text-secondary)',
                   }}>{v === 'Oui' ? <><CheckCircle2 size={13} style={{marginRight:4,verticalAlign:-2}} />Oui</> : <><XCircle size={13} style={{marginRight:4,verticalAlign:-2}} />Non</>}</button>
               ))}
             </div>
@@ -269,9 +269,9 @@ export default function MesObjectifsPage() {
                 <button key={v} onClick={() => setField('bilan_obj_collectifs_atteints', v === 'Oui')}
                   style={{
                     flex: 1, padding: '10px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    border: `1.5px solid ${data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : 'var(--border)'}`,
+                    border: `1.5px solid ${data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--border)'}`,
                     background: data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
-                    color: data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#3B6D11' : '#A32D2D') : 'var(--text-secondary)',
+                    color: data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--text-secondary)',
                   }}>{v === 'Oui' ? <><CheckCircle2 size={13} style={{marginRight:4,verticalAlign:-2}} />Oui</> : <><XCircle size={13} style={{marginRight:4,verticalAlign:-2}} />Non</>}</button>
               ))}
             </div>

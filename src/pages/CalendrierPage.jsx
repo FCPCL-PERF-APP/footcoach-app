@@ -145,7 +145,7 @@ export default function CalendrierPage() {
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}><strong>{deleteConfirm.titre}</strong> sera définitivement supprimé.</p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: 10, border: '0.5px solid var(--border)', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
-              <button onClick={() => deleteEvent(deleteConfirm)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: '#A32D2D', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
+              <button onClick={() => deleteEvent(deleteConfirm)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: 'var(--danger)', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
             </div>
           </div>
         </div>

@@ -51,9 +51,9 @@ function RadarChart({ joueurData, equipeData, joueurNom, size = 220 }) {
       {/* Zone équipe */}
       <path d={toPath(equipePoints)} fill="rgba(24,95,165,.08)" stroke="rgba(24,95,165,.3)" strokeWidth="1.5" strokeDasharray="4,3" />
       {/* Zone joueur */}
-      <path d={toPath(joueurPoints)} fill="rgba(163,45,45,.15)" stroke="#A32D2D" strokeWidth="2" />
+      <path d={toPath(joueurPoints)} fill="rgba(163,45,45,.15)" stroke="var(--danger)" strokeWidth="2" />
       {/* Points joueur */}
-      {joueurPoints.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="4" fill="#A32D2D" />)}
+      {joueurPoints.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="4" fill="var(--danger)" />)}
       {/* Labels */}
       {AXES.map((a, i) => {
         const p = getLabelPoint(i)
@@ -65,7 +65,7 @@ function RadarChart({ joueurData, equipeData, joueurNom, size = 220 }) {
       {/* Valeurs joueur */}
       {joueurPoints.map((p, i) => {
         const val = joueurData[AXES[i].key]
-        return val ? <text key={i} x={p.x} y={p.y - 8} textAnchor="middle" fontSize="9" fill="#A32D2D" fontWeight="700">{val}</text> : null
+        return val ? <text key={i} x={p.x} y={p.y - 8} textAnchor="middle" fontSize="9" fill="var(--danger)" fontWeight="700">{val}</text> : null
       })}
     </svg>
   )
@@ -139,8 +139,8 @@ export default function RadarJoueurPage() {
       <Card>
         <div style={{ display: 'flex', gap: 12, fontSize: 11, marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 12, height: 3, background: '#A32D2D', borderRadius: 2 }} />
-            <span style={{ color: '#A32D2D', fontWeight: 600 }}>{joueur?.prenom}</span>
+            <div style={{ width: 12, height: 3, background: 'var(--danger)', borderRadius: 2 }} />
+            <span style={{ color: 'var(--danger)', fontWeight: 600 }}>{joueur?.prenom}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 12, height: 3, background: 'rgba(24,95,165,.5)', borderRadius: 2, borderStyle: 'dashed' }} />
@@ -163,13 +163,13 @@ export default function RadarJoueurPage() {
             <div key={a.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
               <span style={{ fontSize: 12, color: 'var(--text-primary)', width: 90 }}>{a.label}</span>
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#A32D2D', width: 28 }}>{joueurData[a.key] || '—'}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--danger)', width: 28 }}>{joueurData[a.key] || '—'}</span>
                 <div style={{ flex: 1, height: 6, background: 'var(--bg-secondary)', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 3, background: '#A32D2D', width: `${(joueurData[a.key] || 0) / 5 * 100}%` }} />
+                  <div style={{ height: '100%', borderRadius: 3, background: 'var(--danger)', width: `${(joueurData[a.key] || 0) / 5 * 100}%` }} />
                 </div>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)', width: 28 }}>{equipeData[a.key] || '—'}</span>
                 <span style={{ fontSize: 11, fontWeight: 600, width: 36, textAlign: 'right',
-                  color: isAbove ? '#3B6D11' : isBelow ? '#A32D2D' : 'var(--text-muted)' }}>
+                  color: isAbove ? 'var(--success)' : isBelow ? 'var(--danger)' : 'var(--text-muted)' }}>
                   {diff > 0 ? '+' : ''}{diff}
                 </span>
               </div>
@@ -186,7 +186,7 @@ export default function RadarJoueurPage() {
           if (Math.abs(diff) < 0.5) return null
           return (
             <div key={a.key} style={{ padding: '6px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
-              <p style={{ fontSize: 12, color: diff > 0 ? '#3B6D11' : '#A32D2D', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <p style={{ fontSize: 12, color: diff > 0 ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 {diff > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />} <strong>{a.label}</strong> : {diff > 0 ? 'au-dessus' : 'en dessous'} de la moyenne équipe ({diff > 0 ? '+' : ''}{diff} pts)
               </p>
             </div>

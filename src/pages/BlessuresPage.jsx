@@ -158,7 +158,7 @@ export default function BlessuresPage() {
                     <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 8, background: g.bg, color: g.color }}>{g.label}</span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: '#A32D2D' }}>{jours}j</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--danger)' }}>{jours}j</div>
                     <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>absent</div>
                   </div>
                 </div>

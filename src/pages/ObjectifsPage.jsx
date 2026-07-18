@@ -85,9 +85,9 @@ export default function ObjectifsPage() {
   function getCatStyle(cat) {
     const styles = {
       technique: { bg: 'var(--primary-bg)', color: 'var(--primary)' },
-      physique: { bg: '#EAF3DE', color: '#3B6D11' },
+      physique: { bg: '#EAF3DE', color: 'var(--success)' },
       tactique: { bg: '#FAEEDA', color: 'var(--warning)' },
-      mental: { bg: '#FCEBEB', color: '#A32D2D' },
+      mental: { bg: '#FCEBEB', color: 'var(--danger)' },
       statistique: { bg: '#F0F4FF', color: '#4338CA' },
     }
     return styles[cat] || { bg: 'var(--bg-secondary)', color: 'var(--text-secondary)' }
@@ -144,7 +144,7 @@ export default function ObjectifsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
         {[
           ['En cours', enCours.length, 'var(--primary)', 'var(--primary-bg)'],
-          ['Atteints', objectifs.filter(o => o.statut === 'atteint').length, '#3B6D11', '#EAF3DE'],
+          ['Atteints', objectifs.filter(o => o.statut === 'atteint').length, 'var(--success)', '#EAF3DE'],
           ['Total', objectifs.length, 'var(--text-secondary)', 'var(--bg-secondary)'],
         ].map(([lbl, val, color, bg]) => (
           <div key={lbl} style={{ background: bg, borderRadius: 12, padding: 10, textAlign: 'center' }}>

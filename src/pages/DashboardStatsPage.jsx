@@ -116,10 +116,10 @@ export default function DashboardStatsPage() {
                 <div key={label} style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
                     <span>{label}</span>
-                    <span style={{ fontWeight: 600, color: '#3B6D11' }}>{val} but(s) ({pct}%)</span>
+                    <span style={{ fontWeight: 600, color: 'var(--success)' }}>{val} but(s) ({pct}%)</span>
                   </div>
                   <div style={{ height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 4, background: '#3B6D11', width: `${pct}%` }} />
+                    <div style={{ height: '100%', borderRadius: 4, background: 'var(--success)', width: `${pct}%` }} />
                   </div>
                 </div>
               )
@@ -141,10 +141,10 @@ export default function DashboardStatsPage() {
                 <div key={label} style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
                     <span>{label}</span>
-                    <span style={{ fontWeight: 600, color: '#A32D2D' }}>{val} but(s) ({pct}%)</span>
+                    <span style={{ fontWeight: 600, color: 'var(--danger)' }}>{val} but(s) ({pct}%)</span>
                   </div>
                   <div style={{ height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 4, background: '#A32D2D', width: `${pct}%` }} />
+                    <div style={{ height: '100%', borderRadius: 4, background: 'var(--danger)', width: `${pct}%` }} />
                   </div>
                 </div>
               )
@@ -163,11 +163,11 @@ export default function DashboardStatsPage() {
                   <div key={label} style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
                     <div style={{ display: 'flex', gap: 2, justifyContent: 'center', alignItems: 'flex-end', height: 50 }}>
-                      <div style={{ width: 8, background: '#3B6D11', borderRadius: 2, height: `${marques/maxVal*100}%`, minHeight: marques > 0 ? 4 : 0 }} />
-                      <div style={{ width: 8, background: '#A32D2D', borderRadius: 2, height: `${enc/maxVal*100}%`, minHeight: enc > 0 ? 4 : 0 }} />
+                      <div style={{ width: 8, background: 'var(--success)', borderRadius: 2, height: `${marques/maxVal*100}%`, minHeight: marques > 0 ? 4 : 0 }} />
+                      <div style={{ width: 8, background: 'var(--danger)', borderRadius: 2, height: `${enc/maxVal*100}%`, minHeight: enc > 0 ? 4 : 0 }} />
                     </div>
-                    <div style={{ fontSize: 9, color: '#3B6D11', marginTop: 2 }}>{marques}</div>
-                    <div style={{ fontSize: 9, color: '#A32D2D' }}>{enc}</div>
+                    <div style={{ fontSize: 9, color: 'var(--success)', marginTop: 2 }}>{marques}</div>
+                    <div style={{ fontSize: 9, color: 'var(--danger)' }}>{enc}</div>
                   </div>
                 )
               })}
@@ -199,7 +199,7 @@ export default function DashboardStatsPage() {
                     <span style={{ fontSize: 14, fontWeight: 700 }}>{m.buts_marques}-{m.buts_encaisses}</span>
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
                       background: v ? '#EAF3DE' : n ? '#FAEEDA' : '#FCEBEB',
-                      color: v ? '#3B6D11' : n ? 'var(--warning)' : '#A32D2D' }}>
+                      color: v ? 'var(--success)' : n ? 'var(--warning)' : 'var(--danger)' }}>
                       {v ? 'V' : n ? 'N' : 'D'}
                     </span>
                   </div>

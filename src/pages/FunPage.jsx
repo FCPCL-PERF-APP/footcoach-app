@@ -539,7 +539,7 @@ export default function FunPage() {
                   {savingProno === match.id ? <Hourglass size={13} /> : monProno ? <><Pencil size={13} /> Modifier mon pronostic</> : <><Target size={13} /> Valider mon pronostic</>}
                 </button>
                 {monProno && (
-                  <p style={{ fontSize: 11, color: '#3B6D11', textAlign: 'center', marginTop: 6, fontWeight: 600 }}>
+                  <p style={{ fontSize: 11, color: 'var(--success)', textAlign: 'center', marginTop: 6, fontWeight: 600 }}>
                     Mon prono actuel : {monProno.score_domicile} — {monProno.score_exterieur}
                   </p>
                 )}

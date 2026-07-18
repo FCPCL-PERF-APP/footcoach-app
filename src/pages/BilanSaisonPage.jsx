@@ -114,7 +114,7 @@ export default function BilanSaisonPage() {
     const resultats = (matchStats || []).map((s, i) => ({
       label: `J${i+1}`,
       value: s.buts_marques - s.buts_encaisses,
-      color: s.buts_marques > s.buts_encaisses ? '#3B6D11' : s.buts_marques === s.buts_encaisses ? '#BA7517' : '#A32D2D'
+      color: s.buts_marques > s.buts_encaisses ? 'var(--success)' : s.buts_marques === s.buts_encaisses ? '#BA7517' : 'var(--danger)'
     }))
 
     setBilan({
@@ -205,8 +205,8 @@ export default function BilanSaisonPage() {
         <BarChart3 size={11} /> Stats collectives
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
-        <StatBox label="Buts marqués" value={bilan.totalButs} color="#3B6D11" />
-        <StatBox label="Buts encaissés" value={bilan.totalEncaisses} color="#A32D2D" />
+        <StatBox label="Buts marqués" value={bilan.totalButs} color="var(--success)" />
+        <StatBox label="Buts encaissés" value={bilan.totalEncaisses} color="var(--danger)" />
         <StatBox label="Dist. totale" value={`${bilan.distTotale}km`} color={'var(--primary)'} />
       </div>
 

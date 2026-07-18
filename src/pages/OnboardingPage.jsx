@@ -24,14 +24,14 @@ const STEPS = [
     icon: Heart,
     title: 'Ton RPE',
     desc: 'Après chaque séance ou match, remplis ton RPE (évaluation de l\'effort perçu). Ça prend 2 minutes et aide ton coach à gérer ta charge de travail.',
-    color: '#A32D2D',
+    color: 'var(--danger)',
     image: 'Mon RPE'
   },
   {
     icon: Radio,
     title: 'Ton Footbar',
     desc: 'Si tu as accès à des données GPS ou de tracking, saisis tes statistiques physiques : distance, sprints, vitesse max...',
-    color: '#3B6D11',
+    color: 'var(--success)',
     image: 'Plus → Mon Footbar'
   },
   {
@@ -59,7 +59,7 @@ const STEPS = [
     icon: Target,
     title: 'Tu es prêt !',
     desc: 'L\'application est là pour t\'aider à progresser. Ton coach suit tes données pour mieux personnaliser ton entraînement.',
-    color: '#3B6D11',
+    color: 'var(--success)',
   },
 ]
 
