@@ -89,10 +89,21 @@ export default function BottomNav() {
   async function loadUnread() {
     const myAuthId = profile?.auth_id || profile?.id
     if (!myAuthId) return
-    const { count } = await supabase.from('messages')
-      .select('*', { count: 'exact', head: true })
-      .eq('destinataire_id', myAuthId).eq('lu', false)
-    setUnreadCount(count || 0)
+    // Messages privés non lus : suivi via la colonne `lu`. Messages du canal groupe :
+    // pas de destinataire ni de colonne "lu" par utilisateur, donc on compare à la date
+    // du dernier message groupe vu (posée par MessagesPage.jsx en localStorage). Si ce
+    // repère n'existe pas encore (jamais ouvert le canal), on ne compte rien pour éviter
+    // d'afficher d'un coup tout l'historique comme "non lu".
+    const lastGroupRead = localStorage.getItem('fc-group-messages-last-read')
+    const [{ count: privCount }, groupResult] = await Promise.all([
+      supabase.from('messages').select('*', { count: 'exact', head: true })
+        .eq('destinataire_id', myAuthId).eq('lu', false),
+      lastGroupRead
+        ? supabase.from('messages').select('expediteur_id').eq('groupe', true).gt('created_at', lastGroupRead)
+        : Promise.resolve({ data: [] }),
+    ])
+    const groupUnread = (groupResult.data || []).filter(m => m.expediteur_id !== myAuthId).length
+    setUnreadCount((privCount || 0) + groupUnread)
   }
 
   async function loadAlertes() {

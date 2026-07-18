@@ -65,6 +65,14 @@ export default function MessagesPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [groupMessages, convMessages])
 
+  // Marque le canal groupe comme lu jusqu'au dernier message affiché — lu par
+  // BottomNav.jsx pour décider si la pastille "non lu" doit s'afficher.
+  useEffect(() => {
+    if (activeTab === 'groupe' && groupMessages.length > 0) {
+      localStorage.setItem('fc-group-messages-last-read', groupMessages[groupMessages.length - 1].created_at)
+    }
+  }, [activeTab, groupMessages])
+
   async function loadGroupMessages() {
     const { data } = await supabase.from('messages').select('*')
       .eq('groupe', true).order('created_at', { ascending: true }).limit(300)
