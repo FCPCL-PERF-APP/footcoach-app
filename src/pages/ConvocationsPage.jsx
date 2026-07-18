@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
+import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { Card, PageHeader, Button, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { ArrowLeft, CheckCircle2, MapPin, Bell, Send, Check, XCircle, Bandage, HelpCircle, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, MapPin, Bell, Send, Check, XCircle, Bandage, HelpCircle, AlertTriangle, WifiOff } from 'lucide-react'
 
 const DISPO = {
   present: { label: 'Disponible', icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
@@ -35,12 +36,23 @@ export default function ConvocationsPage() {
   const [loading, setLoading] = useState(true)
   const [existingConvocs, setExistingConvocs] = useState([])
   const [dispos, setDispos] = useState({})
+  const [sentOffline, setSentOffline] = useState(false)
+  const [queueCount, setQueueCount] = useState(0)
 
   // Ignore une réponse devenue obsolète si le coach navigue vers un autre événement
   // avant qu'elle ne revienne.
   const eventIdRef = useRef(eventId)
 
   useEffect(() => { eventIdRef.current = eventId; loadData() }, [eventId])
+
+  // Synchronise les convocations saisies hors-ligne (au stade, en zone blanche) dès que
+  // la page se charge, en plus du flush automatique déclenché au retour réseau.
+  useEffect(() => {
+    flushQueue('convocations').then(() => setQueueCount(getQueueCount('convocations')))
+    function onQueueChange() { setQueueCount(getQueueCount('convocations')) }
+    window.addEventListener('fc-offline-queue-changed', onQueueChange)
+    return () => window.removeEventListener('fc-offline-queue-changed', onQueueChange)
+  }, [])
 
   // Coupe = 16 convocables (règlement), championnat = 14, préparation = 22 (effectif large, pas de règlement de compétition)
   const cap = event?.match_type === 'coupe' ? 16 : event?.match_type === 'preparation' ? 22 : 14
@@ -81,36 +93,32 @@ export default function ConvocationsPage() {
 
   async function saveConvocations() {
     setSaving(true)
-    // Insère d'abord les nouvelles convocations, puis ne supprime les anciennes lignes
-    // qu'une fois l'insertion réussie — si l'insertion échoue en cours de route, les
-    // anciennes convocations restent intactes au lieu d'être perdues (l'ancien ordre
-    // delete-puis-insert pouvait laisser la table vide, donc plus aucun joueur convoqué,
-    // en cas d'échec de l'insertion après une suppression déjà effectuée).
-    const { data: oldRows, error: fetchError } = await supabase.from('convocations').select('id').eq('evenement_id', eventId)
-    if (fetchError) {
-      setSaving(false)
-      alert('Erreur lors de l\'enregistrement des convocations : ' + fetchError.message)
-      return
-    }
-    const inserts = joueurs.map(j => ({
+    // Upsert (une ligne par joueur, clé evenement_id+joueur_id) — cf.
+    // supabase-offline-upsert-motif.sql pour la contrainte d'unicité qui rend ça
+    // possible, et qui permet aussi de mettre la sélection en attente de synchro si le
+    // coach est hors-ligne (au stade, en zone blanche) plutôt que de tout perdre.
+    const rows = joueurs.map(j => ({
       evenement_id: eventId,
       joueur_id: j.id,
       convoque: selected.has(j.id)
     }))
-    const { error: insError } = await supabase.from('convocations').insert(inserts)
-    if (insError) {
+    let result
+    try {
+      result = await upsertOrQueue('convocations', rows, 'evenement_id,joueur_id')
+    } catch (err) {
       setSaving(false)
-      alert('Erreur lors de l\'enregistrement des convocations : ' + insError.message)
+      alert('Erreur lors de l\'enregistrement des convocations : ' + err.message)
       return
     }
-    const oldIds = (oldRows || []).map(r => r.id)
-    if (oldIds.length > 0) {
-      const { error: cleanupError } = await supabase.from('convocations').delete().in('id', oldIds)
-      if (cleanupError) {
-        setSaving(false)
-        alert('Les nouvelles convocations sont enregistrées, mais le nettoyage des anciennes lignes a échoué : ' + cleanupError.message)
-        return
-      }
+
+    if (result.queued) {
+      // Le RDV et la notification push nécessitent une connexion — à refaire une fois
+      // le réseau revenu, la sélection des joueurs est déjà en sécurité dans la file.
+      setSaving(false)
+      setQueueCount(getQueueCount('convocations'))
+      setSentOffline(true)
+      setSent(true)
+      return
     }
 
    // Met à jour le lieu et heure de RDV dans l'événement
@@ -181,12 +189,30 @@ export default function ConvocationsPage() {
         </div>
       </div>
 
+      {queueCount > 0 && !sent && (
+        <div style={{ background: 'var(--warning-bg)', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <WifiOff size={13} /> {queueCount} sélection(s) en attente de synchronisation
+        </div>
+      )}
+
       {sent ? (
         <Card>
           <div style={{ textAlign: 'center', padding: 24 }}>
-            <CheckCircle2 size={44} color={'var(--success)'} style={{ marginBottom: 12 }} />
-            <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)' }}>Convocations enregistrées !</p>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>{selected.size} joueur(s) convoqué(s)</p>
+            {sentOffline ? (
+              <>
+                <WifiOff size={44} color="#854F0B" style={{ marginBottom: 12 }} />
+                <p style={{ fontSize: 16, fontWeight: 700, color: '#854F0B' }}>Sélection enregistrée hors-ligne</p>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
+                  {selected.size} joueur(s) convoqué(s) — sera synchronisé automatiquement au retour du réseau. Pense à revenir régler l'heure/lieu de RDV et notifier les joueurs une fois connecté.
+                </p>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={44} color={'var(--success)'} style={{ marginBottom: 12 }} />
+                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)' }}>Convocations enregistrées !</p>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>{selected.size} joueur(s) convoqué(s)</p>
+              </>
+            )}
             <Button variant="primary" style={{ marginTop: 16, width: '100%' }} onClick={() => navigate('/calendrier')}>
               Retour au calendrier
             </Button>

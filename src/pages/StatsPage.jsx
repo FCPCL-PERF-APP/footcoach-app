@@ -1,14 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { Card, Button, Input, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   ArrowLeft, CheckCircle2, User, BarChart3, Swords, FileText,
-  Save, Share2, ThumbsUp, AlertTriangle, Goal, Shield
+  Save, Share2, ThumbsUp, AlertTriangle, Goal, Shield, WifiOff
 } from 'lucide-react'
+
+const STATS_QUEUE_TABLES = ['stats_match', 'stats_collectives', 'rapports_match']
+function statsQueueCount() {
+  return STATS_QUEUE_TABLES.reduce((sum, t) => sum + getQueueCount(t), 0)
+}
 
 const FORMATIONS = {
   '4-4-2': {
@@ -54,12 +60,11 @@ export default function StatsPage() {
   const [event, setEvent] = useState(null)
   const [joueurs, setJoueurs] = useState([])
   const [statsIndiv, setStatsIndiv] = useState([])
-  const [statsCollectives, setStatsCollectives] = useState(null)
-  const [rapport, setRapport] = useState(null)
   const [activeTab, setActiveTab] = useState('individuel')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [savedOffline, setSavedOffline] = useState(false)
   const [formation, setFormation] = useState('4-4-2')
   const [compo, setCompo] = useState({})
 
@@ -92,11 +97,22 @@ export default function StatsPage() {
     compo_adversaire: '', arbitre: '',
   })
 
+  const [queueCount, setQueueCount] = useState(0)
+
   // Ignore une réponse devenue obsolète si le coach navigue vers un autre match avant
   // qu'elle ne revienne.
   const eventIdRef = useRef(eventId)
 
   useEffect(() => { eventIdRef.current = eventId; loadData() }, [eventId])
+
+  // Synchronise les stats/rapport saisis hors-ligne (au stade, en zone blanche) dès que
+  // la page se charge, en plus du flush automatique déclenché au retour réseau.
+  useEffect(() => {
+    Promise.all(STATS_QUEUE_TABLES.map(t => flushQueue(t))).then(() => setQueueCount(statsQueueCount()))
+    function onQueueChange() { setQueueCount(statsQueueCount()) }
+    window.addEventListener('fc-offline-queue-changed', onQueueChange)
+    return () => window.removeEventListener('fc-offline-queue-changed', onQueueChange)
+  }, [])
 
   async function loadData() {
     setLoading(true)
@@ -111,9 +127,8 @@ export default function StatsPage() {
     setEvent(ev)
     setJoueurs(jrs || [])
     setStatsIndiv(si || [])
-    if (sc) { setStatsCollectives(sc); setFormCollectif(p => ({ ...p, ...sc })) }
+    if (sc) setFormCollectif(p => ({ ...p, ...sc }))
     if (rp) {
-      setRapport(rp)
       setFormRapport(p => ({ ...p, ...rp }))
       if (rp.formation) setFormation(rp.formation)
       if (rp.compo_visuelle) setCompo(rp.compo_visuelle)
@@ -132,13 +147,24 @@ export default function StatsPage() {
   async function saveStatsCollectives() {
     setSaving(true)
     const payload = { evenement_id: eventId, ...formCollectif }
-    if (statsCollectives) await supabase.from('stats_collectives').update(payload).eq('id', statsCollectives.id)
-    else await supabase.from('stats_collectives').insert(payload)
+    let result
+    try {
+      result = await upsertOrQueue('stats_collectives', payload, 'evenement_id')
+    } catch (err) {
+      setSaving(false)
+      alert('Erreur lors de l\'enregistrement : ' + err.message)
+      return
+    }
+    setQueueCount(statsQueueCount())
 
-    // Calculer automatiquement les points pronostics
-    await calculerPointsPronostics(parseInt(formCollectif.buts_marques) || 0, parseInt(formCollectif.buts_encaisses) || 0)
+    // Le calcul des pronostics a besoin du score en base — pas de sens hors-ligne, il se
+    // fera de lui-même la prochaine fois que la page sera rouverte avec du réseau.
+    if (!result.queued) {
+      await calculerPointsPronostics(parseInt(formCollectif.buts_marques) || 0, parseInt(formCollectif.buts_encaisses) || 0)
+    }
 
-    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2000); loadData()
+    setSaving(false); setSaved(true); setSavedOffline(result.queued); setTimeout(() => setSaved(false), 2000)
+    if (!result.queued) loadData()
   }
 
   async function calculerPointsPronostics(butsMarques, butsEncaisses) {
@@ -178,7 +204,6 @@ export default function StatsPage() {
     // stats_match pour le même joueur au lieu de mettre à jour la même ligne.
     if (saving) return
     setSaving(true)
-    const existing = statsIndiv.find(s => s.joueur_id === selectedJoueur)
     const payload = {
       evenement_id: eventId, joueur_id: selectedJoueur,
       note: formJ.note ? parseFloat(formJ.note) : null,
@@ -187,17 +212,33 @@ export default function StatsPage() {
       passes_decisives: formJ.passes_decisives ? parseInt(formJ.passes_decisives) : 0,
       titulaire: formJ.titulaire, carton_jaune: formJ.carton_jaune, carton_rouge: formJ.carton_rouge,
     }
-    if (existing) await supabase.from('stats_match').update(payload).eq('id', existing.id)
-    else await supabase.from('stats_match').insert(payload)
-    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2000); loadData()
+    let result
+    try {
+      result = await upsertOrQueue('stats_match', payload, 'evenement_id,joueur_id')
+    } catch (err) {
+      setSaving(false)
+      alert('Erreur lors de l\'enregistrement : ' + err.message)
+      return
+    }
+    setQueueCount(statsQueueCount())
+    setSaving(false); setSaved(true); setSavedOffline(result.queued); setTimeout(() => setSaved(false), 2000)
+    if (!result.queued) loadData()
   }
 
   async function saveRapport() {
     setSaving(true)
     const payload = { evenement_id: eventId, ...formRapport, formation, compo_visuelle: compo }
-    if (rapport) await supabase.from('rapports_match').update(payload).eq('id', rapport.id)
-    else await supabase.from('rapports_match').insert(payload)
-    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2000); loadData()
+    let result
+    try {
+      result = await upsertOrQueue('rapports_match', payload, 'evenement_id')
+    } catch (err) {
+      setSaving(false)
+      alert('Erreur lors de l\'enregistrement : ' + err.message)
+      return
+    }
+    setQueueCount(statsQueueCount())
+    setSaving(false); setSaved(true); setSavedOffline(result.queued); setTimeout(() => setSaved(false), 2000)
+    if (!result.queued) loadData()
   }
 
   async function shareRapportInApp() {
@@ -253,7 +294,17 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {saved && <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Enregistré !</div>}
+      {queueCount > 0 && (
+        <div style={{ background: 'var(--warning-bg)', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <WifiOff size={13} /> {queueCount} saisie(s) en attente de synchronisation
+        </div>
+      )}
+
+      {saved && (
+        savedOffline
+          ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 6 }}><WifiOff size={13} /> Pas de réseau — sera synchronisé automatiquement</div>
+          : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Enregistré !</div>
+      )}
 
       {/* Score + résultat */}
       {(formCollectif.buts_marques !== '' || formCollectif.buts_encaisses !== '') && (

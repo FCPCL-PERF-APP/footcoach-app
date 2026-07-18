@@ -60,50 +60,22 @@ export async function upsertOrQueue(table, payload, onConflict) {
   }
 }
 
-// La présence n'a pas de contrainte d'unicité connue permettant un upsert simple, donc
-// pas de delete-puis-insert non plus : si l'insertion échouait après une suppression déjà
-// effectuée, la présence du joueur disparaissait purement et simplement. On insère
-// d'abord la nouvelle ligne, et on ne supprime l'ancienne qu'une fois l'insertion
-// réussie — un échec côté insertion laisse alors l'ancienne présence intacte.
-async function savePresenceRow(evenementId, joueurId, statut) {
-  const { data: oldRows, error: fetchError } = await supabase.from('presences').select('id')
-    .eq('evenement_id', evenementId).eq('joueur_id', joueurId)
-  if (fetchError) return fetchError
-  const { error: insError } = await supabase.from('presences')
-    .insert({ evenement_id: evenementId, joueur_id: joueurId, statut })
-  if (insError) return insError
-  const oldIds = (oldRows || []).map(r => r.id)
-  if (oldIds.length > 0) {
-    const { error: delError } = await supabase.from('presences').delete().in('id', oldIds)
-    if (delError) return delError
-  }
-  return null
-}
-
-export async function savePresenceOrQueue(evenementId, joueurId, statut) {
-  const item = { type: 'presence', table: 'presences', evenementId, joueurId, statut }
-
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    enqueueItem(item)
-    return { queued: true }
-  }
-
-  try {
-    const error = await savePresenceRow(evenementId, joueurId, statut)
-    if (error) {
-      if (isNetworkError(error)) { enqueueItem(item); return { queued: true } }
-      throw error
-    }
-    return { queued: false }
-  } catch (err) {
-    if (isNetworkError(err)) { enqueueItem(item); return { queued: true } }
-    throw err
-  }
+// presences a désormais une contrainte d'unicité (evenement_id, joueur_id) — cf.
+// supabase-offline-upsert-motif.sql — donc un simple upsert suffit, plus besoin du
+// delete-puis-insert (ou insert-puis-nettoyage) utilisé avant que cette contrainte
+// n'existe.
+export async function savePresenceOrQueue(evenementId, joueurId, statut, motif) {
+  return upsertOrQueue('presences',
+    { evenement_id: evenementId, joueur_id: joueurId, statut, motif: motif || null },
+    'evenement_id,joueur_id')
 }
 
 async function flushOne(item) {
   if (item.type === 'presence') {
-    return savePresenceRow(item.evenementId, item.joueurId, item.statut)
+    // Items en attente depuis avant le passage à l'upsert générique (compat ascendante).
+    const { error } = await supabase.from('presences')
+      .upsert({ evenement_id: item.evenementId, joueur_id: item.joueurId, statut: item.statut, motif: item.motif || null }, { onConflict: 'evenement_id,joueur_id' })
+    return error
   }
   // Type 'upsert' (ou items déjà en queue avant l'ajout du champ `type`, par défaut upsert)
   const { error } = await supabase.from(item.table).upsert(item.payload, { onConflict: item.onConflict })

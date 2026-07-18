@@ -65,7 +65,7 @@ export default function PresencesMatchPage() {
 
     setEvent(ev)
     const presMap = {}
-    for (const p of (pres || [])) presMap[p.joueur_id] = p.statut
+    for (const p of (pres || [])) presMap[p.joueur_id] = { statut: p.statut, motif: p.motif || '' }
     const formeMap = {}
     for (const f of (forme || [])) formeMap[f.joueur_id] = f.forme
     setFormes(formeMap)
@@ -76,7 +76,7 @@ export default function PresencesMatchPage() {
       }))
       setConvocations(joueursAvecStatut)
       for (const j of (tousJoueurs || [])) {
-        if (!presMap[j.id]) presMap[j.id] = 'inconnu'
+        if (!presMap[j.id]) presMap[j.id] = { statut: 'inconnu', motif: '' }
       }
     } else {
       // Tout l'effectif est affiché, pas seulement les convoqués : la disponibilité
@@ -88,7 +88,7 @@ export default function PresencesMatchPage() {
       }))
       setConvocations(joueursAvecStatut)
       for (const j of (tousJoueurs || [])) {
-        if (!presMap[j.id]) presMap[j.id] = 'inconnu'
+        if (!presMap[j.id]) presMap[j.id] = { statut: 'inconnu', motif: '' }
       }
     }
     setPresences(presMap)
@@ -96,39 +96,26 @@ export default function PresencesMatchPage() {
   }
 
   function setStatut(joueurId, statut) {
-    setPresences(p => ({ ...p, [joueurId]: statut }))
+    setPresences(p => ({ ...p, [joueurId]: { statut, motif: statut === 'absent' ? (p[joueurId]?.motif || '') : '' } }))
+  }
+
+  function setMotif(joueurId, motif) {
+    setPresences(p => ({ ...p, [joueurId]: { ...p[joueurId], motif } }))
   }
 
   async function handleSave() {
     setSaving(true)
-    // Insère d'abord les nouvelles présences, puis ne supprime les anciennes lignes
-    // qu'une fois l'insertion réussie — si l'insertion échoue (réseau coupé en cours de
-    // route, etc.), les anciennes présences restent intactes au lieu d'être perdues
-    // (l'ancien ordre delete-puis-insert pouvait laisser la table vide en cas d'échec
-    // de l'insertion après une suppression déjà effectuée).
-    const { data: oldRows, error: fetchError } = await supabase.from('presences').select('id').eq('evenement_id', eventId)
-    if (fetchError) {
-      setSaving(false)
-      alert('Erreur lors de l\'enregistrement des présences : ' + fetchError.message)
-      return
-    }
-    const inserts = Object.entries(presences).map(([joueur_id, statut]) => ({
-      evenement_id: eventId, joueur_id, statut
+    // Upsert (une ligne par joueur, clé evenement_id+joueur_id) plutôt qu'un
+    // delete()+insert() — cf. supabase-offline-upsert-motif.sql pour la contrainte
+    // d'unicité qui rend ça possible.
+    const rows = Object.entries(presences).map(([joueur_id, { statut, motif }]) => ({
+      evenement_id: eventId, joueur_id, statut, motif: statut === 'absent' && motif ? motif : null
     }))
-    if (inserts.length > 0) {
-      const { error: insError } = await supabase.from('presences').insert(inserts)
-      if (insError) {
+    if (rows.length > 0) {
+      const { error } = await supabase.from('presences').upsert(rows, { onConflict: 'evenement_id,joueur_id' })
+      if (error) {
         setSaving(false)
-        alert('Erreur lors de l\'enregistrement des présences : ' + insError.message)
-        return
-      }
-    }
-    const oldIds = (oldRows || []).map(r => r.id)
-    if (oldIds.length > 0) {
-      const { error: cleanupError } = await supabase.from('presences').delete().in('id', oldIds)
-      if (cleanupError) {
-        setSaving(false)
-        alert('Les nouvelles présences sont enregistrées, mais le nettoyage des anciennes lignes a échoué : ' + cleanupError.message)
+        alert('Erreur lors de l\'enregistrement des présences : ' + error.message)
         return
       }
     }
@@ -137,22 +124,23 @@ export default function PresencesMatchPage() {
     setTimeout(() => setSaved(false), 2000)
   }
 
-  const nbPresents    = Object.values(presences).filter(s => s === 'present').length
-  const nbExterieurs  = Object.values(presences).filter(s => s === 'exterieur').length
-  const nbAbsents     = Object.values(presences).filter(s => s === 'absent').length
-  const nbBlesses     = Object.values(presences).filter(s => s === 'blesse').length
-  const nbInconnus    = Object.values(presences).filter(s => s === 'inconnu').length
+  const statuts = Object.values(presences).map(p => p.statut)
+  const nbPresents    = statuts.filter(s => s === 'present').length
+  const nbExterieurs  = statuts.filter(s => s === 'exterieur').length
+  const nbAbsents     = statuts.filter(s => s === 'absent').length
+  const nbBlesses     = statuts.filter(s => s === 'blesse').length
+  const nbInconnus    = statuts.filter(s => s === 'inconnu').length
 
   const filteredConvocations = convocations.filter(c => {
     const j = c.joueurs
     if (!j) return false
     const matchSearch = !search || `${j.nom} ${j.prenom}`.toLowerCase().includes(search.toLowerCase())
-    const matchStatut = filterStatut === 'tous' || presences[j.id] === filterStatut
+    const matchStatut = filterStatut === 'tous' || presences[j.id]?.statut === filterStatut
     return matchSearch && matchStatut
   })
 
   async function relancerIndecis() {
-    const indecis = convocations.filter(c => c.joueurs && presences[c.joueurs.id] === 'inconnu')
+    const indecis = convocations.filter(c => c.joueurs && presences[c.joueurs.id]?.statut === 'inconnu')
     setRelanceState('sending')
     try {
       const res = await fetch('/api/notif-manquants', {
@@ -261,7 +249,8 @@ export default function PresencesMatchPage() {
             const j = c.joueurs
             if (!j) return null
             const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
-            const statut = presences[j.id] || 'inconnu'
+            const statut = presences[j.id]?.statut || 'inconnu'
+            const motif = presences[j.id]?.motif || ''
             const st = STATUTS[statut]
             const forme = formes[j.id] ? FORMES[formes[j.id]] : null
             return (
@@ -307,6 +296,11 @@ export default function PresencesMatchPage() {
                     </button>
                   ))}
                 </div>
+                {statut === 'absent' && (
+                  <input value={motif} onChange={e => setMotif(j.id, e.target.value)}
+                    placeholder="Motif (optionnel) — indispo perso, sanction..."
+                    style={{ width: '100%', marginTop: 6, padding: '6px 10px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-card)', color: 'var(--text-primary)' }} />
+                )}
               </div>
             )
           })

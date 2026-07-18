@@ -400,6 +400,7 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
 
 function JoueurEventActions({ ev, navigate, profile, convoque }) {
   const [statut, setStatut] = useState(null)
+  const [motif, setMotif] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [wasQueued, setWasQueued] = useState(false)
@@ -408,9 +409,10 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
 
   async function loadStatut() {
     setLoading(true)
-    const { data } = await supabase.from('presences').select('statut')
+    const { data } = await supabase.from('presences').select('statut, motif')
       .eq('evenement_id', ev.id).eq('joueur_id', profile?.id).maybeSingle()
     setStatut(data?.statut || null)
+    setMotif(data?.motif || '')
     setLoading(false)
   }
 
@@ -418,15 +420,17 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
     if (!profile?.id) return
     setSaving(true)
     setWasQueued(false)
+    const newMotif = newStatut === 'absent' ? motif : ''
     let result
     try {
-      result = await savePresenceOrQueue(ev.id, profile.id, newStatut)
+      result = await savePresenceOrQueue(ev.id, profile.id, newStatut, newMotif)
     } catch (err) {
       setSaving(false)
       alert('Erreur lors de la mise à jour de ta présence : ' + err.message)
       return
     }
     setStatut(newStatut)
+    setMotif(newMotif)
     setWasQueued(result.queued)
     // Hors-ligne : pas la peine d'appeler l'API, elle échouerait de toute façon — le
     // coach sera notifié dès que la présence sera synchronisée normalement.
@@ -508,6 +512,14 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
           color: statut === 'blesse' ? '#854F0B' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: 5 }}>
           {statut === 'blesse' ? <><Bandage size={12} /> Tu es blessé — pas de RPE ni Footbar requis.</> : <><XCircle size={12} /> Tu es absent — pas de RPE ni Footbar requis.</>}
         </div>
+      )}
+
+      {/* Motif optionnel de l'absence, à destination du coach */}
+      {statut === 'absent' && (
+        <input value={motif} onChange={e => setMotif(e.target.value)}
+          onBlur={() => handleStatut('absent')}
+          placeholder="Motif (optionnel)..."
+          style={{ width: '100%', marginTop: 6, padding: '6px 10px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-card)', color: 'var(--text-primary)' }} />
       )}
 
       {/* Disponible mais pas encore convoqué/retenu par le coach */}
