@@ -347,12 +347,16 @@ export default function StaffPage() {
                   {s.specialite && <p style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5 }}><Puzzle size={11} /> {s.specialite}</p>}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
                     <p style={{ fontSize: 10, color: s.auth_id ? 'var(--success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {s.auth_id ? <><CheckCircle2 size={10} /> Compte actif</> : <><Hourglass size={10} /> Invitation en attente</>}
+                      {s.auth_id ? <><CheckCircle2 size={10} /> Compte créé</> : <><Hourglass size={10} /> Invitation en attente</>}
                     </p>
-                    {!s.auth_id && isCoach && (
+                    {/* Toujours visible, même une fois auth_id renseigné : ce champ est posé
+                        dès l'envoi de l'invitation (pas quand la personne clique dessus), donc
+                        un lien expiré sans avoir été utilisé rendait ce bouton invisible et le
+                        coach n'avait plus aucun moyen de renvoyer un lien. */}
+                    {isCoach && (
                       <button onClick={() => renvoyerInvitation(s)}
                         style={{ fontSize: 10, color: 'var(--primary)', background: 'var(--primary-bg)', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
-                        <Mail size={10} /> Renvoyer l'invitation
+                        <Mail size={10} /> {s.auth_id ? 'Renvoyer un lien de connexion' : "Renvoyer l'invitation"}
                       </button>
                     )}
                   </div>
