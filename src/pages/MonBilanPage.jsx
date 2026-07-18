@@ -147,7 +147,7 @@ export default function MonBilanPage() {
           { label: 'Dist. moy./match', value: stats?.distMoy ? `${stats.distMoy}km` : '—', color: 'var(--primary)' },
           { label: 'Sprint max', value: stats?.sprintMax ? `${stats.sprintMax}km/h` : '—', color: 'var(--primary)' },
         ].map(s => (
-          <div key={s.label} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
+          <div key={s.label} style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>{s.value}</div>
             <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
           </div>
@@ -162,7 +162,7 @@ export default function MonBilanPage() {
           { label: 'Motivation moy.', value: `${stats?.motivMoy}/5`, color: rpeColor(parseFloat(stats?.motivMoy)) },
           { label: 'Sessions RPE', value: stats?.nbRpe, color: 'var(--primary)' },
         ].map(s => (
-          <div key={s.label} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
+          <div key={s.label} style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>{s.value}</div>
             <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
           </div>
@@ -219,7 +219,7 @@ export default function MonBilanPage() {
               { label: 'Dist. moy./match', value: `${stats?.distMoy}km`, color: 'var(--primary)' },
               { label: 'Sprint max saison', value: `${stats?.sprintMax}km/h`, color: '#3B6D11' },
             ].map(s => (
-              <div key={s.label} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
+              <div key={s.label} style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: s.color }}>{s.value}</div>
                 <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.3 }}>{s.label}</div>
               </div>

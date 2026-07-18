@@ -143,7 +143,7 @@ export default function CalendrierVisuelPage() {
           ) : (
             dayEvents.map(ev => (
               <div key={ev.id} style={{
-                background: '#fff', border: `2px solid ${TYPE_COLORS[ev.type] || 'var(--border)'}`,
+                background: 'var(--bg-card)', border: `2px solid ${TYPE_COLORS[ev.type] || 'var(--border)'}`,
                 borderRadius: 12, padding: '12px 14px', marginBottom: 8
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>

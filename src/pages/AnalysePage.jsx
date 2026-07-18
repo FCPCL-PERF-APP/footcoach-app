@@ -20,7 +20,7 @@ export default function AnalysePage() {
       <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={18} /> Analyse</span>} />
       {ANALYSES.map(a => (
         <div key={a.path} onClick={() => navigate(a.path)} style={{
-          background: '#fff', border: '0.5px solid var(--border)', borderRadius: 14,
+          background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 14,
           padding: '12px 14px', marginBottom: 8, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 12
         }}>

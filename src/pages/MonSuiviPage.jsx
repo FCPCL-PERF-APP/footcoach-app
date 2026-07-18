@@ -423,7 +423,7 @@ export default function MonSuiviPage() {
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Choisir un événement</label>
                   <select value={selectedHistEvent} onChange={e => setSelectedHistEvent(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+                    style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-card)' }}>
                     {histEvents.map(({ id, ev }) => (
                       <option key={id} value={id}>{formatEventLabel(ev)}</option>
                     ))}

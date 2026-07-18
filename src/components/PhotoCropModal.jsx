@@ -41,7 +41,7 @@ export default function PhotoCropModal({ file, onCancel, onCropped }) {
           onCropComplete={onCropComplete}
         />
       </div>
-      <div style={{ padding: '16px 20px', background: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+      <div style={{ padding: '16px 20px', background: 'var(--bg-card)', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
         <p style={{ fontSize: 12, color: 'var(--text-secondary)', textAlign: 'center', marginBottom: 10 }}>Déplace et zoome pour cadrer la photo</p>
         <input type="range" min={1} max={3} step={0.01} value={zoom}
           onChange={e => setZoom(parseFloat(e.target.value))}

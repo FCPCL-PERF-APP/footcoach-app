@@ -110,6 +110,7 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut()
     setProfile(null)
     setNeedsOnboarding(false)
+    window.location.href = '/'
   }
 
   async function resetPassword(email) {

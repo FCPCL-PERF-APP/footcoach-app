@@ -213,7 +213,7 @@ export default function RessourcesPage() {
         <Search size={14} color="var(--text-muted)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Rechercher une ressource..."
-          style={{ width: '100%', padding: '8px 12px 8px 34px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
+          style={{ width: '100%', padding: '8px 12px 8px 34px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', background: 'var(--bg-card)', boxSizing: 'border-box' }} />
       </div>
 
       {loading ? <Spinner /> : (

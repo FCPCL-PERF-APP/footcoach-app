@@ -385,7 +385,7 @@ export default function FicheJoueurPage() {
             </button>
             <button onClick={renvoyerInvitation} disabled={inviting}
               title="Renvoyer l'invitation par email"
-              style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: '#fff', cursor: inviting ? 'not-allowed' : 'pointer', opacity: inviting ? 0.5 : 1, display: 'flex' }}>
+              style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-card)', cursor: inviting ? 'not-allowed' : 'pointer', opacity: inviting ? 0.5 : 1, display: 'flex' }}>
               {inviting ? <Hourglass size={14} /> : <Mail size={14} color={'var(--primary)'} />}
             </button>
             {editing && <button onClick={() => { setEditing(false); setForm({...joueur}) }}
@@ -452,7 +452,7 @@ export default function FicheJoueurPage() {
       {/* Stats rapides */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
         {[['Matchs', statsOfficielles.length], ['Buts', totalButs], ['PD', totalPD], ['Note', noteMoy]].map(([l, v]) => (
-          <div key={l} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
+          <div key={l} style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
             <div style={{ fontSize: 17, fontWeight: 700 }}>{v}</div>
             <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{l}</div>
           </div>

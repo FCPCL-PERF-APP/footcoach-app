@@ -237,13 +237,13 @@ export default function CPAPage() {
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             {placements.length > 0 && (
               <button onClick={() => setPlacements(p => p.slice(0,-1))}
-                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-card)', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Undo2 size={11} /> Annuler joueur
               </button>
             )}
             {fleches.length > 0 && (
               <button onClick={() => setFleches(f => f.slice(0,-1))}
-                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: '#fff', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-card)', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Undo2 size={11} /> Annuler flèche
               </button>
             )}
@@ -321,7 +321,7 @@ export default function CPAPage() {
               const typeInfo = CPA_TYPES.find(t => t.key === cpa.type)
               return (
                 <div key={cpa.id} onClick={() => setSelectedCpa(cpa)}
-                  style={{ background: '#fff', border: `1.5px solid ${typeInfo?.color || 'var(--border)'}`, borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }}>
+                  style={{ background: 'var(--bg-card)', border: `1.5px solid ${typeInfo?.color || 'var(--border)'}`, borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }}>
                   <div style={{ background: '#2d7a27', height: 90 }}>
                     <TerrainSVG placements={cpa.joueurs_placements || []} ballonPos={cpa.ballon_pos || {x:50,y:50}} fleches={cpa.fleches || []} mini />
                   </div>

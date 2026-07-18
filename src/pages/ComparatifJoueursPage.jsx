@@ -158,7 +158,7 @@ export default function ComparatifJoueursPage() {
             ].map(({ label, v1, v2, noCompare }) => {
               const w = noCompare ? 0 : (v1 > v2 ? 1 : v2 > v1 ? 2 : 0)
               return (
-                <div key={label} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10 }}>
+                <div key={label} style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10 }}>
                   <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 6 }}>{label}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: w === 1 ? 'var(--primary)' : 'var(--text-primary)' }}>{v1 ?? '—'}</span>

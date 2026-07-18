@@ -57,7 +57,7 @@ export default function SearchPage() {
             width: '100%', padding: '12px 14px 12px 40px',
             border: '1.5px solid var(--border)', borderRadius: 12,
             fontSize: 14, outline: 'none', boxSizing: 'border-box',
-            background: '#fff'
+            background: 'var(--bg-card)'
           }}
         />
         <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />

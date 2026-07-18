@@ -260,7 +260,7 @@ export default function MaFichePage() {
       {/* Stats rapides */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
         {[['Matchs', statsHistory.length], ['Buts', totalButs], ['PD', totalPD], ['Note', noteMoy]].map(([l, v]) => (
-          <div key={l} style={{ background: '#fff', border: '0.5px solid var(--border)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
+          <div key={l} style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
             <div style={{ fontSize: 17, fontWeight: 700 }}>{v}</div>
             <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{l}</div>
           </div>

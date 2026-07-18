@@ -73,7 +73,7 @@ export default function ExportFicheJoueurPage() {
     <>
       {/* Boutons non imprimés */}
       <div style={{ padding: '10px 12px', display: 'flex', gap: 8, background: 'var(--bg-secondary)', borderBottom: '0.5px solid var(--border)' }} className="no-print">
-        <button onClick={() => navigate(-1)} style={{ padding: '7px 14px', borderRadius: 8, border: '0.5px solid var(--border)', background: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Retour</button>
+        <button onClick={() => navigate(-1)} style={{ padding: '7px 14px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-card)', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}><ArrowLeft size={13} /> Retour</button>
         <button onClick={handlePrint} style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: 'var(--gradient)', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Printer size={13} /> Imprimer / PDF</button>
         <p style={{ fontSize: 11, color: 'var(--text-muted)', alignSelf: 'center' }}>Sur iPhone : Partager → "Enregistrer en PDF"</p>
       </div>

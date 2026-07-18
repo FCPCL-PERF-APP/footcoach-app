@@ -140,7 +140,7 @@ export default function CalendrierPage() {
       {/* Modal suppression */}
       {deleteConfirm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
             <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Supprimer cet événement ?</p>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}><strong>{deleteConfirm.titre}</strong> sera définitivement supprimé.</p>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -271,7 +271,7 @@ export default function CalendrierPage() {
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Choisir un événement</label>
                   <select value={selectedPastEvent} onChange={e => setSelectedPastEvent(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+                    style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-card)' }}>
                     {past.map(ev => (
                       <option key={ev.id} value={ev.id}>{formatEventLabel(ev)}</option>
                     ))}
@@ -612,7 +612,7 @@ function RecurringModal({ onClose, onSave }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }}>
-      <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: 20, width: '100%', maxWidth: 480, margin: '0 auto' }}>
+      <div style={{ background: 'var(--bg-card)', borderRadius: '20px 20px 0 0', padding: 20, width: '100%', maxWidth: 480, margin: '0 auto' }}>
         <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
           <Repeat size={15} color={'var(--primary)'} /> Séances récurrentes
         </p>

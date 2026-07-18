@@ -210,7 +210,7 @@ export default function ArchiveSaisonPage() {
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => setStep(0)} style={{
                   flex: 1, padding: 12, borderRadius: 10,
-                  border: '0.5px solid var(--border)', background: '#fff',
+                  border: '0.5px solid var(--border)', background: 'var(--bg-card)',
                   fontSize: 13, cursor: 'pointer'
                 }}>Annuler</button>
                 <button onClick={archiverSaison} disabled={archiving} style={{

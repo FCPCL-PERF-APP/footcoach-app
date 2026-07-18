@@ -119,7 +119,7 @@ export default function JoueursPage() {
       <div style={{ position: 'relative', marginBottom: 10 }}>
         <Search size={14} color="var(--text-muted)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un joueur..."
-          style={{ width: '100%', padding: '9px 12px 9px 34px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' }} />
+          style={{ width: '100%', padding: '9px 12px 9px 34px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', background: 'var(--bg-card)', boxSizing: 'border-box' }} />
       </div>
 
       {/* Filtre groupe */}
@@ -169,7 +169,7 @@ export default function JoueursPage() {
       {/* Modal confirmation suppression */}
       {confirmDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
             <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Supprimer ce joueur ?</p>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
               <strong>{confirmDelete.nom} {confirmDelete.prenom}</strong> sera définitivement supprimé avec toutes ses données.
@@ -196,7 +196,7 @@ export default function JoueursPage() {
             const enSurcharge = rpeVal >= 4
             return (
               <div key={j.id} style={{
-                background: '#fff',
+                background: 'var(--bg-card)',
                 border: `0.5px solid ${enSurcharge ? '#FCA5A5' : 'var(--border)'}`,
                 borderLeft: enSurcharge ? `3px solid #A32D2D` : '3px solid transparent',
                 borderRadius: 14, padding: '12px 14px', marginBottom: 8,
