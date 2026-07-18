@@ -150,7 +150,7 @@ export default function ExportFicheJoueurPage() {
               {/* Axes amélioration */}
               {objJoueur.axes_amelioration && Object.values(objJoueur.axes_amelioration).some(v => v) && (
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: '#854F0B', marginBottom: 8 }}>⚠️ Axes d'amélioration</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--warning)', marginBottom: 8 }}>⚠️ Axes d'amélioration</p>
                   {[['💪', 'athletique', 'Athlétique'], ['🧠', 'tactique', 'Tactique'], ['⚽', 'technique', 'Technique'], ['🎯', 'mental', 'Mental']].map(([icon, key, label]) =>
                     objJoueur.axes_amelioration[key] ? (
                       <div key={key} style={{ marginBottom: 6 }}>

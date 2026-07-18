@@ -83,8 +83,8 @@ export default function LoginPage() {
                   <Smartphone size={12} style={{ flexShrink: 0, marginTop: 2 }} /> Ouvre le lien depuis Safari sur ton iPhone pour créer ton nouveau mot de passe.
                 </p>
                 <div style={{ marginTop: 10, padding: '8px 10px', background: '#FAEEDA', borderRadius: 8 }}>
-                  <p style={{ fontSize: 11, color: '#854F0B', fontWeight: 600 }}>Email non reçu après 5 minutes ?</p>
-                  <p style={{ fontSize: 11, color: '#854F0B' }}>Contacte ton coach directement — il peut te renvoyer un lien depuis l'app.</p>
+                  <p style={{ fontSize: 11, color: 'var(--warning)', fontWeight: 600 }}>Email non reçu après 5 minutes ?</p>
+                  <p style={{ fontSize: 11, color: 'var(--warning)' }}>Contacte ton coach directement — il peut te renvoyer un lien depuis l'app.</p>
                 </div>
               </div>
             ) : (

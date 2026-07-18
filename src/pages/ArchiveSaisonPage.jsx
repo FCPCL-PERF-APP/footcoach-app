@@ -173,8 +173,8 @@ export default function ArchiveSaisonPage() {
 
           {/* Avertissement */}
           <Card style={{ background: '#FDFAEE', border: '0.5px solid #F5C4B3', marginBottom: 14 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#854F0B', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> Action irréversible</p>
-            <p style={{ fontSize: 12, color: '#854F0B', marginBottom: 6 }}>Cette action va :</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--warning)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> Action irréversible</p>
+            <p style={{ fontSize: 12, color: 'var(--warning)', marginBottom: 6 }}>Cette action va :</p>
             {[
               { ok: true, text: 'Sauvegarder le résumé de la saison' },
               { ok: true, text: 'Conserver les fiches joueurs et leur historique' },
@@ -197,7 +197,7 @@ export default function ArchiveSaisonPage() {
           {step === 0 && (
             <button onClick={() => setStep(1)} style={{
               width: '100%', padding: 14, borderRadius: 12,
-              background: '#854F0B', color: '#fff',
+              background: 'var(--warning)', color: '#fff',
               border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
             }}>

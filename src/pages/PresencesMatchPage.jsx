@@ -22,7 +22,7 @@ const STATUTS = {
   present:   { icon: CheckCircle2, label: 'Présent',   bg: 'var(--success-bg)', color: 'var(--success)', border: 'var(--success)' },
   exterieur: { icon: RefreshCw,    label: 'Extérieur', bg: 'var(--primary-bg)', color: 'var(--primary)', border: 'var(--primary)' },
   absent:    { icon: XCircle,      label: 'Absent',    bg: 'var(--danger-bg)',  color: 'var(--danger)',  border: 'var(--danger)' },
-  blesse:    { icon: Bandage,      label: 'Blessé',    bg: 'var(--warning-bg)', color: '#854F0B',     border: '#854F0B' },
+  blesse:    { icon: Bandage,      label: 'Blessé',    bg: 'var(--warning-bg)', color: 'var(--warning)',     border: 'var(--warning)' },
   inconnu:   { icon: HelpCircle,   label: 'Inconnu',   bg: 'var(--bg-secondary)',       color: 'var(--text-secondary)',     border: 'var(--border)' },
 }
 
@@ -202,7 +202,7 @@ export default function PresencesMatchPage() {
           ['Présents', 'present', nbPresents, '#3B6D11', '#EAF3DE'],
           ['Extérieur', 'exterieur', nbExterieurs, 'var(--primary)', 'var(--primary-bg)'],
           ['Absents', 'absent', nbAbsents, '#A32D2D', '#FCEBEB'],
-          ['Blessés', 'blesse', nbBlesses, '#854F0B', '#FAEEDA'],
+          ['Blessés', 'blesse', nbBlesses, 'var(--warning)', '#FAEEDA'],
           ['Inconnus', 'inconnu', nbInconnus, 'var(--text-secondary)', 'var(--bg-secondary)'],
         ].map(([lbl, key, val, color, bg]) => (
           <button key={key} onClick={() => setFilterStatut(key)} style={{

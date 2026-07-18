@@ -133,7 +133,7 @@ export default function CalendrierPage() {
   return (
     <div style={{ padding: 12 }}>
       {queueCount > 0 && (
-        <div style={{ background: 'var(--warning-bg)', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <div style={{ background: 'var(--warning-bg)', color: 'var(--warning)', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <WifiOff size={13} /> {queueCount} présence(s) en attente de synchronisation
         </div>
       )}
@@ -466,12 +466,12 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
     { key: 'present',   label: 'Présent',   icon: CheckCircle2, bg: 'var(--success-bg)', color: 'var(--success)', border: 'var(--success)' },
     { key: 'exterieur', label: 'Extérieur', icon: RefreshCw,    bg: 'var(--primary-bg)', color: 'var(--primary)', border: 'var(--primary)' },
     { key: 'absent',    label: 'Absent',    icon: XCircle,      bg: 'var(--danger-bg)',  color: 'var(--danger)',  border: 'var(--danger)' },
-    { key: 'blesse',    label: 'Blessé',    icon: Bandage,      bg: 'var(--warning-bg)', color: '#854F0B',     border: '#854F0B' },
+    { key: 'blesse',    label: 'Blessé',    icon: Bandage,      bg: 'var(--warning-bg)', color: 'var(--warning)',     border: 'var(--warning)' },
   ]
   const STATUTS_MATCH = [
     { key: 'present', label: 'Présent', icon: CheckCircle2, bg: 'var(--success-bg)', color: 'var(--success)', border: 'var(--success)' },
     { key: 'absent',  label: 'Absent',  icon: XCircle,      bg: 'var(--danger-bg)',  color: 'var(--danger)',  border: 'var(--danger)' },
-    { key: 'blesse',  label: 'Blessé',  icon: Bandage,      bg: 'var(--warning-bg)', color: '#854F0B',     border: '#854F0B' },
+    { key: 'blesse',  label: 'Blessé',  icon: Bandage,      bg: 'var(--warning-bg)', color: 'var(--warning)',     border: 'var(--warning)' },
   ]
 
   const STATUTS = isMatch ? STATUTS_MATCH : STATUTS_SEANCE
@@ -490,7 +490,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
       </p>
 
       {wasQueued && (
-        <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+        <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: 'var(--warning)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
           <WifiOff size={12} /> Pas de réseau — sera synchronisé automatiquement
         </div>
       )}
@@ -521,7 +521,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
       {/* Bloqué si absent/blessé */}
       {estEmpêche && (
         <div style={{ background: statut === 'blesse' ? 'var(--warning-bg)' : 'var(--danger-bg)', borderRadius: 8, padding: '7px 10px', fontSize: 11,
-          color: statut === 'blesse' ? '#854F0B' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: 5 }}>
+          color: statut === 'blesse' ? 'var(--warning)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: 5 }}>
           {statut === 'blesse' ? <><Bandage size={12} /> Tu es blessé — pas de RPE ni Footbar requis.</> : <><XCircle size={12} /> Tu es absent — pas de RPE ni Footbar requis.</>}
         </div>
       )}

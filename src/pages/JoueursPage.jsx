@@ -211,7 +211,7 @@ export default function JoueursPage() {
                     <p style={{ fontSize: 13, fontWeight: 600 }}>
                       {j.nom} {j.prenom}
                       {blessuresActives[j.id] && (
-                        <span style={{ marginLeft: 6, fontSize: 11, background: 'var(--warning-bg)', color: '#854F0B', borderRadius: 10, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <span style={{ marginLeft: 6, fontSize: 11, background: 'var(--warning-bg)', color: 'var(--warning)', borderRadius: 10, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                           <Bandage size={10} /> Blessé
                         </span>
                       )}

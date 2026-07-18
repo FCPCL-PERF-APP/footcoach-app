@@ -280,7 +280,7 @@ export default function MaFichePage() {
             {[
               { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
               { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: 'var(--primary)', bg: 'var(--primary-bg)' },
-              { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: 'var(--warning-bg)' },
+              { key: 'blesse', label: 'Blessé', icon: Bandage, color: 'var(--warning)', bg: 'var(--warning-bg)' },
               { key: 'absent', label: 'Absent', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
             ].map(s => (
               <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '7px 4px', textAlign: 'center' }}>

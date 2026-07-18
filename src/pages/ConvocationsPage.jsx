@@ -11,7 +11,7 @@ import { ArrowLeft, CheckCircle2, MapPin, Bell, Send, Check, XCircle, Bandage, H
 const DISPO = {
   present: { label: 'Disponible', icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
   absent:  { label: 'Indisponible', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
-  blesse:  { label: 'Blessé', icon: Bandage, color: '#854F0B', bg: 'var(--warning-bg)' },
+  blesse:  { label: 'Blessé', icon: Bandage, color: 'var(--warning)', bg: 'var(--warning-bg)' },
   inconnu: { label: 'Sans réponse', icon: HelpCircle, color: 'var(--text-muted)', bg: 'var(--bg-secondary)' },
 }
 
@@ -190,7 +190,7 @@ export default function ConvocationsPage() {
       </div>
 
       {queueCount > 0 && !sent && (
-        <div style={{ background: 'var(--warning-bg)', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <div style={{ background: 'var(--warning-bg)', color: 'var(--warning)', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <WifiOff size={13} /> {queueCount} sélection(s) en attente de synchronisation
         </div>
       )}
@@ -200,8 +200,8 @@ export default function ConvocationsPage() {
           <div style={{ textAlign: 'center', padding: 24 }}>
             {sentOffline ? (
               <>
-                <WifiOff size={44} color="#854F0B" style={{ marginBottom: 12 }} />
-                <p style={{ fontSize: 16, fontWeight: 700, color: '#854F0B' }}>Sélection enregistrée hors-ligne</p>
+                <WifiOff size={44} color="var(--warning)" style={{ marginBottom: 12 }} />
+                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--warning)' }}>Sélection enregistrée hors-ligne</p>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>
                   {selected.size} joueur(s) convoqué(s) — sera synchronisé automatiquement au retour du réseau. Pense à revenir régler l'heure/lieu de RDV et notifier les joueurs une fois connecté.
                 </p>

@@ -209,7 +209,7 @@ export default function DashboardJoueurPage() {
       {/* ALERTES */}
       {(nbPresenceAConfirmer > 0 || eventsAFaire.length > 0 || blessureActive) && (
         <Card style={{ marginBottom: 14, background: 'var(--warning-bg)', border: '0.5px solid #F5C4B3' }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#854F0B', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--warning)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
             <AlertTriangle size={13} /> À faire
           </p>
           {nbPresenceAConfirmer > 0 && (
@@ -330,7 +330,7 @@ export default function DashboardJoueurPage() {
             {presencesEntrainement.slice(0,10).map((p,i) => {
               const style = p.statut === 'present' ? { bg: 'var(--success-bg)', color: 'var(--success)', Icon: CheckCircle2 }
                 : p.statut === 'exterieur' ? { bg: 'var(--primary-bg)', color: 'var(--primary)', Icon: RefreshCw }
-                : p.statut === 'blesse' ? { bg: 'var(--warning-bg)', color: '#854F0B', Icon: Bandage }
+                : p.statut === 'blesse' ? { bg: 'var(--warning-bg)', color: 'var(--warning)', Icon: Bandage }
                 : { bg: 'var(--danger-bg)', color: 'var(--danger)', Icon: XCircle }
               return (
                 <div key={i} style={{ textAlign: 'center' }}>
@@ -350,7 +350,7 @@ export default function DashboardJoueurPage() {
           <div style={{ display: 'flex', gap: 10, fontSize: 11, borderTop: `0.5px solid ${'var(--border)'}`, paddingTop: 8, flexWrap: 'wrap' }}>
             <span style={{ color: 'var(--success)' }}>{presEntrainementBreakdown.present} présent(s)</span>
             <span style={{ color: 'var(--primary)' }}>{presEntrainementBreakdown.exterieur} extérieur</span>
-            <span style={{ color: '#854F0B' }}>{presEntrainementBreakdown.blesse} blessé(s)</span>
+            <span style={{ color: 'var(--warning)' }}>{presEntrainementBreakdown.blesse} blessé(s)</span>
             <span style={{ color: 'var(--danger)' }}>{presEntrainementBreakdown.absent} absent(s)</span>
             <span style={{ color: 'var(--text-muted)' }}>· {tauxPresenceEntrainement}% d'engagement</span>
           </div>

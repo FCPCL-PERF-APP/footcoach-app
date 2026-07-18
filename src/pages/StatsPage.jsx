@@ -295,14 +295,14 @@ export default function StatsPage() {
       </div>
 
       {queueCount > 0 && (
-        <div style={{ background: 'var(--warning-bg)', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <div style={{ background: 'var(--warning-bg)', color: 'var(--warning)', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <WifiOff size={13} /> {queueCount} saisie(s) en attente de synchronisation
         </div>
       )}
 
       {saved && (
         savedOffline
-          ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 6 }}><WifiOff size={13} /> Pas de réseau — sera synchronisé automatiquement</div>
+          ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 6 }}><WifiOff size={13} /> Pas de réseau — sera synchronisé automatiquement</div>
           : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Enregistré !</div>
       )}
 

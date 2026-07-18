@@ -280,7 +280,7 @@ export default function MonSuiviPage() {
       <PageHeader title="Mon suivi" />
 
       {(queueCountRpe > 0 || queueCountFoot > 0) && (
-        <div style={{ background: 'var(--warning-bg)', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <div style={{ background: 'var(--warning-bg)', color: 'var(--warning)', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <WifiOff size={13} /> {[queueCountRpe > 0 && `${queueCountRpe} RPE`, queueCountFoot > 0 && `${queueCountFoot} Footbar`].filter(Boolean).join(' + ')} en attente de synchronisation
         </div>
       )}
@@ -389,12 +389,12 @@ export default function MonSuiviPage() {
 
                     {savedEventId === ev.id && queued.rpe !== undefined && (
                       queued.rpe
-                        ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> RPE — pas de réseau, sera synchronisé automatiquement</div>
+                        ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--warning)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> RPE — pas de réseau, sera synchronisé automatiquement</div>
                         : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--success)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> RPE enregistré !</div>
                     )}
                     {savedEventId === ev.id && queued.footbar !== undefined && (
                       queued.footbar
-                        ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> Footbar — pas de réseau, sera synchronisé automatiquement</div>
+                        ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--warning)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> Footbar — pas de réseau, sera synchronisé automatiquement</div>
                         : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--success)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> Footbar enregistré !</div>
                     )}
                     {errors.rpe && (

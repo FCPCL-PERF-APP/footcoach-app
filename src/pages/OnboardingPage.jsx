@@ -38,7 +38,7 @@ const STEPS = [
     icon: MessageCircle,
     title: 'Messages',
     desc: 'Communique directement avec ton coach et tes coéquipiers. Le canal groupe est accessible à toute l\'équipe.',
-    color: '#854F0B',
+    color: 'var(--warning)',
     image: 'Messages'
   },
   {

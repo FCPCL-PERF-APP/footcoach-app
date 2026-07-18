@@ -411,12 +411,12 @@ export default function FicheJoueurPage() {
         <Card style={{ marginBottom: 14, background: '#FDF5EE', border: '0.5px solid #F5C4B3' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 600, color: '#854F0B', display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={12} /> Joueur sans accès à l'app</p>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={12} /> Joueur sans accès à l'app</p>
               <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Inviter par email pour créer son compte</p>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setShowInvite(!showInvite)}
-                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: '#854F0B', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--warning)', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                 {showInvite ? <X size={12} /> : <><Mail size={12} /> Inviter</>}
               </button>
             </div>
@@ -481,7 +481,7 @@ export default function FicheJoueurPage() {
             {[
               { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
               { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: 'var(--primary)', bg: 'var(--primary-bg)' },
-              { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: 'var(--warning-bg)' },
+              { key: 'blesse', label: 'Blessé', icon: Bandage, color: 'var(--warning)', bg: 'var(--warning-bg)' },
               { key: 'absent', label: 'Absent', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
             ].map(s => (
               <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '7px 4px', textAlign: 'center' }}>
@@ -591,7 +591,7 @@ export default function FicheJoueurPage() {
                 {[
                   ['Zone 1 — Récupération', 0.5, 0.6, 'var(--primary-bg)', 'var(--primary)'],
                   ['Zone 2 — Aérobie', 0.6, 0.7, '#EAF3DE', '#3B6D11'],
-                  ['Zone 3 — Seuil', 0.7, 0.8, '#FAEEDA', '#854F0B'],
+                  ['Zone 3 — Seuil', 0.7, 0.8, '#FAEEDA', 'var(--warning)'],
                   ['Zone 4 — Haute intensité', 0.8, 0.9, '#FCEBEB', '#A32D2D'],
                   ['Zone 5 — Maximale', 0.9, 1.0, '#F5C4B3', '#712B13'],
                 ].map(([label, min, max, bg, color]) => (
@@ -774,7 +774,7 @@ export default function FicheJoueurPage() {
               {/* Axes amélioration */}
               {objJoueurData.axes_amelioration && Object.values(objJoueurData.axes_amelioration).some(v => v) && (
                 <Card>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#854F0B', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={13} /> Axes d'amélioration</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--warning)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={13} /> Axes d'amélioration</p>
                   {[
                     { key: 'athletique', icon: Dumbbell, label: 'Athlétique' },
                     { key: 'tactique',   icon: Brain, label: 'Tactique' },

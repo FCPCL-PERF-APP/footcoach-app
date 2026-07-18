@@ -78,7 +78,7 @@ export default function BlessuresPage() {
 
   function graviteStyle(g) {
     if (g === 'grave') return { bg: 'var(--danger-bg)', color: 'var(--danger)', label: 'Grave' }
-    if (g === 'moderee') return { bg: 'var(--warning-bg)', color: '#854F0B', label: 'Modérée' }
+    if (g === 'moderee') return { bg: 'var(--warning-bg)', color: 'var(--warning)', label: 'Modérée' }
     return { bg: '#FDFAEE', color: 'var(--warning)', label: 'Légère' }
   }
 
