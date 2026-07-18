@@ -157,8 +157,8 @@ export default function RpePage() {
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === tab ? THEME.primaryBg : 'transparent',
-            color: activeTab === tab ? THEME.primary : '#6B7280',
+            background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
+            color: activeTab === tab ? 'var(--primary)' : '#6B7280',
             fontWeight: activeTab === tab ? 600 : 400, whiteSpace: 'nowrap',
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -199,7 +199,7 @@ export default function RpePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
                     width: 64, height: 64, borderRadius: '50%',
-                    border: `6px solid ${rpeData.length / Math.max(joueursCibles.length, 1) >= 0.8 ? THEME.success : '#D85A30'}`,
+                    border: `6px solid ${rpeData.length / Math.max(joueursCibles.length, 1) >= 0.8 ? 'var(--success)' : '#D85A30'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 16, fontWeight: 700
                   }}>
@@ -259,7 +259,7 @@ export default function RpePage() {
                 Envoie une notification push pour les relancer.
               </p>
               {joueursSansRpe.length === 0
-                ? <p style={{ fontSize: 13, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Tous les joueurs ont rempli leur RPE !</p>
+                ? <p style={{ fontSize: 13, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Tous les joueurs ont rempli leur RPE !</p>
                 : <>
                     {joueursSansRpe.map(j => (
                       <div key={j.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #F3F4F6' }}>

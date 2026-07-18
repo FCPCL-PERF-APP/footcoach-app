@@ -44,7 +44,7 @@ export default function SearchPage() {
   return (
     <div style={{ padding: 12 }}>
       <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 7 }}>
-        <Search size={18} color={THEME.primary} /> Recherche
+        <Search size={18} color={'var(--primary)'} /> Recherche
       </h1>
 
       <div style={{ position: 'relative', marginBottom: 14 }}>
@@ -94,7 +94,7 @@ export default function SearchPage() {
                         <p style={{ fontSize: 13, fontWeight: 600 }}>{j.nom} {j.prenom}</p>
                         <p style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}{j.numero ? ` · N°${j.numero}` : ''}</p>
                       </div>
-                      <ChevronRight size={16} color={THEME.primary} />
+                      <ChevronRight size={16} color={'var(--primary)'} />
                     </div>
                   ))}
                 </Card>
@@ -115,7 +115,7 @@ export default function SearchPage() {
                           {e.type === 'match' ? <Swords size={10} /> : <Footprints size={10} />} {e.type === 'match' ? 'Match' : 'Séance'} · {e.date_heure ? format(parseISO(e.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
                         </p>
                       </div>
-                      <ChevronRight size={16} color={THEME.primary} />
+                      <ChevronRight size={16} color={'var(--primary)'} />
                     </div>
                   ))}
                 </Card>
@@ -130,7 +130,7 @@ export default function SearchPage() {
                   {results.messages.map(m => (
                     <div key={m.id} onClick={() => navigate('/messages')}
                       style={{ padding: '8px 0', borderBottom: '0.5px solid #F3F4F6', cursor: 'pointer' }}>
-                      <p style={{ fontSize: 11, color: THEME.primary, fontWeight: 600, marginBottom: 2 }}>{m.expediteur_nom}</p>
+                      <p style={{ fontSize: 11, color: 'var(--primary)', fontWeight: 600, marginBottom: 2 }}>{m.expediteur_nom}</p>
                       <p style={{ fontSize: 12, color: '#374151' }}>{m.contenu?.slice(0, 80)}{m.contenu?.length > 80 ? '...' : ''}</p>
                       <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{m.created_at ? format(parseISO(m.created_at), 'd MMM à HH:mm', { locale: fr }) : ''}</p>
                     </div>

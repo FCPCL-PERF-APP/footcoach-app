@@ -20,8 +20,8 @@ const CATEGORIES = [
 ]
 
 const STATUTS = [
-  { value: 'en_cours', icon: Hourglass, label: 'En cours', bg: THEME.primaryBg, color: THEME.primary },
-  { value: 'atteint', icon: CheckCircle2, label: 'Atteint', bg: THEME.successBg, color: THEME.success },
+  { value: 'en_cours', icon: Hourglass, label: 'En cours', bg: 'var(--primary-bg)', color: 'var(--primary)' },
+  { value: 'atteint', icon: CheckCircle2, label: 'Atteint', bg: 'var(--success-bg)', color: 'var(--success)' },
   { value: 'abandonne', icon: XCircle, label: 'Abandonné', bg: '#F3F4F6', color: '#9CA3AF' },
 ]
 
@@ -102,13 +102,13 @@ export default function ObjectifsPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(`/joueurs/${joueurId}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate(`/joueurs/${joueurId}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Objectifs individuels</p>
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>{joueur?.nom} {joueur?.prenom}</p>
         </div>
         {isCoach && (
-          <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
             {showAdd ? <X size={12} /> : <><Plus size={12} /> Objectif</>}
           </button>
         )}
@@ -196,12 +196,12 @@ export default function ObjectifsPage() {
                   <span style={{ color: '#6B7280' }}>
                     {obj.valeur_actuelle ?? '—'} / {obj.valeur_cible} {obj.unite}
                   </span>
-                  <span style={{ fontWeight: 600, color: progress >= 100 ? THEME.success : THEME.primary }}>
+                  <span style={{ fontWeight: 600, color: progress >= 100 ? 'var(--success)' : 'var(--primary)' }}>
                     {progress !== null ? `${progress}%` : '—'}
                   </span>
                 </div>
                 <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 4, background: progress >= 100 ? THEME.success : THEME.primary, width: `${progress || 0}%`, transition: 'width .3s' }} />
+                  <div style={{ height: '100%', borderRadius: 4, background: progress >= 100 ? 'var(--success)' : 'var(--primary)', width: `${progress || 0}%`, transition: 'width .3s' }} />
                 </div>
                 {/* Mise à jour progression */}
                 {isCoach && (
@@ -218,7 +218,7 @@ export default function ObjectifsPage() {
             {/* Actions */}
             {isCoach && (
               <div style={{ display: 'flex', gap: 6, marginTop: 8, paddingTop: 8, borderTop: '0.5px solid #F3F4F6' }}>
-                <button onClick={() => updateStatut(obj.id, 'atteint')} style={{ flex: 1, padding: '5px', borderRadius: 8, border: 'none', background: THEME.successBg, color: THEME.success, fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                <button onClick={() => updateStatut(obj.id, 'atteint')} style={{ flex: 1, padding: '5px', borderRadius: 8, border: 'none', background: 'var(--success-bg)', color: 'var(--success)', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                   <CheckCircle2 size={11} /> Atteint
                 </button>
                 <button onClick={() => updateStatut(obj.id, 'abandonne')} style={{ flex: 1, padding: '5px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#9CA3AF', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>

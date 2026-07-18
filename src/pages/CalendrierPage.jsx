@@ -133,7 +133,7 @@ export default function CalendrierPage() {
   return (
     <div style={{ padding: 12 }}>
       {queueCount > 0 && (
-        <div style={{ background: THEME.warningBg, color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <div style={{ background: 'var(--warning-bg)', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <WifiOff size={13} /> {queueCount} présence(s) en attente de synchronisation
         </div>
       )}
@@ -161,7 +161,7 @@ export default function CalendrierPage() {
             <Repeat size={14} />
           </button>}
           {isCoach && <button onClick={() => { setEditingEvent(null); setShowAdd(!showAdd) }}
-            style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+            style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
             {showAdd && !editingEvent ? <X size={13} /> : <><Plus size={13} /> Ajouter</>}
           </button>}
         </div>
@@ -173,8 +173,8 @@ export default function CalendrierPage() {
           <button key={f} onClick={() => setFilterType(f)} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: filterType === f ? THEME.primaryBg : 'transparent',
-            color: filterType === f ? THEME.primary : '#6B7280',
+            background: filterType === f ? 'var(--primary-bg)' : 'transparent',
+            color: filterType === f ? 'var(--primary)' : '#6B7280',
             fontWeight: filterType === f ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}>
@@ -190,9 +190,9 @@ export default function CalendrierPage() {
         {[['avenir', CalendarDays, 'À venir'],['passes', History, 'Passés']].map(([p, Icon, lbl]) => (
           <button key={p} onClick={() => setFilterPeriode(p)} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: `0.5px solid ${filterPeriode === p ? THEME.primary : '#D1D5DB'}`,
-            background: filterPeriode === p ? THEME.primaryBg : 'transparent',
-            color: filterPeriode === p ? THEME.primary : '#6B7280',
+            border: `0.5px solid ${filterPeriode === p ? 'var(--primary)' : '#D1D5DB'}`,
+            background: filterPeriode === p ? 'var(--primary-bg)' : 'transparent',
+            color: filterPeriode === p ? 'var(--primary)' : '#6B7280',
             fontWeight: filterPeriode === p ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl} ({p === 'avenir' ? upcoming.length : past.length})</button>
@@ -225,8 +225,8 @@ export default function CalendrierPage() {
                   {value:'coupe',label:'Coupe'},
                   {value:'preparation',label:'Préparation'},
                 ]} />
-              <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: 10, marginBottom: 10 }}>
-                <p style={{ fontSize: 11, fontWeight: 600, color: THEME.primary, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ background: 'var(--primary-bg)', borderRadius: 10, padding: 10, marginBottom: 10 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--primary)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
                   <MapPin size={12} /> Rendez-vous joueurs
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -325,7 +325,7 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
 
   // Liseré coloré à gauche pour distinguer les cartes d'un coup d'œil dans la liste
   // (même couleur que le badge type, au lieu d'un simple bloc blanc uniforme).
-  const typeColor = ev.type === 'match' ? '#185FA5' : THEME.success
+  const typeColor = ev.type === 'match' ? '#185FA5' : 'var(--success)'
 
   return (
     <Card style={{ opacity: past ? 0.85 : 1, marginBottom: 10, borderLeft: `3px solid ${typeColor}` }}>
@@ -341,8 +341,8 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
           {isJoueur && ev.type === 'match' && convoque !== null && (
             <span style={{
               fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-              background: convoque ? THEME.primaryBg : '#F3F4F6',
-              color: convoque ? THEME.primary : '#9CA3AF',
+              background: convoque ? 'var(--primary-bg)' : '#F3F4F6',
+              color: convoque ? 'var(--primary)' : '#9CA3AF',
               display: 'inline-flex', alignItems: 'center', gap: 4
             }}>
               {convoque ? <Send size={10} /> : <Hourglass size={10} />} {convoque ? 'Convoqué' : 'Non convoqué'}
@@ -351,18 +351,18 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
         </div>
         {isCoach && (
           <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
-            <button onClick={() => onEdit(ev)} style={{ border: 'none', background: 'rgba(24,95,165,.1)', borderRadius: 6, padding: '4px 7px', cursor: 'pointer', display: 'flex' }}><Pencil size={12} color={THEME.primary} /></button>
-            <button onClick={() => onDelete(ev)} style={{ border: 'none', background: THEME.dangerBg, borderRadius: 6, padding: '4px 7px', cursor: 'pointer', display: 'flex' }}><Trash2 size={12} color={THEME.danger} /></button>
+            <button onClick={() => onEdit(ev)} style={{ border: 'none', background: 'rgba(24,95,165,.1)', borderRadius: 6, padding: '4px 7px', cursor: 'pointer', display: 'flex' }}><Pencil size={12} color={'var(--primary)'} /></button>
+            <button onClick={() => onDelete(ev)} style={{ border: 'none', background: 'var(--danger-bg)', borderRadius: 6, padding: '4px 7px', cursor: 'pointer', display: 'flex' }}><Trash2 size={12} color={'var(--danger)'} /></button>
           </div>
         )}
       </div>
 
       <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
-        <CalendarDays size={11} color={THEME.primary} /> {dateStr}{ev.type === 'match' ? (ev.domicile ? ' · Domicile' : ' · Déplacement') : ''}
+        <CalendarDays size={11} color={'var(--primary)'} /> {dateStr}{ev.type === 'match' ? (ev.domicile ? ' · Domicile' : ' · Déplacement') : ''}
       </p>
       {ev.lieu && <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} color={CAT_COLORS.violet.color} /> {ev.lieu}</p>}
       {ev.type === 'match' && ev.rdv_heure && (
-        <p style={{ fontSize: 11, color: THEME.primary, marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+        <p style={{ fontSize: 11, color: 'var(--primary)', marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
           <Clock size={11} /> RDV {ev.rdv_heure}{ev.rdv_lieu ? ` · ${ev.rdv_lieu}` : ''}
         </p>
       )}
@@ -370,10 +370,10 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
       {/* Résumé présences staff */}
       {isStaff && presenceCount !== null && (
         <div style={{ display: 'flex', gap: 10, marginBottom: 8, padding: '6px 10px', background: '#F9FAFB', borderRadius: 8, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, color: THEME.success, display: 'flex', alignItems: 'center', gap: 3 }}><CheckCircle2 size={11} /> {presenceCount.present}</span>
-          {presenceCount.exterieur > 0 && <span style={{ fontSize: 11, color: THEME.primary, display: 'flex', alignItems: 'center', gap: 3 }}><RefreshCw size={11} /> {presenceCount.exterieur}</span>}
-          <span style={{ fontSize: 11, color: THEME.danger, display: 'flex', alignItems: 'center', gap: 3 }}><XCircle size={11} /> {presenceCount.absent}</span>
-          <span style={{ fontSize: 11, color: THEME.warning, display: 'flex', alignItems: 'center', gap: 3 }}><Bandage size={11} /> {presenceCount.blesse}</span>
+          <span style={{ fontSize: 11, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 3 }}><CheckCircle2 size={11} /> {presenceCount.present}</span>
+          {presenceCount.exterieur > 0 && <span style={{ fontSize: 11, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 3 }}><RefreshCw size={11} /> {presenceCount.exterieur}</span>}
+          <span style={{ fontSize: 11, color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: 3 }}><XCircle size={11} /> {presenceCount.absent}</span>
+          <span style={{ fontSize: 11, color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 3 }}><Bandage size={11} /> {presenceCount.blesse}</span>
           <span style={{ fontSize: 11, color: '#9CA3AF' }}>· {presenceCount.total} réponse(s)</span>
         </div>
       )}
@@ -384,7 +384,7 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
       {isStaff && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
           {isCoach && ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}><Send size={11} color={CAT_COLORS.blue.color} style={{ marginRight: 4, verticalAlign: -2 }} />Convocations</Button>}
-          <Button size="sm" onClick={() => navigate(`/presences/${ev.id}`)}><CheckCircle2 size={11} color={THEME.success} style={{ marginRight: 4, verticalAlign: -2 }} />Présences</Button>
+          <Button size="sm" onClick={() => navigate(`/presences/${ev.id}`)}><CheckCircle2 size={11} color={'var(--success)'} style={{ marginRight: 4, verticalAlign: -2 }} />Présences</Button>
           {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}><BarChart3 size={11} color={CAT_COLORS.purple.color} style={{ marginRight: 4, verticalAlign: -2 }} />Stats</Button>}
           <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}><Heart size={11} color={CAT_COLORS.rose.color} style={{ marginRight: 4, verticalAlign: -2 }} />RPE</Button>
           <Button size="sm" onClick={() => navigate(`/footbar?event=${ev.id}`)}><Radio size={11} color={CAT_COLORS.orange.color} style={{ marginRight: 4, verticalAlign: -2 }} />Footbar</Button>
@@ -447,15 +447,15 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
   // Statuts selon le type d'événement — le code couleur reste la source d'info
   // principale (vert/bleu/rouge/orange), l'icône vient en renfort visuel.
   const STATUTS_SEANCE = [
-    { key: 'present',   label: 'Présent',   icon: CheckCircle2, bg: THEME.successBg, color: THEME.success, border: THEME.success },
-    { key: 'exterieur', label: 'Extérieur', icon: RefreshCw,    bg: THEME.primaryBg, color: THEME.primary, border: THEME.primary },
-    { key: 'absent',    label: 'Absent',    icon: XCircle,      bg: THEME.dangerBg,  color: THEME.danger,  border: THEME.danger },
-    { key: 'blesse',    label: 'Blessé',    icon: Bandage,      bg: THEME.warningBg, color: '#854F0B',     border: '#854F0B' },
+    { key: 'present',   label: 'Présent',   icon: CheckCircle2, bg: 'var(--success-bg)', color: 'var(--success)', border: 'var(--success)' },
+    { key: 'exterieur', label: 'Extérieur', icon: RefreshCw,    bg: 'var(--primary-bg)', color: 'var(--primary)', border: 'var(--primary)' },
+    { key: 'absent',    label: 'Absent',    icon: XCircle,      bg: 'var(--danger-bg)',  color: 'var(--danger)',  border: 'var(--danger)' },
+    { key: 'blesse',    label: 'Blessé',    icon: Bandage,      bg: 'var(--warning-bg)', color: '#854F0B',     border: '#854F0B' },
   ]
   const STATUTS_MATCH = [
-    { key: 'present', label: 'Présent', icon: CheckCircle2, bg: THEME.successBg, color: THEME.success, border: THEME.success },
-    { key: 'absent',  label: 'Absent',  icon: XCircle,      bg: THEME.dangerBg,  color: THEME.danger,  border: THEME.danger },
-    { key: 'blesse',  label: 'Blessé',  icon: Bandage,      bg: THEME.warningBg, color: '#854F0B',     border: '#854F0B' },
+    { key: 'present', label: 'Présent', icon: CheckCircle2, bg: 'var(--success-bg)', color: 'var(--success)', border: 'var(--success)' },
+    { key: 'absent',  label: 'Absent',  icon: XCircle,      bg: 'var(--danger-bg)',  color: 'var(--danger)',  border: 'var(--danger)' },
+    { key: 'blesse',  label: 'Blessé',  icon: Bandage,      bg: 'var(--warning-bg)', color: '#854F0B',     border: '#854F0B' },
   ]
 
   const STATUTS = isMatch ? STATUTS_MATCH : STATUTS_SEANCE
@@ -474,7 +474,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
       </p>
 
       {wasQueued && (
-        <div style={{ background: THEME.warningBg, borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+        <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
           <WifiOff size={12} /> Pas de réseau — sera synchronisé automatiquement
         </div>
       )}
@@ -497,15 +497,15 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
 
       {/* Extérieur info */}
       {statut === 'exterieur' && (
-        <div style={{ background: THEME.primaryBg, borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: THEME.primary, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ background: 'var(--primary-bg)', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 11, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 5 }}>
           <RefreshCw size={12} /> Entraînement extérieur — RPE et Footbar disponibles
         </div>
       )}
 
       {/* Bloqué si absent/blessé */}
       {estEmpêche && (
-        <div style={{ background: statut === 'blesse' ? THEME.warningBg : THEME.dangerBg, borderRadius: 8, padding: '7px 10px', fontSize: 11,
-          color: statut === 'blesse' ? '#854F0B' : THEME.danger, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ background: statut === 'blesse' ? 'var(--warning-bg)' : 'var(--danger-bg)', borderRadius: 8, padding: '7px 10px', fontSize: 11,
+          color: statut === 'blesse' ? '#854F0B' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: 5 }}>
           {statut === 'blesse' ? <><Bandage size={12} /> Tu es blessé — pas de RPE ni Footbar requis.</> : <><XCircle size={12} /> Tu es absent — pas de RPE ni Footbar requis.</>}
         </div>
       )}
@@ -567,11 +567,11 @@ function FormeWidget({ evenementId, joueurId }) {
     <div style={{ marginTop: 8, padding: '8px 10px', background: '#F9FAFB', borderRadius: 10 }}>
       <p style={{ fontSize: 11, color: '#6B7280', marginBottom: 6 }}>Comment tu te sens aujourd'hui ?</p>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-        {[[THEME.success, 'bien', 'Bien'], [THEME.warning, 'moyen', 'Moyen'], [THEME.danger, 'fatigue', 'Fatigué']].map(([dotColor, val, label]) => (
+        {[['var(--success)', 'bien', 'Bien'], ['var(--warning)', 'moyen', 'Moyen'], ['var(--danger)', 'fatigue', 'Fatigué']].map(([dotColor, val, label]) => (
           <button key={val} onClick={() => saveForme(val)} style={{
             flex: 1, padding: '6px 4px', borderRadius: 8, cursor: 'pointer', textAlign: 'center',
-            border: `1.5px solid ${forme === val ? THEME.primary : '#E5E7EB'}`,
-            background: forme === val ? THEME.primaryBg : 'transparent',
+            border: `1.5px solid ${forme === val ? 'var(--primary)' : '#E5E7EB'}`,
+            background: forme === val ? 'var(--primary-bg)' : 'transparent',
             fontSize: 11, fontWeight: forme === val ? 600 : 400,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
           }}>
@@ -614,7 +614,7 @@ function RecurringModal({ onClose, onSave }) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }}>
       <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: 20, width: '100%', maxWidth: 480, margin: '0 auto' }}>
         <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Repeat size={15} color={THEME.primary} /> Séances récurrentes
+          <Repeat size={15} color={'var(--primary)'} /> Séances récurrentes
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Intitulé</label><input value={form.titre} onChange={e => setForm(p => ({...p, titre: e.target.value}))} style={iStyle} /></div>
@@ -625,7 +625,7 @@ function RecurringModal({ onClose, onSave }) {
           <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 3 }}>Lieu</label><input value={form.lieu} onChange={e => setForm(p => ({...p, lieu: e.target.value}))} placeholder="Terrain 1" style={iStyle} /></div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-          <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: 12, background: THEME.gradient, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: 12, background: 'var(--gradient)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
             {saving ? 'Création...' : 'Créer toutes les séances'}
           </button>
           <button onClick={onClose} style={{ padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, cursor: 'pointer' }}>Annuler</button>

@@ -6,7 +6,7 @@ import { THEME, CAT_COLORS } from '../theme'
 import { Trophy, Award, Goal, Shield, Target, Heart, BarChart3, TrendingUp, CheckCircle2 } from 'lucide-react'
 import { computePresenceBreakdown } from '../lib/presenceStats'
 
-function StatBox({ label, value, sub, color = THEME.primary, big = false }) {
+function StatBox({ label, value, sub, color = 'var(--primary)', big = false }) {
   return (
     <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 12, textAlign: 'center' }}>
       <div style={{ fontSize: big ? 28 : 22, fontWeight: 700, color }}>{value}</div>
@@ -108,7 +108,7 @@ export default function BilanSaisonPage() {
     // ===== TOP BUTEURS CHART =====
     const topButeurs = Object.entries(butsParJoueur)
       .sort((a,b) => b[1]-a[1]).slice(0,6)
-      .map(([nom, buts]) => ({ label: nom.split(' ')[0], value: buts, color: THEME.primary }))
+      .map(([nom, buts]) => ({ label: nom.split(' ')[0], value: buts, color: 'var(--primary)' }))
 
     // ===== ÉVOLUTION RÉSULTATS =====
     const resultats = (matchStats || []).map((s, i) => ({
@@ -138,7 +138,7 @@ export default function BilanSaisonPage() {
       <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Trophy size={18} /> Bilan de saison</span>} />
 
       {/* Résultats globaux */}
-      <div style={{ background: THEME.gradient, borderRadius: 16, padding: '16px 14px', marginBottom: 14 }}>
+      <div style={{ background: 'var(--gradient)', borderRadius: 16, padding: '16px 14px', marginBottom: 14 }}>
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', marginBottom: 10, textAlign: 'center' }}>
           Saison {saisonYear}/{saisonYear+1} · {bilan.totalMatchs} matchs disputés
         </p>
@@ -171,32 +171,32 @@ export default function BilanSaisonPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
         {bilan.meilleurButeur && (
           <Card>
-            <div style={{ textAlign: 'center', marginBottom: 4 }}><Goal size={22} color={THEME.primary} /></div>
+            <div style={{ textAlign: 'center', marginBottom: 4 }}><Goal size={22} color={'var(--primary)'} /></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center' }}>Meilleur buteur</div>
             <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{bilan.meilleurButeur[0].split(' ')[0]}</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: THEME.primary, textAlign: 'center' }}>{bilan.meilleurButeur[1]} buts</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary)', textAlign: 'center' }}>{bilan.meilleurButeur[1]} buts</div>
           </Card>
         )}
         {bilan.meilleurPasseur && (
           <Card>
-            <div style={{ textAlign: 'center', marginBottom: 4 }}><Target size={22} color={THEME.primary} /></div>
+            <div style={{ textAlign: 'center', marginBottom: 4 }}><Target size={22} color={'var(--primary)'} /></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center' }}>Meilleur passeur</div>
             <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{bilan.meilleurPasseur[0].split(' ')[0]}</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: THEME.primary, textAlign: 'center' }}>{bilan.meilleurPasseur[1]} passes</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary)', textAlign: 'center' }}>{bilan.meilleurPasseur[1]} passes</div>
           </Card>
         )}
         {bilan.topPresence && (
           <Card>
-            <div style={{ textAlign: 'center', marginBottom: 4 }}><CheckCircle2 size={22} color={THEME.success} /></div>
+            <div style={{ textAlign: 'center', marginBottom: 4 }}><CheckCircle2 size={22} color={'var(--success)'} /></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center' }}>Meilleur engagement</div>
             <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{bilan.topPresence.nom.split(' ')[0]}</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: THEME.success, textAlign: 'center' }}>{bilan.topPresence.taux}%</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--success)', textAlign: 'center' }}>{bilan.topPresence.taux}%</div>
           </Card>
         )}
         <Card>
           <div style={{ textAlign: 'center', marginBottom: 4 }}><Heart size={22} color={CAT_COLORS.rose.color} /></div>
           <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center' }}>RPE moyen saison</div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: THEME.primary, textAlign: 'center', marginTop: 6 }}>{bilan.rpeMoySaison}/5</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary)', textAlign: 'center', marginTop: 6 }}>{bilan.rpeMoySaison}/5</div>
         </Card>
       </div>
 
@@ -207,13 +207,13 @@ export default function BilanSaisonPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
         <StatBox label="Buts marqués" value={bilan.totalButs} color="#3B6D11" />
         <StatBox label="Buts encaissés" value={bilan.totalEncaisses} color="#A32D2D" />
-        <StatBox label="Dist. totale" value={`${bilan.distTotale}km`} color={THEME.primary} />
+        <StatBox label="Dist. totale" value={`${bilan.distTotale}km`} color={'var(--primary)'} />
       </div>
 
       {/* Top buteurs */}
       {bilan.topButeurs.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Goal size={14} color={THEME.primary} /> Classement buteurs</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Goal size={14} color={'var(--primary)'} /> Classement buteurs</p>
           <BarChart data={bilan.topButeurs} maxValue={Math.max(...bilan.topButeurs.map(b => b.value)) + 1} />
         </Card>
       )}
@@ -221,7 +221,7 @@ export default function BilanSaisonPage() {
       {/* Évolution résultats */}
       {bilan.resultats.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><TrendingUp size={14} color={THEME.primary} /> Différence de buts par match</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><TrendingUp size={14} color={'var(--primary)'} /> Différence de buts par match</p>
           <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 60 }}>
             {bilan.resultats.map((r, i) => {
               const h = Math.abs(r.value) * 12 + 10

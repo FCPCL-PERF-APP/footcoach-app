@@ -121,7 +121,7 @@ export default function StatsPage() {
   const scoreMarques = parseInt(formCollectif.buts_marques) || 0
   const scoreEncaisses = parseInt(formCollectif.buts_encaisses) || 0
   const resultat = scoreMarques > scoreEncaisses ? 'V' : scoreMarques < scoreEncaisses ? 'D' : 'N'
-  const resultatColors = { V: THEME.success, N: THEME.warning, D: THEME.danger }
+  const resultatColors = { V: 'var(--success)', N: 'var(--warning)', D: 'var(--danger)' }
   const resultatLabels = { V: 'Victoire', N: 'Match nul', D: 'Défaite' }
 
   async function saveStatsCollectives() {
@@ -219,18 +219,18 @@ export default function StatsPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 15, fontWeight: 700 }}>Stats match</p>
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>{event?.titre} · {event?.date_heure ? format(parseISO(event.date_heure), 'd MMM yyyy', { locale: fr }) : ''}</p>
         </div>
       </div>
 
-      {saved && <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Enregistré !</div>}
+      {saved && <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Enregistré !</div>}
 
       {/* Score + résultat */}
       {(formCollectif.buts_marques !== '' || formCollectif.buts_encaisses !== '') && (
-        <div style={{ background: THEME.gradient, borderRadius: 12, padding: '10px 14px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'var(--gradient)', borderRadius: 12, padding: '10px 14px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>FC PCL</div>
             <div style={{ fontSize: 28, fontWeight: 800, color: '#fff' }}>{formCollectif.buts_marques}</div>
@@ -253,8 +253,8 @@ export default function StatsPage() {
           <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === t.key ? THEME.primaryBg : 'transparent',
-            color: activeTab === t.key ? THEME.primary : '#6B7280',
+            background: activeTab === t.key ? 'var(--primary-bg)' : 'transparent',
+            color: activeTab === t.key ? 'var(--primary)' : '#6B7280',
             fontWeight: activeTab === t.key ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><t.icon size={12} /> {t.label}</button>
@@ -291,11 +291,11 @@ export default function StatsPage() {
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
                 <input type="checkbox" checked={formJ.carton_jaune} onChange={e => setFormJ(p => ({...p, carton_jaune: e.target.checked}))} />
-                <span style={{ width: 9, height: 12, background: THEME.warning, borderRadius: 1, display: 'inline-block' }} /> Carton
+                <span style={{ width: 9, height: 12, background: 'var(--warning)', borderRadius: 1, display: 'inline-block' }} /> Carton
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
                 <input type="checkbox" checked={formJ.carton_rouge} onChange={e => setFormJ(p => ({...p, carton_rouge: e.target.checked}))} />
-                <span style={{ width: 9, height: 12, background: THEME.danger, borderRadius: 1, display: 'inline-block' }} /> Carton
+                <span style={{ width: 9, height: 12, background: 'var(--danger)', borderRadius: 1, display: 'inline-block' }} /> Carton
               </label>
             </div>
             <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveStatsJoueur} disabled={saving}><Save size={13} /> Enregistrer</Button>
@@ -312,13 +312,13 @@ export default function StatsPage() {
                       <p style={{ fontSize: 12, fontWeight: 600 }}>{j?.nom} {j?.prenom}</p>
                       <p style={{ fontSize: 10, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 5 }}>
                         {s.temps_jeu}min · {s.titulaire ? 'Titu.' : 'Rempl.'}
-                        {s.carton_jaune && <span style={{ width: 8, height: 10, background: THEME.warning, borderRadius: 1, display: 'inline-block' }} />}
-                        {s.carton_rouge && <span style={{ width: 8, height: 10, background: THEME.danger, borderRadius: 1, display: 'inline-block' }} />}
+                        {s.carton_jaune && <span style={{ width: 8, height: 10, background: 'var(--warning)', borderRadius: 1, display: 'inline-block' }} />}
+                        {s.carton_rouge && <span style={{ width: 8, height: 10, background: 'var(--danger)', borderRadius: 1, display: 'inline-block' }} />}
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note || '—'}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Note</div></div>
-                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: THEME.success }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Buts</div></div>
+                      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: '#9CA3AF' }}>Buts</div></div>
                     </div>
                   </div>
                 )
@@ -347,7 +347,7 @@ export default function StatsPage() {
           </div>
 
           {/* Buts marqués par type */}
-          <p style={{ fontSize: 12, fontWeight: 700, color: THEME.success, margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Goal size={13} /> Buts marqués — par type</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--success)', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Goal size={13} /> Buts marqués — par type</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 12 }}>
             {[['Att. placée', 'but_marque_attaque_placee'], ['Contre-att.', 'but_marque_contre_attaque'],
               ['Corner', 'but_marque_corner'], ['Pénalty', 'but_marque_penalty'], ['Coup-franc', 'but_marque_coup_franc']].map(([label, field]) => (
@@ -360,7 +360,7 @@ export default function StatsPage() {
           </div>
 
           {/* Buts encaissés par type */}
-          <p style={{ fontSize: 12, fontWeight: 700, color: THEME.danger, margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Shield size={13} /> Buts encaissés — par type</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--danger)', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Shield size={13} /> Buts encaissés — par type</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 12 }}>
             {[['Att. placée', 'but_enc_attaque_placee'], ['Contre-att.', 'but_enc_contre_attaque'],
               ['Corner', 'but_enc_corner'], ['Pénalty', 'but_enc_penalty'], ['Coup-franc', 'but_enc_coup_franc']].map(([label, field]) => (
@@ -373,7 +373,7 @@ export default function StatsPage() {
           </div>
 
           {/* Buts marqués par période */}
-          <p style={{ fontSize: 12, fontWeight: 700, color: THEME.success, margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Goal size={13} /> Buts marqués — par période</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--success)', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Goal size={13} /> Buts marqués — par période</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4, marginBottom: 12 }}>
             {[['0-15', 'buts_0_15'], ['15-30', 'buts_15_30'], ['30-45', 'buts_30_45'], ['45-60', 'buts_45_60'], ['60-75', 'buts_60_75'], ['75-90', 'buts_75_90']].map(([label, field]) => (
               <div key={field}>
@@ -385,7 +385,7 @@ export default function StatsPage() {
           </div>
 
           {/* Buts encaissés par période */}
-          <p style={{ fontSize: 12, fontWeight: 700, color: THEME.danger, margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Shield size={13} /> Buts encaissés — par période</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--danger)', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Shield size={13} /> Buts encaissés — par période</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4, marginBottom: 12 }}>
             {[['0-15', 'buts_enc_0_15'], ['15-30', 'buts_enc_15_30'], ['30-45', 'buts_enc_30_45'], ['45-60', 'buts_enc_45_60'], ['60-75', 'buts_enc_60_75'], ['75-90', 'buts_enc_75_90']].map(([label, field]) => (
               <div key={field}>
@@ -410,9 +410,9 @@ export default function StatsPage() {
             {Object.entries(FORMATIONS).map(([key, f]) => (
               <button key={key} onClick={() => setFormation(key)} style={{
                 flex: 1, padding: '8px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-                border: `1.5px solid ${formation === key ? THEME.primary : '#E5E7EB'}`,
+                border: `1.5px solid ${formation === key ? 'var(--primary)' : '#E5E7EB'}`,
                 background: formation === key ? '#E6F1FB' : 'transparent',
-                color: formation === key ? THEME.primary : '#6B7280',
+                color: formation === key ? 'var(--primary)' : '#6B7280',
                 fontWeight: formation === key ? 700 : 400
               }}>{f.label}</button>
             ))}
@@ -439,7 +439,7 @@ export default function StatsPage() {
                 return (
                   <g key={pos.id}>
                     <circle cx={pos.x} cy={pos.y} r="6"
-                      fill={joueurId ? THEME.primary : 'rgba(255,255,255,.2)'}
+                      fill={joueurId ? 'var(--primary)' : 'rgba(255,255,255,.2)'}
                       stroke="rgba(255,255,255,.6)" strokeWidth=".5" />
                     {joueur ? (
                       <>

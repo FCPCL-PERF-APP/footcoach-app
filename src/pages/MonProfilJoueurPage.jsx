@@ -34,7 +34,7 @@ export default function MonProfilJoueurPage() {
       <PageHeader title="Mon profil" />
 
       {/* Hero */}
-      <div style={{ background: THEME.gradient, borderRadius: 16, padding: '20px 16px', marginBottom: 14, textAlign: 'center' }}>
+      <div style={{ background: 'var(--gradient)', borderRadius: 16, padding: '20px 16px', marginBottom: 14, textAlign: 'center' }}>
         <div style={{
           width: 64, height: 64, borderRadius: '50%',
           background: 'rgba(255,255,255,.2)', border: '2px solid rgba(255,255,255,.4)',
@@ -75,7 +75,7 @@ export default function MonProfilJoueurPage() {
                 style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             {pwdMsg && (
-              <p style={{ fontSize: 12, color: pwdMsg.ok ? THEME.success : THEME.danger, marginBottom: 10 }}>
+              <p style={{ fontSize: 12, color: pwdMsg.ok ? 'var(--success)' : 'var(--danger)', marginBottom: 10 }}>
                 {pwdMsg.text}
               </p>
             )}
@@ -115,7 +115,7 @@ export default function MonProfilJoueurPage() {
       <button onClick={signOut} style={{
         width: '100%', padding: 14, borderRadius: 12,
         border: '0.5px solid #FCEBEB', background: '#FDF1F1',
-        color: THEME.danger, fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4,
+        color: 'var(--danger)', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4,
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
       }}>
         <LogOut size={14} /> Se déconnecter

@@ -214,7 +214,7 @@ export default function StaffPage() {
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Staff technique</h1>
         {isCoach && (
           <button onClick={() => { setShowAdd(!showAdd); setResult(null) }}
-            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
             {showAdd ? <><X size={13} /> Annuler</> : <><Plus size={13} /> Ajouter</>}
           </button>
         )}
@@ -260,7 +260,7 @@ export default function StaffPage() {
           </div>
 
           {result && (
-            <div style={{ background: result.ok ? THEME.successBg : THEME.dangerBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: result.ok ? THEME.success : THEME.danger }}>
+            <div style={{ background: result.ok ? 'var(--success-bg)' : 'var(--danger-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: result.ok ? 'var(--success)' : 'var(--danger)' }}>
               {result.message}
             </div>
           )}
@@ -289,7 +289,7 @@ export default function StaffPage() {
                     {isCoach && (
                       <>
                         <div onClick={() => document.getElementById(`staff-photo-${s.id}`).click()}
-                          style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, background: THEME.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                          style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                           <Camera size={10} color="#fff" />
                         </div>
                         <input id={`staff-photo-${s.id}`} type="file" accept="image/*" style={{ display: 'none' }}
@@ -307,16 +307,16 @@ export default function StaffPage() {
                   {isCoach && (
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={() => editingInfo === s.id ? setEditingInfo(null) : startEditingInfo(s)}
-                        style={{ border: 'none', background: THEME.successBg, borderRadius: 6, padding: '5px 8px', cursor: 'pointer', fontSize: 11, color: THEME.success, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        style={{ border: 'none', background: 'var(--success-bg)', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', fontSize: 11, color: 'var(--success)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Pencil size={11} /> Modifier
                       </button>
                       <button onClick={() => setEditingRole(editingRole === s.id ? null : s.id)}
-                        style={{ border: 'none', background: THEME.primaryBg, borderRadius: 6, padding: '5px 8px', cursor: 'pointer', fontSize: 11, color: THEME.primary, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        style={{ border: 'none', background: 'var(--primary-bg)', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', fontSize: 11, color: 'var(--primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Pencil size={11} /> Rôle
                       </button>
                       <button onClick={() => deleteStaff(s.id)}
-                        style={{ border: 'none', background: THEME.dangerBg, borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex' }}>
-                        <Trash2 size={12} color={THEME.danger} />
+                        style={{ border: 'none', background: 'var(--danger-bg)', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex' }}>
+                        <Trash2 size={12} color={'var(--danger)'} />
                       </button>
                     </div>
                   )}
@@ -346,12 +346,12 @@ export default function StaffPage() {
                   {s.diplome && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><GraduationCap size={11} /> {s.diplome}</p>}
                   {s.specialite && <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 5 }}><Puzzle size={11} /> {s.specialite}</p>}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-                    <p style={{ fontSize: 10, color: s.auth_id ? THEME.success : '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <p style={{ fontSize: 10, color: s.auth_id ? 'var(--success)' : '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
                       {s.auth_id ? <><CheckCircle2 size={10} /> Compte actif</> : <><Hourglass size={10} /> Invitation en attente</>}
                     </p>
                     {!s.auth_id && isCoach && (
                       <button onClick={() => renvoyerInvitation(s)}
-                        style={{ fontSize: 10, color: THEME.primary, background: THEME.primaryBg, border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+                        style={{ fontSize: 10, color: 'var(--primary)', background: 'var(--primary-bg)', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
                         <Mail size={10} /> Renvoyer l'invitation
                       </button>
                     )}

@@ -29,7 +29,7 @@ export default function AnalysePage() {
             <p style={{ fontSize: 13, fontWeight: 700 }}>{a.label}</p>
             <p style={{ fontSize: 11, color: '#9CA3AF' }}>{a.desc}</p>
           </div>
-          <ChevronRight size={18} color={THEME.primary} />
+          <ChevronRight size={18} color={'var(--primary)'} />
         </div>
       ))}
     </div>

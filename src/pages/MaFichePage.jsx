@@ -15,10 +15,10 @@ import {
 import { computePresenceBreakdown } from '../lib/presenceStats'
 
 function rpeColor(v) {
-  if (v >= 4.5) return THEME.danger
+  if (v >= 4.5) return 'var(--danger)'
   if (v >= 4) return '#D85A30'
-  if (v >= 3) return THEME.warning
-  return THEME.success
+  if (v >= 3) return 'var(--warning)'
+  return 'var(--success)'
 }
 
 const RPE_ITEMS = [
@@ -236,7 +236,7 @@ export default function MaFichePage() {
           onCropped={f => { setPendingPhoto(null); uploadPhoto(f) }} />
       )}
       {/* Hero */}
-      <div style={{ background: THEME.gradient, borderRadius: 16, padding: '16px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
+      <div style={{ background: 'var(--gradient)', borderRadius: 16, padding: '16px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
         <label htmlFor="photo-upload-fiche" style={{ cursor: 'pointer', position: 'relative', display: 'block' }}>
           {joueur?.photo_url
             ? <img src={joueur.photo_url} alt={joueur.nom} style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,.4)' }} />
@@ -271,17 +271,17 @@ export default function MaFichePage() {
       {presenceSeances.length > 0 && (
         <Card style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color={THEME.primary} /> Ma présence entraînements</p>
-            <span style={{ fontSize: 15, fontWeight: 800, color: presenceBreakdown.tauxEngagement >= 80 ? THEME.success : '#D85A30' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color={'var(--primary)'} /> Ma présence entraînements</p>
+            <span style={{ fontSize: 15, fontWeight: 800, color: presenceBreakdown.tauxEngagement >= 80 ? 'var(--success)' : '#D85A30' }}>
               {presenceBreakdown.tauxEngagement ?? '—'}%
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
             {[
               { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
-              { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: THEME.primary, bg: THEME.primaryBg },
-              { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: THEME.warningBg },
-              { key: 'absent', label: 'Absent', icon: XCircle, color: THEME.danger, bg: THEME.dangerBg },
+              { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: 'var(--primary)', bg: 'var(--primary-bg)' },
+              { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: 'var(--warning-bg)' },
+              { key: 'absent', label: 'Absent', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
             ].map(s => (
               <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '7px 4px', textAlign: 'center' }}>
                 <s.icon size={12} color={s.color} style={{ marginBottom: 3 }} />
@@ -311,7 +311,7 @@ export default function MaFichePage() {
       </div>
 
       {saved && (
-        <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}>
           <CheckCircle2 size={13} /> Modifications enregistrées !
         </div>
       )}
@@ -411,7 +411,7 @@ export default function MaFichePage() {
             )}
 
             {!fcReserve && (
-              <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: 12, fontSize: 12, color: THEME.primary, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+              <div style={{ background: 'var(--primary-bg)', borderRadius: 10, padding: 12, fontSize: 12, color: 'var(--primary)', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                 <Lightbulb size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Renseigne ta FC max et ta FC de repos pour voir tes zones d'entraînement personnalisées.
               </div>
             )}
@@ -424,7 +424,7 @@ export default function MaFichePage() {
               {['points_forts', 'points_faibles'].map((field, i) => (
                 <div key={field}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
-                    {i === 0 ? <><CheckCircle2 size={11} color={THEME.success} /> Points forts</> : <><Target size={11} color={THEME.warning} /> Axes de travail</>}
+                    {i === 0 ? <><CheckCircle2 size={11} color={'var(--success)'} /> Points forts</> : <><Target size={11} color={'var(--warning)'} /> Axes de travail</>}
                   </label>
                   <textarea value={form[field] || ''} onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
                     rows={4}
@@ -506,8 +506,8 @@ export default function MaFichePage() {
                     <p style={{ fontSize: 12, fontWeight: 600 }}>{s.evenements?.titre}</p>
                     <p style={{ fontSize: 10, color: '#9CA3AF', display: 'flex', alignItems: 'center', gap: 5 }}>
                       {s.temps_jeu}min · {s.titulaire ? 'Titulaire' : 'Remplaçant'}
-                      {s.carton_jaune && <span style={{ width: 8, height: 10, background: THEME.warning, borderRadius: 1, display: 'inline-block' }} />}
-                      {s.carton_rouge && <span style={{ width: 8, height: 10, background: THEME.danger, borderRadius: 1, display: 'inline-block' }} />}
+                      {s.carton_jaune && <span style={{ width: 8, height: 10, background: 'var(--warning)', borderRadius: 1, display: 'inline-block' }} />}
+                      {s.carton_rouge && <span style={{ width: 8, height: 10, background: 'var(--danger)', borderRadius: 1, display: 'inline-block' }} />}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -523,13 +523,13 @@ export default function MaFichePage() {
       {/* OBJECTIFS */}
       {activeTab === 'objectifs' && (
         <div style={{ textAlign: 'center', padding: 20 }}>
-          <Target size={44} color={THEME.primary} style={{ marginBottom: 12 }} />
+          <Target size={44} color={'var(--primary)'} style={{ marginBottom: 12 }} />
           <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Mes objectifs & bilan</p>
           <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 20 }}>
             Points forts, axes d'amélioration, objectifs saison et bilan de fin de saison.
           </p>
           <button onClick={() => navigate('/mes-objectifs')} style={{
-            width: '100%', padding: 14, background: THEME.gradient,
+            width: '100%', padding: 14, background: 'var(--gradient)',
             color: '#fff', border: 'none', borderRadius: 12,
             fontSize: 14, fontWeight: 700, cursor: 'pointer'
           }}>
@@ -544,8 +544,8 @@ export default function MaFichePage() {
           {blessuresData.length === 0 ? (
             <Card>
               <div style={{ textAlign: 'center', padding: 20 }}>
-                <CheckCircle2 size={36} color={THEME.success} style={{ marginBottom: 8 }} />
-                <p style={{ fontSize: 14, fontWeight: 600, color: THEME.success }}>Aucune blessure enregistrée</p>
+                <CheckCircle2 size={36} color={'var(--success)'} style={{ marginBottom: 8 }} />
+                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--success)' }}>Aucune blessure enregistrée</p>
                 <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>Continue comme ça !</p>
               </div>
             </Card>
@@ -559,8 +559,8 @@ export default function MaFichePage() {
                   </div>
                   <span style={{
                     fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-                    background: !b.date_retour_effective ? THEME.dangerBg : THEME.successBg,
-                    color: !b.date_retour_effective ? THEME.danger : THEME.success,
+                    background: !b.date_retour_effective ? 'var(--danger-bg)' : 'var(--success-bg)',
+                    color: !b.date_retour_effective ? 'var(--danger)' : 'var(--success)',
                     display: 'inline-flex', alignItems: 'center', gap: 3
                   }}>
                     {!b.date_retour_effective ? <><Bandage size={10} /> En cours</> : <><CheckCircle2 size={10} /> Guéri</>}
@@ -571,7 +571,7 @@ export default function MaFichePage() {
                   {b.date_retour_prevue && <span>Retour prévu : {new Date(b.date_retour_prevue).toLocaleDateString('fr-FR')}</span>}
                 </div>
                 {b.date_retour_effective && (
-                  <p style={{ fontSize: 11, color: THEME.success, marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <p style={{ fontSize: 11, color: 'var(--success)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <CheckCircle2 size={11} /> Retour effectif : {new Date(b.date_retour_effective).toLocaleDateString('fr-FR')}
                   </p>
                 )}
@@ -581,8 +581,8 @@ export default function MaFichePage() {
                 <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center' }}>
                   <span style={{
                     fontSize: 10, padding: '2px 8px', borderRadius: 6,
-                    background: b.gravite === 'legere' ? THEME.warningBg : b.gravite === 'moderee' ? '#FDF5EE' : b.gravite === 'grave' ? THEME.dangerBg : '#F3F4F6',
-                    color: b.gravite === 'legere' ? THEME.warning : b.gravite === 'moderee' ? '#D85A30' : b.gravite === 'grave' ? THEME.danger : '#6B7280'
+                    background: b.gravite === 'legere' ? 'var(--warning-bg)' : b.gravite === 'moderee' ? '#FDF5EE' : b.gravite === 'grave' ? 'var(--danger-bg)' : '#F3F4F6',
+                    color: b.gravite === 'legere' ? 'var(--warning)' : b.gravite === 'moderee' ? '#D85A30' : b.gravite === 'grave' ? 'var(--danger)' : '#6B7280'
                   }}>
                     {b.gravite === 'legere' ? 'Légère' : b.gravite === 'moderee' ? 'Modérée' : b.gravite === 'grave' ? 'Grave' : '—'}
                   </span>
@@ -615,7 +615,7 @@ export default function MaFichePage() {
                 style={{ width: '100%', padding: '10px 12px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             {pwdMsg && (
-              <div style={{ background: pwdMsg.ok ? THEME.successBg : THEME.dangerBg, borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: pwdMsg.ok ? THEME.success : THEME.danger, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: pwdMsg.ok ? 'var(--success-bg)' : 'var(--danger-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: pwdMsg.ok ? 'var(--success)' : 'var(--danger)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 {pwdMsg.ok ? <CheckCircle2 size={13} /> : <XCircle size={13} />} {pwdMsg.text}
               </div>
             )}
@@ -654,7 +654,7 @@ export default function MaFichePage() {
                 const h = max === min ? 50 : ((p.poids - min) / (max - min)) * 50 + 10
                 return (
                   <div key={p.id} title={`${p.poids} kg — ${p.date_mesure}`}
-                    style={{ flex: 1, background: THEME.primary, borderRadius: '3px 3px 0 0', height: `${h}px`, opacity: 0.5 + (i / poidsHistory.length) * 0.5 }} />
+                    style={{ flex: 1, background: 'var(--primary)', borderRadius: '3px 3px 0 0', height: `${h}px`, opacity: 0.5 + (i / poidsHistory.length) * 0.5 }} />
                 )
               })}
             </div>
@@ -669,7 +669,7 @@ export default function MaFichePage() {
             <input type="number" step="0.1" placeholder="Nouvelle pesée (kg)" value={newPoids}
               onChange={e => setNewPoids(e.target.value)}
               style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none' }} />
-            <button onClick={savePoids} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+            <button onClick={savePoids} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
               + Ajouter
             </button>
           </div>

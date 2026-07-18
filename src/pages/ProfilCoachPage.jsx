@@ -96,7 +96,7 @@ export default function ProfilCoachPage() {
       <PageHeader title="Mon profil" />
 
       {/* Hero */}
-      <div style={{ background: THEME.gradient, borderRadius: 16, padding: '20px 16px', marginBottom: 14, textAlign: 'center' }}>
+      <div style={{ background: 'var(--gradient)', borderRadius: 16, padding: '20px 16px', marginBottom: 14, textAlign: 'center' }}>
         <div style={{ position: 'relative', display: 'inline-block', marginBottom: 10 }}>
           {form.photo_url
             ? <img src={form.photo_url} alt="Photo" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid rgba(255,255,255,.4)' }} />
@@ -104,7 +104,7 @@ export default function ProfilCoachPage() {
           }
           <div onClick={() => document.getElementById('coach-photo').click()}
             style={{ position: 'absolute', bottom: 0, right: 0, width: 24, height: 24, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <Camera size={13} color={THEME.primary} />
+            <Camera size={13} color={'var(--primary)'} />
           </div>
           <input id="coach-photo" type="file" accept="image/*" style={{ display: 'none' }}
             onChange={e => e.target.files[0] && setPendingPhoto(e.target.files[0])} />
@@ -116,7 +116,7 @@ export default function ProfilCoachPage() {
         </p>
       </div>
 
-      {saved && <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Profil mis à jour !</div>}
+      {saved && <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Profil mis à jour !</div>}
 
       {/* Infos */}
       <Card>
@@ -147,7 +147,7 @@ export default function ProfilCoachPage() {
           <>
             <Input label="Nouveau mot de passe" type="password" value={pwd.new} onChange={v => setPwd(p => ({...p, new: v}))} />
             <Input label="Confirmer le mot de passe" type="password" value={pwd.confirm} onChange={v => setPwd(p => ({...p, confirm: v}))} />
-            {pwdMsg && <p style={{ fontSize: 12, color: pwdMsg.ok ? THEME.success : THEME.danger, marginBottom: 8 }}>{pwdMsg.text}</p>}
+            {pwdMsg && <p style={{ fontSize: 12, color: pwdMsg.ok ? 'var(--success)' : 'var(--danger)', marginBottom: 8 }}>{pwdMsg.text}</p>}
             <Button variant="primary" style={{ width: '100%' }} onClick={changePassword}>
               Changer le mot de passe
             </Button>
@@ -159,7 +159,7 @@ export default function ProfilCoachPage() {
       <button onClick={signOut} style={{
         width: '100%', padding: 14, borderRadius: 12,
         border: '0.5px solid #FCEBEB', background: '#FDF1F1',
-        color: THEME.danger, fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4,
+        color: 'var(--danger)', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4,
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
       }}>
         <LogOut size={14} /> Se déconnecter

@@ -11,7 +11,7 @@ const STEPS = [
     icon: Hand,
     title: 'Bienvenue dans l\'app FC PCL !',
     desc: 'Ton coach Romain GICQUEL t\'a invité à rejoindre l\'application officielle du FC PCL. En quelques minutes, tu seras prêt à l\'utiliser.',
-    color: THEME.primary,
+    color: 'var(--primary)',
   },
   {
     icon: Calendar,
@@ -45,7 +45,7 @@ const STEPS = [
     icon: Home,
     title: 'Ton dashboard',
     desc: 'Retrouve un résumé de toutes tes données — RPE, présences, Footbar, objectifs et blessures — en un seul endroit.',
-    color: THEME.primary,
+    color: 'var(--primary)',
     image: 'Dashboard'
   },
   {
@@ -105,7 +105,7 @@ export default function OnboardingPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: THEME.gradient,
+      background: 'var(--gradient)',
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
       padding: 20
@@ -127,7 +127,7 @@ export default function OnboardingPage() {
           {STEPS.map((_, i) => (
             <div key={i} style={{
               height: 4, flex: 1, borderRadius: 2,
-              background: i <= step ? THEME.primary : '#E5E7EB',
+              background: i <= step ? 'var(--primary)' : '#E5E7EB',
               transition: 'background .3s'
             }} />
           ))}
@@ -159,9 +159,9 @@ export default function OnboardingPage() {
 
         {/* Chemin de navigation */}
         {current.image && (
-          <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: '8px 14px', marginBottom: 24, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <MapPin size={12} color={THEME.primary} />
-            <p style={{ fontSize: 12, color: THEME.primary, fontWeight: 600 }}>{current.image}</p>
+          <div style={{ background: 'var(--primary-bg)', borderRadius: 10, padding: '8px 14px', marginBottom: 24, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <MapPin size={12} color={'var(--primary)'} />
+            <p style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600 }}>{current.image}</p>
           </div>
         )}
 
@@ -177,7 +177,7 @@ export default function OnboardingPage() {
           )}
           <button onClick={isLast ? finish : () => setStep(s => s + 1)} style={{
             flex: 2, padding: 12, borderRadius: 10,
-            border: 'none', background: THEME.gradient,
+            border: 'none', background: 'var(--gradient)',
             color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
           }}>

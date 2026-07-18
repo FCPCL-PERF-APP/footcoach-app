@@ -77,9 +77,9 @@ export default function BlessuresPage() {
   const blessuresPassees = blessures.filter(b => b.date_retour_effective)
 
   function graviteStyle(g) {
-    if (g === 'grave') return { bg: THEME.dangerBg, color: THEME.danger, label: 'Grave' }
-    if (g === 'moderee') return { bg: THEME.warningBg, color: '#854F0B', label: 'Modérée' }
-    return { bg: '#FDFAEE', color: THEME.warning, label: 'Légère' }
+    if (g === 'grave') return { bg: 'var(--danger-bg)', color: 'var(--danger)', label: 'Grave' }
+    if (g === 'moderee') return { bg: 'var(--warning-bg)', color: '#854F0B', label: 'Modérée' }
+    return { bg: '#FDFAEE', color: 'var(--warning)', label: 'Légère' }
   }
 
   // Vue coach du détail des blessures — un joueur doit rester sur sa propre fiche
@@ -91,13 +91,13 @@ export default function BlessuresPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(`/joueurs/${joueurId}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate(`/joueurs/${joueurId}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Suivi des blessures</p>
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>{joueur?.nom} {joueur?.prenom} · {joueur?.poste}</p>
         </div>
         {isCoach && (
-          <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
             {showAdd ? <X size={12} /> : <><Plus size={12} /> Blessure</>}
           </button>
         )}
@@ -140,7 +140,7 @@ export default function BlessuresPage() {
       {/* Blessures actives */}
       {blessuresActives.length > 0 && (
         <>
-          <p style={{ fontSize: 10, fontWeight: 600, color: THEME.danger, textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--danger)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
             <Bandage size={11} /> En cours ({blessuresActives.length})
           </p>
           {blessuresActives.map(b => {
@@ -171,7 +171,7 @@ export default function BlessuresPage() {
                   </div>
                   {isCoach && (
                     <button onClick={() => marquerGueri(b.id, new Date().toISOString().split('T')[0])}
-                      style={{ padding: '4px 10px', borderRadius: 8, border: 'none', background: THEME.successBg, color: THEME.success, fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      style={{ padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--success-bg)', color: 'var(--success)', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <CheckCircle2 size={11} /> Guéri
                     </button>
                   )}
@@ -184,7 +184,7 @@ export default function BlessuresPage() {
 
       {blessuresActives.length === 0 && (
         <Card>
-          <p style={{ fontSize: 13, color: THEME.success, textAlign: 'center', padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <p style={{ fontSize: 13, color: 'var(--success)', textAlign: 'center', padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             <CheckCircle2 size={14} /> Aucune blessure en cours
           </p>
         </Card>

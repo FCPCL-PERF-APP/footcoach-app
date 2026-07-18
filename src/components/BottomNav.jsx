@@ -173,7 +173,7 @@ export default function BottomNav() {
           <div style={{
             position: 'fixed', bottom: 64, left: 0, right: 0,
             background: THEME.blackSoft, zIndex: 99,
-            borderTop: `1px solid ${THEME.primary}`,
+            borderTop: `1px solid ${'var(--primary)'}`,
             maxWidth: 480, margin: '0 auto',
             boxShadow: '0 -4px 20px rgba(0,0,0,.4)'
           }}>
@@ -203,7 +203,7 @@ export default function BottomNav() {
                       </div>
                       <span style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{item.label}</span>
                       {pathname.startsWith(item.path) && (
-                        <span style={{ marginLeft: 'auto', color: THEME.primaryLight, fontSize: 12 }}>●</span>
+                        <span style={{ marginLeft: 'auto', color: 'var(--primary-light)', fontSize: 12 }}>●</span>
                       )}
                     </button>
                   )
@@ -217,7 +217,7 @@ export default function BottomNav() {
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: THEME.black,
-        borderTop: `2px solid ${THEME.primary}`,
+        borderTop: `2px solid ${'var(--primary)'}`,
         display: 'flex', zIndex: 100,
         paddingBottom: 'env(safe-area-inset-bottom)',
         boxShadow: '0 -4px 20px rgba(0,0,0,.3)',
@@ -236,9 +236,9 @@ export default function BottomNav() {
               padding: '10px 4px 8px',
               border: 'none', background: 'transparent', cursor: 'pointer',
               position: 'relative',
-              borderTop: active || isMoreOpen ? `2px solid ${THEME.primaryLight}` : '2px solid transparent',
+              borderTop: active || isMoreOpen ? `2px solid ${'var(--primary-light)'}` : '2px solid transparent',
             }}>
-              <item.icon size={19} color={active || isMoreOpen ? THEME.primaryLight : 'rgba(255,255,255,.6)'} strokeWidth={2} />
+              <item.icon size={19} color={active || isMoreOpen ? 'var(--primary-light)' : 'rgba(255,255,255,.6)'} strokeWidth={2} />
 
               {/* Badge messages non lus */}
               {showMsgBadge && (
@@ -266,7 +266,7 @@ export default function BottomNav() {
 
               <span style={{
                 fontSize: 9,
-                color: active || isMoreOpen ? THEME.primaryLight : 'rgba(255,255,255,.5)',
+                color: active || isMoreOpen ? 'var(--primary-light)' : 'rgba(255,255,255,.5)',
                 fontWeight: active || isMoreOpen ? 700 : 400
               }}>{item.label}</span>
             </button>

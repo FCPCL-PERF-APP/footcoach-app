@@ -92,7 +92,7 @@ export default function OnboardingCoachPage() {
   const progress = ((step + 1) / STEPS.length) * 100
 
   return (
-    <div style={{ minHeight: '100vh', background: THEME.gradient, display: 'flex', flexDirection: 'column', padding: '40px 20px 30px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--gradient)', display: 'flex', flexDirection: 'column', padding: '40px 20px 30px' }}>
 
       {/* Progress bar */}
       <div style={{ background: 'rgba(255,255,255,.2)', borderRadius: 4, height: 4, marginBottom: 32 }}>
@@ -125,7 +125,7 @@ export default function OnboardingCoachPage() {
 
         {isLast ? (
           <button onClick={finish}
-            style={{ padding: '12px 24px', borderRadius: 12, border: 'none', background: '#fff', color: THEME.primary, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+            style={{ padding: '12px 24px', borderRadius: 12, border: 'none', background: '#fff', color: 'var(--primary)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
             C'est parti !
           </button>
         ) : (

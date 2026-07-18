@@ -31,7 +31,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: THEME.gradient, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--gradient)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       {/* Logo animé */}
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
         <div style={{
@@ -65,7 +65,7 @@ export default function LoginPage() {
           <form onSubmit={handleLogin}>
             <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="ton@email.com" />
             <Field label="Mot de passe" type="password" value={password} onChange={setPassword} placeholder="••••••••" />
-            {error && <p style={{ color: THEME.danger, fontSize: 12, marginBottom: 10 }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontSize: 12, marginBottom: 10 }}>{error}</p>}
             <button type="submit" disabled={loading} style={btnStyle}>
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
@@ -76,9 +76,9 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={handleReset}>
             {resetSent ? (
-              <div style={{ background: THEME.successBg, borderRadius: 10, padding: 12, marginBottom: 12 }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: THEME.success, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Email envoyé !</p>
-                <p style={{ fontSize: 12, color: THEME.success, marginBottom: 8 }}>Vérifie ta boîte mail (et les spams) — le lien est valable 24h.</p>
+              <div style={{ background: 'var(--success-bg)', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Email envoyé !</p>
+                <p style={{ fontSize: 12, color: 'var(--success)', marginBottom: 8 }}>Vérifie ta boîte mail (et les spams) — le lien est valable 24h.</p>
                 <p style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
                   <Smartphone size={12} style={{ flexShrink: 0, marginTop: 2 }} /> Ouvre le lien depuis Safari sur ton iPhone pour créer ton nouveau mot de passe.
                 </p>
@@ -90,7 +90,7 @@ export default function LoginPage() {
             ) : (
               <>
                 <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="ton@email.com" />
-                {error && <p style={{ color: THEME.danger, fontSize: 12, marginBottom: 10 }}>{error}</p>}
+                {error && <p style={{ color: 'var(--danger)', fontSize: 12, marginBottom: 10 }}>{error}</p>}
                 <button type="submit" disabled={loading} style={btnStyle}>
                   {loading ? 'Envoi...' : 'Envoyer le lien'}
                 </button>
@@ -130,13 +130,13 @@ function Field({ label, type, value, onChange, placeholder }) {
 
 const btnStyle = {
   width: '100%', padding: 12,
-  background: THEME.gradient,
+  background: 'var(--gradient)',
   color: '#fff', border: 'none', borderRadius: 10,
   fontSize: 14, fontWeight: 700, cursor: 'pointer', marginBottom: 10
 }
 
 const linkStyle = {
   width: '100%', background: 'transparent', border: 'none',
-  color: THEME.primary, fontSize: 13, cursor: 'pointer', padding: '4px 0',
+  color: 'var(--primary)', fontSize: 13, cursor: 'pointer', padding: '4px 0',
   display: 'block', textAlign: 'center'
 }

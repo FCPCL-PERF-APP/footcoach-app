@@ -99,12 +99,12 @@ export default function BadgesJoueurPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Mes badges</h1>
       </div>
 
       {/* Hero */}
-      <div style={{ background: THEME.gradient, borderRadius: 16, padding: '16px', marginBottom: 14, textAlign: 'center' }}>
+      <div style={{ background: 'var(--gradient)', borderRadius: 16, padding: '16px', marginBottom: 14, textAlign: 'center' }}>
         <div style={{ fontSize: 36, marginBottom: 6 }}>
           {badges.length === 0 ? '🎯' : badges.length >= 8 ? '🏆' : badges.length >= 5 ? '⭐' : '🔥'}
         </div>
@@ -118,7 +118,7 @@ export default function BadgesJoueurPage() {
       {/* Badges débloqués */}
       {badges.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} color={THEME.success} /> Débloqués</p>
+          <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} color={'var(--success)'} /> Débloqués</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
             {badges.map(b => (
               <div key={b.id} style={{ textAlign: 'center', padding: 10, background: '#F9FAFB', borderRadius: 12, border: '1.5px solid #FFD700' }}>
@@ -150,7 +150,7 @@ export default function BadgesJoueurPage() {
       {/* Stats rapides */}
       {stats && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={14} color={THEME.primary} /> Tes stats saison 2026/2027</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={14} color={'var(--primary)'} /> Tes stats saison 2026/2027</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
             {[
               ['Série présences', `${stats.seriePresences} 🔥`],
@@ -161,7 +161,7 @@ export default function BadgesJoueurPage() {
               ['RPE remplis', stats.totalRpe],
             ].map(([label, val]) => (
               <div key={label} style={{ background: '#F9FAFB', borderRadius: 10, padding: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: THEME.primary }}>{val}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--primary)' }}>{val}</div>
                 <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>{label}</div>
               </div>
             ))}

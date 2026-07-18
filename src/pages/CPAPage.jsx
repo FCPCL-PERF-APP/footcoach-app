@@ -155,10 +155,10 @@ export default function CPAPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Compass size={17} color={THEME.primary} /> CPA</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Compass size={17} color={'var(--primary)'} /> CPA</h1>
         {isCoach && (
           <button onClick={() => { setShowCreate(!showCreate); setSelectedCpa(null); if (showCreate) resetForm() }}
-            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: showCreate ? '#6B7280' : THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+            style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: showCreate ? '#6B7280' : 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
             {showCreate ? <><X size={12} /> Annuler</> : <><Plus size={12} /> Créer</>}
           </button>
         )}
@@ -166,7 +166,7 @@ export default function CPAPage() {
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: 5, marginBottom: 14, overflowX: 'auto', paddingBottom: 2 }}>
-        <button onClick={() => setActiveFilter('tous')} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: '0.5px solid #D1D5DB', background: activeFilter === 'tous' ? THEME.primaryBg : 'transparent', color: activeFilter === 'tous' ? THEME.primary : '#6B7280', fontWeight: activeFilter === 'tous' ? 600 : 400 }}>Tous</button>
+        <button onClick={() => setActiveFilter('tous')} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: '0.5px solid #D1D5DB', background: activeFilter === 'tous' ? 'var(--primary-bg)' : 'transparent', color: activeFilter === 'tous' ? 'var(--primary)' : '#6B7280', fontWeight: activeFilter === 'tous' ? 600 : 400 }}>Tous</button>
         {CPA_TYPES.map(t => (
           <button key={t.key} onClick={() => setActiveFilter(t.key)} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap', border: `0.5px solid ${activeFilter === t.key ? t.color : '#D1D5DB'}`, background: activeFilter === t.key ? `${t.color}15` : 'transparent', color: activeFilter === t.key ? t.color : '#6B7280', fontWeight: activeFilter === t.key ? 600 : 400, display: 'inline-flex', alignItems: 'center', gap: 4 }}><t.icon size={11} /> {t.label}</button>
         ))}
@@ -203,9 +203,9 @@ export default function CPAPage() {
             {MODES.map(m => (
               <button key={m.key} onClick={() => { setModeEdition(m.key); setDrawStart(null) }} style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-                border: `0.5px solid ${modeEdition === m.key ? THEME.primary : '#D1D5DB'}`,
-                background: modeEdition === m.key ? THEME.primaryBg : 'transparent',
-                color: modeEdition === m.key ? THEME.primary : '#6B7280',
+                border: `0.5px solid ${modeEdition === m.key ? 'var(--primary)' : '#D1D5DB'}`,
+                background: modeEdition === m.key ? 'var(--primary-bg)' : 'transparent',
+                color: modeEdition === m.key ? 'var(--primary)' : '#6B7280',
                 fontWeight: modeEdition === m.key ? 600 : 400,
                 display: 'inline-flex', alignItems: 'center', gap: 4
               }}><m.icon size={11} /> {m.label}</button>
@@ -249,10 +249,10 @@ export default function CPAPage() {
             )}
           </div>
 
-          {saveError && <p style={{ fontSize: 12, color: THEME.danger, marginBottom: 8 }}>{saveError}</p>}
+          {saveError && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{saveError}</p>}
 
           <button onClick={saveCpa} disabled={saving || !form.titre}
-            style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none', background: form.titre ? THEME.gradient : '#E5E7EB', color: form.titre ? '#fff' : '#9CA3AF', fontSize: 14, fontWeight: 700, cursor: form.titre ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            style={{ width: '100%', padding: 12, borderRadius: 10, border: 'none', background: form.titre ? 'var(--gradient)' : '#E5E7EB', color: form.titre ? '#fff' : '#9CA3AF', fontSize: 14, fontWeight: 700, cursor: form.titre ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
             {saving ? <><Hourglass size={14} /> Enregistrement...</> : <><Check size={14} /> Sauvegarder le schéma</>}
           </button>
         </Card>
@@ -300,10 +300,10 @@ export default function CPAPage() {
           )}
           {isCoach && (
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => partagerCpa(selectedCpa)} style={{ flex: 1, padding: 10, borderRadius: 10, border: `1px solid ${THEME.primary}`, background: THEME.primaryBg, color: THEME.primary, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              <button onClick={() => partagerCpa(selectedCpa)} style={{ flex: 1, padding: 10, borderRadius: 10, border: `1px solid ${'var(--primary)'}`, background: 'var(--primary-bg)', color: 'var(--primary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                 <MessageSquare size={12} /> Partager dans le groupe
               </button>
-              <button onClick={() => deleteCpa(selectedCpa.id)} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: THEME.dangerBg, color: THEME.danger, cursor: 'pointer', display: 'flex' }}><Trash2 size={13} /></button>
+              <button onClick={() => deleteCpa(selectedCpa.id)} style={{ padding: '10px 14px', borderRadius: 10, border: 'none', background: 'var(--danger-bg)', color: 'var(--danger)', cursor: 'pointer', display: 'flex' }}><Trash2 size={13} /></button>
             </div>
           )}
         </Card>

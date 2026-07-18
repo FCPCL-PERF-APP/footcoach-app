@@ -69,11 +69,11 @@ export default function SondagePage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><ListChecks size={17} color={THEME.primary} /> Sondages</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><ListChecks size={17} color={'var(--primary)'} /> Sondages</h1>
         {isCoach && (
           <button onClick={() => setShowCreate(!showCreate)} style={{
             padding: '6px 14px', borderRadius: 8, border: 'none',
-            background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600,
+            background: 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 5
           }}>{showCreate ? <><X size={12} /> Annuler</> : <><Plus size={12} /> Créer</>}</button>
         )}
@@ -101,13 +101,13 @@ export default function SondagePage() {
                   style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
                 {form.options.length > 2 && (
                   <button onClick={() => setForm(p => ({...p, options: p.options.filter((_,j) => j !== i)}))}
-                    style={{ padding: '8px 10px', border: 'none', background: THEME.dangerBg, borderRadius: 10, cursor: 'pointer', color: THEME.danger, display: 'flex' }}><X size={13} /></button>
+                    style={{ padding: '8px 10px', border: 'none', background: 'var(--danger-bg)', borderRadius: 10, cursor: 'pointer', color: 'var(--danger)', display: 'flex' }}><X size={13} /></button>
                 )}
               </div>
             ))}
             {form.options.length < 5 && (
               <button onClick={() => setForm(p => ({...p, options: [...p.options, '']}))}
-                style={{ fontSize: 11, color: THEME.primary, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}>
+                style={{ fontSize: 11, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}>
                 + Ajouter une option
               </button>
             )}
@@ -147,10 +147,10 @@ export default function SondagePage() {
                     </p>
                   </div>
                   <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-                    background: s.actif ? THEME.successBg : '#F3F4F6',
-                    color: s.actif ? THEME.success : '#9CA3AF',
+                    background: s.actif ? 'var(--success-bg)' : '#F3F4F6',
+                    color: s.actif ? 'var(--success)' : '#9CA3AF',
                     display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    {s.actif ? <><Circle size={7} fill={THEME.success} color={THEME.success} /> Ouvert</> : <><Lock size={9} /> Clôturé</>}
+                    {s.actif ? <><Circle size={7} fill={'var(--success)'} color={'var(--success)'} /> Ouvert</> : <><Lock size={9} /> Clôturé</>}
                   </span>
                 </div>
 
@@ -163,7 +163,7 @@ export default function SondagePage() {
                       disabled={aVote || !s.actif}
                       style={{
                         width: '100%', padding: '10px 12px', borderRadius: 10, marginBottom: 6,
-                        border: `1.5px solid ${isMyVote ? THEME.primary : '#E5E7EB'}`,
+                        border: `1.5px solid ${isMyVote ? 'var(--primary)' : '#E5E7EB'}`,
                         background: aVote ? (isMyVote ? '#E6F1FB' : '#F9FAFB') : '#fff',
                         cursor: s.actif && !aVote ? 'pointer' : 'default',
                         textAlign: 'left', position: 'relative', overflow: 'hidden'
@@ -172,7 +172,7 @@ export default function SondagePage() {
                         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, background: isMyVote ? 'rgba(24,95,165,.1)' : 'rgba(0,0,0,.03)', width: `${pct}%`, transition: 'width .5s' }} />
                       )}
                       <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: 12, fontWeight: isMyVote ? 700 : 400, color: isMyVote ? THEME.primary : '#374151', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 12, fontWeight: isMyVote ? 700 : 400, color: isMyVote ? 'var(--primary)' : '#374151', display: 'flex', alignItems: 'center', gap: 4 }}>
                           {isMyVote && <Check size={12} />}{opt}
                         </span>
                         {aVote && <span style={{ fontSize: 11, fontWeight: 600, color: '#6B7280' }}>{pct}%</span>}

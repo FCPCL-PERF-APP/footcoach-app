@@ -135,7 +135,7 @@ export default function ChargeHebdoPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
                 {[
                   { label: 'RPE moy.', value: derniereSemaine.rpeMoy ?? '—', color: rpeColor(derniereSemaine.rpeMoy) },
-                  { label: 'Charge', value: derniereSemaine.charge ?? '—', color: THEME.primary },
+                  { label: 'Charge', value: derniereSemaine.charge ?? '—', color: 'var(--primary)' },
                   { label: 'Séances', value: derniereSemaine.nbSeances, color: '#3B6D11' },
                   { label: 'Matchs', value: derniereSemaine.nbMatchs, color: '#185FA5' },
                 ].map(m => (
@@ -151,7 +151,7 @@ export default function ChargeHebdoPage() {
                     {rpeLabel(derniereSemaine.rpeMoy)}
                   </span>
                   {tendance !== null && (
-                    <span style={{ fontSize: 12, color: tendance > 0.5 ? THEME.danger : tendance < -0.5 ? THEME.success : '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 12, color: tendance > 0.5 ? 'var(--danger)' : tendance < -0.5 ? 'var(--success)' : '#9CA3AF', display: 'flex', alignItems: 'center', gap: 4 }}>
                       {tendance > 0 ? <ArrowUpRight size={12} /> : tendance < 0 ? <ArrowDownRight size={12} /> : <ArrowRight size={12} />} {tendance > 0 ? '+' : ''}{tendance.toFixed(1)} vs sem. précédente
                     </span>
                   )}
@@ -166,8 +166,8 @@ export default function ChargeHebdoPage() {
               <button key={tab} onClick={() => setActiveView(tab)} style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                 border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-                background: activeView === tab ? THEME.primaryBg : 'transparent',
-                color: activeView === tab ? THEME.primary : '#6B7280',
+                background: activeView === tab ? 'var(--primary-bg)' : 'transparent',
+                color: activeView === tab ? 'var(--primary)' : '#6B7280',
                 fontWeight: activeView === tab ? 600 : 400,
                 display: 'inline-flex', alignItems: 'center', gap: 5
               }}><Icon size={11} /> {lbl}</button>
@@ -186,11 +186,11 @@ export default function ChargeHebdoPage() {
                 {/* Courbe */}
                 <polyline
                   points={activeData.filter(s => s.charge !== null).map((s, i) => `${xPos(i)},${yPosCharge(s.charge)}`).join(' ')}
-                  fill="none" stroke={THEME.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  fill="none" stroke={'var(--primary)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 {activeData.map((s, i) => s.charge !== null && (
                   <g key={i}>
                     <circle cx={xPos(i)} cy={yPosCharge(s.charge)} r="4"
-                      fill={s.charge > maxCharge * 0.85 ? '#A32D2D' : THEME.primary} />
+                      fill={s.charge > maxCharge * 0.85 ? '#A32D2D' : 'var(--primary)'} />
                     <text x={xPos(i)} y={H-4} textAnchor="middle" fontSize="8" fill="#9CA3AF">{s.label}</text>
                   </g>
                 ))}
@@ -260,7 +260,7 @@ export default function ChargeHebdoPage() {
                     <div style={{ fontSize: 9, color: '#9CA3AF' }}>RPE</div>
                   </div>}
                   {s.charge && <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: THEME.primary }}>{s.charge}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary)' }}>{s.charge}</div>
                     <div style={{ fontSize: 9, color: '#9CA3AF' }}>Charge</div>
                   </div>}
                   {!s.rpeMoy && <span style={{ fontSize: 11, color: '#9CA3AF' }}>Pas de données</span>}

@@ -123,7 +123,7 @@ export default function MesObjectifsPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <button onClick={() => navigate('/ma-fiche')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate('/ma-fiche')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Mes objectifs</h1>
       </div>
 
@@ -132,8 +132,8 @@ export default function MesObjectifsPage() {
           <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             padding: '6px 14px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === t.key ? THEME.primaryBg : 'transparent',
-            color: activeTab === t.key ? THEME.primary : '#6B7280',
+            background: activeTab === t.key ? 'var(--primary-bg)' : 'transparent',
+            color: activeTab === t.key ? 'var(--primary)' : '#6B7280',
             fontWeight: activeTab === t.key ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><t.icon size={12} /> {t.label}</button>
@@ -141,7 +141,7 @@ export default function MesObjectifsPage() {
       </div>
 
       {saved && (
-        <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: THEME.success, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: 'var(--success)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
           <CheckCircle2 size={13} /> Sauvegardé !
         </div>
       )}
@@ -151,7 +151,7 @@ export default function MesObjectifsPage() {
         <>
           {/* Points forts */}
           <Card>
-            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} color={THEME.success} /> Mes points forts</p>
+            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} color={'var(--success)'} /> Mes points forts</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Un point fort par domaine</p>
             {NIVEAUX.map(n => (
               <div key={n.key} style={{ marginBottom: 10 }}>
@@ -166,7 +166,7 @@ export default function MesObjectifsPage() {
 
           {/* Axes d'amélioration */}
           <Card>
-            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Target size={14} color={THEME.warning} /> Mes axes d'amélioration</p>
+            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Target size={14} color={'var(--warning)'} /> Mes axes d'amélioration</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Un axe à travailler par domaine</p>
             {NIVEAUX.map(n => (
               <div key={n.key} style={{ marginBottom: 10 }}>
@@ -181,7 +181,7 @@ export default function MesObjectifsPage() {
 
           {/* Objectifs personnels */}
           <Card>
-            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={14} color={THEME.warning} /> Mes objectifs personnels</p>
+            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={14} color={'var(--warning)'} /> Mes objectifs personnels</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>3 objectifs pour la saison 2026/2027</p>
             {[1,2,3].map(i => (
               <div key={i} style={{ marginBottom: 10 }}>
@@ -196,7 +196,7 @@ export default function MesObjectifsPage() {
 
           {/* Objectifs collectifs */}
           <Card>
-            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Swords size={14} color={THEME.primary} /> Mes objectifs collectifs</p>
+            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Swords size={14} color={'var(--primary)'} /> Mes objectifs collectifs</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>3 objectifs d'équipe pour la saison 2026/2027</p>
             {[1,2,3].map(i => (
               <div key={i} style={{ marginBottom: 10 }}>
@@ -217,11 +217,11 @@ export default function MesObjectifsPage() {
           {/* Stats match */}
           {stats && (
             <Card>
-              <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={14} color={THEME.primary} /> Mes statistiques — Saison 2026/2027</p>
+              <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={14} color={'var(--primary)'} /> Mes statistiques — Saison 2026/2027</p>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                   <thead>
-                    <tr style={{ background: THEME.primary }}>
+                    <tr style={{ background: 'var(--primary)' }}>
                       {['Matchs','Tps jeu moy.','Titulaire','Rempl.','Buts','PD','CJ','CR','Note'].map(h => (
                         <th key={h} style={{ padding: '6px 4px', color: '#fff', fontWeight: 600, textAlign: 'center', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}

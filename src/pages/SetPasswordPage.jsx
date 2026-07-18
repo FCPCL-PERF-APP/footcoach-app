@@ -71,7 +71,7 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: THEME.gradient, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--gradient)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <div style={{ width: 72, height: 72, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)', background: '#fff', padding: 6, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
           <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -83,8 +83,8 @@ export default function SetPasswordPage() {
 
         {success ? (
           <div style={{ textAlign: 'center', padding: 10 }}>
-            <CheckCircle2 size={44} color={THEME.success} style={{ marginBottom: 12 }} />
-            <p style={{ fontSize: 16, fontWeight: 700, color: THEME.success, marginBottom: 8 }}>Mot de passe créé !</p>
+            <CheckCircle2 size={44} color={'var(--success)'} style={{ marginBottom: 12 }} />
+            <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)', marginBottom: 8 }}>Mot de passe créé !</p>
             <p style={{ fontSize: 13, color: '#6B7280' }}>Tu vas être redirigé vers l'app...</p>
           </div>
         ) : (
@@ -100,8 +100,8 @@ export default function SetPasswordPage() {
 
             {linkError ? (
               <div style={{ textAlign: 'center', padding: 20 }}>
-                <AlertTriangle size={30} color={THEME.danger} style={{ marginBottom: 8 }} />
-                <p style={{ fontSize: 13, fontWeight: 600, color: THEME.danger, marginBottom: 6 }}>Ce lien ne fonctionne plus</p>
+                <AlertTriangle size={30} color={'var(--danger)'} style={{ marginBottom: 8 }} />
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--danger)', marginBottom: 6 }}>Ce lien ne fonctionne plus</p>
                 <p style={{ fontSize: 12, color: '#6B7280' }}>{linkError}</p>
                 <p style={{ fontSize: 12, color: '#6B7280', marginTop: 10 }}>Demande au coach de te renvoyer une invitation.</p>
               </div>
@@ -128,10 +128,10 @@ export default function SetPasswordPage() {
                     placeholder="Répète le mot de passe" required
                     style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #E5E7EB', borderRadius: 10, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#FAFAFA' }} />
                 </div>
-                {error && <p style={{ color: THEME.danger, fontSize: 12, marginBottom: 12 }}>{error}</p>}
+                {error && <p style={{ color: 'var(--danger)', fontSize: 12, marginBottom: 12 }}>{error}</p>}
                 <button type="submit" disabled={loading} style={{
                   width: '100%', padding: 12,
-                  background: THEME.gradient,
+                  background: 'var(--gradient)',
                   color: '#fff', border: 'none', borderRadius: 10,
                   fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6

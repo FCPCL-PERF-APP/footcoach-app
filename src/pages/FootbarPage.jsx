@@ -141,7 +141,7 @@ export default function FootbarPage() {
       .map(d => ({
         label: `${d.joueurs?.nom?.split(' ')[0] || ''} ${d.joueurs?.prenom?.charAt(0) || ''}.`,
         value: parseFloat(d[key]),
-        color: THEME.primary
+        color: 'var(--primary)'
       }))
       .sort((a, b) => b.value - a.value)
   }
@@ -181,8 +181,8 @@ export default function FootbarPage() {
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
-            background: activeTab === tab ? THEME.primaryBg : 'transparent',
-            color: activeTab === tab ? THEME.primary : '#6B7280',
+            background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
+            color: activeTab === tab ? 'var(--primary)' : '#6B7280',
             fontWeight: activeTab === tab ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -214,7 +214,7 @@ export default function FootbarPage() {
                             <span>{avg.toFixed(1)}{f.unit ? ` ${f.unit}` : ''}</span>
                           </div>
                           <div style={{ height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', borderRadius: 4, background: THEME.primary, width: `${Math.min(100, avg/f.max*100).toFixed(0)}%` }} />
+                            <div style={{ height: '100%', borderRadius: 4, background: 'var(--primary)', width: `${Math.min(100, avg/f.max*100).toFixed(0)}%` }} />
                           </div>
                         </div>
                       )
@@ -228,7 +228,7 @@ export default function FootbarPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
                     width: 64, height: 64, borderRadius: '50%',
-                    border: `6px solid ${footData.length / Math.max(joueursCibles.length, 1) >= 0.8 ? THEME.success : '#D85A30'}`,
+                    border: `6px solid ${footData.length / Math.max(joueursCibles.length, 1) >= 0.8 ? 'var(--success)' : '#D85A30'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 16, fontWeight: 700
                   }}>
@@ -256,7 +256,7 @@ export default function FootbarPage() {
                           <span style={{ fontSize: 13, fontWeight: 600 }}>{d.joueurs?.nom} {d.joueurs?.prenom}</span>
                           <span style={{ fontSize: 11, color: '#9CA3AF', marginLeft: 6 }}>{d.joueurs?.poste}</span>
                         </div>
-                        {d.distance_km && <span style={{ fontSize: 12, fontWeight: 700, color: THEME.primary }}>{d.distance_km} km</span>}
+                        {d.distance_km && <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary)' }}>{d.distance_km} km</span>}
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
                         {FOOTBAR_FIELDS.map(f => (
@@ -296,10 +296,10 @@ export default function FootbarPage() {
                   </div>
                 ))}
               </div>
-              {saved && <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginTop: 10, fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Données enregistrées !</div>}
+              {saved && <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '8px 12px', marginTop: 10, fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Données enregistrées !</div>}
               <button onClick={handleSave} disabled={saving} style={{
                 width: '100%', marginTop: 12, padding: 12,
-                background: THEME.gradient, color: '#fff',
+                background: 'var(--gradient)', color: '#fff',
                 border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
               }}>
@@ -316,7 +316,7 @@ export default function FootbarPage() {
                 Envoie une notification pour les relancer.
               </p>
               {joueursSansFootbar.length === 0
-                ? <p style={{ fontSize: 13, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Tous les joueurs ont rempli leur Footbar !</p>
+                ? <p style={{ fontSize: 13, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Tous les joueurs ont rempli leur Footbar !</p>
                 : <>
                     {joueursSansFootbar.map(j => (
                       <div key={j.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--border)' }}>
@@ -328,7 +328,7 @@ export default function FootbarPage() {
                       </div>
                     ))}
                     <button onClick={relancerManquants} disabled={relanceState === 'sending'}
-                      style={{ width: '100%', marginTop: 12, padding: 10, background: THEME.gradient, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      style={{ width: '100%', marginTop: 12, padding: 10, background: 'var(--gradient)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                       {relanceState === 'sending' ? 'Envoi...' : relanceState || <><Bell size={12} /> Relancer par notification push</>}
                     </button>
                   </>

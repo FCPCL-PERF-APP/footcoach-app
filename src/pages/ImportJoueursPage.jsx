@@ -130,21 +130,21 @@ export default function ImportJoueursPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Import Excel / CSV</h1>
       </div>
 
       {/* Étapes */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
         {[1,2,3].map(s => (
-          <div key={s} style={{ flex: 1, height: 4, borderRadius: 2, background: step >= s ? THEME.primary : '#E5E7EB', transition: 'background .3s' }} />
+          <div key={s} style={{ flex: 1, height: 4, borderRadius: 2, background: step >= s ? 'var(--primary)' : '#E5E7EB', transition: 'background .3s' }} />
         ))}
       </div>
 
       {/* ÉTAPE 1 — Upload */}
       {step === 1 && (
         <Card>
-          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Upload size={14} color={THEME.primary} /> Importer ton fichier</p>
+          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Upload size={14} color={'var(--primary)'} /> Importer ton fichier</p>
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>
             Exporte ton Excel en CSV depuis Excel (Fichier → Enregistrer sous → CSV) puis importe-le ici.
           </p>
@@ -163,14 +163,14 @@ export default function ImportJoueursPage() {
           </div>
           <input id="csv-input" type="file" accept=".csv,.txt" style={{ display: 'none' }} onChange={handleFile} />
 
-          {error && <p style={{ color: THEME.danger, fontSize: 12, marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}><AlertTriangle size={12} /> {error}</p>}
+          {error && <p style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}><AlertTriangle size={12} /> {error}</p>}
         </Card>
       )}
 
       {/* ÉTAPE 2 — Mapping */}
       {step === 2 && (
         <Card>
-          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Link2 size={14} color={THEME.primary} /> Associer les colonnes</p>
+          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Link2 size={14} color={'var(--primary)'} /> Associer les colonnes</p>
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>
             {csvData.length} joueur(s) détecté(s). Vérifie que chaque champ est bien associé à la bonne colonne.
           </p>
@@ -207,7 +207,7 @@ export default function ImportJoueursPage() {
             </div>
           )}
 
-          {error && <p style={{ color: THEME.danger, fontSize: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><AlertTriangle size={12} /> {error}</p>}
+          {error && <p style={{ color: 'var(--danger)', fontSize: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><AlertTriangle size={12} /> {error}</p>}
 
           <div style={{ display: 'flex', gap: 8 }}>
             <Button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }} onClick={() => setStep(1)}><ArrowLeft size={12} /> Retour</Button>
@@ -223,19 +223,19 @@ export default function ImportJoueursPage() {
         <Card>
           <div style={{ textAlign: 'center', padding: 20 }}>
             <div style={{ marginBottom: 12 }}>
-              {result.errors === 0 ? <PartyPopper size={44} color={THEME.success} /> : <AlertTriangle size={44} color={THEME.warning} />}
+              {result.errors === 0 ? <PartyPopper size={44} color={'var(--success)'} /> : <AlertTriangle size={44} color={'var(--warning)'} />}
             </div>
             <p style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
               {result.errors === 0 ? 'Import réussi !' : 'Import terminé avec des erreurs'}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, margin: '16px 0' }}>
-              <div style={{ background: THEME.successBg, borderRadius: 10, padding: 10 }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: THEME.success }}>{result.success}</div>
-                <div style={{ fontSize: 11, color: THEME.success }}>Importés</div>
+              <div style={{ background: 'var(--success-bg)', borderRadius: 10, padding: 10 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--success)' }}>{result.success}</div>
+                <div style={{ fontSize: 11, color: 'var(--success)' }}>Importés</div>
               </div>
-              <div style={{ background: result.errors > 0 ? THEME.dangerBg : '#F3F4F6', borderRadius: 10, padding: 10 }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: result.errors > 0 ? THEME.danger : '#6B7280' }}>{result.errors}</div>
-                <div style={{ fontSize: 11, color: result.errors > 0 ? THEME.danger : '#6B7280' }}>Erreurs</div>
+              <div style={{ background: result.errors > 0 ? 'var(--danger-bg)' : '#F3F4F6', borderRadius: 10, padding: 10 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: result.errors > 0 ? 'var(--danger)' : '#6B7280' }}>{result.errors}</div>
+                <div style={{ fontSize: 11, color: result.errors > 0 ? 'var(--danger)' : '#6B7280' }}>Erreurs</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>

@@ -129,9 +129,9 @@ export default function RessourcesPage() {
               <button key={tab} onClick={() => setAddTab(tab)} style={{
                 flex: 1, padding: '10px 6px', borderRadius: 10, fontSize: 12,
                 cursor: 'pointer', fontWeight: 600,
-                border: addTab === tab ? `2px solid ${THEME.primary}` : '1px solid #D1D5DB',
-                background: addTab === tab ? THEME.primaryBg : 'transparent',
-                color: addTab === tab ? THEME.primary : '#6B7280',
+                border: addTab === tab ? `2px solid ${'var(--primary)'}` : '1px solid #D1D5DB',
+                background: addTab === tab ? 'var(--primary-bg)' : 'transparent',
+                color: addTab === tab ? 'var(--primary)' : '#6B7280',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
               }}><Icon size={13} /> {lbl}</button>
             ))}
@@ -148,9 +148,9 @@ export default function RessourcesPage() {
             <div style={{ marginBottom: 10 }}>
               <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Fichier PDF</label>
               <div onClick={() => document.getElementById('file-input').click()}
-                style={{ border: file ? `2px solid ${THEME.success}` : '1.5px dashed #D1D5DB', borderRadius: 12, padding: 16, textAlign: 'center', cursor: 'pointer', background: file ? THEME.successBg : '#F9FAFB' }}>
-                {file ? <CheckCircle2 size={26} color={THEME.success} style={{ marginBottom: 6 }} /> : <Upload size={26} color="#9CA3AF" style={{ marginBottom: 6 }} />}
-                <p style={{ fontSize: 12, color: file ? THEME.success : '#6B7280', fontWeight: file ? 600 : 400 }}>
+                style={{ border: file ? `2px solid ${'var(--success)'}` : '1.5px dashed #D1D5DB', borderRadius: 12, padding: 16, textAlign: 'center', cursor: 'pointer', background: file ? 'var(--success-bg)' : '#F9FAFB' }}>
+                {file ? <CheckCircle2 size={26} color={'var(--success)'} style={{ marginBottom: 6 }} /> : <Upload size={26} color="#9CA3AF" style={{ marginBottom: 6 }} />}
+                <p style={{ fontSize: 12, color: file ? 'var(--success)' : '#6B7280', fontWeight: file ? 600 : 400 }}>
                   {file ? file.name : 'Appuyer pour choisir un PDF'}
                 </p>
               </div>
@@ -162,8 +162,8 @@ export default function RessourcesPage() {
               <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 4 }}>Lien YouTube ou Vimeo</label>
               <input type="url" value={form.url} onChange={e => checkVideoUrl(e.target.value)}
                 placeholder="https://youtube.com/watch?v=..."
-                style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${videoValid ? THEME.success : '#D1D5DB'}`, borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
-              {videoValid && <p style={{ fontSize: 11, color: THEME.success, marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={11} /> Lien valide</p>}
+                style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${videoValid ? 'var(--success)' : '#D1D5DB'}`, borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              {videoValid && <p style={{ fontSize: 11, color: 'var(--success)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={11} /> Lien valide</p>}
             </div>
           )}
 
@@ -200,8 +200,8 @@ export default function RessourcesPage() {
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === tab ? THEME.primaryBg : 'transparent',
-            color: activeTab === tab ? THEME.primary : '#6B7280',
+            background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
+            color: activeTab === tab ? 'var(--primary)' : '#6B7280',
             fontWeight: activeTab === tab ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -221,7 +221,7 @@ export default function RessourcesPage() {
           <Card>
             <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: 24 }}>
               {search ? `Aucune ressource pour "${search}"` : 'Aucune ressource pour l\'instant.'}
-              {canAdd && !search && <><br /><span style={{ color: THEME.primary }}>Clique sur "+ Ajouter".</span></>}
+              {canAdd && !search && <><br /><span style={{ color: 'var(--primary)' }}>Clique sur "+ Ajouter".</span></>}
             </p>
           </Card>
         ) : (
@@ -235,8 +235,8 @@ export default function RessourcesPage() {
                   const VideoIcon = getVideoIcon(r.url)
                   return (
                   <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: i < items.length - 1 ? '0.5px solid #F3F4F6' : 'none' }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: r.type === 'pdf' ? THEME.dangerBg : THEME.primaryBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {r.type === 'pdf' ? <FileText size={17} color={THEME.danger} /> : <VideoIcon size={17} color={THEME.primary} />}
+                    <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: r.type === 'pdf' ? 'var(--danger-bg)' : 'var(--primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {r.type === 'pdf' ? <FileText size={17} color={'var(--danger)'} /> : <VideoIcon size={17} color={'var(--primary)'} />}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.titre}</p>
@@ -247,13 +247,13 @@ export default function RessourcesPage() {
                     </div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       {r.url && (
-                        <a href={r.url} target="_blank" rel="noreferrer" style={{ color: THEME.primary, flexShrink: 0, textDecoration: 'none', display: 'flex' }}>
+                        <a href={r.url} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', flexShrink: 0, textDecoration: 'none', display: 'flex' }}>
                           {r.type === 'pdf' ? <Download size={17} /> : <ExternalLink size={17} />}
                         </a>
                       )}
                       {canAdd && (
                         <button onClick={() => deleteRessource(r.id)}
-                          style={{ border: 'none', background: THEME.dangerBg, borderRadius: 6, padding: '4px 7px', cursor: 'pointer', display: 'flex' }}><Trash2 size={12} color={THEME.danger} /></button>
+                          style={{ border: 'none', background: 'var(--danger-bg)', borderRadius: 6, padding: '4px 7px', cursor: 'pointer', display: 'flex' }}><Trash2 size={12} color={'var(--danger)'} /></button>
                       )}
                     </div>
                   </div>

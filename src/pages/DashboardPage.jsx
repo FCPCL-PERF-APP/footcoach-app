@@ -14,9 +14,9 @@ import {
 
 function AlertCard({ type, title, message, joueurId, navigate, onTraite }) {
   const colors = {
-    red:    { border: THEME.danger, bg: THEME.dangerBg },
-    orange: { border: '#D08A1E', bg: THEME.warningBg },
-    yellow: { border: THEME.warning, bg: THEME.warningBg },
+    red:    { border: 'var(--danger)', bg: 'var(--danger-bg)' },
+    orange: { border: '#D08A1E', bg: 'var(--warning-bg)' },
+    yellow: { border: 'var(--warning)', bg: 'var(--warning-bg)' },
   }
   const c = colors[type] || colors.yellow
   return (
@@ -26,7 +26,7 @@ function AlertCard({ type, title, message, joueurId, navigate, onTraite }) {
           <Circle size={8} fill={c.border} color={c.border} /> {title}
         </div>
         <div style={{ fontSize: 11, color: '#555' }}>{message}</div>
-        {joueurId && <div style={{ fontSize: 10, color: THEME.primary, marginTop: 4, display: 'flex', alignItems: 'center', gap: 2 }}>Voir la fiche <ArrowRight size={11} /></div>}
+        {joueurId && <div style={{ fontSize: 10, color: 'var(--primary)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 2 }}>Voir la fiche <ArrowRight size={11} /></div>}
       </div>
       <button onClick={(e) => { e.stopPropagation(); onTraite && onTraite() }}
         style={{ flexShrink: 0, border: 'none', background: 'rgba(0,0,0,.08)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 10, color: '#555', fontWeight: 600, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -50,7 +50,7 @@ function alertKey(a, joueurId) {
   return a.bucket !== undefined ? `${base}-${a.bucket}` : base
 }
 
-function LineChart({ data, color = THEME.primary }) {
+function LineChart({ data, color = 'var(--primary)' }) {
   if (!data || data.length < 2) return <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', padding: 12 }}>Pas assez de données</p>
   const W = 300, H = 80, PAD = 10
   const minV = Math.min(...data.map(d => d.value)) - 0.5
@@ -398,10 +398,10 @@ export default function DashboardPage() {
             return (
               <Card style={{ marginBottom: 14 }}>
                 <p style={{ fontSize: 13, fontWeight: 700, marginBottom: items.length ? 8 : 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <ClipboardCheck size={15} color={THEME.primary} /> Aujourd'hui
+                  <ClipboardCheck size={15} color={'var(--primary)'} /> Aujourd'hui
                 </p>
                 {items.length === 0 ? (
-                  <p style={{ fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <p style={{ fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <CheckCircle2 size={14} /> Tout est à jour
                   </p>
                 ) : items.map((it, i) => (
@@ -416,17 +416,17 @@ export default function DashboardPage() {
           {/* STAT RPE MANQUANTS */}
           {nbAlertes > 0 && (
             <div onClick={() => navigate('/rpe')} style={{
-              background: THEME.dangerBg, border: `0.5px solid ${THEME.danger}55`,
+              background: 'var(--danger-bg)', border: `0.5px solid ${'var(--danger)'}55`,
               borderRadius: THEME.radiusMd, padding: '10px 14px', marginBottom: 12,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer'
             }}>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: THEME.danger, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <AlertTriangle size={14} /> {Math.max(0, (alertes.length + alertesCollectives.length) - alertesTraitees.length)} point(s) à surveiller
                 </p>
-                <p style={{ fontSize: 11, color: THEME.textMuted }}>Dont joueurs sans RPE et surcharges</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Dont joueurs sans RPE et surcharges</p>
               </div>
-              <ArrowRight size={18} color={THEME.danger} />
+              <ArrowRight size={18} color={'var(--danger)'} />
             </div>
           )}
 
@@ -439,20 +439,20 @@ export default function DashboardPage() {
               { icon: Heart, label: 'RPE équipe', action: () => navigate('/rpe'), cat: 'rose' },
             ].map(({ icon, label, action, cat }) => (
               <button key={label} onClick={action} style={{
-                background: THEME.bgCard, border: `0.5px solid ${THEME.border}`,
+                background: 'var(--bg-card)', border: `0.5px solid ${'var(--border)'}`,
                 borderRadius: THEME.radiusMd, padding: '12px 4px',
                 cursor: 'pointer', textAlign: 'center',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6
               }}>
                 <IconTile icon={icon} size={17} tileSize={32} color={CAT_COLORS[cat].color} bg={CAT_COLORS[cat].bg} />
-                <div style={{ fontSize: 9, color: THEME.textSecondary, lineHeight: 1.2 }}>{label}</div>
+                <div style={{ fontSize: 9, color: 'var(--text-secondary)', lineHeight: 1.2 }}>{label}</div>
               </button>
             ))}
           </div>
 
           {/* Prochain événement */}
           {prochainEvent && (
-            <div style={{ background: THEME.gradient, borderRadius: 12, padding: '10px 14px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ background: 'var(--gradient)', borderRadius: 12, padding: '10px 14px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>Prochain événement</p>
                 <p style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{prochainEvent.titre}</p>
@@ -478,18 +478,18 @@ export default function DashboardPage() {
             const totalVisible = alertesCollFiltrees.length + alertesFiltrees.length
 
             return totalVisible > 0 ? (
-              <div style={{ background: THEME.dangerBg, border: `0.5px solid ${THEME.danger}55`, borderRadius: THEME.radiusLg, padding: 12, marginBottom: 14 }}>
+              <div style={{ background: 'var(--danger-bg)', border: `0.5px solid ${'var(--danger)'}55`, borderRadius: THEME.radiusLg, padding: 12, marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: THEME.danger, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <AlertTriangle size={14} /> {totalVisible} point(s) à surveiller
                   </p>
                   <button onClick={() => marquerToutTraite(alertesCollectives, alertes)}
-                    style={{ fontSize: 10, color: THEME.danger, background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
+                    style={{ fontSize: 10, color: 'var(--danger)', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
                     Tout traiter
                   </button>
                 </div>
                 {alertesCollFiltrees.length > 0 && <>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: THEME.textMuted, textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
                   {alertesCollectives.map((a, i) => {
                     const key = alertKey(a)
                     if (alertesTraitees.includes(key)) return null
@@ -497,7 +497,7 @@ export default function DashboardPage() {
                   })}
                 </>}
                 {alertesFiltrees.length > 0 && <>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: THEME.textMuted, textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
                   {alertes.map((a, i) => {
                     const key = alertKey(a, a.joueurId)
                     if (alertesTraitees.includes(key)) return null
@@ -506,8 +506,8 @@ export default function DashboardPage() {
                 </>}
               </div>
             ) : (
-              <div style={{ background: THEME.successBg, border: `0.5px solid ${THEME.success}55`, borderRadius: THEME.radiusMd, padding: 12, marginBottom: 14 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: 'var(--success-bg)', border: `0.5px solid ${'var(--success)'}55`, borderRadius: THEME.radiusMd, padding: 12, marginBottom: 14 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <CheckCircle2 size={15} /> Aucune alerte — tout va bien !
                 </p>
               </div>
@@ -518,9 +518,9 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 12 }}>
             {[
               { label: 'RPE moyen équipe', value: `${metrics.rpeMoy}/5`, sub: 'Toutes sessions', color: rpeColor(parseFloat(metrics.rpeMoy)) },
-              { label: 'Engagement moy.', value: `${metrics.presence}%`, sub: 'Ce mois · présent + extérieur', color: metrics.presence >= 80 ? THEME.success : '#D08A1E' },
-              { label: 'Dist. moy. match', value: `${metrics.distMoy} km`, sub: 'Footbar', color: THEME.primary },
-              { label: 'Buts / match', value: metrics.butsMoy, sub: '2026/2027', color: THEME.primary },
+              { label: 'Engagement moy.', value: `${metrics.presence}%`, sub: 'Ce mois · présent + extérieur', color: metrics.presence >= 80 ? 'var(--success)' : '#D08A1E' },
+              { label: 'Dist. moy. match', value: `${metrics.distMoy} km`, sub: 'Footbar', color: 'var(--primary)' },
+              { label: 'Buts / match', value: metrics.butsMoy, sub: '2026/2027', color: 'var(--primary)' },
             ].map(m => <StatTile key={m.label} {...m} />)}
           </div>
 
@@ -531,15 +531,15 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
                 {statsMatchs.serie.map((r, i) => (
                   <div key={i} style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: r === 'V' ? THEME.successBg : r === 'N' ? THEME.warningBg : THEME.dangerBg,
-                    color: r === 'V' ? THEME.success : r === 'N' ? THEME.warning : THEME.danger,
+                    background: r === 'V' ? 'var(--success-bg)' : r === 'N' ? 'var(--warning-bg)' : 'var(--danger-bg)',
+                    color: r === 'V' ? 'var(--success)' : r === 'N' ? 'var(--warning)' : 'var(--danger)',
                     fontSize: 12, fontWeight: 700 }}>{r}</div>
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 12, fontSize: 12 }}>
-                <span style={{ color: THEME.success }}>{statsMatchs.victoires}V</span>
-                <span style={{ color: THEME.warning }}>{statsMatchs.nuls}N</span>
-                <span style={{ color: THEME.danger }}>{statsMatchs.defaites}D</span>
+                <span style={{ color: 'var(--success)' }}>{statsMatchs.victoires}V</span>
+                <span style={{ color: 'var(--warning)' }}>{statsMatchs.nuls}N</span>
+                <span style={{ color: 'var(--danger)' }}>{statsMatchs.defaites}D</span>
               </div>
             </Card>
           )}
@@ -548,7 +548,7 @@ export default function DashboardPage() {
           {rpeEvolution.length >= 2 && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <TrendingUp size={14} color={THEME.primary} /> Évolution RPE équipe
+                <TrendingUp size={14} color={'var(--primary)'} /> Évolution RPE équipe
               </p>
               <LineChart data={rpeEvolution} color={rpeColor(parseFloat(metrics.rpeMoy))} />
             </Card>
@@ -558,9 +558,9 @@ export default function DashboardPage() {
           {presenceEvolution.length >= 2 && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <TrendingUp size={14} color={THEME.primary} /> Évolution présences (%)
+                <TrendingUp size={14} color={'var(--primary)'} /> Évolution présences (%)
               </p>
-              <LineChart data={presenceEvolution} color={THEME.primary} />
+              <LineChart data={presenceEvolution} color={'var(--primary)'} />
             </Card>
           )}
 
@@ -575,7 +575,7 @@ export default function DashboardPage() {
             <Card>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <p style={{ fontSize: 13, fontWeight: 600 }}>RPE par joueur</p>
-                <button onClick={() => navigate('/joueurs')} style={{ fontSize: 11, color: THEME.primary, background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button onClick={() => navigate('/joueurs')} style={{ fontSize: 11, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer' }}>
                   Voir tous →
                 </button>
               </div>
@@ -584,9 +584,9 @@ export default function DashboardPage() {
           )}
 
           <button onClick={() => navigate('/joueurs')} style={{
-            width: '100%', padding: 14, background: THEME.bgCard,
-            border: `0.5px solid ${THEME.border}`, borderRadius: THEME.radiusMd,
-            fontSize: 13, color: THEME.primary, fontWeight: 600, cursor: 'pointer',
+            width: '100%', padding: 14, background: 'var(--bg-card)',
+            border: `0.5px solid ${'var(--border)'}`, borderRadius: THEME.radiusMd,
+            fontSize: 13, color: 'var(--primary)', fontWeight: 600, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
           }}><Users size={15} /> Voir les fiches joueurs <ArrowRight size={14} /></button>
         </>

@@ -95,7 +95,7 @@ export default function ComparatifJoueursPage() {
     return (
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={{ fontSize: 12, fontWeight: winner === 1 ? 700 : 400, color: winner === 1 ? THEME.primary : '#374151' }}>
+          <span style={{ fontSize: 12, fontWeight: winner === 1 ? 700 : 400, color: winner === 1 ? 'var(--primary)' : '#374151' }}>
             {v1 ?? '—'}{unit}
           </span>
           <span style={{ fontSize: 11, color: '#9CA3AF' }}>{label}</span>
@@ -105,7 +105,7 @@ export default function ComparatifJoueursPage() {
         </div>
         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           <div style={{ flex: 1, height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden', direction: 'rtl' }}>
-            <div style={{ height: '100%', borderRadius: 4, background: THEME.primary, width: `${p1}%` }} />
+            <div style={{ height: '100%', borderRadius: 4, background: 'var(--primary)', width: `${p1}%` }} />
           </div>
           <div style={{ width: 2, height: 12, background: '#E5E7EB' }} />
           <div style={{ flex: 1, height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
@@ -127,7 +127,7 @@ export default function ComparatifJoueursPage() {
       <Card>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, alignItems: 'center' }}>
           <select value={joueur1} onChange={e => setJoueur1(e.target.value)}
-            style={{ padding: '8px 10px', border: `2px solid ${THEME.primary}`, borderRadius: 10, fontSize: 12, outline: 'none', color: THEME.primary, fontWeight: 600 }}>
+            style={{ padding: '8px 10px', border: `2px solid ${'var(--primary)'}`, borderRadius: 10, fontSize: 12, outline: 'none', color: 'var(--primary)', fontWeight: 600 }}>
             {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
           </select>
           <span style={{ textAlign: 'center', fontSize: 14, fontWeight: 700, color: '#9CA3AF' }}>VS</span>
@@ -161,7 +161,7 @@ export default function ComparatifJoueursPage() {
                 <div key={label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10 }}>
                   <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', marginBottom: 6 }}>{label}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: w === 1 ? THEME.primary : '#374151' }}>{v1 ?? '—'}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: w === 1 ? 'var(--primary)' : '#374151' }}>{v1 ?? '—'}</span>
                     <span style={{ fontSize: 10, color: '#D1D5DB' }}>·</span>
                     <span style={{ fontSize: 15, fontWeight: 700, color: w === 2 ? '#A32D2D' : '#374151' }}>{v2 ?? '—'}</span>
                   </div>
@@ -176,8 +176,8 @@ export default function ComparatifJoueursPage() {
               <button key={tab} onClick={() => setActiveTab(tab)} style={{
                 padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                 border: '0.5px solid #D1D5DB',
-                background: activeTab === tab ? THEME.primaryBg : 'transparent',
-                color: activeTab === tab ? THEME.primary : '#6B7280',
+                background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
+                color: activeTab === tab ? 'var(--primary)' : '#6B7280',
                 fontWeight: activeTab === tab ? 600 : 400,
                 display: 'inline-flex', alignItems: 'center', gap: 5
               }}><Icon size={11} /> {lbl}</button>
@@ -186,7 +186,7 @@ export default function ComparatifJoueursPage() {
 
           {/* Légende */}
           <div style={{ display: 'flex', gap: 16, marginBottom: 10, fontSize: 11 }}>
-            <span style={{ color: THEME.primary, fontWeight: 600 }}>◀ {j1?.nom}</span>
+            <span style={{ color: 'var(--primary)', fontWeight: 600 }}>◀ {j1?.nom}</span>
             <span style={{ color: '#A32D2D', fontWeight: 600 }}>{j2?.nom} ▶</span>
           </div>
 

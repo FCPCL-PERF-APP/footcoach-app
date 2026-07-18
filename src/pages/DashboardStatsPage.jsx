@@ -78,7 +78,7 @@ export default function DashboardStatsPage() {
       ) : (
         <>
           {/* Résultats globaux */}
-          <div style={{ background: THEME.gradient, borderRadius: 16, padding: '14px', marginBottom: 14 }}>
+          <div style={{ background: 'var(--gradient)', borderRadius: 16, padding: '14px', marginBottom: 14 }}>
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,.7)', textAlign: 'center', marginBottom: 10 }}>
               {stats.nbMatchs} matchs officiels{stats.nbPrepa > 0 ? ` · ${stats.nbPrepa} prépa. (non comptés)` : ''}
             </p>
@@ -103,7 +103,7 @@ export default function DashboardStatsPage() {
 
           {/* Buts marqués par type */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 700, color: THEME.success, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Goal size={14} /> Buts marqués par type</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Goal size={14} /> Buts marqués par type</p>
             {[
               ['Attaque placée', stats.butMarqueAP],
               ['Contre-attaque', stats.butMarqueCA],
@@ -128,7 +128,7 @@ export default function DashboardStatsPage() {
 
           {/* Buts encaissés par type */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 700, color: THEME.danger, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Shield size={14} /> Buts encaissés par type</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--danger)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Shield size={14} /> Buts encaissés par type</p>
             {[
               ['Attaque placée', stats.butEncAP],
               ['Contre-attaque', stats.butEncCA],
@@ -153,7 +153,7 @@ export default function DashboardStatsPage() {
 
           {/* Buts par période */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Clock size={14} color={THEME.primary} /> Buts par période</p>
+            <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Clock size={14} color={'var(--primary)'} /> Buts par période</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4 }}>
               {periodeLabels.map((label, i) => {
                 const marques = stats.butsParPeriode[i]
@@ -173,8 +173,8 @@ export default function DashboardStatsPage() {
               })}
             </div>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 8, fontSize: 10 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: THEME.success, display: 'inline-block' }} /> Marqués</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: THEME.danger, display: 'inline-block' }} /> Encaissés</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--success)', display: 'inline-block' }} /> Marqués</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--danger)', display: 'inline-block' }} /> Encaissés</span>
             </div>
           </Card>
 

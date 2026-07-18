@@ -33,10 +33,10 @@ const FOOTBAR_FIELDS = [
 ]
 
 function rpeColor(v) {
-  if (v >= 4.5) return THEME.danger
+  if (v >= 4.5) return 'var(--danger)'
   if (v >= 4) return '#D85A30'
-  if (v >= 3) return THEME.warning
-  return THEME.success
+  if (v >= 3) return 'var(--warning)'
+  return 'var(--success)'
 }
 
 function RpeBarChart({ rpeList, title }) {
@@ -86,7 +86,7 @@ function FootbarBilan({ footList, title }) {
           const max = vals.length ? Math.max(...vals) : null
           return (
             <div key={f.key} style={{ background: '#F9FAFB', borderRadius: 10, padding: '10px 12px' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: avg !== null ? THEME.primary : '#D1D5DB' }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: avg !== null ? 'var(--primary)' : '#D1D5DB' }}>
                 {avg !== null ? `${parseFloat(avg.toFixed(1))}${f.unit}` : '—'}
               </div>
               <div style={{ fontSize: 9, color: '#9CA3AF' }}>{f.label} (moy.)</div>
@@ -280,7 +280,7 @@ export default function MonSuiviPage() {
       <PageHeader title="Mon suivi" />
 
       {(queueCountRpe > 0 || queueCountFoot > 0) && (
-        <div style={{ background: THEME.warningBg, color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <div style={{ background: 'var(--warning-bg)', color: '#854F0B', fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 8, marginBottom: 10, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <WifiOff size={13} /> {[queueCountRpe > 0 && `${queueCountRpe} RPE`, queueCountFoot > 0 && `${queueCountFoot} Footbar`].filter(Boolean).join(' + ')} en attente de synchronisation
         </div>
       )}
@@ -289,9 +289,9 @@ export default function MonSuiviPage() {
         {tabs.map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
-            border: `0.5px solid ${tab === 'afaire' && eventsAFaire.length > 0 ? THEME.danger : '#D1D5DB'}`,
-            background: activeTab === tab ? THEME.primaryBg : 'transparent',
-            color: activeTab === tab ? THEME.primary : tab === 'afaire' && eventsAFaire.length > 0 ? THEME.danger : '#6B7280',
+            border: `0.5px solid ${tab === 'afaire' && eventsAFaire.length > 0 ? 'var(--danger)' : '#D1D5DB'}`,
+            background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
+            color: activeTab === tab ? 'var(--primary)' : tab === 'afaire' && eventsAFaire.length > 0 ? 'var(--danger)' : '#6B7280',
             fontWeight: activeTab === tab || (tab === 'afaire' && eventsAFaire.length > 0) ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -305,8 +305,8 @@ export default function MonSuiviPage() {
             eventsAFaire.length === 0 ? (
               <Card>
                 <div style={{ textAlign: 'center', padding: 20 }}>
-                  <CheckCircle2 size={36} color={THEME.success} style={{ marginBottom: 8 }} />
-                  <p style={{ fontSize: 14, fontWeight: 600, color: THEME.success }}>Tout est à jour !</p>
+                  <CheckCircle2 size={36} color={'var(--success)'} style={{ marginBottom: 8 }} />
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--success)' }}>Tout est à jour !</p>
                   <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 4 }}>RPE et Footbar remplis pour tous les événements récents.</p>
                 </div>
               </Card>
@@ -369,7 +369,7 @@ export default function MonSuiviPage() {
                         <Radio size={13} color={CAT_COLORS.orange.color} /> Footbar
                       </p>
                       {ev.type === 'match'
-                        ? <span style={{ fontSize: 10, color: THEME.primary, background: THEME.primaryBg, padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Recommandé</span>
+                        ? <span style={{ fontSize: 10, color: 'var(--primary)', background: 'var(--primary-bg)', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Recommandé</span>
                         : <span style={{ fontSize: 10, color: '#9CA3AF' }}>Optionnel</span>
                       }
                     </div>
@@ -389,23 +389,23 @@ export default function MonSuiviPage() {
 
                     {savedEventId === ev.id && queued.rpe !== undefined && (
                       queued.rpe
-                        ? <div style={{ background: THEME.warningBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> RPE — pas de réseau, sera synchronisé automatiquement</div>
-                        : <div style={{ background: THEME.successBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: THEME.success, textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> RPE enregistré !</div>
+                        ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> RPE — pas de réseau, sera synchronisé automatiquement</div>
+                        : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--success)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> RPE enregistré !</div>
                     )}
                     {savedEventId === ev.id && queued.footbar !== undefined && (
                       queued.footbar
-                        ? <div style={{ background: THEME.warningBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> Footbar — pas de réseau, sera synchronisé automatiquement</div>
-                        : <div style={{ background: THEME.successBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: THEME.success, textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> Footbar enregistré !</div>
+                        ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: '#854F0B', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> Footbar — pas de réseau, sera synchronisé automatiquement</div>
+                        : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--success)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> Footbar enregistré !</div>
                     )}
                     {errors.rpe && (
-                      <div style={{ background: THEME.dangerBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: THEME.danger, textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> RPE : {errors.rpe}</div>
+                      <div style={{ background: 'var(--danger-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--danger)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> RPE : {errors.rpe}</div>
                     )}
                     {errors.footbar && (
-                      <div style={{ background: THEME.dangerBg, borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: THEME.danger, textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> Footbar : {errors.footbar}</div>
+                      <div style={{ background: 'var(--danger-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--danger)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> Footbar : {errors.footbar}</div>
                     )}
 
                     <button onClick={() => handleSave(ev.id)} disabled={savingEventId === ev.id || !hasAny}
-                      style={{ width: '100%', padding: 13, background: hasAny ? THEME.gradient : '#E5E7EB', color: hasAny ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: hasAny ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      style={{ width: '100%', padding: 13, background: hasAny ? 'var(--gradient)' : '#E5E7EB', color: hasAny ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: hasAny ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                       {savingEventId === ev.id ? 'Enregistrement...' : <><Save size={14} /> Enregistrer</>}
                     </button>
                   </Card>
@@ -477,7 +477,7 @@ export default function MonSuiviPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
                       {FOOTBAR_FIELDS.map(f => (
                         <div key={f.key} style={{ background: '#F9FAFB', borderRadius: 10, padding: '10px 12px' }}>
-                          <div style={{ fontSize: 18, fontWeight: 700, color: selectedFoot[f.key] != null ? THEME.primary : '#D1D5DB' }}>
+                          <div style={{ fontSize: 18, fontWeight: 700, color: selectedFoot[f.key] != null ? 'var(--primary)' : '#D1D5DB' }}>
                             {selectedFoot[f.key] != null ? `${selectedFoot[f.key]}${f.unit}` : '—'}
                           </div>
                           <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{f.label}</div>

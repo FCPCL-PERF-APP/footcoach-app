@@ -8,9 +8,9 @@ import { fr } from 'date-fns/locale'
 import { ArrowLeft, CheckCircle2, MapPin, Bell, Send, Check, XCircle, Bandage, HelpCircle } from 'lucide-react'
 
 const DISPO = {
-  present: { label: 'Disponible', icon: CheckCircle2, color: THEME.success, bg: THEME.successBg },
-  absent:  { label: 'Indisponible', icon: XCircle, color: THEME.danger, bg: THEME.dangerBg },
-  blesse:  { label: 'Blessé', icon: Bandage, color: '#854F0B', bg: THEME.warningBg },
+  present: { label: 'Disponible', icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
+  absent:  { label: 'Indisponible', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
+  blesse:  { label: 'Blessé', icon: Bandage, color: '#854F0B', bg: 'var(--warning-bg)' },
   inconnu: { label: 'Sans réponse', icon: HelpCircle, color: '#9CA3AF', bg: '#F3F4F6' },
 }
 
@@ -142,7 +142,7 @@ export default function ConvocationsPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Convocations</p>
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>{event?.titre} · {dateStr}</p>
@@ -152,8 +152,8 @@ export default function ConvocationsPage() {
       {sent ? (
         <Card>
           <div style={{ textAlign: 'center', padding: 24 }}>
-            <CheckCircle2 size={44} color={THEME.success} style={{ marginBottom: 12 }} />
-            <p style={{ fontSize: 16, fontWeight: 700, color: THEME.success }}>Convocations enregistrées !</p>
+            <CheckCircle2 size={44} color={'var(--success)'} style={{ marginBottom: 12 }} />
+            <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)' }}>Convocations enregistrées !</p>
             <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>{selected.size} joueur(s) convoqué(s)</p>
             <Button variant="primary" style={{ marginTop: 16, width: '100%' }} onClick={() => navigate('/calendrier')}>
               Retour au calendrier
@@ -164,7 +164,7 @@ export default function ConvocationsPage() {
         <>
           {/* Heure et lieu de RDV */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><MapPin size={13} color={THEME.primary} /> Informations de rendez-vous</p>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><MapPin size={13} color={'var(--primary)'} /> Informations de rendez-vous</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div>
                 <label style={{ fontSize: 11, color: '#6B7280', display: 'block', marginBottom: 4 }}>Heure de RDV</label>
@@ -184,7 +184,7 @@ export default function ConvocationsPage() {
           <Card>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <p style={{ fontSize: 13, fontWeight: 600 }}>Sélection des joueurs</p>
-              <span style={{ fontSize: 12, color: selected.size >= cap ? THEME.danger : THEME.primary, fontWeight: 600 }}>
+              <span style={{ fontSize: 12, color: selected.size >= cap ? 'var(--danger)' : 'var(--primary)', fontWeight: 600 }}>
                 {selected.size}/{cap}
               </span>
             </div>
@@ -193,8 +193,8 @@ export default function ConvocationsPage() {
             </p>
 
             {/* Aperçu SMS */}
-            <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: 10, marginBottom: 12, borderLeft: `3px solid ${THEME.primary}` }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: THEME.primary, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}><Bell size={12} /> Notification push envoyée</p>
+            <div style={{ background: 'var(--primary-bg)', borderRadius: 10, padding: 10, marginBottom: 12, borderLeft: `3px solid ${'var(--primary)'}` }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--primary)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}><Bell size={12} /> Notification push envoyée</p>
               <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, display: 'flex', alignItems: 'flex-start', gap: 5 }}>
                 <Send size={12} style={{ flexShrink: 0, marginTop: 2 }} />
                 <span><strong>Convocation — {event?.titre}</strong>{'\n'}
@@ -227,8 +227,8 @@ export default function ConvocationsPage() {
                   </div>
                   <div style={{
                     width: 26, height: 26, borderRadius: '50%',
-                    border: `2px solid ${isSelected ? THEME.success : '#D1D5DB'}`,
-                    background: isSelected ? THEME.success : 'transparent',
+                    border: `2px solid ${isSelected ? 'var(--success)' : '#D1D5DB'}`,
+                    background: isSelected ? 'var(--success)' : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 14, color: '#fff', flexShrink: 0, transition: 'all .15s'
                   }}>

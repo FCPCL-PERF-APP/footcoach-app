@@ -55,7 +55,7 @@ export default function PhotoCropModal({ file, onCancel, onCropped }) {
           </button>
           <button onClick={handleValidate} disabled={processing} style={{
             flex: 1, padding: 13, borderRadius: 12, border: 'none',
-            background: THEME.gradient, color: '#fff', fontSize: 14, fontWeight: 700,
+            background: 'var(--gradient)', color: '#fff', fontSize: 14, fontWeight: 700,
             cursor: processing ? 'not-allowed' : 'pointer'
           }}>
             {processing ? 'Traitement...' : '✅ Valider'}

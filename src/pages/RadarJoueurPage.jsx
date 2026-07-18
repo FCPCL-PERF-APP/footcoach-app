@@ -124,7 +124,7 @@ export default function RadarJoueurPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(`/joueurs/${id}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate(`/joueurs/${id}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div>
           <p style={{ fontSize: 16, fontWeight: 700 }}>Radar RPE</p>
           <p style={{ fontSize: 12, color: '#9CA3AF' }}>{joueur?.nom} {joueur?.prenom} · {joueur?.poste}</p>
@@ -176,7 +176,7 @@ export default function RadarJoueurPage() {
 
       {/* Analyse textuelle */}
       <Card>
-        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><ClipboardList size={16} color={THEME.primary} /> Analyse</p>
+        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><ClipboardList size={16} color={'var(--primary)'} /> Analyse</p>
         {AXES.map(a => {
           const diff = comparaison[a.key]
           if (Math.abs(diff) < 0.5) return null

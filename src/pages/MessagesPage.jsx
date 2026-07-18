@@ -198,8 +198,8 @@ export default function MessagesPage() {
           <button key={tab} onClick={() => { setActiveTab(tab); setActiveConv(null); setShowNewMsg(false) }} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === tab ? THEME.primaryBg : 'transparent',
-            color: activeTab === tab ? THEME.primary : '#6B7280',
+            background: activeTab === tab ? 'var(--primary-bg)' : 'transparent',
+            color: activeTab === tab ? 'var(--primary)' : '#6B7280',
             fontWeight: activeTab === tab ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
           }}><Icon size={12} /> {lbl}</button>
@@ -266,7 +266,7 @@ export default function MessagesPage() {
                               <p style={{ fontSize: 13, fontWeight: 500 }}>{c.nom} {c.prenom}</p>
                               <p style={{ fontSize: 11, color: '#9CA3AF' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
                             </div>
-                            <span style={{ marginLeft: 'auto', color: THEME.primary, fontSize: 12, display: 'flex', alignItems: 'center', gap: 3 }}>Écrire <ArrowRight size={11} /></span>
+                            <span style={{ marginLeft: 'auto', color: 'var(--primary)', fontSize: 12, display: 'flex', alignItems: 'center', gap: 3 }}>Écrire <ArrowRight size={11} /></span>
                           </div>
                         )
                       })
@@ -278,7 +278,7 @@ export default function MessagesPage() {
               {activeConv ? (
                 <Card style={{ display: 'flex', flexDirection: 'column', height: '65vh' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid #F3F4F6' }}>
-                    <button onClick={() => setActiveConv(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+                    <button onClick={() => setActiveConv(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
                     <Avatar initials={`${activeConv.nom?.[0]}${activeConv.prenom?.[0]}`} bg={AVATAR_COLORS[0].bg} color={AVATAR_COLORS[0].color} size={32} />
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 600 }}>{activeConv.nom} {activeConv.prenom}</p>
@@ -358,12 +358,12 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
         <div style={{
           padding: '8px 12px',
           borderRadius: isMe ? '12px 12px 3px 12px' : '12px 12px 12px 3px',
-          background: isMe ? THEME.gradient : '#F3F4F6',
+          background: isMe ? 'var(--gradient)' : '#F3F4F6',
           color: isMe ? '#fff' : '#111',
           cursor: 'pointer'
         }} onClick={() => setShowActions(!showActions)}>
           {!isMe && msg.expediteur_nom && (
-            <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 3, color: THEME.primary }}>{msg.expediteur_nom}</p>
+            <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 3, color: 'var(--primary)' }}>{msg.expediteur_nom}</p>
           )}
           <p style={{ fontSize: 13, lineHeight: 1.4 }}>{msg.contenu}</p>
           <p style={{ fontSize: 9, opacity: .6, marginTop: 3, textAlign: 'right' }}>{formatTime(msg.created_at)}</p>
@@ -393,7 +393,7 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
             {/* Supprimer */}
             {canDelete && (
               <button onClick={(e) => { e.stopPropagation(); onDelete(); setShowActions(false) }}
-                style={{ fontSize: 11, color: THEME.danger, background: THEME.dangerBg, border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                style={{ fontSize: 11, color: 'var(--danger)', background: 'var(--danger-bg)', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Trash2 size={11} /> Supprimer
               </button>
             )}
@@ -411,7 +411,7 @@ function MsgInput({ value, onChange, onSend }) {
         onKeyDown={e => e.key === 'Enter' && !e.shiftKey && onSend()}
         placeholder="Écrire un message..."
         style={{ flex: 1, padding: '9px 12px', border: '0.5px solid #D1D5DB', borderRadius: 20, fontSize: 13, outline: 'none', background: '#F9FAFB' }} />
-      <button onClick={onSend} style={{ width: 38, height: 38, borderRadius: '50%', background: THEME.gradient, border: 'none', cursor: 'pointer', color: '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Send size={16} /></button>
+      <button onClick={onSend} style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--gradient)', border: 'none', cursor: 'pointer', color: '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Send size={16} /></button>
     </div>
   )
 }

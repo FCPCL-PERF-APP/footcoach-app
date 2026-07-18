@@ -13,7 +13,7 @@ function Top5({ title, icon: Icon, data, valueKey, valueLabel, valueSuffix = '' 
   const max = top5[0]?.[valueKey] || 1
   return (
     <Card>
-      <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Icon size={14} color={THEME.primary} /> {title}</p>
+      <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Icon size={14} color={'var(--primary)'} /> {title}</p>
       {top5.length === 0 ? (
         <p style={{ fontSize: 12, color: '#9CA3AF', fontStyle: 'italic' }}>Pas encore de données.</p>
       ) : (
@@ -29,12 +29,12 @@ function Top5({ title, icon: Icon, data, valueKey, valueLabel, valueSuffix = '' 
                   <p style={{ fontSize: 10, color: '#9CA3AF' }}>{item.poste || '—'}</p>
                 </div>
               </div>
-              <span style={{ fontSize: 14, fontWeight: 800, color: THEME.primary }}>
+              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--primary)' }}>
                 {typeof item[valueKey] === 'number' ? item[valueKey].toFixed(item[valueKey] % 1 !== 0 ? 1 : 0) : item[valueKey]}{valueSuffix}
               </span>
             </div>
             <div style={{ height: 6, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ height: '100%', borderRadius: 4, background: i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : THEME.primary, width: `${item[valueKey]/max*100}%` }} />
+              <div style={{ height: '100%', borderRadius: 4, background: i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : 'var(--primary)', width: `${item[valueKey]/max*100}%` }} />
             </div>
           </div>
         ))
@@ -135,8 +135,8 @@ export default function ClassementButeursPage() {
           <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
             flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB',
-            background: activeTab === t.key ? THEME.primaryBg : 'transparent',
-            color: activeTab === t.key ? THEME.primary : '#6B7280',
+            background: activeTab === t.key ? 'var(--primary-bg)' : 'transparent',
+            color: activeTab === t.key ? 'var(--primary)' : '#6B7280',
             fontWeight: activeTab === t.key ? 600 : 400,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
           }}><t.icon size={12} /> {t.label}</button>

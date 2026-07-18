@@ -25,10 +25,10 @@ const RPE_ITEMS = [
 ]
 
 function rpeColor(v) {
-  if (v >= 4.5) return THEME.danger
+  if (v >= 4.5) return 'var(--danger)'
   if (v >= 4) return '#D85A30'
-  if (v >= 3) return THEME.warning
-  return THEME.success
+  if (v >= 3) return 'var(--warning)'
+  return 'var(--success)'
 }
 
 const AVATAR_COLORS = [
@@ -351,15 +351,15 @@ export default function FicheJoueurPage() {
       )}
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div style={{ position: 'relative' }}>
           {joueur.photo_url
-            ? <img src={joueur.photo_url} alt={joueur.nom} style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${THEME.primary}` }} />
+            ? <img src={joueur.photo_url} alt={joueur.nom} style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${'var(--primary)'}` }} />
             : <Avatar initials={initials} bg={AVATAR_COLORS[0].bg} color={AVATAR_COLORS[0].color} size={52} />
           }
           {isCoach && (
             <div onClick={() => document.getElementById(`photo-${id}`).click()}
-              style={{ position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, background: THEME.primary, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              style={{ position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <Camera size={11} color="#fff" />
             </div>
           )}
@@ -372,7 +372,7 @@ export default function FicheJoueurPage() {
             {joueur.poste} {joueur.numero ? `· N°${joueur.numero}` : ''} {joueur.groupe ? `· Pôle ${joueur.groupe}` : ''}
           </p>
           {blessureActive && (
-            <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 6, background: THEME.dangerBg, color: THEME.danger, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+            <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 6, background: 'var(--danger-bg)', color: 'var(--danger)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
               <Bandage size={10} /> {blessureActive.zone}
             </span>
           )}
@@ -380,13 +380,13 @@ export default function FicheJoueurPage() {
         {isCoach && (
           <div style={{ display: 'flex', gap: 6 }}>
             <button onClick={() => { if (editing) saveIdentite(); else setEditing(true) }}
-              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: editing ? THEME.successBg : THEME.primaryBg, color: editing ? THEME.success : THEME.primary, cursor: 'pointer', display: 'flex' }}>
+              style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: editing ? 'var(--success-bg)' : 'var(--primary-bg)', color: editing ? 'var(--success)' : 'var(--primary)', cursor: 'pointer', display: 'flex' }}>
               {saving ? '...' : editing ? <Save size={14} /> : <Pencil size={14} />}
             </button>
             <button onClick={renvoyerInvitation} disabled={inviting}
               title="Renvoyer l'invitation par email"
               style={{ padding: '6px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: '#fff', cursor: inviting ? 'not-allowed' : 'pointer', opacity: inviting ? 0.5 : 1, display: 'flex' }}>
-              {inviting ? <Hourglass size={14} /> : <Mail size={14} color={THEME.primary} />}
+              {inviting ? <Hourglass size={14} /> : <Mail size={14} color={'var(--primary)'} />}
             </button>
             {editing && <button onClick={() => { setEditing(false); setForm({...joueur}) }}
               style={{ padding: '6px 10px', borderRadius: 8, border: 'none', background: '#F3F4F6', color: '#6B7280', cursor: 'pointer', display: 'flex' }}><X size={14} /></button>}
@@ -394,8 +394,8 @@ export default function FicheJoueurPage() {
         )}
       </div>
 
-      {photoUploading && <div style={{ background: THEME.primaryBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.primary, display: 'flex', alignItems: 'center', gap: 6 }}><Camera size={13} /> Upload en cours...</div>}
-      {saved && <div style={{ background: THEME.successBg, borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: THEME.success, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Modifications enregistrées !</div>}
+      {photoUploading && <div style={{ background: 'var(--primary-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 6 }}><Camera size={13} /> Upload en cours...</div>}
+      {saved && <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 12, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={13} /> Modifications enregistrées !</div>}
 
       {/* Invitation email */}
       {isCoach && !joueur.auth_id && (
@@ -419,12 +419,12 @@ export default function FicheJoueurPage() {
                   placeholder="email@joueur.com"
                   style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none' }} />
                 <button onClick={handleInvite} disabled={inviting || !inviteEmail}
-                  style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+                  style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
                   {inviting ? '...' : 'Envoyer'}
                 </button>
               </div>
               {inviteResult && (
-                <p style={{ fontSize: 12, marginTop: 6, color: inviteResult.success ? THEME.success : THEME.danger }}>
+                <p style={{ fontSize: 12, marginTop: 6, color: inviteResult.success ? 'var(--success)' : 'var(--danger)' }}>
                   {inviteResult.message}
                 </p>
               )}
@@ -434,13 +434,13 @@ export default function FicheJoueurPage() {
       )}
 
       {isCoach && joueur.auth_id && (
-        <div style={{ background: THEME.successBg, borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: THEME.success, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: 'var(--success)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={12} /> Compte actif — joueur connecté à l'app</span>
         </div>
       )}
 
       {isCoach && !joueur.auth_id && joueur.email && !showInvite && inviteResult?.success && (
-        <div style={{ background: THEME.primaryBg, borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: THEME.primary, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'var(--primary-bg)', borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: 'var(--primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={12} /> Invitation envoyée — lien valable 24h</span>
           <button onClick={() => { setShowInvite(true); setInviteResult(null) }}
             style={{ fontSize: 10, color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
@@ -463,17 +463,17 @@ export default function FicheJoueurPage() {
       {presenceSeances.length > 0 && (
         <Card style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color={THEME.primary} /> Présence entraînements</p>
-            <span style={{ fontSize: 15, fontWeight: 800, color: presenceBreakdown.tauxEngagement >= 80 ? THEME.success : '#D85A30' }}>
+            <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color={'var(--primary)'} /> Présence entraînements</p>
+            <span style={{ fontSize: 15, fontWeight: 800, color: presenceBreakdown.tauxEngagement >= 80 ? 'var(--success)' : '#D85A30' }}>
               {presenceBreakdown.tauxEngagement ?? '—'}%
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
             {[
               { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
-              { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: THEME.primary, bg: THEME.primaryBg },
-              { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: THEME.warningBg },
-              { key: 'absent', label: 'Absent', icon: XCircle, color: THEME.danger, bg: THEME.dangerBg },
+              { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: 'var(--primary)', bg: 'var(--primary-bg)' },
+              { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: 'var(--warning-bg)' },
+              { key: 'absent', label: 'Absent', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
             ].map(s => (
               <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '7px 4px', textAlign: 'center' }}>
                 <s.icon size={12} color={s.color} style={{ marginBottom: 3 }} />
@@ -506,7 +506,7 @@ export default function FicheJoueurPage() {
       {isCoach && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
           <button onClick={() => navigate(`/joueurs/${id}/blessures`)}
-            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: blessureActive ? THEME.dangerBg : 'transparent', color: blessureActive ? THEME.danger : '#6B7280', fontSize: 11, cursor: 'pointer', fontWeight: blessureActive ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: blessureActive ? 'var(--danger-bg)' : 'transparent', color: blessureActive ? 'var(--danger)' : '#6B7280', fontSize: 11, cursor: 'pointer', fontWeight: blessureActive ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
             <Bandage size={12} /> Blessures {blessureActive ? '· 1 active' : ''}
           </button>
           <button onClick={() => navigate(`/joueurs/${id}/objectifs`)}
@@ -602,10 +602,10 @@ export default function FicheJoueurPage() {
             {poidsHistory.length > 1 && (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 11, color: '#6B7280' }}>Dernier : <strong style={{ color: THEME.primary }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
+                  <span style={{ fontSize: 11, color: '#6B7280' }}>Dernier : <strong style={{ color: 'var(--primary)' }}>{poidsHistory[poidsHistory.length-1]?.poids} kg</strong></span>
                   {poidsHistory.length >= 2 && (() => {
                     const diff = (poidsHistory[poidsHistory.length-1].poids - poidsHistory[0].poids).toFixed(1)
-                    return <span style={{ fontSize: 11, color: parseFloat(diff) > 0 ? THEME.danger : THEME.success, fontWeight: 600 }}>{parseFloat(diff) > 0 ? '+' : ''}{diff} kg</span>
+                    return <span style={{ fontSize: 11, color: parseFloat(diff) > 0 ? 'var(--danger)' : 'var(--success)', fontWeight: 600 }}>{parseFloat(diff) > 0 ? '+' : ''}{diff} kg</span>
                   })()}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 70, marginBottom: 4 }}>
@@ -616,8 +616,8 @@ export default function FicheJoueurPage() {
                     const isLast = i === poidsHistory.length - 1
                     return (
                       <div key={p.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        {isLast && <span style={{ fontSize: 9, color: THEME.primary, fontWeight: 700, marginBottom: 2 }}>{p.poids}</span>}
-                        <div style={{ width: '100%', background: isLast ? THEME.primary : '#B5D4F4', borderRadius: '3px 3px 0 0', height: `${h}px` }} />
+                        {isLast && <span style={{ fontSize: 9, color: 'var(--primary)', fontWeight: 700, marginBottom: 2 }}>{p.poids}</span>}
+                        <div style={{ width: '100%', background: isLast ? 'var(--primary)' : '#B5D4F4', borderRadius: '3px 3px 0 0', height: `${h}px` }} />
                       </div>
                     )
                   })}
@@ -631,7 +631,7 @@ export default function FicheJoueurPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <input type="number" step="0.1" placeholder="Nouvelle pesée (kg)" value={newPoids} onChange={e => setNewPoids(e.target.value)}
                 style={{ flex: 1, padding: '8px 10px', border: '0.5px solid #D1D5DB', borderRadius: 10, fontSize: 13, outline: 'none' }} />
-              <button onClick={savePoids} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: THEME.primary, color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>+ Ajouter</button>
+              <button onClick={savePoids} style={{ padding: '8px 14px', borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>+ Ajouter</button>
             </div>
           </Card>
           <Card>
@@ -640,7 +640,7 @@ export default function FicheJoueurPage() {
               {['points_forts','points_faibles'].map((field, i) => (
                 <div key={field}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6B7280', marginBottom: 4 }}>
-                    {i === 0 ? <><CheckCircle2 size={11} color={THEME.success} /> Points forts</> : <><Target size={11} color={THEME.warning} /> Axes de travail</>}
+                    {i === 0 ? <><CheckCircle2 size={11} color={'var(--success)'} /> Points forts</> : <><Target size={11} color={'var(--warning)'} /> Axes de travail</>}
                   </label>
                   <textarea value={form[field] || ''} onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
                     disabled={!editing} rows={4}
@@ -747,7 +747,7 @@ export default function FicheJoueurPage() {
               {/* Points forts */}
               {objJoueurData.points_forts && Object.values(objJoueurData.points_forts).some(v => v) && (
                 <Card>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: THEME.success, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Points forts</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Points forts</p>
                   {[
                     { key: 'athletique', icon: Dumbbell, label: 'Athlétique' },
                     { key: 'tactique',   icon: Brain, label: 'Tactique' },
@@ -808,7 +808,7 @@ export default function FicheJoueurPage() {
 
               {/* Bilan — coach peut modifier */}
               <Card>
-                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={13} color={THEME.primary} /> Bilan saison — à remplir par le coach</p>
+                <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 5 }}><Target size={13} color={'var(--primary)'} /> Bilan saison — à remplir par le coach</p>
 
                 <p style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>1. Objectifs personnels atteints ?</p>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
@@ -816,9 +816,9 @@ export default function FicheJoueurPage() {
                     <button key={v} onClick={() => setBilanForm(p => ({...p, bilan_obj_perso_atteints: v === 'Oui'}))}
                       style={{ flex: 1, padding: 8, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                        border: `1.5px solid ${bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.success : THEME.danger) : '#E5E7EB'}`,
-                        background: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.successBg : THEME.dangerBg) : 'transparent',
-                        color: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.success : THEME.danger) : '#6B7280' }}>
+                        border: `1.5px solid ${bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : '#E5E7EB'}`,
+                        background: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success-bg)' : 'var(--danger-bg)') : 'transparent',
+                        color: bilanForm.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : '#6B7280' }}>
                       {v === 'Oui' ? <CheckCircle2 size={13} /> : <XCircle size={13} />} {v}
                     </button>
                   ))}
@@ -837,9 +837,9 @@ export default function FicheJoueurPage() {
                     <button key={v} onClick={() => setBilanForm(p => ({...p, bilan_obj_collectifs_atteints: v === 'Oui'}))}
                       style={{ flex: 1, padding: 8, borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                        border: `1.5px solid ${bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.success : THEME.danger) : '#E5E7EB'}`,
-                        background: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.successBg : THEME.dangerBg) : 'transparent',
-                        color: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? THEME.success : THEME.danger) : '#6B7280' }}>
+                        border: `1.5px solid ${bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : '#E5E7EB'}`,
+                        background: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success-bg)' : 'var(--danger-bg)') : 'transparent',
+                        color: bilanForm.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : '#6B7280' }}>
                       {v === 'Oui' ? <CheckCircle2 size={13} /> : <XCircle size={13} />} {v}
                     </button>
                   ))}
@@ -859,9 +859,9 @@ export default function FicheJoueurPage() {
                     style={{ width: '100%', padding: '7px 10px', border: '0.5px solid #D1D5DB', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
                 </div>
 
-                {bilanSaved && <p style={{ fontSize: 12, color: THEME.success, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Bilan sauvegardé !</p>}
+                {bilanSaved && <p style={{ fontSize: 12, color: 'var(--success)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><CheckCircle2 size={13} /> Bilan sauvegardé !</p>}
                 <button onClick={saveBilan} disabled={savingBilan}
-                  style={{ width: '100%', padding: 10, borderRadius: 10, border: 'none', background: THEME.gradient, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: 'none', background: 'var(--gradient)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   {savingBilan ? 'Enregistrement...' : <><Save size={14} /> Sauvegarder le bilan</>}
                 </button>
               </Card>

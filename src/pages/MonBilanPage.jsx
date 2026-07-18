@@ -11,10 +11,10 @@ import { computePresenceBreakdown } from '../lib/presenceStats'
 
 function rpeColor(v) {
   if (!v) return '#9CA3AF'
-  if (v >= 4.5) return THEME.danger
+  if (v >= 4.5) return 'var(--danger)'
   if (v >= 4) return '#D85A30'
-  if (v >= 3) return THEME.warning
-  return THEME.success
+  if (v >= 3) return 'var(--warning)'
+  return 'var(--success)'
 }
 
 export default function MonBilanPage() {
@@ -99,12 +99,12 @@ export default function MonBilanPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
-        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><Trophy size={17} color={THEME.primary} /> Mon bilan saison {saisonLabel}</h1>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
+        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><Trophy size={17} color={'var(--primary)'} /> Mon bilan saison {saisonLabel}</h1>
       </div>
 
       {/* Hero */}
-      <div style={{ background: THEME.gradient, borderRadius: 16, padding: '16px 14px', marginBottom: 14 }}>
+      <div style={{ background: 'var(--gradient)', borderRadius: 16, padding: '16px 14px', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
           {joueur?.photo_url
             ? <img src={joueur.photo_url} alt={joueur.nom} style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,.4)' }} />
@@ -137,15 +137,15 @@ export default function MonBilanPage() {
       <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Swords size={11} /> Statistiques match</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
         {[
-          { label: 'Matchs joués', value: stats?.totalMatchs, color: THEME.primary },
+          { label: 'Matchs joués', value: stats?.totalMatchs, color: 'var(--primary)' },
           { label: 'Buts', value: stats?.totalButs, color: '#3B6D11' },
           { label: 'Passes déc.', value: stats?.totalPD, color: '#3B6D11' },
-          { label: 'Minutes jouées', value: stats?.totalMin, color: THEME.primary },
-          { label: 'Note moyenne', value: stats?.noteMoy, color: THEME.primary },
-          { label: 'Titularisations', value: stats?.titulaire, color: THEME.primary },
-          { label: 'Cartons', value: stats?.cartons, color: THEME.warning },
-          { label: 'Dist. moy./match', value: stats?.distMoy ? `${stats.distMoy}km` : '—', color: THEME.primary },
-          { label: 'Sprint max', value: stats?.sprintMax ? `${stats.sprintMax}km/h` : '—', color: THEME.primary },
+          { label: 'Minutes jouées', value: stats?.totalMin, color: 'var(--primary)' },
+          { label: 'Note moyenne', value: stats?.noteMoy, color: 'var(--primary)' },
+          { label: 'Titularisations', value: stats?.titulaire, color: 'var(--primary)' },
+          { label: 'Cartons', value: stats?.cartons, color: 'var(--warning)' },
+          { label: 'Dist. moy./match', value: stats?.distMoy ? `${stats.distMoy}km` : '—', color: 'var(--primary)' },
+          { label: 'Sprint max', value: stats?.sprintMax ? `${stats.sprintMax}km/h` : '—', color: 'var(--primary)' },
         ].map(s => (
           <div key={s.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -160,7 +160,7 @@ export default function MonBilanPage() {
         {[
           { label: 'RPE moyen', value: `${stats?.rpeMoy}/5`, color: rpeColor(parseFloat(stats?.rpeMoy)) },
           { label: 'Motivation moy.', value: `${stats?.motivMoy}/5`, color: rpeColor(parseFloat(stats?.motivMoy)) },
-          { label: 'Sessions RPE', value: stats?.nbRpe, color: THEME.primary },
+          { label: 'Sessions RPE', value: stats?.nbRpe, color: 'var(--primary)' },
         ].map(s => (
           <div key={s.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -196,9 +196,9 @@ export default function MonBilanPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
           {[
             { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
-            { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: THEME.primary, bg: THEME.primaryBg },
-            { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: THEME.warningBg },
-            { key: 'absent', label: 'Absent', icon: XCircle, color: THEME.danger, bg: THEME.dangerBg },
+            { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: 'var(--primary)', bg: 'var(--primary-bg)' },
+            { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: 'var(--warning-bg)' },
+            { key: 'absent', label: 'Absent', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
           ].map(s => (
             <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '8px 4px', textAlign: 'center' }}>
               <s.icon size={13} color={s.color} style={{ marginBottom: 3 }} />
@@ -215,8 +215,8 @@ export default function MonBilanPage() {
           <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Radio size={11} /> Footbar saison</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
             {[
-              { label: 'Distance totale', value: `${stats?.totalDist}km`, color: THEME.primary },
-              { label: 'Dist. moy./match', value: `${stats?.distMoy}km`, color: THEME.primary },
+              { label: 'Distance totale', value: `${stats?.totalDist}km`, color: 'var(--primary)' },
+              { label: 'Dist. moy./match', value: `${stats?.distMoy}km`, color: 'var(--primary)' },
               { label: 'Sprint max saison', value: `${stats?.sprintMax}km/h`, color: '#3B6D11' },
             ].map(s => (
               <div key={s.label} style={{ background: '#fff', border: '0.5px solid #E5E7EB', borderRadius: 12, padding: 10, textAlign: 'center' }}>
@@ -241,7 +241,7 @@ export default function MonBilanPage() {
                    stats?.objAtteints > 0 ? 'Bonne progression' : 'Continue tes efforts'}
                 </p>
               </div>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', border: `4px solid ${stats?.objAtteints === stats?.objTotal ? '#3B6D11' : THEME.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: stats?.objAtteints === stats?.objTotal ? '#3B6D11' : THEME.primary }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', border: `4px solid ${stats?.objAtteints === stats?.objTotal ? '#3B6D11' : 'var(--primary)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: stats?.objAtteints === stats?.objTotal ? '#3B6D11' : 'var(--primary)' }}>
                 {stats?.objTotal ? Math.round(stats.objAtteints / stats.objTotal * 100) : 0}%
               </div>
             </div>
@@ -250,7 +250,7 @@ export default function MonBilanPage() {
       )}
 
       {/* Message coach */}
-      <div style={{ background: THEME.gradient, borderRadius: 12, padding: 14, textAlign: 'center' }}>
+      <div style={{ background: 'var(--gradient)', borderRadius: 12, padding: 14, textAlign: 'center' }}>
         <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Trophy size={14} /> FC PCL — Saison {saisonLabel}</p>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,.8)' }}>
           Continue sur cette lancée pour la prochaine saison !

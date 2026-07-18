@@ -16,10 +16,10 @@ const AVATAR_COLORS = [
 
 function rpeColor(v) {
   if (!v) return '#9CA3AF'
-  if (v >= 4.5) return THEME.danger
+  if (v >= 4.5) return 'var(--danger)'
   if (v >= 3.5) return '#D85A30'
-  if (v >= 2.5) return THEME.warning
-  return THEME.success
+  if (v >= 2.5) return 'var(--warning)'
+  return 'var(--success)'
 }
 
 export default function JoueursPage() {
@@ -97,7 +97,7 @@ export default function JoueursPage() {
             <button onClick={() => navigate('/joueurs/import')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid #D1D5DB', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
               <Download size={13} /> Import
             </button>
-            <button onClick={() => navigate('/joueurs/nouveau')} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: THEME.primary, color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <button onClick={() => navigate('/joueurs/nouveau')} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
               <Plus size={13} /> Ajouter
             </button>
           </div>
@@ -106,11 +106,11 @@ export default function JoueursPage() {
 
       {/* Alerte surcharge */}
       {isStaff && nbSurcharge > 0 && (
-        <div style={{ background: THEME.dangerBg, border: '0.5px solid #FCA5A5', borderRadius: 10, padding: '8px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: THEME.danger, display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ background: 'var(--danger-bg)', border: '0.5px solid #FCA5A5', borderRadius: 10, padding: '8px 12px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: 5 }}>
             <AlertTriangle size={13} /> {nbSurcharge} joueur(s) avec RPE ≥ 4
           </span>
-          <button onClick={() => setSortBy('rpe')} style={{ fontSize: 11, color: THEME.danger, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+          <button onClick={() => setSortBy('rpe')} style={{ fontSize: 11, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
             Voir en premier <ArrowRight size={11} />
           </button>
         </div>
@@ -145,7 +145,7 @@ export default function JoueursPage() {
             padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
             background: filterPoste === p ? '#E6F1FB' : 'transparent',
-            color: filterPoste === p ? THEME.primary : '#6B7280',
+            color: filterPoste === p ? 'var(--primary)' : '#6B7280',
             fontWeight: filterPoste === p ? 600 : 400
           }}>{p === 'tous' ? 'Tous' : p}</button>
         ))}
@@ -154,13 +154,13 @@ export default function JoueursPage() {
             padding: '4px 8px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid #D1D5DB', whiteSpace: 'nowrap',
             background: sortBy === 'nom' ? '#E6F1FB' : 'transparent',
-            color: sortBy === 'nom' ? THEME.primary : '#6B7280',
+            color: sortBy === 'nom' ? 'var(--primary)' : '#6B7280',
           }}>A→Z</button>
           {isStaff && <button onClick={() => setSortBy('rpe')} style={{
             padding: '4px 8px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
-            border: `0.5px solid ${sortBy === 'rpe' ? THEME.danger : '#D1D5DB'}`,
-            background: sortBy === 'rpe' ? THEME.dangerBg : 'transparent',
-            color: sortBy === 'rpe' ? THEME.danger : '#6B7280',
+            border: `0.5px solid ${sortBy === 'rpe' ? 'var(--danger)' : '#D1D5DB'}`,
+            background: sortBy === 'rpe' ? 'var(--danger-bg)' : 'transparent',
+            color: sortBy === 'rpe' ? 'var(--danger)' : '#6B7280',
             display: 'inline-flex', alignItems: 'center', gap: 4
           }}><Heart size={11} /> RPE</button>}
         </div>
@@ -211,7 +211,7 @@ export default function JoueursPage() {
                     <p style={{ fontSize: 13, fontWeight: 600 }}>
                       {j.nom} {j.prenom}
                       {blessuresActives[j.id] && (
-                        <span style={{ marginLeft: 6, fontSize: 11, background: THEME.warningBg, color: '#854F0B', borderRadius: 10, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <span style={{ marginLeft: 6, fontSize: 11, background: 'var(--warning-bg)', color: '#854F0B', borderRadius: 10, padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                           <Bandage size={10} /> Blessé
                         </span>
                       )}
@@ -230,8 +230,8 @@ export default function JoueursPage() {
                   )}
                   {isCoach && (
                     <button onClick={() => setConfirmDelete(j)}
-                      style={{ border: 'none', background: THEME.dangerBg, borderRadius: 6, padding: '5px 7px', cursor: 'pointer', display: 'flex' }}>
-                      <Trash2 size={13} color={THEME.danger} />
+                      style={{ border: 'none', background: 'var(--danger-bg)', borderRadius: 6, padding: '5px 7px', cursor: 'pointer', display: 'flex' }}>
+                      <Trash2 size={13} color={'var(--danger)'} />
                     </button>
                   )}
                   {isStaff && <ChevronRight size={18} color="#D1D5DB" style={{ cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)} />}

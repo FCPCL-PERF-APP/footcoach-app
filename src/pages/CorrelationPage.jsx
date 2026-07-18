@@ -195,8 +195,8 @@ export default function CorrelationPage() {
               <button key={key} onClick={() => setDimension(key)} style={{
                 padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                 border: '0.5px solid #D1D5DB',
-                background: dimension === key ? THEME.primaryBg : 'transparent',
-                color: dimension === key ? THEME.primary : '#6B7280',
+                background: dimension === key ? 'var(--primary-bg)' : 'transparent',
+                color: dimension === key ? 'var(--primary)' : '#6B7280',
                 fontWeight: dimension === key ? 600 : 400,
                 display: 'inline-flex', alignItems: 'center', gap: 5
               }}><Icon size={11} /> {lbl}</button>
@@ -209,9 +209,9 @@ export default function CorrelationPage() {
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{dimLabel} vs Différence de buts</p>
               <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span>Chaque point = un match</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={THEME.success} color={THEME.success} /> Victoire</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={THEME.warning} color={THEME.warning} /> Nul</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={THEME.danger} color={THEME.danger} /> Défaite</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={'var(--success)'} color={'var(--success)'} /> Victoire</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={'var(--warning)'} color={'var(--warning)'} /> Nul</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}><Circle size={7} fill={'var(--danger)'} color={'var(--danger)'} /> Défaite</span>
               </p>
               <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 160 }}>
                 {/* Axes */}
@@ -226,7 +226,7 @@ export default function CorrelationPage() {
                 {dimData.map((p, i) => {
                   const cx = xPos(p[dimKey])
                   const cy = yPos(p.diff)
-                  const color = p.resultat === 'V' ? THEME.success : p.resultat === 'N' ? THEME.warning : THEME.danger
+                  const color = p.resultat === 'V' ? 'var(--success)' : p.resultat === 'N' ? 'var(--warning)' : 'var(--danger)'
                   return (
                     <g key={i}>
                       <circle cx={cx} cy={cy} r="6" fill={color} opacity="0.85" />

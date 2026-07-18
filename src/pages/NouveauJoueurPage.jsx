@@ -89,19 +89,19 @@ export default function NouveauJoueurPage() {
       <div style={{ padding: 12 }}>
         <Card>
           <div style={{ textAlign: 'center', padding: 24 }}>
-            <CheckCircle2 size={44} color={THEME.success} style={{ marginBottom: 12 }} />
-            <p style={{ fontSize: 16, fontWeight: 700, color: THEME.success }}>
+            <CheckCircle2 size={44} color={'var(--success)'} style={{ marginBottom: 12 }} />
+            <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)' }}>
               {form.prenom} {form.nom.toUpperCase()} ajouté !
             </p>
             {form.email && inviteEmail && !inviteError && inviteMode === 'reset' && (
-              <div style={{ background: THEME.successBg, borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: THEME.success, display: 'flex', gap: 6 }}>
+              <div style={{ background: 'var(--success-bg)', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: 'var(--success)', display: 'flex', gap: 6 }}>
                 <Mail size={13} style={{ flexShrink: 0, marginTop: 1 }} />
                 <span>Ce joueur avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à<br />
                 <strong>{form.email}</strong></span>
               </div>
             )}
             {form.email && inviteEmail && !inviteError && inviteMode === 'invite' && (
-              <div style={{ background: THEME.successBg, borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: THEME.success, display: 'flex', gap: 6 }}>
+              <div style={{ background: 'var(--success-bg)', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: 'var(--success)', display: 'flex', gap: 6 }}>
                 <Mail size={13} style={{ flexShrink: 0, marginTop: 1 }} />
                 <span>Un email d'invitation a été envoyé à<br />
                 <strong>{form.email}</strong><br />
@@ -109,14 +109,14 @@ export default function NouveauJoueurPage() {
               </div>
             )}
             {form.email && inviteEmail && inviteError && (
-              <div style={{ background: THEME.dangerBg, borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: THEME.danger, display: 'flex', gap: 6 }}>
+              <div style={{ background: 'var(--danger-bg)', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: 'var(--danger)', display: 'flex', gap: 6 }}>
                 <AlertTriangle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
                 <span>Le joueur a été créé, mais l'envoi de l'invitation a échoué : {inviteError}.<br />
                 Tu peux la renvoyer depuis la fiche du joueur.</span>
               </div>
             )}
             {form.email && !inviteEmail && (
-              <div style={{ background: THEME.primaryBg, borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: THEME.primary, display: 'flex', gap: 6 }}>
+              <div style={{ background: 'var(--primary-bg)', borderRadius: 10, padding: 12, margin: '12px 0', fontSize: 12, color: 'var(--primary)', display: 'flex', gap: 6 }}>
                 <Lightbulb size={13} style={{ flexShrink: 0, marginTop: 1 }} />
                 <span>Pour créer le compte du joueur manuellement :<br />
                 Supabase → Authentication → Users → Add user</span>
@@ -139,7 +139,7 @@ export default function NouveauJoueurPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate('/joueurs')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <h1 style={{ fontSize: 18, fontWeight: 600 }}>Nouveau joueur</h1>
       </div>
 

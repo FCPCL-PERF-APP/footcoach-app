@@ -118,7 +118,7 @@ export default function ExportDonneesPage() {
     <div style={{ padding: 12 }}>
       <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Download size={18} /> Export données</span>} />
 
-      <div style={{ background: THEME.primaryBg, borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: THEME.primary, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+      <div style={{ background: 'var(--primary-bg)', borderRadius: 12, padding: 12, marginBottom: 14, fontSize: 12, color: 'var(--primary)', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
         <Lightbulb size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Les fichiers exportés sont au format <strong>CSV</strong> — ouvrable directement dans Excel ou Google Sheets.
       </div>
 
@@ -134,7 +134,7 @@ export default function ExportDonneesPage() {
             </div>
             <button onClick={fn} disabled={loading} style={{
               padding: '8px 14px', borderRadius: 10, border: 'none',
-              background: THEME.gradient, color: '#fff',
+              background: 'var(--gradient)', color: '#fff',
               fontSize: 12, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', gap: 5
             }}>

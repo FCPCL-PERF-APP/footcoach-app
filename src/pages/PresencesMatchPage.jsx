@@ -19,17 +19,17 @@ const AVATAR_COLORS = [
 ]
 
 const STATUTS = {
-  present:   { icon: CheckCircle2, label: 'Présent',   bg: THEME.successBg, color: THEME.success, border: THEME.success },
-  exterieur: { icon: RefreshCw,    label: 'Extérieur', bg: THEME.primaryBg, color: THEME.primary, border: THEME.primary },
-  absent:    { icon: XCircle,      label: 'Absent',    bg: THEME.dangerBg,  color: THEME.danger,  border: THEME.danger },
-  blesse:    { icon: Bandage,      label: 'Blessé',    bg: THEME.warningBg, color: '#854F0B',     border: '#854F0B' },
+  present:   { icon: CheckCircle2, label: 'Présent',   bg: 'var(--success-bg)', color: 'var(--success)', border: 'var(--success)' },
+  exterieur: { icon: RefreshCw,    label: 'Extérieur', bg: 'var(--primary-bg)', color: 'var(--primary)', border: 'var(--primary)' },
+  absent:    { icon: XCircle,      label: 'Absent',    bg: 'var(--danger-bg)',  color: 'var(--danger)',  border: 'var(--danger)' },
+  blesse:    { icon: Bandage,      label: 'Blessé',    bg: 'var(--warning-bg)', color: '#854F0B',     border: '#854F0B' },
   inconnu:   { icon: HelpCircle,   label: 'Inconnu',   bg: '#F3F4F6',       color: '#6B7280',     border: '#D1D5DB' },
 }
 
 const FORMES = {
-  bien:    { color: THEME.success, label: 'Bien' },
-  moyen:   { color: THEME.warning, label: 'Moyen' },
-  fatigue: { color: THEME.danger, label: 'Fatigué' },
+  bien:    { color: 'var(--success)', label: 'Bien' },
+  moyen:   { color: 'var(--warning)', label: 'Moyen' },
+  fatigue: { color: 'var(--danger)', label: 'Fatigué' },
 }
 
 export default function PresencesMatchPage() {
@@ -159,7 +159,7 @@ export default function PresencesMatchPage() {
     <div style={{ padding: 12 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <div>
           <p style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
             {event?.type === 'seance' ? <Footprints size={15} /> : <Swords size={15} />} {event?.type === 'seance' ? 'Présences séance' : 'Présences match'}
@@ -198,7 +198,7 @@ export default function PresencesMatchPage() {
       {/* Relancer les indécis */}
       {filterStatut === 'inconnu' && nbInconnus > 0 && (
         <button onClick={relancerIndecis} disabled={relanceState === 'sending'}
-          style={{ width: '100%', marginBottom: 12, padding: 10, background: THEME.gradient, color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          style={{ width: '100%', marginBottom: 12, padding: 10, background: 'var(--gradient)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           {relanceState === 'sending' ? 'Envoi...' : relanceState || <><Bell size={12} /> Relancer les {nbInconnus} indécis</>}
         </button>
       )}
@@ -243,7 +243,7 @@ export default function PresencesMatchPage() {
                     <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
                       {j.nom} {j.prenom}
                       {event?.type === 'match' && c.convoque && (
-                        <span style={{ fontSize: 9, fontWeight: 600, color: THEME.primary, background: THEME.primaryBg, padding: '1px 5px', borderRadius: 6 }}>Convoqué</span>
+                        <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--primary)', background: 'var(--primary-bg)', padding: '1px 5px', borderRadius: 6 }}>Convoqué</span>
                       )}
                     </p>
                     <p style={{ fontSize: 11, color: '#9CA3AF' }}>{j.poste}{j.numero ? ` · N°${j.numero}` : ''}</p>
@@ -283,7 +283,7 @@ export default function PresencesMatchPage() {
       <div style={{ position: 'sticky', bottom: 16, marginTop: 12 }}>
         <button onClick={handleSave} disabled={saving} style={{
           width: '100%', padding: 14, borderRadius: 12, border: 'none',
-          background: saved ? THEME.success : THEME.gradient,
+          background: saved ? 'var(--success)' : 'var(--gradient)',
           color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
         }}>

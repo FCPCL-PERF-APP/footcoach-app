@@ -36,10 +36,10 @@ export default function StatsConnexionPage() {
   }
 
   const STATUTS = {
-    actif_jour:      { label: "Actif aujourd'hui", color: THEME.success, bg: THEME.successBg },
-    actif_semaine:   { label: "Cette semaine",      color: THEME.warning, bg: '#FDFAEE' },
-    actif_mois:      { label: "Ce mois",            color: THEME.primary, bg: THEME.primaryBg },
-    inactif:         { label: "Inactif +30j",       color: THEME.danger, bg: THEME.dangerBg },
+    actif_jour:      { label: "Actif aujourd'hui", color: 'var(--success)', bg: 'var(--success-bg)' },
+    actif_semaine:   { label: "Cette semaine",      color: 'var(--warning)', bg: '#FDFAEE' },
+    actif_mois:      { label: "Ce mois",            color: 'var(--primary)', bg: 'var(--primary-bg)' },
+    inactif:         { label: "Inactif +30j",       color: 'var(--danger)', bg: 'var(--danger-bg)' },
     jamais_connecte: { label: "Jamais connecte",    color: '#6B7280', bg: '#F3F4F6' },
     non_invite:      { label: "Non invite",          color: '#374151', bg: '#F9FAFB' },
   }
@@ -63,8 +63,8 @@ export default function StatsConnexionPage() {
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={THEME.primary} /></button>
-        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><Smartphone size={17} color={THEME.primary} /> Adoption de l'app</h1>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
+        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><Smartphone size={17} color={'var(--primary)'} /> Adoption de l'app</h1>
       </div>
 
       {/* Résumé 6 cases */}
@@ -93,7 +93,7 @@ export default function StatsConnexionPage() {
             <span style={{ fontWeight: 700 }}>{invites}/{total} ({tauxInvit}%)</span>
           </div>
           <div style={{ height: 8, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ width: `${tauxInvit}%`, height: '100%', background: THEME.primary, borderRadius: 4 }} />
+            <div style={{ width: `${tauxInvit}%`, height: '100%', background: 'var(--primary)', borderRadius: 4 }} />
           </div>
         </div>
         <div>
@@ -111,9 +111,9 @@ export default function StatsConnexionPage() {
       <div style={{ display: 'flex', gap: 5, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
         <button onClick={() => setFilter('tous')} style={{
           padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
-          border: `0.5px solid ${filter === 'tous' ? THEME.primary : '#E5E7EB'}`,
+          border: `0.5px solid ${filter === 'tous' ? 'var(--primary)' : '#E5E7EB'}`,
           background: filter === 'tous' ? '#E6F1FB' : 'transparent',
-          color: filter === 'tous' ? THEME.primary : '#6B7280',
+          color: filter === 'tous' ? 'var(--primary)' : '#6B7280',
           fontWeight: filter === 'tous' ? 600 : 400
         }}>Tous ({enriched.length})</button>
         {Object.entries(STATUTS).map(([key, val]) => (
