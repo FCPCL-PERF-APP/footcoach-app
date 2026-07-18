@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Card, Button, Input, Spinner } from '../components/UI'
@@ -92,7 +92,11 @@ export default function StatsPage() {
     compo_adversaire: '', arbitre: '',
   })
 
-  useEffect(() => { loadData() }, [eventId])
+  // Ignore une réponse devenue obsolète si le coach navigue vers un autre match avant
+  // qu'elle ne revienne.
+  const eventIdRef = useRef(eventId)
+
+  useEffect(() => { eventIdRef.current = eventId; loadData() }, [eventId])
 
   async function loadData() {
     setLoading(true)
@@ -103,6 +107,7 @@ export default function StatsPage() {
       supabase.from('stats_collectives').select('*').eq('evenement_id', eventId).maybeSingle(),
       supabase.from('rapports_match').select('*').eq('evenement_id', eventId).maybeSingle(),
     ])
+    if (eventIdRef.current !== eventId) return
     setEvent(ev)
     setJoueurs(jrs || [])
     setStatsIndiv(si || [])

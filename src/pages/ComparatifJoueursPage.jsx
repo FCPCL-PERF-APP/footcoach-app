@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { bornesSaison } from '../lib/saison'
 import { computePresenceBreakdown } from '../lib/presenceStats'
@@ -32,11 +32,16 @@ export default function ComparatifJoueursPage() {
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('rpe')
   const [idsSaison, setIdsSaison] = useState(null)
+  // Repère le dernier joueur demandé par sélecteur, pour ignorer la réponse d'une requête
+  // devenue obsolète si l'utilisateur change de joueur avant qu'elle ne revienne (sinon
+  // une réponse lente pour un ancien choix pouvait écraser l'affichage du joueur courant).
+  const joueur1Ref = useRef(null)
+  const joueur2Ref = useRef(null)
 
   useEffect(() => { loadJoueurs() }, [])
   useEffect(() => {
-    if (idsSaison && joueur1) loadJoueurData(joueur1, setData1)
-    if (idsSaison && joueur2) loadJoueurData(joueur2, setData2)
+    if (idsSaison && joueur1) { joueur1Ref.current = joueur1; loadJoueurData(joueur1, setData1, joueur1Ref) }
+    if (idsSaison && joueur2) { joueur2Ref.current = joueur2; loadJoueurData(joueur2, setData2, joueur2Ref) }
   }, [joueur1, joueur2, idsSaison])
 
   async function loadJoueurs() {
@@ -50,7 +55,7 @@ export default function ComparatifJoueursPage() {
     if (data?.length >= 2) { setJoueur1(data[0].id); setJoueur2(data[1].id) }
   }
 
-  async function loadJoueurData(id, setter) {
+  async function loadJoueurData(id, setter, currentRef) {
     setLoading(true)
     const [{ data: j }, { data: rpe }, { data: foot }, { data: stats }, { data: pres }] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', id).single(),
@@ -84,6 +89,9 @@ export default function ComparatifJoueursPage() {
     // Présence (taux d'engagement = présent + extérieur, blessures exclues du calcul)
     const { tauxEngagement } = computePresenceBreakdown(pres || [])
 
+    // Un autre joueur a été sélectionné pendant le chargement : cette réponse est
+    // obsolète, on l'ignore pour ne pas écraser l'affichage du joueur actuellement choisi.
+    if (currentRef.current !== id) return
     setter({ joueur: j, rpeMoyennes, footMoyennes, totalButs, totalPD, noteMoy, minMoy, tauxPresence: tauxEngagement, nbMatchs: officiels.length })
     setLoading(false)
   }

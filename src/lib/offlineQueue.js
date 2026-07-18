@@ -60,9 +60,26 @@ export async function upsertOrQueue(table, payload, onConflict) {
   }
 }
 
-// La présence n'a pas de contrainte d'unicité connue permettant un upsert simple (le
-// reste du code l'écrit toujours en delete + insert) — la queue reproduit donc la même
-// séquence plutôt que de supposer un upsert possible.
+// La présence n'a pas de contrainte d'unicité connue permettant un upsert simple, donc
+// pas de delete-puis-insert non plus : si l'insertion échouait après une suppression déjà
+// effectuée, la présence du joueur disparaissait purement et simplement. On insère
+// d'abord la nouvelle ligne, et on ne supprime l'ancienne qu'une fois l'insertion
+// réussie — un échec côté insertion laisse alors l'ancienne présence intacte.
+async function savePresenceRow(evenementId, joueurId, statut) {
+  const { data: oldRows, error: fetchError } = await supabase.from('presences').select('id')
+    .eq('evenement_id', evenementId).eq('joueur_id', joueurId)
+  if (fetchError) return fetchError
+  const { error: insError } = await supabase.from('presences')
+    .insert({ evenement_id: evenementId, joueur_id: joueurId, statut })
+  if (insError) return insError
+  const oldIds = (oldRows || []).map(r => r.id)
+  if (oldIds.length > 0) {
+    const { error: delError } = await supabase.from('presences').delete().in('id', oldIds)
+    if (delError) return delError
+  }
+  return null
+}
+
 export async function savePresenceOrQueue(evenementId, joueurId, statut) {
   const item = { type: 'presence', table: 'presences', evenementId, joueurId, statut }
 
@@ -72,17 +89,10 @@ export async function savePresenceOrQueue(evenementId, joueurId, statut) {
   }
 
   try {
-    const { error: delError } = await supabase.from('presences').delete()
-      .eq('evenement_id', evenementId).eq('joueur_id', joueurId)
-    if (delError) {
-      if (isNetworkError(delError)) { enqueueItem(item); return { queued: true } }
-      throw delError
-    }
-    const { error: insError } = await supabase.from('presences')
-      .insert({ evenement_id: evenementId, joueur_id: joueurId, statut })
-    if (insError) {
-      if (isNetworkError(insError)) { enqueueItem(item); return { queued: true } }
-      throw insError
+    const error = await savePresenceRow(evenementId, joueurId, statut)
+    if (error) {
+      if (isNetworkError(error)) { enqueueItem(item); return { queued: true } }
+      throw error
     }
     return { queued: false }
   } catch (err) {
@@ -93,12 +103,7 @@ export async function savePresenceOrQueue(evenementId, joueurId, statut) {
 
 async function flushOne(item) {
   if (item.type === 'presence') {
-    const { error: delError } = await supabase.from('presences').delete()
-      .eq('evenement_id', item.evenementId).eq('joueur_id', item.joueurId)
-    if (delError) return delError
-    const { error: insError } = await supabase.from('presences')
-      .insert({ evenement_id: item.evenementId, joueur_id: item.joueurId, statut: item.statut })
-    return insError
+    return savePresenceRow(item.evenementId, item.joueurId, item.statut)
   }
   // Type 'upsert' (ou items déjà en queue avant l'ajout du champ `type`, par défaut upsert)
   const { error } = await supabase.from(item.table).upsert(item.payload, { onConflict: item.onConflict })

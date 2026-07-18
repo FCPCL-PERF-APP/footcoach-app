@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { validateFile } from '../lib/upload'
@@ -69,8 +69,11 @@ export default function FicheJoueurPage() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviting, setInviting] = useState(false)
   const [inviteResult, setInviteResult] = useState(null)
+  // Ignore une réponse devenue obsolète si le coach navigue vers une autre fiche joueur
+  // avant qu'elle ne revienne.
+  const idRef = useRef(id)
 
-  useEffect(() => { loadAll() }, [id])
+  useEffect(() => { idRef.current = id; loadAll() }, [id])
 
   async function loadAll() {
     setLoading(true)
@@ -93,6 +96,7 @@ export default function FicheJoueurPage() {
       supabase.from('objectifs_joueur').select('*').eq('joueur_id', id).maybeSingle(),
       supabase.from('presences').select('statut, evenements(type)').eq('joueur_id', id),
     ])
+    if (idRef.current !== id) return
     setJoueur(j)
     setForm({ ...j })
     setRpeHistory(rpe || [])

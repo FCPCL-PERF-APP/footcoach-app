@@ -79,11 +79,16 @@ export default function ArchiveSaisonPage() {
         .gte('date_heure', debut).lte('date_heure', fin)
       const eventIds = (eventsSaison || []).map(e => e.id)
 
+      // Chaque suppression doit réussir avant de passer à la suivante — en particulier,
+      // les événements (étape 4) ne doivent jamais être supprimés si une des tables
+      // enfants n'a pas pu être vidée, sinon ces lignes enfants se retrouvent orphelines
+      // (evenement_id pointant vers un événement qui n'existe plus) sans qu'aucune erreur
+      // ne soit jamais montrée au coach.
       if (eventIds.length) {
         const tablesParEvenement = ['rpe', 'footbar', 'stats_match', 'stats_collectives', 'presences', 'convocations', 'rapports_match']
         for (const table of tablesParEvenement) {
           const { error: delErr } = await supabase.from(table).delete().in('evenement_id', eventIds)
-          if (delErr) console.warn(`Erreur suppression ${table}:`, delErr.message)
+          if (delErr) throw new Error(`Erreur suppression ${table} : ${delErr.message}`)
         }
       }
 
@@ -93,15 +98,16 @@ export default function ArchiveSaisonPage() {
       const sondageIds = (sondagesSaison || []).map(s => s.id)
       if (sondageIds.length) {
         const { error: votesErr } = await supabase.from('sondage_votes').delete().in('sondage_id', sondageIds)
-        if (votesErr) console.warn('Erreur suppression votes sondages:', votesErr.message)
+        if (votesErr) throw new Error('Erreur suppression votes sondages : ' + votesErr.message)
         const { error: sondagesErr } = await supabase.from('sondages').delete().in('id', sondageIds)
-        if (sondagesErr) console.warn('Erreur suppression sondages:', sondagesErr.message)
+        if (sondagesErr) throw new Error('Erreur suppression sondages : ' + sondagesErr.message)
       }
 
-      // 4. Supprimer les événements de la saison (et seulement ceux-là)
+      // 4. Supprimer les événements de la saison (et seulement ceux-là) — dernière étape,
+      // une fois toutes les tables enfants vidées avec succès.
       if (eventIds.length) {
         const { error: evErr } = await supabase.from('evenements').delete().in('id', eventIds)
-        if (evErr) console.warn('Erreur suppression événements:', evErr.message)
+        if (evErr) throw new Error('Erreur suppression événements : ' + evErr.message)
       }
 
       // 5. Blessures : on garde tout, elles ont leur propre historique indépendant

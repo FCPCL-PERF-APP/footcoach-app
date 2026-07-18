@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Card, Spinner } from '../components/UI'
@@ -79,8 +79,11 @@ export default function RadarJoueurPage() {
   const [joueurData, setJoueurData] = useState({})
   const [equipeData, setEquipeData] = useState({})
   const [comparaison, setComparaison] = useState({})
+  // Ignore une réponse devenue obsolète si l'utilisateur navigue vers un autre joueur
+  // avant qu'elle ne revienne (ex: retour/avant rapide dans le navigateur).
+  const idRef = useRef(id)
 
-  useEffect(() => { loadData() }, [id])
+  useEffect(() => { idRef.current = id; loadData() }, [id])
 
   async function loadData() {
     setLoading(true)
@@ -89,6 +92,7 @@ export default function RadarJoueurPage() {
       supabase.from('rpe').select('*').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
       supabase.from('rpe').select('*').order('created_at', { ascending: false }).limit(200),
     ])
+    if (idRef.current !== id) return
 
     setJoueur(j)
 

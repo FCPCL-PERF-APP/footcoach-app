@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { Card, PageHeader, Button, Spinner, Avatar } from '../components/UI'
@@ -36,7 +36,11 @@ export default function ConvocationsPage() {
   const [existingConvocs, setExistingConvocs] = useState([])
   const [dispos, setDispos] = useState({})
 
-  useEffect(() => { loadData() }, [eventId])
+  // Ignore une réponse devenue obsolète si le coach navigue vers un autre événement
+  // avant qu'elle ne revienne.
+  const eventIdRef = useRef(eventId)
+
+  useEffect(() => { eventIdRef.current = eventId; loadData() }, [eventId])
 
   // Coupe = 16 convocables (règlement), championnat = 14, préparation = 22 (effectif large, pas de règlement de compétition)
   const cap = event?.match_type === 'coupe' ? 16 : event?.match_type === 'preparation' ? 22 : 14
@@ -49,6 +53,7 @@ export default function ConvocationsPage() {
       supabase.from('convocations').select('*').eq('evenement_id', eventId),
       supabase.from('presences').select('joueur_id, statut').eq('evenement_id', eventId),
     ])
+    if (eventIdRef.current !== eventId) return
     setEvent(ev)
     const dispoMap = {}
     for (const p of (pres || [])) dispoMap[p.joueur_id] = p.statut
@@ -76,14 +81,17 @@ export default function ConvocationsPage() {
 
   async function saveConvocations() {
     setSaving(true)
-    // Supprime les anciennes convocations
-    const { error: delError } = await supabase.from('convocations').delete().eq('evenement_id', eventId)
-    if (delError) {
+    // Insère d'abord les nouvelles convocations, puis ne supprime les anciennes lignes
+    // qu'une fois l'insertion réussie — si l'insertion échoue en cours de route, les
+    // anciennes convocations restent intactes au lieu d'être perdues (l'ancien ordre
+    // delete-puis-insert pouvait laisser la table vide, donc plus aucun joueur convoqué,
+    // en cas d'échec de l'insertion après une suppression déjà effectuée).
+    const { data: oldRows, error: fetchError } = await supabase.from('convocations').select('id').eq('evenement_id', eventId)
+    if (fetchError) {
       setSaving(false)
-      alert('Erreur lors de l\'enregistrement des convocations : ' + delError.message)
+      alert('Erreur lors de l\'enregistrement des convocations : ' + fetchError.message)
       return
     }
-    // Insère les nouvelles
     const inserts = joueurs.map(j => ({
       evenement_id: eventId,
       joueur_id: j.id,
@@ -94,6 +102,15 @@ export default function ConvocationsPage() {
       setSaving(false)
       alert('Erreur lors de l\'enregistrement des convocations : ' + insError.message)
       return
+    }
+    const oldIds = (oldRows || []).map(r => r.id)
+    if (oldIds.length > 0) {
+      const { error: cleanupError } = await supabase.from('convocations').delete().in('id', oldIds)
+      if (cleanupError) {
+        setSaving(false)
+        alert('Les nouvelles convocations sont enregistrées, mais le nettoyage des anciennes lignes a échoué : ' + cleanupError.message)
+        return
+      }
     }
 
    // Met à jour le lieu et heure de RDV dans l'événement

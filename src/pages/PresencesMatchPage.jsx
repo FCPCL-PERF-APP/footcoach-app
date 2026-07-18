@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { Card, Button, Spinner, Avatar } from '../components/UI'
@@ -46,7 +46,11 @@ export default function PresencesMatchPage() {
   const [search, setSearch] = useState('')
   const [relanceState, setRelanceState] = useState(null)
 
-  useEffect(() => { loadData() }, [eventId])
+  // Ignore une réponse devenue obsolète si le coach navigue vers un autre événement
+  // avant qu'elle ne revienne.
+  const eventIdRef = useRef(eventId)
+
+  useEffect(() => { eventIdRef.current = eventId; loadData() }, [eventId])
 
   async function loadData() {
     setLoading(true)
@@ -57,6 +61,7 @@ export default function PresencesMatchPage() {
       supabase.from('joueurs').select('id, nom, prenom, poste, numero, photo_url').order('nom'),
       supabase.from('forme_joueur').select('joueur_id, forme').eq('evenement_id', eventId),
     ])
+    if (eventIdRef.current !== eventId) return
 
     setEvent(ev)
     const presMap = {}
@@ -96,10 +101,15 @@ export default function PresencesMatchPage() {
 
   async function handleSave() {
     setSaving(true)
-    const { error: delError } = await supabase.from('presences').delete().eq('evenement_id', eventId)
-    if (delError) {
+    // Insère d'abord les nouvelles présences, puis ne supprime les anciennes lignes
+    // qu'une fois l'insertion réussie — si l'insertion échoue (réseau coupé en cours de
+    // route, etc.), les anciennes présences restent intactes au lieu d'être perdues
+    // (l'ancien ordre delete-puis-insert pouvait laisser la table vide en cas d'échec
+    // de l'insertion après une suppression déjà effectuée).
+    const { data: oldRows, error: fetchError } = await supabase.from('presences').select('id').eq('evenement_id', eventId)
+    if (fetchError) {
       setSaving(false)
-      alert('Erreur lors de l\'enregistrement des présences : ' + delError.message)
+      alert('Erreur lors de l\'enregistrement des présences : ' + fetchError.message)
       return
     }
     const inserts = Object.entries(presences).map(([joueur_id, statut]) => ({
@@ -110,6 +120,15 @@ export default function PresencesMatchPage() {
       if (insError) {
         setSaving(false)
         alert('Erreur lors de l\'enregistrement des présences : ' + insError.message)
+        return
+      }
+    }
+    const oldIds = (oldRows || []).map(r => r.id)
+    if (oldIds.length > 0) {
+      const { error: cleanupError } = await supabase.from('presences').delete().in('id', oldIds)
+      if (cleanupError) {
+        setSaving(false)
+        alert('Les nouvelles présences sont enregistrées, mais le nettoyage des anciennes lignes a échoué : ' + cleanupError.message)
         return
       }
     }
