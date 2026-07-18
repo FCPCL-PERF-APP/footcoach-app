@@ -7,6 +7,7 @@ import { ArrowLeft, Printer } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { computePresenceBreakdown } from '../lib/presenceStats'
+import { labelSaison } from '../lib/saison'
 
 export default function ExportFicheJoueurPage() {
   const { id } = useParams()
@@ -98,7 +99,7 @@ export default function ExportFicheJoueurPage() {
           </div>
           <div style={{ textAlign: 'right' }}>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#1A3A6B' }}>FC PCL</p>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Saison 2026/2027</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Saison {labelSaison()}</p>
             <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{format(new Date(), 'd MMMM yyyy', { locale: fr })}</p>
           </div>
         </div>
@@ -227,7 +228,7 @@ export default function ExportFicheJoueurPage() {
             <div style={{ width: 180, borderBottom: '1px solid #000' }} />
           </div>
         </div>
-        <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', marginTop: 16 }}>FC PCL · Plouagat Châtelaudren Lanrodec · Saison 2026/2027</p>
+        <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', marginTop: 16 }}>FC PCL · Plouagat Châtelaudren Lanrodec · Saison {labelSaison()}</p>
       </div>
 
       <style>{`

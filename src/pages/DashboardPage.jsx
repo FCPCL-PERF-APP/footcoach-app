@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, BarChart, Spinner, ListRow, IconTile, StatTile } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
 import { computePresenceBreakdown } from '../lib/presenceStats'
+import { labelSaison } from '../lib/saison'
 import { format, parseISO, subWeeks } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -520,7 +521,7 @@ export default function DashboardPage() {
               { label: 'RPE moyen équipe', value: `${metrics.rpeMoy}/5`, sub: 'Toutes sessions', color: rpeColor(parseFloat(metrics.rpeMoy)) },
               { label: 'Engagement moy.', value: `${metrics.presence}%`, sub: 'Ce mois · présent + extérieur', color: metrics.presence >= 80 ? 'var(--success)' : '#D08A1E' },
               { label: 'Dist. moy. match', value: `${metrics.distMoy} km`, sub: 'Footbar', color: 'var(--primary)' },
-              { label: 'Buts / match', value: metrics.butsMoy, sub: '2026/2027', color: 'var(--primary)' },
+              { label: 'Buts / match', value: metrics.butsMoy, sub: labelSaison(), color: 'var(--primary)' },
             ].map(m => <StatTile key={m.label} {...m} />)}
           </div>
 

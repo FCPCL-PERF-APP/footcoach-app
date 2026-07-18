@@ -1,7 +1,7 @@
 // Rapport hebdomadaire automatique — envoyé chaque lundi matin
 import webpush from 'web-push'
 import { createClient } from '@supabase/supabase-js'
-import { captureError } from './_lib.js'
+import { captureError, sendPushToSubscriptions } from './_lib.js'
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -68,24 +68,22 @@ export default async function handler(req, res) {
                    rpeNum < 2.5 ? '🟡 Charge faible' : '🟢 Charge normale'
     body += alerte
 
-    // Récupère les abonnements du coach
-    const { data: coachSubs } = await supabase
-      .from('push_subscriptions')
-      .select('*')
-      .eq('user_role', 'coach')
+    // Récupère les coachs/admins du club (le schéma push_subscriptions n'a pas de
+    // colonne user_role/subscription — mêmes colonnes que partout ailleurs : user_id/
+    // endpoint/p256dh/auth, cf. notif-presence-resume.js)
+    const { data: coachs } = await supabase.from('staff').select('auth_id')
+      .in('role', ['coach', 'admin']).not('auth_id', 'is', null)
+    const coachIds = (coachs || []).map(c => c.auth_id)
 
-    const payload = JSON.stringify({
-      title: '📋 Rapport hebdomadaire FC PCL',
-      body,
-      url: '/dashboard',
-      tag: 'rapport-hebdo'
-    })
+    const { sent } = coachIds.length
+      ? await sendPushToSubscriptions(webpush, supabase, coachIds, {
+          title: '📋 Rapport hebdomadaire FC PCL',
+          body,
+          url: '/dashboard',
+          tag: 'rapport-hebdo'
+        })
+      : { sent: 0 }
 
-    const results = await Promise.allSettled(
-      (coachSubs || []).map(sub => webpush.sendNotification(JSON.parse(sub.subscription), payload))
-    )
-
-    const sent = results.filter(r => r.status === 'fulfilled').length
     res.status(200).json({ success: true, sent, rpeMoy, tauxPresence })
   } catch (err) {
     console.error('Erreur rapport hebdo:', err)

@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
+import { labelSaison } from '../lib/saison'
 import { Search, Moon, Sun, User, Trophy, LogOut } from 'lucide-react'
 
 const PAGE_TITLES = {
@@ -72,7 +73,7 @@ export default function AppHeader() {
         <div>
           <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{title}</p>
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>
-            FC PCL · Saison 2026/2027
+            FC PCL · Saison {labelSaison()}
           </p>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { Card, PageHeader, Button, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { labelSaison } from '../lib/saison'
 import {
   ArrowLeft, Target, ClipboardList, CheckCircle2, XCircle, MessageSquare,
   Dumbbell, Brain, Swords, Trophy, BarChart3, Save
@@ -182,7 +183,7 @@ export default function MesObjectifsPage() {
           {/* Objectifs personnels */}
           <Card>
             <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={14} color={'var(--warning)'} /> Mes objectifs personnels</p>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>3 objectifs pour la saison 2026/2027</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>3 objectifs pour la saison {labelSaison()}</p>
             {[1,2,3].map(i => (
               <div key={i} style={{ marginBottom: 10 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Objectif {i}</label>
@@ -197,7 +198,7 @@ export default function MesObjectifsPage() {
           {/* Objectifs collectifs */}
           <Card>
             <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><Swords size={14} color={'var(--primary)'} /> Mes objectifs collectifs</p>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>3 objectifs d'équipe pour la saison 2026/2027</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>3 objectifs d'équipe pour la saison {labelSaison()}</p>
             {[1,2,3].map(i => (
               <div key={i} style={{ marginBottom: 10 }}>
                 <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Objectif {i}</label>
@@ -217,7 +218,7 @@ export default function MesObjectifsPage() {
           {/* Stats match */}
           {stats && (
             <Card>
-              <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={14} color={'var(--primary)'} /> Mes statistiques — Saison 2026/2027</p>
+              <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={14} color={'var(--primary)'} /> Mes statistiques — Saison {labelSaison()}</p>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                   <thead>
@@ -299,7 +300,7 @@ export default function MesObjectifsPage() {
             <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}><MessageSquare size={13} style={{marginRight:6,verticalAlign:-2}} />Commentaire général</p>
             <textarea value={data.bilan_commentaire || ''}
               onChange={e => setField('bilan_commentaire', e.target.value)}
-              placeholder="Bilan général de ma saison 2026/2027..."
+              placeholder={`Bilan général de ma saison ${labelSaison()}...`}
               rows={4} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
           </Card>
         </>

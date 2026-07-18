@@ -6,24 +6,25 @@ import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { ArrowLeft, CheckCircle2, Lock, BarChart3 } from 'lucide-react'
 import { computePresenceBreakdown } from '../lib/presenceStats'
+import { labelSaison } from '../lib/saison'
 
 const BADGE_DEFS = [
   // Présences
   { id: 'presence_5',   icon: '🔥', label: '5 séances de suite',    desc: 'Présent à 5 entraînements consécutifs', category: 'présence', condition: (s) => s.seriePresences >= 5 },
   { id: 'presence_10',  icon: '⚡', label: '10 séances de suite',   desc: 'Présent à 10 entraînements consécutifs', category: 'présence', condition: (s) => s.seriePresences >= 10 },
-  { id: 'presence_100', icon: '💯', label: '100% présences',        desc: 'Taux de présence parfait sur la saison 2026/2027', category: 'présence', condition: (s) => s.tauxPresence >= 100 },
+  { id: 'presence_100', icon: '💯', label: '100% présences',        desc: `Taux de présence parfait sur la saison ${labelSaison()}`, category: 'présence', condition: (s) => s.tauxPresence >= 100 },
   { id: 'presence_80',  icon: '⭐', label: 'Assidu',                desc: '80% de présence aux entraînements', category: 'présence', condition: (s) => s.tauxPresence >= 80 },
   // Buts
   { id: 'buts_1',       icon: '⚽', label: 'Premier but',           desc: 'A marqué son premier but en match', category: 'perf', condition: (s) => s.totalButs >= 1 },
-  { id: 'buts_5',       icon: '🎯', label: 'Sniper',                desc: '5 buts marqués saison 2026/2027', category: 'perf', condition: (s) => s.totalButs >= 5 },
-  { id: 'buts_10',      icon: '💣', label: 'Artificier',            desc: '10 buts marqués saison 2026/2027', category: 'perf', condition: (s) => s.totalButs >= 10 },
+  { id: 'buts_5',       icon: '🎯', label: 'Sniper',                desc: `5 buts marqués saison ${labelSaison()}`, category: 'perf', condition: (s) => s.totalButs >= 5 },
+  { id: 'buts_10',      icon: '💣', label: 'Artificier',            desc: `10 buts marqués saison ${labelSaison()}`, category: 'perf', condition: (s) => s.totalButs >= 10 },
   // Passes
-  { id: 'pd_3',         icon: '🎪', label: 'Passeur',               desc: '3 passes décisives saison 2026/2027', category: 'perf', condition: (s) => s.totalPD >= 3 },
+  { id: 'pd_3',         icon: '🎪', label: 'Passeur',               desc: `3 passes décisives saison ${labelSaison()}`, category: 'perf', condition: (s) => s.totalPD >= 3 },
   // RPE
   { id: 'rpe_10',       icon: '📊', label: 'Analyste',              desc: '10 RPE remplis', category: 'rpe', condition: (s) => s.totalRpe >= 10 },
   { id: 'rpe_regulier', icon: '📈', label: 'Régulier',              desc: 'RPE rempli sur 5 séances consécutives', category: 'rpe', condition: (s) => s.serieRpe >= 5 },
   // Matchs
-  { id: 'match_10',     icon: '🏆', label: 'Vétéran',               desc: '10 matchs joués saison 2026/2027', category: 'match', condition: (s) => s.totalMatchs >= 10 },
+  { id: 'match_10',     icon: '🏆', label: 'Vétéran',               desc: `10 matchs joués saison ${labelSaison()}`, category: 'match', condition: (s) => s.totalMatchs >= 10 },
   { id: 'titu_5',       icon: '👑', label: 'Titulaire',             desc: '5 titularisations', category: 'match', condition: (s) => s.titularisations >= 5 },
 ]
 
@@ -150,7 +151,7 @@ export default function BadgesJoueurPage() {
       {/* Stats rapides */}
       {stats && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={14} color={'var(--primary)'} /> Tes stats saison 2026/2027</p>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={14} color={'var(--primary)'} /> Tes stats saison {labelSaison()}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
             {[
               ['Série présences', `${stats.seriePresences} 🔥`],

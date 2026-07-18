@@ -79,7 +79,12 @@ export default function FicheJoueurPage() {
       supabase.from('joueurs').select('*').eq('id', id).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
       supabase.from('footbar').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
-      supabase.from('stats_match').select('*, evenements(titre,date_heure,match_type)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(15),
+      // Pas de limite : le filtre "matchs officiels" (hors préparation) s'applique après
+      // coup sur ces données — une limite ici tronquait le total avant ce filtre et
+      // sous-comptait buts/matchs/passes dès qu'un joueur avait des matchs de prépa
+      // récents ou plus de 15 matchs dans la saison (cf. ExportFicheJoueurPage.jsx qui,
+      // sans limite, calcule correctement les mêmes totaux).
+      supabase.from('stats_match').select('*, evenements(titre,date_heure,match_type)').eq('joueur_id', id).order('created_at', { ascending: false }),
       supabase.from('tests_physiques').select('*').eq('joueur_id', id).order('date_test', { ascending: false }),
       supabase.from('suivi_poids').select('*').eq('joueur_id', id).order('date_mesure', { ascending: true }).limit(12),
       supabase.from('commentaires_joueurs').select('*').eq('joueur_id', id).order('created_at', { ascending: false }),
