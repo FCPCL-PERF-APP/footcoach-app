@@ -7,7 +7,7 @@ import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   ArrowLeft, Footprints, Swords, CheckCircle2, RefreshCw, XCircle,
-  Bandage, HelpCircle, Bell, Circle, Hourglass, Save
+  Bandage, HelpCircle, Bell, Circle, Hourglass, Save, AlertTriangle
 } from 'lucide-react'
 
 const AVATAR_COLORS = [
@@ -173,6 +173,21 @@ export default function PresencesMatchPage() {
   }
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
+
+  // L'événement a pu être supprimé entre l'ouverture du lien et le chargement.
+  if (!event) return (
+    <div style={{ padding: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
+        <p style={{ fontSize: 16, fontWeight: 700 }}>Présences</p>
+      </div>
+      <Card style={{ textAlign: 'center', padding: 24 }}>
+        <AlertTriangle size={28} color={'var(--warning)'} style={{ marginBottom: 8 }} />
+        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Événement introuvable</p>
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Il a peut-être été supprimé depuis. Retourne au calendrier.</p>
+      </Card>
+    </div>
+  )
 
   return (
     <div style={{ padding: 12 }}>

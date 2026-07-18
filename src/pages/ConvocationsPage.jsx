@@ -5,7 +5,7 @@ import { Card, PageHeader, Button, Spinner, Avatar } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { ArrowLeft, CheckCircle2, MapPin, Bell, Send, Check, XCircle, Bandage, HelpCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, MapPin, Bell, Send, Check, XCircle, Bandage, HelpCircle, AlertTriangle } from 'lucide-react'
 
 const DISPO = {
   present: { label: 'Disponible', icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
@@ -153,6 +153,21 @@ export default function ConvocationsPage() {
   }
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
+
+  // L'événement a pu être supprimé entre l'ouverture du lien et le chargement.
+  if (!event) return (
+    <div style={{ padding: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
+        <p style={{ fontSize: 16, fontWeight: 700 }}>Convocations</p>
+      </div>
+      <Card style={{ textAlign: 'center', padding: 24 }}>
+        <AlertTriangle size={28} color={'var(--warning)'} style={{ marginBottom: 8 }} />
+        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Événement introuvable</p>
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Il a peut-être été supprimé depuis. Retourne au calendrier.</p>
+      </Card>
+    </div>
+  )
 
   const dateStr = event?.date_heure ? format(parseISO(event.date_heure), "EEE d MMM · HH'h'mm", { locale: fr }) : ''
 

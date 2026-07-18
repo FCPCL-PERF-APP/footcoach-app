@@ -172,6 +172,11 @@ export default function StatsPage() {
   }
 
   async function saveStatsJoueur() {
+    // Garde-fou anti-double-soumission au niveau de la fonction elle-même (pas
+    // seulement via `disabled` sur le bouton) : sans contrainte d'unicité en base sur
+    // (evenement_id, joueur_id), deux appels concurrents créeraient deux lignes
+    // stats_match pour le même joueur au lieu de mettre à jour la même ligne.
+    if (saving) return
     setSaving(true)
     const existing = statsIndiv.find(s => s.joueur_id === selectedJoueur)
     const payload = {
@@ -213,6 +218,23 @@ export default function StatsPage() {
   const currentFormation = FORMATIONS[formation]
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
+
+  // L'événement a pu être supprimé entre le moment où le lien a été ouvert et le
+  // chargement (ex: coach qui supprime l'événement pendant qu'un onglet est resté ouvert
+  // dessus) — sans ce garde-fou la page continuait de s'afficher avec un événement vide.
+  if (!event) return (
+    <div style={{ padding: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <button onClick={() => navigate('/calendrier')} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
+        <p style={{ fontSize: 15, fontWeight: 700 }}>Stats match</p>
+      </div>
+      <Card style={{ textAlign: 'center', padding: 24 }}>
+        <AlertTriangle size={28} color={'var(--warning)'} style={{ marginBottom: 8 }} />
+        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Événement introuvable</p>
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Il a peut-être été supprimé depuis. Retourne au calendrier.</p>
+      </Card>
+    </div>
+  )
 
   const tabs = [
     { key: 'individuel', icon: User, label: 'Indiv.' },
