@@ -2,7 +2,7 @@
 import { ChevronRight } from 'lucide-react'
 import { THEME } from '../theme'
 
-export function IconTile({ icon: Icon, color = THEME.primary, bg = THEME.primaryBg, size = 20, tileSize = 36 }) {
+export function IconTile({ icon: Icon, color = 'var(--primary)', bg = 'var(--primary-bg)', size = 20, tileSize = 36 }) {
   return (
     <div style={{
       width: tileSize, height: tileSize, borderRadius: THEME.radiusMd * 0.6,
@@ -14,29 +14,29 @@ export function IconTile({ icon: Icon, color = THEME.primary, bg = THEME.primary
   )
 }
 
-export function ListRow({ icon: Icon, label, sublabel, onClick, trailing, iconColor = THEME.primary, iconBg = THEME.primaryBg, last = false }) {
+export function ListRow({ icon: Icon, label, sublabel, onClick, trailing, iconColor = 'var(--primary)', iconBg = 'var(--primary-bg)', last = false }) {
   return (
     <div onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 10,
       padding: '9px 0', cursor: onClick ? 'pointer' : 'default',
-      borderBottom: last ? 'none' : `0.5px solid ${THEME.border}`
+      borderBottom: last ? 'none' : `0.5px solid var(--border)`
     }}>
       {Icon && <IconTile icon={Icon} color={iconColor} bg={iconBg} size={16} tileSize={30} />}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: THEME.textPrimary }}>{label}</div>
-        {sublabel && <div style={{ fontSize: 10, color: THEME.textMuted, marginTop: 2 }}>{sublabel}</div>}
+        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>{label}</div>
+        {sublabel && <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{sublabel}</div>}
       </div>
-      {trailing !== undefined ? trailing : (onClick && <ChevronRight size={16} color={THEME.textMuted} />)}
+      {trailing !== undefined ? trailing : (onClick && <ChevronRight size={16} color="var(--text-muted)" />)}
     </div>
   )
 }
 
-export function StatTile({ label, value, sub, color = THEME.primary }) {
+export function StatTile({ label, value, sub, color = 'var(--primary)' }) {
   return (
-    <div style={{ background: THEME.bgCard, border: `0.5px solid ${THEME.border}`, borderRadius: THEME.radiusMd, padding: 12 }}>
-      <div style={{ fontSize: 10, color: THEME.textMuted, marginBottom: 4 }}>{label}</div>
+    <div style={{ background: 'var(--bg-card)', border: `0.5px solid var(--border)`, borderRadius: THEME.radiusMd, padding: 12 }}>
+      <div style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 700, color }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, color: THEME.textMuted, marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{sub}</div>}
     </div>
   )
 }
@@ -44,8 +44,8 @@ export function StatTile({ label, value, sub, color = THEME.primary }) {
 export function Card({ children, style = {} }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: 14,
-      border: '0.5px solid #E5E7EB',
+      background: 'var(--bg-card)', borderRadius: 14,
+      border: '0.5px solid var(--border)',
       padding: '12px 14px', marginBottom: 10,
       ...style
     }}>
@@ -57,7 +57,7 @@ export function Card({ children, style = {} }) {
 export function PageHeader({ title, action }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-      <h1 style={{ fontSize: 18, fontWeight: 600, color: '#111' }}>{title}</h1>
+      <h1 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>{title}</h1>
       {action}
     </div>
   )
@@ -65,14 +65,14 @@ export function PageHeader({ title, action }) {
 
 export function Badge({ type = 'match', children }) {
   const colors = {
-    match:   { bg: '#E6F1FB', color: '#185FA5' },
-    seance:  { bg: '#EAF3DE', color: '#3B6D11' },
-    coach:   { bg: '#E6F1FB', color: '#185FA5' },
-    adjoint: { bg: '#EAF3DE', color: '#3B6D11' },
-    gardien: { bg: '#FAEEDA', color: '#854F0B' },
-    joueur:  { bg: '#F3F4F6', color: '#6B7280' },
-    alert:   { bg: '#FCEBEB', color: '#A32D2D' },
-    warn:    { bg: '#FAEEDA', color: '#854F0B' },
+    match:   { bg: 'var(--primary-bg)', color: 'var(--primary)' },
+    seance:  { bg: 'var(--success-bg)', color: 'var(--success)' },
+    coach:   { bg: 'var(--primary-bg)', color: 'var(--primary)' },
+    adjoint: { bg: 'var(--success-bg)', color: 'var(--success)' },
+    gardien: { bg: 'var(--warning-bg)', color: 'var(--warning)' },
+    joueur:  { bg: 'var(--bg-secondary)', color: 'var(--text-secondary)' },
+    alert:   { bg: 'var(--danger-bg)', color: 'var(--danger)' },
+    warn:    { bg: 'var(--warning-bg)', color: 'var(--warning)' },
   }
   const c = colors[type] || colors.match
   return (
@@ -101,10 +101,10 @@ export function Avatar({ initials, bg = '#B5D4F4', color = '#0C447C', size = 32 
 
 export function Button({ children, onClick, variant = 'default', size = 'md', disabled = false, style = {} }) {
   const variants = {
-    default: { background: 'transparent', color: '#374151', border: '0.5px solid #D1D5DB' },
-    primary: { background: '#185FA5', color: '#fff', border: '1px solid #185FA5' },
-    success: { background: '#3B6D11', color: '#fff', border: '1px solid #3B6D11' },
-    danger:  { background: '#A32D2D', color: '#fff', border: '1px solid #A32D2D' },
+    default: { background: 'transparent', color: 'var(--text-primary)', border: '0.5px solid var(--border)' },
+    primary: { background: 'var(--primary)', color: '#fff', border: '1px solid var(--primary)' },
+    success: { background: 'var(--success)', color: '#fff', border: '1px solid var(--success)' },
+    danger:  { background: 'var(--danger)', color: '#fff', border: '1px solid var(--danger)' },
   }
   const sizes = {
     sm: { padding: '4px 10px', fontSize: 11, borderRadius: 8 },
@@ -133,7 +133,7 @@ export function Button({ children, onClick, variant = 'default', size = 'md', di
 export function Input({ label, value, onChange, type = 'text', placeholder, disabled = false, style = {} }) {
   return (
     <div style={{ marginBottom: 10 }}>
-      {label && <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3, fontWeight: 500 }}>{label}</label>}
+      {label && <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3, fontWeight: 500 }}>{label}</label>}
       <input
         type={type}
         value={value}
@@ -142,9 +142,9 @@ export function Input({ label, value, onChange, type = 'text', placeholder, disa
         disabled={disabled}
         style={{
           width: '100%', padding: '8px 10px',
-          border: '0.5px solid #D1D5DB', borderRadius: 10,
-          fontSize: 13, background: disabled ? '#F9FAFB' : '#fff',
-          color: '#111', outline: 'none', boxSizing: 'border-box',
+          border: '0.5px solid var(--border)', borderRadius: 10,
+          fontSize: 13, background: disabled ? 'var(--bg-secondary)' : 'var(--bg-card)',
+          color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box',
           ...style
         }}
       />
@@ -155,15 +155,15 @@ export function Input({ label, value, onChange, type = 'text', placeholder, disa
 export function Select({ label, value, onChange, options = [], disabled = false }) {
   return (
     <div style={{ marginBottom: 10 }}>
-      {label && <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3, fontWeight: 500 }}>{label}</label>}
+      {label && <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3, fontWeight: 500 }}>{label}</label>}
       <select
         value={value}
         onChange={e => onChange?.(e.target.value)}
         disabled={disabled}
         style={{
           width: '100%', padding: '8px 10px',
-          border: '0.5px solid #D1D5DB', borderRadius: 10,
-          fontSize: 13, background: '#fff', color: '#111',
+          border: '0.5px solid var(--border)', borderRadius: 10,
+          fontSize: 13, background: 'var(--bg-card)', color: 'var(--text-primary)',
           outline: 'none', boxSizing: 'border-box'
         }}
       >
@@ -178,7 +178,7 @@ export function Select({ label, value, onChange, options = [], disabled = false 
 export function Textarea({ label, value, onChange, placeholder, rows = 3 }) {
   return (
     <div style={{ marginBottom: 10 }}>
-      {label && <label style={{ display: 'block', fontSize: 11, color: '#6B7280', marginBottom: 3, fontWeight: 500 }}>{label}</label>}
+      {label && <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3, fontWeight: 500 }}>{label}</label>}
       <textarea
         value={value}
         onChange={e => onChange?.(e.target.value)}
@@ -186,8 +186,8 @@ export function Textarea({ label, value, onChange, placeholder, rows = 3 }) {
         rows={rows}
         style={{
           width: '100%', padding: '8px 10px',
-          border: '0.5px solid #D1D5DB', borderRadius: 10,
-          fontSize: 13, background: '#fff', color: '#111',
+          border: '0.5px solid var(--border)', borderRadius: 10,
+          fontSize: 13, background: 'var(--bg-card)', color: 'var(--text-primary)',
           outline: 'none', boxSizing: 'border-box',
           resize: 'vertical', fontFamily: 'inherit'
         }}
@@ -200,13 +200,13 @@ export function BarChart({ data, maxValue = 5 }) {
   // data = [{ label, value, color }]
   return (
     <div>
-      {data.map(({ label, value, color = '#185FA5' }) => (
+      {data.map(({ label, value, color = 'var(--primary)' }) => (
         <div key={label} style={{ marginBottom: 7 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#6B7280', marginBottom: 2 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>
             <span>{label}</span>
             <span>{typeof value === 'number' ? value.toFixed(1) : value}</span>
           </div>
-          <div style={{ height: 7, background: '#F3F4F6', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ height: 7, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{
               height: '100%', borderRadius: 4, background: color,
               width: `${Math.min(100, (value / maxValue) * 100).toFixed(0)}%`,
@@ -222,15 +222,15 @@ export function BarChart({ data, maxValue = 5 }) {
 export function ReadonlyBanner({ name, role }) {
   return (
     <div style={{
-      background: '#E6F1FB', border: '0.5px solid #185FA5',
+      background: 'var(--primary-bg)', border: '0.5px solid var(--primary)',
       borderRadius: 10, padding: '8px 12px',
       display: 'flex', alignItems: 'center', gap: 8,
       marginBottom: 12
     }}>
       <span style={{ fontSize: 16 }}>👁</span>
       <div>
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#185FA5' }}>{name}</div>
-        <div style={{ fontSize: 10, color: '#185FA5' }}>Mode consultation — vous pouvez commenter les fiches joueurs</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)' }}>{name}</div>
+        <div style={{ fontSize: 10, color: 'var(--primary)' }}>Mode consultation — vous pouvez commenter les fiches joueurs</div>
       </div>
     </div>
   )
@@ -238,9 +238,9 @@ export function ReadonlyBanner({ name, role }) {
 
 export function AlertCard({ type = 'red', title, message }) {
   const colors = {
-    red:    { border: '#A32D2D', bg: '#FDF1F1' },
+    red:    { border: 'var(--danger)', bg: 'var(--danger-bg)' },
     orange: { border: '#D85A30', bg: '#FDF5EE' },
-    yellow: { border: '#BA7517', bg: '#FDFAEE' },
+    yellow: { border: 'var(--warning)', bg: 'var(--warning-bg)' },
   }
   const c = colors[type] || colors.red
   return (
@@ -249,8 +249,8 @@ export function AlertCard({ type = 'red', title, message }) {
       borderRadius: 8, padding: '10px 12px',
       marginBottom: 8, background: c.bg
     }}>
-      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{title}</div>
-      <div style={{ fontSize: 11, color: '#555' }}>{message}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2, color: 'var(--text-primary)' }}>{title}</div>
+      <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{message}</div>
     </div>
   )
 }
@@ -259,8 +259,8 @@ export function Spinner() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
       <div style={{
-        width: 32, height: 32, border: '3px solid #E5E7EB',
-        borderTop: '3px solid #185FA5', borderRadius: '50%',
+        width: 32, height: 32, border: '3px solid var(--border)',
+        borderTop: '3px solid var(--primary)', borderRadius: '50%',
         animation: 'spin 0.8s linear infinite'
       }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>

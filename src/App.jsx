@@ -6,7 +6,6 @@ import BottomNav from './components/BottomNav'
 import AppHeader from './components/AppHeader'
 import LoginPage from './pages/LoginPage'
 import { lazy, Suspense, useEffect } from 'react'
-import { THEME } from './theme'
 
 const CalendrierPage         = lazy(() => import('./pages/CalendrierPage'))
 const CalendrierVisuelPage   = lazy(() => import('./pages/CalendrierVisuelPage'))
@@ -72,7 +71,7 @@ function AppContent() {
   }, [])
 
   if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: THEME.gradient }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--gradient)' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ width: 80, height: 80, borderRadius: '50%', marginBottom: 16, background: '#fff', padding: 6, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -98,14 +97,14 @@ function AppContent() {
   // Erreur réseau/serveur lors du chargement du profil : on évite de laisser l'utilisateur
   // entrer dans l'app avec un profil vide qui casserait silencieusement plusieurs pages.
   if (profileError) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: THEME.gradient, padding: 20 }}>
-      <div style={{ textAlign: 'center', background: '#fff', borderRadius: 16, padding: 24, maxWidth: 340 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--gradient)', padding: 20 }}>
+      <div style={{ textAlign: 'center', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: 16, padding: 24, maxWidth: 340 }}>
         <div style={{ fontSize: 36, marginBottom: 10 }}>⚠️</div>
         <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{profileError}</p>
-        <button onClick={retryProfile} style={{ marginTop: 10, padding: '10px 18px', borderRadius: 10, border: 'none', background: THEME.gradient, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+        <button onClick={retryProfile} style={{ marginTop: 10, padding: '10px 18px', borderRadius: 10, border: 'none', background: 'var(--gradient)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           Réessayer
         </button>
-        <button onClick={signOut} style={{ display: 'block', margin: '10px auto 0', border: 'none', background: 'none', color: '#9CA3AF', fontSize: 12, cursor: 'pointer' }}>
+        <button onClick={signOut} style={{ display: 'block', margin: '10px auto 0', border: 'none', background: 'none', color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer' }}>
           Se déconnecter
         </button>
       </div>
@@ -115,12 +114,12 @@ function AppContent() {
   // Compte authentifié mais sans fiche joueur/staff associée (ni par auth_id, ni par
   // email) : afficher un message clair plutôt qu'un dashboard joueur cassé (profil sans id).
   if (profile?.orphan) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: THEME.gradient, padding: 20 }}>
-      <div style={{ textAlign: 'center', background: '#fff', borderRadius: 16, padding: 24, maxWidth: 340 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--gradient)', padding: 20 }}>
+      <div style={{ textAlign: 'center', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: 16, padding: 24, maxWidth: 340 }}>
         <div style={{ fontSize: 36, marginBottom: 10 }}>👤</div>
         <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>Compte non lié</p>
-        <p style={{ fontSize: 13, color: '#6B7280' }}>Ton compte n'est pas encore associé à une fiche joueur ou staff. Contacte ton coach pour qu'il vérifie ton accès.</p>
-        <button onClick={signOut} style={{ marginTop: 14, padding: '10px 18px', borderRadius: 10, border: 'none', background: THEME.gradient, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Ton compte n'est pas encore associé à une fiche joueur ou staff. Contacte ton coach pour qu'il vérifie ton accès.</p>
+        <button onClick={signOut} style={{ marginTop: 14, padding: '10px 18px', borderRadius: 10, border: 'none', background: 'var(--gradient)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           Se déconnecter
         </button>
       </div>
@@ -137,7 +136,7 @@ function AppContent() {
   const defaultRoute = isJoueur ? '/mon-dashboard' : '/calendrier'
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: THEME.bgPage }}>
+    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: 'var(--bg-page)' }}>
       <AppHeader />
       <div style={{ paddingBottom: 80 }}>
         <Suspense fallback={routeFallback}>

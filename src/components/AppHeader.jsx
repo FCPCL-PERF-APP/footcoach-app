@@ -1,7 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
-import { THEME } from '../theme'
 import { Search, Moon, Sun, User, Trophy, LogOut } from 'lucide-react'
 
 const PAGE_TITLES = {
@@ -59,7 +58,7 @@ export default function AppHeader() {
 
   return (
     <header style={{
-      background: THEME.gradient,
+      background: 'var(--gradient)',
       padding: '12px 14px 10px',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       position: 'sticky', top: 0, zIndex: 99,
