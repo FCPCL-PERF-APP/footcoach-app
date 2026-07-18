@@ -10,11 +10,11 @@ import {
 
 const CPA_TYPES = [
   { key: 'corner_off',  icon: Ruler,  label: 'Corner offensif',     color: '#3B6D11' },
-  { key: 'corner_def',  icon: Shield, label: 'Corner défensif',     color: '#185FA5' },
+  { key: 'corner_def',  icon: Shield, label: 'Corner défensif',     color: 'var(--primary)' },
   { key: 'cf_off',      icon: Target, label: 'Coup-franc offensif',  color: '#854F0B' },
   { key: 'cf_def',      icon: Square, label: 'Coup-franc défensif',  color: '#A32D2D' },
   { key: 'penalty_off', icon: Target, label: 'Pénalty offensif',    color: '#3B6D11' },
-  { key: 'penalty_def', icon: Hand,   label: 'Pénalty défensif',    color: '#185FA5' },
+  { key: 'penalty_def', icon: Hand,   label: 'Pénalty défensif',    color: 'var(--primary)' },
   { key: 'remise_jeu',  icon: RefreshCw, label: 'Remise en jeu',    color: 'var(--text-secondary)' },
 ]
 

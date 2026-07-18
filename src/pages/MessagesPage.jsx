@@ -384,8 +384,8 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
             {['👍', '👎'].map(emoji => (
               <button key={emoji} onClick={(e) => { e.stopPropagation(); onReact(msg.id, emoji); setShowActions(false) }}
                 style={{
-                  fontSize: 16, padding: '3px 8px', border: `1.5px solid ${myReaction === emoji ? '#185FA5' : 'var(--border)'}`,
-                  borderRadius: 20, background: myReaction === emoji ? '#E6F1FB' : '#fff', cursor: 'pointer'
+                  fontSize: 16, padding: '3px 8px', border: `1.5px solid ${myReaction === emoji ? 'var(--primary)' : 'var(--border)'}`,
+                  borderRadius: 20, background: myReaction === emoji ? 'var(--primary-bg)' : '#fff', cursor: 'pointer'
                 }}>
                 {emoji}
               </button>

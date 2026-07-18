@@ -17,7 +17,7 @@ const STEPS = [
     icon: Calendar,
     title: 'Ton calendrier',
     desc: 'Consulte tous les matchs et entraînements à venir. Confirme ta présence directement depuis l\'app avec Présent, Absent ou Blessé.',
-    color: '#185FA5',
+    color: 'var(--primary)',
     image: 'Agenda'
   },
   {
@@ -52,7 +52,7 @@ const STEPS = [
     icon: Bell,
     title: 'Active tes notifications',
     desc: 'Reçois une alerte pour les convocations, les rappels RPE et les messages de ton coach. Tu peux les désactiver à tout moment depuis ton profil.',
-    color: '#185FA5',
+    color: 'var(--primary)',
     pushStep: true,
   },
   {

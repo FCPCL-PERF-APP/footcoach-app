@@ -393,7 +393,7 @@ export default function MaFichePage() {
                 <div style={{ marginTop: 10, background: 'var(--bg-secondary)', borderRadius: 10, padding: 10 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6 }}>Toutes les zones</p>
                   {[
-                    ['Zone 1 — Récupération (50-60%)', 0.5, 0.6, '#185FA5'],
+                    ['Zone 1 — Récupération (50-60%)', 0.5, 0.6, 'var(--primary)'],
                     ['Zone 2 — Aérobie (60-70%)', 0.6, 0.7, '#3B6D11'],
                     ['Zone 3 — Seuil (70-80%)', 0.7, 0.8, '#BA7517'],
                     ['Zone 4 — Haute intensité (80-90%)', 0.8, 0.9, '#D85A30'],

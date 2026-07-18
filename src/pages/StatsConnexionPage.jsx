@@ -72,7 +72,7 @@ export default function StatsConnexionPage() {
         {[
           ["Actifs aujourd'hui", counts.actif_jour,      '#3B6D11', '#EAF3DE'],
           ["Cette semaine",      counts.actif_semaine,   '#BA7517', '#FDFAEE'],
-          ["Ce mois",            counts.actif_mois,      '#185FA5', '#E6F1FB'],
+          ["Ce mois",            counts.actif_mois,      'var(--primary)', 'var(--primary-bg)'],
           ["Inactifs +30j",      counts.inactif,         '#A32D2D', '#FCEBEB'],
           ["Jamais connectes",   counts.jamais_connecte, 'var(--text-secondary)', 'var(--bg-secondary)'],
           ["Non invites",        counts.non_invite,      'var(--text-primary)', 'var(--bg-secondary)'],
@@ -112,7 +112,7 @@ export default function StatsConnexionPage() {
         <button onClick={() => setFilter('tous')} style={{
           padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
           border: `0.5px solid ${filter === 'tous' ? 'var(--primary)' : 'var(--border)'}`,
-          background: filter === 'tous' ? '#E6F1FB' : 'transparent',
+          background: filter === 'tous' ? 'var(--primary-bg)' : 'transparent',
           color: filter === 'tous' ? 'var(--primary)' : 'var(--text-secondary)',
           fontWeight: filter === 'tous' ? 600 : 400
         }}>Tous ({enriched.length})</button>

@@ -411,7 +411,7 @@ export default function StatsPage() {
               <button key={key} onClick={() => setFormation(key)} style={{
                 flex: 1, padding: '8px 4px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                 border: `1.5px solid ${formation === key ? 'var(--primary)' : 'var(--border)'}`,
-                background: formation === key ? '#E6F1FB' : 'transparent',
+                background: formation === key ? 'var(--primary-bg)' : 'transparent',
                 color: formation === key ? 'var(--primary)' : 'var(--text-secondary)',
                 fontWeight: formation === key ? 700 : 400
               }}>{f.label}</button>

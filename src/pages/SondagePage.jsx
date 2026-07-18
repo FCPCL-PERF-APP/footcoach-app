@@ -164,7 +164,7 @@ export default function SondagePage() {
                       style={{
                         width: '100%', padding: '10px 12px', borderRadius: 10, marginBottom: 6,
                         border: `1.5px solid ${isMyVote ? 'var(--primary)' : 'var(--border)'}`,
-                        background: aVote ? (isMyVote ? '#E6F1FB' : 'var(--bg-secondary)') : '#fff',
+                        background: aVote ? (isMyVote ? 'var(--primary-bg)' : 'var(--bg-secondary)') : '#fff',
                         cursor: s.actif && !aVote ? 'pointer' : 'default',
                         textAlign: 'left', position: 'relative', overflow: 'hidden'
                       }}>

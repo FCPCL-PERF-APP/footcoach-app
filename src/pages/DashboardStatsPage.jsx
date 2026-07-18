@@ -189,7 +189,7 @@ export default function DashboardStatsPage() {
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)', cursor: 'pointer' }}>
                   <div>
                     <p style={{ fontSize: 12, fontWeight: 600 }}>
-                  {m.evenements?.match_type === 'preparation' && <span style={{ fontSize: 9, background: '#E6F1FB', color: '#185FA5', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Prépa</span>}
+                  {m.evenements?.match_type === 'preparation' && <span style={{ fontSize: 9, background: 'var(--primary-bg)', color: 'var(--primary)', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Prépa</span>}
                   {m.evenements?.match_type === 'coupe' && <span style={{ fontSize: 9, background: '#FAEEDA', color: '#854F0B', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Coupe</span>}
                   {m.evenements?.titre}
                 </p>

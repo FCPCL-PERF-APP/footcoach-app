@@ -144,7 +144,7 @@ export default function JoueursPage() {
           <button key={p} onClick={() => setFilterPoste(p)} style={{
             padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid var(--border)', whiteSpace: 'nowrap',
-            background: filterPoste === p ? '#E6F1FB' : 'transparent',
+            background: filterPoste === p ? 'var(--primary-bg)' : 'transparent',
             color: filterPoste === p ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: filterPoste === p ? 600 : 400
           }}>{p === 'tous' ? 'Tous' : p}</button>
@@ -153,7 +153,7 @@ export default function JoueursPage() {
           <button onClick={() => setSortBy('nom')} style={{
             padding: '4px 8px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid var(--border)', whiteSpace: 'nowrap',
-            background: sortBy === 'nom' ? '#E6F1FB' : 'transparent',
+            background: sortBy === 'nom' ? 'var(--primary-bg)' : 'transparent',
             color: sortBy === 'nom' ? 'var(--primary)' : 'var(--text-secondary)',
           }}>A→Z</button>
           {isStaff && <button onClick={() => setSortBy('rpe')} style={{

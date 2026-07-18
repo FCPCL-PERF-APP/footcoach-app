@@ -129,7 +129,7 @@ function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
             <button key={f} onClick={() => setActiveFormation(f)} style={{
               padding: '3px 8px', borderRadius: 6, fontSize: 10, cursor: 'pointer', fontWeight: 600,
               border: `1px solid ${activeFormation === f ? 'var(--primary)' : 'var(--border)'}`,
-              background: activeFormation === f ? '#E6F1FB' : 'transparent',
+              background: activeFormation === f ? 'var(--primary-bg)' : 'transparent',
               color: activeFormation === f ? 'var(--primary)' : 'var(--text-muted)',
             }}>{f}</button>
           ))}
@@ -393,7 +393,7 @@ export default function FunPage() {
                 <button key={f} onClick={() => { setFormation(f); setMonOnze({}) }} style={{
                   padding: '5px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontWeight: 600,
                   border: `1.5px solid ${formation === f ? 'var(--primary)' : 'var(--border)'}`,
-                  background: formation === f ? '#E6F1FB' : 'transparent',
+                  background: formation === f ? 'var(--primary-bg)' : 'transparent',
                   color: formation === f ? 'var(--primary)' : 'var(--text-secondary)',
                 }}>{f}</button>
               ))}
@@ -451,7 +451,7 @@ export default function FunPage() {
                     }} style={{
                       padding: '4px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
                       border: `1px solid ${monOnze[selectingPoste] === j.id ? 'var(--primary)' : 'var(--border)'}`,
-                      background: monOnze[selectingPoste] === j.id ? '#E6F1FB' : '#fff',
+                      background: monOnze[selectingPoste] === j.id ? 'var(--primary-bg)' : '#fff',
                       color: monOnze[selectingPoste] === j.id ? 'var(--primary)' : 'var(--text-primary)',
                     }}>
                       {j.nom} {j.prenom[0]}.

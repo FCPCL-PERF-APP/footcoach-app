@@ -325,7 +325,7 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
 
   // Liseré coloré à gauche pour distinguer les cartes d'un coup d'œil dans la liste
   // (même couleur que le badge type, au lieu d'un simple bloc blanc uniforme).
-  const typeColor = ev.type === 'match' ? '#185FA5' : 'var(--success)'
+  const typeColor = ev.type === 'match' ? 'var(--primary)' : 'var(--success)'
 
   return (
     <Card style={{ opacity: past ? 0.85 : 1, marginBottom: 10, borderLeft: `3px solid ${typeColor}` }}>

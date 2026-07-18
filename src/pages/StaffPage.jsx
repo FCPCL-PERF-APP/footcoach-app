@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 
 const ROLES = [
-  { value: 'coach',    icon: Crown, label: 'Coach principal', desc: 'Accès complet — modification, suppression, création', color: '#185FA5', canEdit: true },
+  { value: 'coach',    icon: Crown, label: 'Coach principal', desc: 'Accès complet — modification, suppression, création', color: 'var(--primary)', canEdit: true },
   { value: 'adjoint',  icon: Handshake, label: 'Coach adjoint',   desc: 'Lecture seule — consultation de toutes les données', color: '#3B6D11', canEdit: false },
   { value: 'admin',    icon: Settings, label: 'Administrateur',  desc: 'Accès complet comme le coach principal', color: '#854F0B', canEdit: true },
   { value: 'preparateur', icon: Dumbbell, label: 'Préparateur physique', desc: 'Accès RPE, Footbar et données physiques', color: '#A32D2D', canEdit: false },

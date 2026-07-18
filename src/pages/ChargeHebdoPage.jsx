@@ -137,7 +137,7 @@ export default function ChargeHebdoPage() {
                   { label: 'RPE moy.', value: derniereSemaine.rpeMoy ?? '—', color: rpeColor(derniereSemaine.rpeMoy) },
                   { label: 'Charge', value: derniereSemaine.charge ?? '—', color: 'var(--primary)' },
                   { label: 'Séances', value: derniereSemaine.nbSeances, color: '#3B6D11' },
-                  { label: 'Matchs', value: derniereSemaine.nbMatchs, color: '#185FA5' },
+                  { label: 'Matchs', value: derniereSemaine.nbMatchs, color: 'var(--primary)' },
                 ].map(m => (
                   <div key={m.label} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
                     <div style={{ fontSize: 18, fontWeight: 700, color: m.color }}>{m.value}</div>

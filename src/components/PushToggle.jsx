@@ -40,8 +40,8 @@ export default function PushToggle() {
         </div>
         <button onClick={toggle} disabled={loading} style={{
           padding: '7px 14px', borderRadius: 20, border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-          background: pushEnabled ? '#EAF3DE' : '#E6F1FB',
-          color: pushEnabled ? '#3B6D11' : '#185FA5',
+          background: pushEnabled ? '#EAF3DE' : 'var(--primary-bg)',
+          color: pushEnabled ? '#3B6D11' : 'var(--primary)',
           fontSize: 12, fontWeight: 600
         }}>
           {loading ? '...' : pushEnabled ? '✅ Activées' : 'Activer'}

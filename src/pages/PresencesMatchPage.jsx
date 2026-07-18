@@ -176,9 +176,9 @@ export default function PresencesMatchPage() {
       {/* Résumé avec filtres cliquables */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 6, marginBottom: 12 }}>
         {[
-          ['Tous', 'tous', convocations.length, '#185FA5', '#E6F1FB'],
+          ['Tous', 'tous', convocations.length, 'var(--primary)', 'var(--primary-bg)'],
           ['Présents', 'present', nbPresents, '#3B6D11', '#EAF3DE'],
-          ['Extérieur', 'exterieur', nbExterieurs, '#185FA5', '#E6F1FB'],
+          ['Extérieur', 'exterieur', nbExterieurs, 'var(--primary)', 'var(--primary-bg)'],
           ['Absents', 'absent', nbAbsents, '#A32D2D', '#FCEBEB'],
           ['Blessés', 'blesse', nbBlesses, '#854F0B', '#FAEEDA'],
           ['Inconnus', 'inconnu', nbInconnus, 'var(--text-secondary)', 'var(--bg-secondary)'],

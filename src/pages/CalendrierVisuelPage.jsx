@@ -91,7 +91,7 @@ export default function CalendrierVisuelPage() {
               style={{
                 minHeight: 44, borderRadius: 8, padding: '4px 2px',
                 cursor: dayEvs.length > 0 ? 'pointer' : 'default',
-                background: isSelected ? 'var(--primary)' : today ? '#E6F1FB' : 'transparent',
+                background: isSelected ? 'var(--primary)' : today ? 'var(--primary-bg)' : 'transparent',
                 border: `1px solid ${isSelected ? 'var(--primary)' : today ? 'var(--primary)' : 'var(--bg-secondary)'}`,
                 transition: 'all .15s'
               }}>

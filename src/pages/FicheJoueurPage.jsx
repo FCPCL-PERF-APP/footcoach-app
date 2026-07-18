@@ -443,7 +443,7 @@ export default function FicheJoueurPage() {
         <div style={{ background: 'var(--primary-bg)', borderRadius: 8, padding: '6px 10px', marginBottom: 10, fontSize: 11, color: 'var(--primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Mail size={12} /> Invitation envoyée — lien valable 24h</span>
           <button onClick={() => { setShowInvite(true); setInviteResult(null) }}
-            style={{ fontSize: 10, color: '#185FA5', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
+            style={{ fontSize: 10, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
             Renvoyer
           </button>
         </div>
@@ -580,7 +580,7 @@ export default function FicheJoueurPage() {
               <>
                 <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 8 }}>Zones FC (Karvonen)</p>
                 {[
-                  ['Zone 1 — Récupération', 0.5, 0.6, '#E6F1FB', '#185FA5'],
+                  ['Zone 1 — Récupération', 0.5, 0.6, 'var(--primary-bg)', 'var(--primary)'],
                   ['Zone 2 — Aérobie', 0.6, 0.7, '#EAF3DE', '#3B6D11'],
                   ['Zone 3 — Seuil', 0.7, 0.8, '#FAEEDA', '#854F0B'],
                   ['Zone 4 — Haute intensité', 0.8, 0.9, '#FCEBEB', '#A32D2D'],
