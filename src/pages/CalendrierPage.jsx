@@ -446,6 +446,18 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
     if (result.queued) setTimeout(() => setWasQueued(false), 4000)
   }
 
+  // Édition du motif seule (pas un changement de statut) : ne redéclenche pas la
+  // notification push au coach à chaque fois que le joueur retouche le texte — il a
+  // déjà été notifié de l'absence elle-même via handleStatut('absent').
+  async function saveMotifOnly() {
+    if (!profile?.id || statut !== 'absent') return
+    try {
+      await savePresenceOrQueue(ev.id, profile.id, 'absent', motif)
+    } catch (err) {
+      console.error('Erreur enregistrement motif:', err)
+    }
+  }
+
   const isMatch = ev.type === 'match'
 
   // Statuts selon le type d'événement — le code couleur reste la source d'info
@@ -517,7 +529,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
       {/* Motif optionnel de l'absence, à destination du coach */}
       {statut === 'absent' && (
         <input value={motif} onChange={e => setMotif(e.target.value)}
-          onBlur={() => handleStatut('absent')}
+          onBlur={saveMotifOnly}
           placeholder="Motif (optionnel)..."
           style={{ width: '100%', marginTop: 6, padding: '6px 10px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-card)', color: 'var(--text-primary)' }} />
       )}
