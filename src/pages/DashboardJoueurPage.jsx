@@ -8,8 +8,9 @@ import { format, parseISO, subDays } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   Award, HelpCircle, FileText, AlertTriangle, Heart, Radio, Calendar, User,
-  MessageCircle, TrendingUp, CheckCircle2, XCircle, Bandage, Target, ArrowRight
+  MessageCircle, TrendingUp, CheckCircle2, XCircle, Bandage, Target, ArrowRight, RefreshCw
 } from 'lucide-react'
+import { computePresenceBreakdown } from '../lib/presenceStats'
 
 function rpeColor(v) {
   if (!v) return THEME.textMuted
@@ -131,12 +132,11 @@ export default function DashboardJoueurPage() {
   const tempsJeuVals = statsHistory.map(s => s.temps_jeu).filter(v => v != null && v > 0)
   const tempsJeuMoy = tempsJeuVals.length ? Math.round(tempsJeuVals.reduce((a,b) => a+b,0)/tempsJeuVals.length) : '—'
 
-  // Présences sur ENTRAÎNEMENTS uniquement
+  // Présences sur ENTRAÎNEMENTS uniquement — taux d'engagement = présent + extérieur,
+  // blessures exclues du calcul (cf. src/lib/presenceStats.js)
   const presencesEntrainement = presences.filter(p => p.evenements?.type === 'seance')
-  const presentsEntrainement = presencesEntrainement.filter(p => p.statut === 'present').length
-  const tauxPresenceEntrainement = presencesEntrainement.length
-    ? Math.round(presentsEntrainement / presencesEntrainement.length * 100)
-    : '—'
+  const presEntrainementBreakdown = computePresenceBreakdown(presencesEntrainement)
+  const tauxPresenceEntrainement = presEntrainementBreakdown.tauxEngagement ?? '—'
 
   // Distance moyenne entraînement vs match
   const footEntrainement = footHistory.filter(f => f.evenements?.type === 'seance')
@@ -235,7 +235,7 @@ export default function DashboardJoueurPage() {
           { label: 'Matchs', value: totalMatchs, color: THEME.primary },
           { label: 'Buts', value: totalButs, color: THEME.success },
           { label: 'Tps jeu moy.', value: tempsJeuMoy !== '—' ? `${tempsJeuMoy}'` : '—', color: THEME.primary },
-          { label: 'Présence entr.', value: tauxPresenceEntrainement !== '—' ? `${tauxPresenceEntrainement}%` : '—', color: tauxPresenceEntrainement >= 80 ? THEME.success : '#D85A30' },
+          { label: 'Engagement entr.', value: tauxPresenceEntrainement !== '—' ? `${tauxPresenceEntrainement}%` : '—', color: tauxPresenceEntrainement >= 80 ? THEME.success : '#D85A30' },
         ].map(s => (
           <div key={s.label} style={{ background: THEME.bgCard, border: `0.5px solid ${THEME.border}`, borderRadius: THEME.radiusMd, padding: '10px 6px', textAlign: 'center' }}>
             <div style={{ fontSize: 16, fontWeight: 800, color: s.color }}>{s.value}</div>
@@ -327,26 +327,32 @@ export default function DashboardJoueurPage() {
             <Calendar size={14} color={THEME.primary} /> Présences entraînements
           </p>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-            {presencesEntrainement.slice(0,10).map((p,i) => (
-              <div key={i} style={{ textAlign: 'center' }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: p.statut === 'present' ? THEME.successBg : p.statut === 'absent' ? THEME.dangerBg : THEME.warningBg
-                }}>
-                  {p.statut === 'present' ? <CheckCircle2 size={15} color={THEME.success} />
-                    : p.statut === 'absent' ? <XCircle size={15} color={THEME.danger} />
-                    : <Bandage size={15} color={THEME.warning} />}
+            {presencesEntrainement.slice(0,10).map((p,i) => {
+              const style = p.statut === 'present' ? { bg: THEME.successBg, color: THEME.success, Icon: CheckCircle2 }
+                : p.statut === 'exterieur' ? { bg: THEME.primaryBg, color: THEME.primary, Icon: RefreshCw }
+                : p.statut === 'blesse' ? { bg: THEME.warningBg, color: '#854F0B', Icon: Bandage }
+                : { bg: THEME.dangerBg, color: THEME.danger, Icon: XCircle }
+              return (
+                <div key={i} style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: style.bg
+                  }}>
+                    <style.Icon size={15} color={style.color} />
+                  </div>
+                  <div style={{ fontSize: 8, color: THEME.textMuted, marginTop: 2 }}>
+                    {p.evenements?.date_heure ? format(parseISO(p.evenements.date_heure), 'd/M', { locale: fr }) : ''}
+                  </div>
                 </div>
-                <div style={{ fontSize: 8, color: THEME.textMuted, marginTop: 2 }}>
-                  {p.evenements?.date_heure ? format(parseISO(p.evenements.date_heure), 'd/M', { locale: fr }) : ''}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
-          <div style={{ display: 'flex', gap: 12, fontSize: 11, borderTop: `0.5px solid ${THEME.border}`, paddingTop: 8 }}>
-            <span style={{ color: THEME.success }}>{presentsEntrainement} présent(s)</span>
-            <span style={{ color: THEME.danger }}>{presencesEntrainement.filter(p => p.statut === 'absent').length} absent(s)</span>
-            <span style={{ color: THEME.textMuted }}>· {tauxPresenceEntrainement}% de présence</span>
+          <div style={{ display: 'flex', gap: 10, fontSize: 11, borderTop: `0.5px solid ${THEME.border}`, paddingTop: 8, flexWrap: 'wrap' }}>
+            <span style={{ color: THEME.success }}>{presEntrainementBreakdown.present} présent(s)</span>
+            <span style={{ color: THEME.primary }}>{presEntrainementBreakdown.exterieur} extérieur</span>
+            <span style={{ color: '#854F0B' }}>{presEntrainementBreakdown.blesse} blessé(s)</span>
+            <span style={{ color: THEME.danger }}>{presEntrainementBreakdown.absent} absent(s)</span>
+            <span style={{ color: THEME.textMuted }}>· {tauxPresenceEntrainement}% d'engagement</span>
           </div>
         </Card>
       )}

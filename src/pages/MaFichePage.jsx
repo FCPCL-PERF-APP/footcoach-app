@@ -10,8 +10,9 @@ import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   User, Heart, BarChart3, Swords, Scale, Target, Bandage, Lock, Camera,
-  CheckCircle2, Save, MessageSquare, Lightbulb, XCircle
+  CheckCircle2, Save, MessageSquare, Lightbulb, XCircle, RefreshCw, Calendar
 } from 'lucide-react'
+import { computePresenceBreakdown } from '../lib/presenceStats'
 
 function rpeColor(v) {
   if (v >= 4.5) return THEME.danger
@@ -71,6 +72,7 @@ export default function MaFichePage() {
   const [statsHistory, setStatsHistory] = useState([])
   const [poidsHistory, setPoidsHistory] = useState([])
   const [blessuresData, setBlessuresData] = useState([])
+  const [presences, setPresences] = useState([])
   const [newPoids, setNewPoids] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -85,12 +87,13 @@ export default function MaFichePage() {
   useEffect(() => { if (profile?.id) loadData() }, [profile])
 
   async function loadData() {
-    const [{ data: j }, { data: rpe }, { data: stats }, { data: poids }, { data: blessures }] = await Promise.all([
+    const [{ data: j }, { data: rpe }, { data: stats }, { data: poids }, { data: blessures }, { data: pres }] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', profile.id).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)').eq('joueur_id', profile.id).order('created_at', { ascending: false }).limit(8),
       supabase.from('stats_match').select('*, evenements(titre,date_heure)').eq('joueur_id', profile.id).order('created_at', { ascending: false }).limit(10),
       supabase.from('suivi_poids').select('*').eq('joueur_id', profile.id).order('date_mesure', { ascending: true }).limit(12),
       supabase.from('blessures').select('*').eq('joueur_id', profile.id).order('date_debut', { ascending: false }),
+      supabase.from('presences').select('statut, evenements(type)').eq('joueur_id', profile.id),
     ])
     setJoueur(j)
     setForm(j || {})
@@ -98,6 +101,7 @@ export default function MaFichePage() {
     setStatsHistory(stats || [])
     setPoidsHistory(poids || [])
     setBlessuresData(blessures || [])
+    setPresences(pres || [])
     setLoading(false)
   }
 
@@ -204,6 +208,10 @@ export default function MaFichePage() {
   const noteMoy = statsHistory.length
     ? (statsHistory.reduce((s, r) => s + (r.note || 0), 0) / statsHistory.length).toFixed(1)
     : '—'
+  // Répartition des présences aux entraînements — présent/extérieur comptent comme
+  // investissement, les blessures sont exclues du taux d'engagement (absence non choisie)
+  const presenceSeances = presences.filter(p => p.evenements?.type === 'seance')
+  const presenceBreakdown = computePresenceBreakdown(presenceSeances)
   const rpeAvg = RPE_ITEMS.map(item => {
     const vals = rpeHistory.map(r => r[item.key]).filter(v => v !== null && v !== undefined)
     const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
@@ -258,6 +266,32 @@ export default function MaFichePage() {
           </div>
         ))}
       </div>
+
+      {/* Présence entraînements */}
+      {presenceSeances.length > 0 && (
+        <Card style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color={THEME.primary} /> Ma présence entraînements</p>
+            <span style={{ fontSize: 15, fontWeight: 800, color: presenceBreakdown.tauxEngagement >= 80 ? THEME.success : '#D85A30' }}>
+              {presenceBreakdown.tauxEngagement ?? '—'}%
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+            {[
+              { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
+              { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: THEME.primary, bg: THEME.primaryBg },
+              { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: THEME.warningBg },
+              { key: 'absent', label: 'Absent', icon: XCircle, color: THEME.danger, bg: THEME.dangerBg },
+            ].map(s => (
+              <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '7px 4px', textAlign: 'center' }}>
+                <s.icon size={12} color={s.color} style={{ marginBottom: 3 }} />
+                <div style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{presenceBreakdown[s.key]}</div>
+                <div style={{ fontSize: 8, color: s.color }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>

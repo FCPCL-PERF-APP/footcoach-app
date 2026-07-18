@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { bornesSaison } from '../lib/saison'
+import { computePresenceBreakdown } from '../lib/presenceStats'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { Scale, Heart, Radio } from 'lucide-react'
@@ -80,11 +81,10 @@ export default function ComparatifJoueursPage() {
     const noteMoy = officiels.length ? parseFloat((officiels.reduce((s,r) => s+(r.note||0),0)/officiels.length).toFixed(1)) : null
     const minMoy = officiels.length ? parseFloat((officiels.reduce((s,r) => s+(r.temps_jeu||0),0)/officiels.length).toFixed(0)) : null
 
-    // Présence
-    const presents = (pres || []).filter(p => p.statut === 'present').length
-    const tauxPresence = pres?.length ? Math.round(presents/pres.length*100) : null
+    // Présence (taux d'engagement = présent + extérieur, blessures exclues du calcul)
+    const { tauxEngagement } = computePresenceBreakdown(pres || [])
 
-    setter({ joueur: j, rpeMoyennes, footMoyennes, totalButs, totalPD, noteMoy, minMoy, tauxPresence, nbMatchs: officiels.length })
+    setter({ joueur: j, rpeMoyennes, footMoyennes, totalButs, totalPD, noteMoy, minMoy, tauxPresence: tauxEngagement, nbMatchs: officiels.length })
     setLoading(false)
   }
 
@@ -154,7 +154,7 @@ export default function ComparatifJoueursPage() {
               { label: 'Passes déc.', v1: data1.totalPD, v2: data2.totalPD },
               { label: 'Note moy.', v1: data1.noteMoy, v2: data2.noteMoy },
               { label: 'Tps jeu moy.', v1: data1.minMoy ? `${data1.minMoy}min` : '—', v2: data2.minMoy ? `${data2.minMoy}min` : '—', noCompare: true },
-              { label: 'Présence %', v1: data1.tauxPresence ? `${data1.tauxPresence}%` : '—', v2: data2.tauxPresence ? `${data2.tauxPresence}%` : '—', noCompare: true },
+              { label: 'Engagement %', v1: data1.tauxPresence ? `${data1.tauxPresence}%` : '—', v2: data2.tauxPresence ? `${data2.tauxPresence}%` : '—', noCompare: true },
             ].map(({ label, v1, v2, noCompare }) => {
               const w = noCompare ? 0 : (v1 > v2 ? 1 : v2 > v1 ? 2 : 0)
               return (

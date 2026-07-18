@@ -6,6 +6,7 @@ import { THEME } from '../theme'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { computePresenceBreakdown } from '../lib/presenceStats'
 
 export default function ExportFicheJoueurPage() {
   const { id } = useParams()
@@ -51,10 +52,9 @@ export default function ExportFicheJoueurPage() {
     }).filter(v => v !== null)
     const rpeMoy = rpeVals.length ? (rpeVals.reduce((a,b) => a+b,0)/rpeVals.length).toFixed(1) : '—'
 
-    // Présences entraînements
+    // Présences entraînements — taux d'engagement (présent + extérieur, blessures exclues)
     const presSeances = (presences || []).filter(p => p.evenements?.type === 'seance')
-    const presOk = presSeances.filter(p => p.statut === 'present' || p.statut === 'exterieur').length
-    const tauxPres = presSeances.length ? Math.round(presOk/presSeances.length*100) : 0
+    const tauxPres = computePresenceBreakdown(presSeances).tauxEngagement ?? 0
 
     setData({ joueur, officiels, totalButs, totalPD, titularisations, tempsMoy, noteMoy, rpeMoy, tauxPres, blessures: blessures||[], objJoueur, nbRpe: (rpe||[]).length })
     setLoading(false)
@@ -115,7 +115,7 @@ export default function ExportFicheJoueurPage() {
               ['Tps jeu moy.', tempsMoy ? `${tempsMoy}'` : '—'],
               ['Note moyenne', noteMoy],
               ['RPE moyen', `${rpeMoy}/5`],
-              ['Présence entr.', `${tauxPres}%`],
+              ['Engagement entr.', `${tauxPres}%`],
             ].map(([label, val]) => (
               <div key={label} style={{ background: '#F9FAFB', borderRadius: 10, padding: '10px 8px', textAlign: 'center', border: '0.5px solid #E5E7EB' }}>
                 <div style={{ fontSize: 20, fontWeight: 800, color: '#1A3A6B' }}>{val}</div>

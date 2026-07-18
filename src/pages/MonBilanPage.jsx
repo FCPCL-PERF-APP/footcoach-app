@@ -6,7 +6,8 @@ import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { ArrowLeft, Trophy, Swords, Heart, Calendar, Radio, Target } from 'lucide-react'
+import { ArrowLeft, Trophy, Swords, Heart, Calendar, Radio, Target, CheckCircle2, RefreshCw, Bandage, XCircle } from 'lucide-react'
+import { computePresenceBreakdown } from '../lib/presenceStats'
 
 function rpeColor(v) {
   if (!v) return '#9CA3AF'
@@ -65,9 +66,9 @@ export default function MonBilanPage() {
       return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '—'
     })()
 
-    // Présences
-    const presents = (presData || []).filter(p => p.statut === 'present').length
-    const tauxPresence = presData?.length ? Math.round(presents / presData.length * 100) : 0
+    // Présences — répartition présent/extérieur/blessé/absent + taux d'engagement
+    // (présent + extérieur, blessures exclues du calcul car absence non choisie)
+    const presBreakdown = computePresenceBreakdown(presData || [])
 
     // Footbar
     const distances = (footData || []).map(f => f.distance_km).filter(Boolean)
@@ -82,7 +83,8 @@ export default function MonBilanPage() {
     setStats({
       totalMatchs, totalButs, totalPD, totalMin, noteMoy, titulaire, cartons,
       rpeMoy, motivMoy, nbRpe: rpeData?.length || 0,
-      tauxPresence, presents, totalPresences: presData?.length || 0,
+      presence: presBreakdown,
+      tauxPresence: presBreakdown.tauxEngagement ?? 0,
       distMoy, sprintMax, totalDist, nbFootbar: footData?.length || 0,
       objAtteints, objTotal
     })
@@ -170,7 +172,7 @@ export default function MonBilanPage() {
       {/* PRÉSENCES */}
       <p style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={11} /> Présences</p>
       <Card style={{ marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
           <div style={{
             width: 64, height: 64, borderRadius: '50%',
             border: `5px solid ${stats?.tauxPresence >= 80 ? '#3B6D11' : stats?.tauxPresence >= 60 ? '#BA7517' : '#A32D2D'}`,
@@ -186,9 +188,24 @@ export default function MonBilanPage() {
                stats?.tauxPresence >= 60 ? 'Présence correcte' : 'Assiduité à améliorer'}
             </p>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
-              {stats?.presents} présence(s) sur {stats?.totalPresences} événement(s)
+              Taux d'engagement · présent + extérieur, hors blessures
             </p>
           </div>
+        </div>
+        {/* Répartition détaillée des 4 statuts */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+          {[
+            { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
+            { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: THEME.primary, bg: THEME.primaryBg },
+            { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: THEME.warningBg },
+            { key: 'absent', label: 'Absent', icon: XCircle, color: THEME.danger, bg: THEME.dangerBg },
+          ].map(s => (
+            <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '8px 4px', textAlign: 'center' }}>
+              <s.icon size={13} color={s.color} style={{ marginBottom: 3 }} />
+              <div style={{ fontSize: 15, fontWeight: 700, color: s.color }}>{stats?.presence?.[s.key] ?? 0}</div>
+              <div style={{ fontSize: 9, color: s.color }}>{s.label}</div>
+            </div>
+          ))}
         </div>
       </Card>
 

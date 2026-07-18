@@ -11,8 +11,9 @@ import { fr } from 'date-fns/locale'
 import {
   ArrowLeft, Camera, Pencil, Save, Mail, X, Hourglass, CheckCircle2,
   Bandage, Target, User, Heart, TrendingUp, Swords, MessageSquare,
-  Dumbbell, Brain, Trophy, XCircle
+  Dumbbell, Brain, Trophy, XCircle, RefreshCw, Calendar
 } from 'lucide-react'
+import { computePresenceBreakdown } from '../lib/presenceStats'
 
 const RPE_ITEMS = [
   { key: 'difficulte', label: 'Difficulté' },
@@ -54,6 +55,7 @@ export default function FicheJoueurPage() {
   const [commentaires, setCommentaires] = useState([])
   const [blessures, setBlessures] = useState([])
   const [objectifs, setObjectifs] = useState([])
+  const [presences, setPresences] = useState([])
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -73,7 +75,7 @@ export default function FicheJoueurPage() {
   async function loadAll() {
     setLoading(true)
     const [{ data: j }, { data: rpe }, { data: foot }, { data: stats },
-           { data: t }, { data: poids }, { data: comms }, { data: bless }, { data: obj }, { data: objJoueur }] = await Promise.all([
+           { data: t }, { data: poids }, { data: comms }, { data: bless }, { data: obj }, { data: objJoueur }, { data: pres }] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', id).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
       supabase.from('footbar').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
@@ -84,6 +86,7 @@ export default function FicheJoueurPage() {
       supabase.from('blessures').select('*').eq('joueur_id', id).order('date_debut', { ascending: false }),
       supabase.from('objectifs').select('*').eq('joueur_id', id).order('created_at', { ascending: false }),
       supabase.from('objectifs_joueur').select('*').eq('joueur_id', id).maybeSingle(),
+      supabase.from('presences').select('statut, evenements(type)').eq('joueur_id', id),
     ])
     setJoueur(j)
     setForm({ ...j })
@@ -95,6 +98,7 @@ export default function FicheJoueurPage() {
     setCommentaires(comms || [])
     setBlessures(bless || [])
     setObjectifs(obj || [])
+    setPresences(pres || [])
     if (objJoueur) {
       setObjJoueurData(objJoueur)
       setBilanForm({
@@ -296,6 +300,10 @@ export default function FicheJoueurPage() {
   const totalPD = statsOfficielles.reduce((s, r) => s + (r.passes_decisives || 0), 0)
   const noteMoy = statsOfficielles.length ? (statsOfficielles.reduce((s, r) => s + (r.note || 0), 0) / statsOfficielles.length).toFixed(1) : '—'
   const blessureActive = blessures.find(b => !b.date_retour_effective)
+  // Répartition des présences aux entraînements — présent/extérieur comptent comme
+  // investissement, les blessures sont exclues du taux d'engagement (absence non choisie)
+  const presenceSeances = presences.filter(p => p.evenements?.type === 'seance')
+  const presenceBreakdown = computePresenceBreakdown(presenceSeances)
 
   const tabs = [
     { key: 'identite',  icon: User, label: 'Identité', cat: 'blue' },
@@ -450,6 +458,32 @@ export default function FicheJoueurPage() {
           </div>
         ))}
       </div>
+
+      {/* Présence entraînements */}
+      {presenceSeances.length > 0 && (
+        <Card style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color={THEME.primary} /> Présence entraînements</p>
+            <span style={{ fontSize: 15, fontWeight: 800, color: presenceBreakdown.tauxEngagement >= 80 ? THEME.success : '#D85A30' }}>
+              {presenceBreakdown.tauxEngagement ?? '—'}%
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+            {[
+              { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
+              { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: THEME.primary, bg: THEME.primaryBg },
+              { key: 'blesse', label: 'Blessé', icon: Bandage, color: '#854F0B', bg: THEME.warningBg },
+              { key: 'absent', label: 'Absent', icon: XCircle, color: THEME.danger, bg: THEME.dangerBg },
+            ].map(s => (
+              <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '7px 4px', textAlign: 'center' }}>
+                <s.icon size={12} color={s.color} style={{ marginBottom: 3 }} />
+                <div style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{presenceBreakdown[s.key]}</div>
+                <div style={{ fontSize: 8, color: s.color }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, BarChart, Spinner, ListRow, IconTile, StatTile } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
+import { computePresenceBreakdown } from '../lib/presenceStats'
 import { format, parseISO, subWeeks } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -161,17 +162,21 @@ export default function DashboardPage() {
     setProchainEvent(eventsData?.[0] || null)
 
     // Présences par événement (aussi utilisé pour la métrique "Présence moy." ci-dessous)
-    const presByEvent = {}
+    // — taux d'engagement = (présent + extérieur) / (total - blessé), cf. src/lib/presenceStats.js
+    const presRowsByEvent = {}
     for (const p of (presencesData || [])) {
       const evId = p.evenement_id
-      if (!presByEvent[evId]) presByEvent[evId] = { total: 0, present: 0, date: p.evenements?.date_heure }
-      presByEvent[evId].total++
-      if (p.statut === 'present') presByEvent[evId].present++
+      if (!presRowsByEvent[evId]) presRowsByEvent[evId] = { rows: [], date: p.evenements?.date_heure }
+      presRowsByEvent[evId].rows.push(p)
+    }
+    const presByEvent = {}
+    for (const [evId, v] of Object.entries(presRowsByEvent)) {
+      presByEvent[evId] = { ...computePresenceBreakdown(v.rows), date: v.date }
     }
     const unMoisAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-    const presEventsCeMois = Object.values(presByEvent).filter(p => p.total > 0 && p.date && new Date(p.date) >= unMoisAgo)
+    const presEventsCeMois = Object.values(presByEvent).filter(p => p.total > 0 && p.date && new Date(p.date) >= unMoisAgo && p.tauxEngagement !== null)
     const presenceMoy = presEventsCeMois.length
-      ? presEventsCeMois.reduce((s, p) => s + (p.present / p.total), 0) / presEventsCeMois.length * 100
+      ? presEventsCeMois.reduce((s, p) => s + p.tauxEngagement, 0) / presEventsCeMois.length
       : 0
 
     // Métriques
@@ -211,9 +216,9 @@ export default function DashboardPage() {
       label, value: parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1))
     })))
 
-    setPresenceEvolution(Object.values(presByEvent).filter(p => p.total > 0 && p.date)
+    setPresenceEvolution(Object.values(presByEvent).filter(p => p.total > 0 && p.date && p.tauxEngagement !== null)
       .sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-8)
-      .map(p => ({ label: format(parseISO(p.date), 'd/M', { locale: fr }), value: parseFloat((p.present / p.total * 100).toFixed(0)) })))
+      .map(p => ({ label: format(parseISO(p.date), 'd/M', { locale: fr }), value: p.tauxEngagement })))
 
     // RPE par joueur
     const joueurMap = {}
@@ -513,7 +518,7 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 12 }}>
             {[
               { label: 'RPE moyen équipe', value: `${metrics.rpeMoy}/5`, sub: 'Toutes sessions', color: rpeColor(parseFloat(metrics.rpeMoy)) },
-              { label: 'Présence moy.', value: `${metrics.presence}%`, sub: 'Ce mois', color: metrics.presence >= 80 ? THEME.success : '#D08A1E' },
+              { label: 'Engagement moy.', value: `${metrics.presence}%`, sub: 'Ce mois · présent + extérieur', color: metrics.presence >= 80 ? THEME.success : '#D08A1E' },
               { label: 'Dist. moy. match', value: `${metrics.distMoy} km`, sub: 'Footbar', color: THEME.primary },
               { label: 'Buts / match', value: metrics.butsMoy, sub: '2026/2027', color: THEME.primary },
             ].map(m => <StatTile key={m.label} {...m} />)}

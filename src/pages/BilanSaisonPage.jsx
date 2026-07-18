@@ -4,6 +4,7 @@ import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner, BarChart } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
 import { Trophy, Award, Goal, Shield, Target, Heart, BarChart3, TrendingUp, CheckCircle2 } from 'lucide-react'
+import { computePresenceBreakdown } from '../lib/presenceStats'
 
 function StatBox({ label, value, sub, color = THEME.primary, big = false }) {
   return (
@@ -82,17 +83,16 @@ export default function BilanSaisonPage() {
     }
     const meilleurPasseur = Object.entries(passesParJoueur).sort((a,b) => b[1]-a[1])[0]
 
-    // ===== PRÉSENCE =====
+    // ===== PRÉSENCE ===== — taux d'engagement (présent + extérieur, blessures exclues)
     const presenceParJoueur = {}
     for (const p of (presences || [])) {
       if (!p.joueurs) continue
       const nom = `${p.joueurs.nom} ${p.joueurs.prenom}`
-      if (!presenceParJoueur[nom]) presenceParJoueur[nom] = { total: 0, present: 0 }
-      presenceParJoueur[nom].total++
-      if (p.statut === 'present') presenceParJoueur[nom].present++
+      if (!presenceParJoueur[nom]) presenceParJoueur[nom] = []
+      presenceParJoueur[nom].push(p)
     }
     const topPresence = Object.entries(presenceParJoueur)
-      .map(([nom, d]) => ({ nom, taux: d.total > 0 ? Math.round(d.present/d.total*100) : 0, present: d.present, total: d.total }))
+      .map(([nom, rows]) => ({ nom, ...computePresenceBreakdown(rows), taux: computePresenceBreakdown(rows).tauxEngagement ?? 0 }))
       .sort((a,b) => b.taux - a.taux)[0]
 
     // ===== RPE MOYEN SAISON =====
@@ -188,7 +188,7 @@ export default function BilanSaisonPage() {
         {bilan.topPresence && (
           <Card>
             <div style={{ textAlign: 'center', marginBottom: 4 }}><CheckCircle2 size={22} color={THEME.success} /></div>
-            <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center' }}>Meilleure présence</div>
+            <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center' }}>Meilleur engagement</div>
             <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{bilan.topPresence.nom.split(' ')[0]}</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: THEME.success, textAlign: 'center' }}>{bilan.topPresence.taux}%</div>
           </Card>

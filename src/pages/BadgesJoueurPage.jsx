@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { ArrowLeft, CheckCircle2, Lock, BarChart3 } from 'lucide-react'
+import { computePresenceBreakdown } from '../lib/presenceStats'
 
 const BADGE_DEFS = [
   // Présences
@@ -59,10 +60,8 @@ export default function BadgesJoueurPage() {
       else serie = 0
     }
 
-    // Taux présence
-    const presTotal = presSeances.length
-    const presOk = presSeances.filter(p => p.statut === 'present' || p.statut === 'exterieur').length
-    const tauxPresence = presTotal > 0 ? Math.round(presOk / presTotal * 100) : 0
+    // Taux d'engagement (présent + extérieur, blessures exclues du calcul)
+    const tauxPresence = computePresenceBreakdown(presSeances).tauxEngagement ?? 0
 
     // Stats match (officiels seulement)
     const officiels = (statsMatch || []).filter(s => s.evenements?.match_type !== 'preparation')
