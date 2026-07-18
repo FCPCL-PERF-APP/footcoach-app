@@ -278,7 +278,7 @@ export default function MaFichePage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
             {[
-              { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
+              { key: 'present', label: 'Présent', icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
               { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: 'var(--primary)', bg: 'var(--primary-bg)' },
               { key: 'blesse', label: 'Blessé', icon: Bandage, color: 'var(--warning)', bg: 'var(--warning-bg)' },
               { key: 'absent', label: 'Absent', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
@@ -512,7 +512,7 @@ export default function MaFichePage() {
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note || '—'}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Note</div></div>
-                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: '#3B6D11' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Buts</div></div>
+                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Buts</div></div>
                   </div>
                 </div>
               ))

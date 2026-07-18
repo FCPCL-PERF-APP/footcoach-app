@@ -176,7 +176,7 @@ export default function JoueursPage() {
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: 10, border: '0.5px solid var(--border)', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
-              <button onClick={() => deleteJoueur(confirmDelete)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: '#A32D2D', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
+              <button onClick={() => deleteJoueur(confirmDelete)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: 'var(--danger)', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
             </div>
           </div>
         </div>
@@ -186,7 +186,7 @@ export default function JoueursPage() {
         <>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
             {filtered.length} joueur(s)
-            {sortBy === 'rpe' && <span style={{ color: '#A32D2D' }}> · Trié par RPE décroissant</span>}
+            {sortBy === 'rpe' && <span style={{ color: 'var(--danger)' }}> · Trié par RPE décroissant</span>}
           </p>
           {filtered.map((j, i) => {
             const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
@@ -198,7 +198,7 @@ export default function JoueursPage() {
               <div key={j.id} style={{
                 background: 'var(--bg-card)',
                 border: `0.5px solid ${enSurcharge ? '#FCA5A5' : 'var(--border)'}`,
-                borderLeft: enSurcharge ? `3px solid #A32D2D` : '3px solid transparent',
+                borderLeft: enSurcharge ? `3px solid var(--danger)` : '3px solid transparent',
                 borderRadius: 14, padding: '12px 14px', marginBottom: 8,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between'
               }}>

@@ -107,7 +107,7 @@ export default function ComparatifJoueursPage() {
             {v1 ?? '—'}{unit}
           </span>
           <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{label}</span>
-          <span style={{ fontSize: 12, fontWeight: winner === 2 ? 700 : 400, color: winner === 2 ? '#A32D2D' : 'var(--text-primary)' }}>
+          <span style={{ fontSize: 12, fontWeight: winner === 2 ? 700 : 400, color: winner === 2 ? 'var(--danger)' : 'var(--text-primary)' }}>
             {v2 ?? '—'}{unit}
           </span>
         </div>
@@ -117,7 +117,7 @@ export default function ComparatifJoueursPage() {
           </div>
           <div style={{ width: 2, height: 12, background: 'var(--border)' }} />
           <div style={{ flex: 1, height: 8, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ height: '100%', borderRadius: 4, background: '#A32D2D', width: `${p2}%` }} />
+            <div style={{ height: '100%', borderRadius: 4, background: 'var(--danger)', width: `${p2}%` }} />
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ export default function ComparatifJoueursPage() {
           </select>
           <span style={{ textAlign: 'center', fontSize: 14, fontWeight: 700, color: 'var(--text-muted)' }}>VS</span>
           <select value={joueur2} onChange={e => setJoueur2(e.target.value)}
-            style={{ padding: '8px 10px', border: '2px solid #A32D2D', borderRadius: 10, fontSize: 12, outline: 'none', color: '#A32D2D', fontWeight: 600 }}>
+            style={{ padding: '8px 10px', border: '2px solid var(--danger)', borderRadius: 10, fontSize: 12, outline: 'none', color: 'var(--danger)', fontWeight: 600 }}>
             {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
           </select>
         </div>
@@ -171,7 +171,7 @@ export default function ComparatifJoueursPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: w === 1 ? 'var(--primary)' : 'var(--text-primary)' }}>{v1 ?? '—'}</span>
                     <span style={{ fontSize: 10, color: 'var(--border)' }}>·</span>
-                    <span style={{ fontSize: 15, fontWeight: 700, color: w === 2 ? '#A32D2D' : 'var(--text-primary)' }}>{v2 ?? '—'}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: w === 2 ? 'var(--danger)' : 'var(--text-primary)' }}>{v2 ?? '—'}</span>
                   </div>
                 </div>
               )
@@ -195,7 +195,7 @@ export default function ComparatifJoueursPage() {
           {/* Légende */}
           <div style={{ display: 'flex', gap: 16, marginBottom: 10, fontSize: 11 }}>
             <span style={{ color: 'var(--primary)', fontWeight: 600 }}>◀ {j1?.nom}</span>
-            <span style={{ color: '#A32D2D', fontWeight: 600 }}>{j2?.nom} ▶</span>
+            <span style={{ color: 'var(--danger)', fontWeight: 600 }}>{j2?.nom} ▶</span>
           </div>
 
           {/* RPE */}

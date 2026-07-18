@@ -138,8 +138,8 @@ export default function MonBilanPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
         {[
           { label: 'Matchs joués', value: stats?.totalMatchs, color: 'var(--primary)' },
-          { label: 'Buts', value: stats?.totalButs, color: '#3B6D11' },
-          { label: 'Passes déc.', value: stats?.totalPD, color: '#3B6D11' },
+          { label: 'Buts', value: stats?.totalButs, color: 'var(--success)' },
+          { label: 'Passes déc.', value: stats?.totalPD, color: 'var(--success)' },
           { label: 'Minutes jouées', value: stats?.totalMin, color: 'var(--primary)' },
           { label: 'Note moyenne', value: stats?.noteMoy, color: 'var(--primary)' },
           { label: 'Titularisations', value: stats?.titulaire, color: 'var(--primary)' },
@@ -175,10 +175,10 @@ export default function MonBilanPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
           <div style={{
             width: 64, height: 64, borderRadius: '50%',
-            border: `5px solid ${stats?.tauxPresence >= 80 ? '#3B6D11' : stats?.tauxPresence >= 60 ? '#BA7517' : '#A32D2D'}`,
+            border: `5px solid ${stats?.tauxPresence >= 80 ? 'var(--success)' : stats?.tauxPresence >= 60 ? 'var(--warning)' : 'var(--danger)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 16, fontWeight: 800,
-            color: stats?.tauxPresence >= 80 ? '#3B6D11' : stats?.tauxPresence >= 60 ? '#BA7517' : '#A32D2D'
+            color: stats?.tauxPresence >= 80 ? 'var(--success)' : stats?.tauxPresence >= 60 ? 'var(--warning)' : 'var(--danger)'
           }}>
             {stats?.tauxPresence}%
           </div>
@@ -195,7 +195,7 @@ export default function MonBilanPage() {
         {/* Répartition détaillée des 4 statuts */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
           {[
-            { key: 'present', label: 'Présent', icon: CheckCircle2, color: '#3B6D11', bg: '#EAF3DE' },
+            { key: 'present', label: 'Présent', icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
             { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: 'var(--primary)', bg: 'var(--primary-bg)' },
             { key: 'blesse', label: 'Blessé', icon: Bandage, color: 'var(--warning)', bg: 'var(--warning-bg)' },
             { key: 'absent', label: 'Absent', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
@@ -217,7 +217,7 @@ export default function MonBilanPage() {
             {[
               { label: 'Distance totale', value: `${stats?.totalDist}km`, color: 'var(--primary)' },
               { label: 'Dist. moy./match', value: `${stats?.distMoy}km`, color: 'var(--primary)' },
-              { label: 'Sprint max saison', value: `${stats?.sprintMax}km/h`, color: '#3B6D11' },
+              { label: 'Sprint max saison', value: `${stats?.sprintMax}km/h`, color: 'var(--success)' },
             ].map(s => (
               <div key={s.label} style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 10, textAlign: 'center' }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -241,7 +241,7 @@ export default function MonBilanPage() {
                    stats?.objAtteints > 0 ? 'Bonne progression' : 'Continue tes efforts'}
                 </p>
               </div>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', border: `4px solid ${stats?.objAtteints === stats?.objTotal ? '#3B6D11' : 'var(--primary)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: stats?.objAtteints === stats?.objTotal ? '#3B6D11' : 'var(--primary)' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', border: `4px solid ${stats?.objAtteints === stats?.objTotal ? 'var(--success)' : 'var(--primary)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: stats?.objAtteints === stats?.objTotal ? 'var(--success)' : 'var(--primary)' }}>
                 {stats?.objTotal ? Math.round(stats.objAtteints / stats.objTotal * 100) : 0}%
               </div>
             </div>

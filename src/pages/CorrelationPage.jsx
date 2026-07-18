@@ -264,8 +264,8 @@ export default function CorrelationPage() {
                       </div>
                       <div style={{
                         width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: p.resultat === 'V' ? '#EAF3DE' : p.resultat === 'N' ? '#FAEEDA' : '#FCEBEB',
-                        color: p.resultat === 'V' ? '#3B6D11' : p.resultat === 'N' ? 'var(--warning)' : '#A32D2D',
+                        background: p.resultat === 'V' ? 'var(--success-bg)' : p.resultat === 'N' ? 'var(--warning-bg)' : 'var(--danger-bg)',
+                        color: p.resultat === 'V' ? 'var(--success)' : p.resultat === 'N' ? 'var(--warning)' : 'var(--danger)',
                         fontSize: 11, fontWeight: 700
                       }}>{p.resultat}</div>
                     </div>
