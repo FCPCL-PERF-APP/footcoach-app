@@ -190,7 +190,7 @@ export default function DashboardStatsPage() {
                   <div>
                     <p style={{ fontSize: 12, fontWeight: 600 }}>
                   {m.evenements?.match_type === 'preparation' && <span style={{ fontSize: 9, background: 'var(--primary-bg)', color: 'var(--primary)', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Prépa</span>}
-                  {m.evenements?.match_type === 'coupe' && <span style={{ fontSize: 9, background: '#FAEEDA', color: 'var(--warning)', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Coupe</span>}
+                  {m.evenements?.match_type === 'coupe' && <span style={{ fontSize: 9, background: 'var(--warning-bg)', color: 'var(--warning)', borderRadius: 4, padding: '1px 4px', marginRight: 4 }}>Coupe</span>}
                   {m.evenements?.titre}
                 </p>
                     <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{m.evenements?.date_heure ? format(parseISO(m.evenements.date_heure), 'd MMM yyyy', { locale: fr }) : ''}</p>
@@ -198,7 +198,7 @@ export default function DashboardStatsPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: 14, fontWeight: 700 }}>{m.buts_marques}-{m.buts_encaisses}</span>
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-                      background: v ? '#EAF3DE' : n ? '#FAEEDA' : '#FCEBEB',
+                      background: v ? 'var(--success-bg)' : n ? 'var(--warning-bg)' : 'var(--danger-bg)',
                       color: v ? 'var(--success)' : n ? 'var(--warning)' : 'var(--danger)' }}>
                       {v ? 'V' : n ? 'N' : 'D'}
                     </span>

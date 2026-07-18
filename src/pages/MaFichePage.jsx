@@ -44,7 +44,7 @@ function Field({ label, value, onChange, type = 'text', step, disabled = false, 
           width: '100%', padding: '8px 10px',
           border: `0.5px solid ${disabled ? 'var(--bg-secondary)' : 'var(--border)'}`,
           borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box',
-          background: disabled ? '#FAFAFA' : '#fff',
+          background: disabled ? 'var(--bg-secondary)' : 'var(--bg-card)',
           color: disabled ? 'var(--text-muted)' : 'var(--text-primary)'
         }}
       />

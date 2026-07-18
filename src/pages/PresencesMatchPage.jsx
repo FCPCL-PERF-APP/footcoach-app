@@ -199,10 +199,10 @@ export default function PresencesMatchPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 6, marginBottom: 12 }}>
         {[
           ['Tous', 'tous', convocations.length, 'var(--primary)', 'var(--primary-bg)'],
-          ['Présents', 'present', nbPresents, 'var(--success)', '#EAF3DE'],
+          ['Présents', 'present', nbPresents, 'var(--success)', 'var(--success-bg)'],
           ['Extérieur', 'exterieur', nbExterieurs, 'var(--primary)', 'var(--primary-bg)'],
-          ['Absents', 'absent', nbAbsents, 'var(--danger)', '#FCEBEB'],
-          ['Blessés', 'blesse', nbBlesses, 'var(--warning)', '#FAEEDA'],
+          ['Absents', 'absent', nbAbsents, 'var(--danger)', 'var(--danger-bg)'],
+          ['Blessés', 'blesse', nbBlesses, 'var(--warning)', 'var(--warning-bg)'],
           ['Inconnus', 'inconnu', nbInconnus, 'var(--text-secondary)', 'var(--bg-secondary)'],
         ].map(([lbl, key, val, color, bg]) => (
           <button key={key} onClick={() => setFilterStatut(key)} style={{

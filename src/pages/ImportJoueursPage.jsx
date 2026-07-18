@@ -156,7 +156,7 @@ export default function ImportJoueursPage() {
           </div>
 
           <div onClick={() => document.getElementById('csv-input').click()}
-            style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: 24, textAlign: 'center', cursor: 'pointer', background: '#FAFAFA' }}>
+            style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: 24, textAlign: 'center', cursor: 'pointer', background: 'var(--bg-secondary)' }}>
             <FolderOpen size={28} color="var(--text-muted)" style={{ marginBottom: 8 }} />
             <p style={{ fontSize: 13, fontWeight: 500 }}>Appuyer pour choisir un fichier</p>
             <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>CSV ou Excel exporté en CSV</p>

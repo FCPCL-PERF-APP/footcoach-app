@@ -70,10 +70,10 @@ export default function StatsConnexionPage() {
       {/* Résumé 6 cases */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
         {[
-          ["Actifs aujourd'hui", counts.actif_jour,      'var(--success)', '#EAF3DE'],
-          ["Cette semaine",      counts.actif_semaine,   '#BA7517', '#FDFAEE'],
+          ["Actifs aujourd'hui", counts.actif_jour,      'var(--success)', 'var(--success-bg)'],
+          ["Cette semaine",      counts.actif_semaine,   'var(--warning)', 'var(--warning-bg)'],
           ["Ce mois",            counts.actif_mois,      'var(--primary)', 'var(--primary-bg)'],
-          ["Inactifs +30j",      counts.inactif,         'var(--danger)', '#FCEBEB'],
+          ["Inactifs +30j",      counts.inactif,         'var(--danger)', 'var(--danger-bg)'],
           ["Jamais connectes",   counts.jamais_connecte, 'var(--text-secondary)', 'var(--bg-secondary)'],
           ["Non invites",        counts.non_invite,      'var(--text-primary)', 'var(--bg-secondary)'],
         ].map(([label, val, color, bg]) => (

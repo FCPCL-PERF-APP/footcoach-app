@@ -485,7 +485,7 @@ export default function DashboardPage() {
                     <AlertTriangle size={14} /> {totalVisible} point(s) à surveiller
                   </p>
                   <button onClick={() => marquerToutTraite(alertesCollectives, alertes)}
-                    style={{ fontSize: 10, color: 'var(--danger)', background: '#FCEBEB', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
+                    style={{ fontSize: 10, color: 'var(--danger)', background: 'var(--danger-bg)', border: 'none', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontWeight: 600 }}>
                     Tout traiter
                   </button>
                 </div>
@@ -519,7 +519,7 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 12 }}>
             {[
               { label: 'RPE moyen équipe', value: `${metrics.rpeMoy}/5`, sub: 'Toutes sessions', color: rpeColor(parseFloat(metrics.rpeMoy)) },
-              { label: 'Engagement moy.', value: `${metrics.presence}%`, sub: 'Ce mois · présent + extérieur', color: metrics.presence >= 80 ? 'var(--success)' : '#D08A1E' },
+              { label: 'Engagement moy.', value: `${metrics.presence}%`, sub: 'Ce mois · présent + extérieur', color: metrics.presence >= 80 ? 'var(--success)' : 'var(--warning)' },
               { label: 'Dist. moy. match', value: `${metrics.distMoy} km`, sub: 'Footbar', color: 'var(--primary)' },
               { label: 'Buts / match', value: metrics.butsMoy, sub: labelSaison(), color: 'var(--primary)' },
             ].map(m => <StatTile key={m.label} {...m} />)}

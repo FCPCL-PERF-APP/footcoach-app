@@ -114,7 +114,7 @@ export default function MonProfilJoueurPage() {
       {/* Déconnexion */}
       <button onClick={signOut} style={{
         width: '100%', padding: 14, borderRadius: 12,
-        border: '0.5px solid #FCEBEB', background: '#FDF1F1',
+        border: '0.5px solid var(--danger-bg)', background: 'var(--danger-bg)',
         color: 'var(--danger)', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginTop: 4,
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
       }}>

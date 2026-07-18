@@ -86,7 +86,7 @@ export default function ObjectifsPage() {
     const styles = {
       technique: { bg: 'var(--primary-bg)', color: 'var(--primary)' },
       physique: { bg: '#EAF3DE', color: 'var(--success)' },
-      tactique: { bg: '#FAEEDA', color: 'var(--warning)' },
+      tactique: { bg: 'var(--warning-bg)', color: 'var(--warning)' },
       mental: { bg: '#FCEBEB', color: 'var(--danger)' },
       statistique: { bg: '#F0F4FF', color: '#4338CA' },
     }

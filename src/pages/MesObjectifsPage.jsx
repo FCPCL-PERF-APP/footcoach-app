@@ -249,7 +249,7 @@ export default function MesObjectifsPage() {
                   style={{
                     flex: 1, padding: '10px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
                     border: `1.5px solid ${data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--border)'}`,
-                    background: data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
+                    background: data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success-bg)' : 'var(--danger-bg)') : 'transparent',
                     color: data.bilan_obj_perso_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--text-secondary)',
                   }}>{v === 'Oui' ? <><CheckCircle2 size={13} style={{marginRight:4,verticalAlign:-2}} />Oui</> : <><XCircle size={13} style={{marginRight:4,verticalAlign:-2}} />Non</>}</button>
               ))}
@@ -270,7 +270,7 @@ export default function MesObjectifsPage() {
                   style={{
                     flex: 1, padding: '10px', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
                     border: `1.5px solid ${data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--border)'}`,
-                    background: data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? '#EAF3DE' : '#FCEBEB') : 'transparent',
+                    background: data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success-bg)' : 'var(--danger-bg)') : 'transparent',
                     color: data.bilan_obj_collectifs_atteints === (v === 'Oui') ? (v === 'Oui' ? 'var(--success)' : 'var(--danger)') : 'var(--text-secondary)',
                   }}>{v === 'Oui' ? <><CheckCircle2 size={13} style={{marginRight:4,verticalAlign:-2}} />Oui</> : <><XCircle size={13} style={{marginRight:4,verticalAlign:-2}} />Non</>}</button>
               ))}

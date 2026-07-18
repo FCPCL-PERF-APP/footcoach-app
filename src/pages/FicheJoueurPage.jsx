@@ -328,7 +328,7 @@ export default function FicheJoueurPage() {
     border: `0.5px solid ${disabled ? 'var(--bg-secondary)' : 'var(--border)'}`,
     borderRadius: 10, fontSize: 13, outline: 'none',
     boxSizing: 'border-box',
-    background: disabled ? '#FAFAFA' : '#fff',
+    background: disabled ? 'var(--bg-secondary)' : 'var(--bg-card)',
     color: disabled ? 'var(--text-muted)' : 'var(--text-primary)'
   })
 
@@ -653,7 +653,7 @@ export default function FicheJoueurPage() {
                   </label>
                   <textarea value={form[field] || ''} onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
                     disabled={!editing} rows={4}
-                    style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${editing ? 'var(--border)' : 'var(--bg-secondary)'}`, borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', background: editing ? '#fff' : '#FAFAFA' }} />
+                    style={{ width: '100%', padding: '8px 10px', border: `0.5px solid ${editing ? 'var(--border)' : 'var(--bg-secondary)'}`, borderRadius: 10, fontSize: 12, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', background: editing ? 'var(--bg-card)' : 'var(--bg-secondary)' }} />
                 </div>
               ))}
             </div>
