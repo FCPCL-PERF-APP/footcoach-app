@@ -272,7 +272,7 @@ export default function MaFichePage() {
         <Card style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color={'var(--primary)'} /> Ma présence entraînements</p>
-            <span style={{ fontSize: 15, fontWeight: 800, color: presenceBreakdown.tauxEngagement >= 80 ? 'var(--success)' : '#D85A30' }}>
+            <span style={{ fontSize: 15, fontWeight: 800, color: presenceBreakdown.tauxEngagement >= 80 ? 'var(--success)' : 'var(--warning)' }}>
               {presenceBreakdown.tauxEngagement ?? '—'}%
             </span>
           </div>

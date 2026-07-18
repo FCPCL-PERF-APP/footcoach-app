@@ -235,7 +235,7 @@ export default function DashboardJoueurPage() {
           { label: 'Matchs', value: totalMatchs, color: 'var(--primary)' },
           { label: 'Buts', value: totalButs, color: 'var(--success)' },
           { label: 'Tps jeu moy.', value: tempsJeuMoy !== '—' ? `${tempsJeuMoy}'` : '—', color: 'var(--primary)' },
-          { label: 'Engagement entr.', value: tauxPresenceEntrainement !== '—' ? `${tauxPresenceEntrainement}%` : '—', color: tauxPresenceEntrainement >= 80 ? 'var(--success)' : '#D85A30' },
+          { label: 'Engagement entr.', value: tauxPresenceEntrainement !== '—' ? `${tauxPresenceEntrainement}%` : '—', color: tauxPresenceEntrainement >= 80 ? 'var(--success)' : 'var(--warning)' },
         ].map(s => (
           <div key={s.label} style={{ background: 'var(--bg-card)', border: `0.5px solid ${'var(--border)'}`, borderRadius: THEME.radiusMd, padding: '10px 6px', textAlign: 'center' }}>
             <div style={{ fontSize: 16, fontWeight: 800, color: s.color }}>{s.value}</div>

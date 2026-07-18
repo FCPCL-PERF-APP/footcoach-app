@@ -199,7 +199,7 @@ export default function RpePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{
                     width: 64, height: 64, borderRadius: '50%',
-                    border: `6px solid ${rpeData.length / Math.max(joueursCibles.length, 1) >= 0.8 ? 'var(--success)' : '#D85A30'}`,
+                    border: `6px solid ${rpeData.length / Math.max(joueursCibles.length, 1) >= 0.8 ? 'var(--success)' : 'var(--warning)'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 16, fontWeight: 700
                   }}>
@@ -267,7 +267,7 @@ export default function RpePage() {
                           <div style={{ fontSize: 13, fontWeight: 500 }}>{j.nom} {j.prenom}</div>
                           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{j.poste}</div>
                         </div>
-                        <span style={{ fontSize: 11, color: '#D85A30', display: 'flex', alignItems: 'center', gap: 4 }}><Hourglass size={11} /> En attente</span>
+                        <span style={{ fontSize: 11, color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 4 }}><Hourglass size={11} /> En attente</span>
                       </div>
                     ))}
                     <Button variant="primary" style={{ width: '100%', marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
