@@ -415,12 +415,17 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
 }
 
 function MsgInput({ value, onChange, onSend }) {
+  // Zone de texte multi-lignes (plutôt qu'un <input> mono-ligne) : "Entrée" insère
+  // un retour à la ligne comme dans n'importe quelle appli de messagerie, y compris
+  // au clavier mobile (pas de touche Maj pour distinguer "envoyer" de "nouvelle
+  // ligne" sur téléphone). L'envoi se fait uniquement via le bouton dédié.
+  const rows = Math.min(6, Math.max(1, (value.match(/\n/g)?.length || 0) + 1))
   return (
-    <div style={{ display: 'flex', gap: 6, borderTop: '0.5px solid var(--bg-secondary)', paddingTop: 10 }}>
-      <input value={value} onChange={e => onChange(e.target.value)}
-        onKeyDown={e => e.key === 'Enter' && !e.shiftKey && onSend()}
+    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', borderTop: '0.5px solid var(--bg-secondary)', paddingTop: 10 }}>
+      <textarea value={value} onChange={e => onChange(e.target.value)}
         placeholder="Écrire un message..."
-        style={{ flex: 1, padding: '9px 12px', border: '0.5px solid var(--border)', borderRadius: 20, fontSize: 13, outline: 'none', background: 'var(--bg-secondary)' }} />
+        rows={rows}
+        style={{ flex: 1, padding: '9px 12px', border: '0.5px solid var(--border)', borderRadius: 16, fontSize: 13, outline: 'none', background: 'var(--bg-secondary)', resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box' }} />
       <button onClick={onSend} style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--gradient)', border: 'none', cursor: 'pointer', color: '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Send size={16} /></button>
     </div>
   )
