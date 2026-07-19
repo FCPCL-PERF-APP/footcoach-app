@@ -92,15 +92,18 @@ export default function BottomNav() {
     // Messages privés non lus : suivi via la colonne `lu`. Messages du canal groupe :
     // pas de destinataire ni de colonne "lu" par utilisateur, donc on compare à la date
     // du dernier message groupe vu (posée par MessagesPage.jsx en localStorage). Si ce
-    // repère n'existe pas encore (jamais ouvert le canal), on ne compte rien pour éviter
-    // d'afficher d'un coup tout l'historique comme "non lu".
+    // repère n'existe pas encore (jamais ouvert le canal sur cet appareil — nouveau
+    // joueur, ou nouvel appareil), tous les messages groupe existants comptent comme
+    // non lus : c'est la réalité (ils n'ont jamais été vus), pas une valeur par défaut
+    // à zéro qui laissait le badge muet indéfiniment tant que personne n'avait ouvert
+    // l'onglet Messages au moins une fois.
     const lastGroupRead = localStorage.getItem('fc-group-messages-last-read')
     const [{ count: privCount }, groupResult] = await Promise.all([
       supabase.from('messages').select('*', { count: 'exact', head: true })
         .eq('destinataire_id', myAuthId).eq('lu', false),
       lastGroupRead
         ? supabase.from('messages').select('expediteur_id').eq('groupe', true).gt('created_at', lastGroupRead)
-        : Promise.resolve({ data: [] }),
+        : supabase.from('messages').select('expediteur_id').eq('groupe', true),
     ])
     const groupUnread = (groupResult.data || []).filter(m => m.expediteur_id !== myAuthId).length
     setUnreadCount((privCount || 0) + groupUnread)

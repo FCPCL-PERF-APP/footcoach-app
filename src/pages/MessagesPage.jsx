@@ -138,6 +138,16 @@ export default function MessagesPage() {
       } catch (err) { console.error('Erreur notif:', err) }
     }
 
+    if (groupe) {
+      try {
+        await fetch('/api/notif-message-groupe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+          body: JSON.stringify({ contenu: input })
+        })
+      } catch (err) { console.error('Erreur notif groupe:', err) }
+    }
+
     setInput('')
     if (groupe) loadGroupMessages()
     else openConv(activeConv)
