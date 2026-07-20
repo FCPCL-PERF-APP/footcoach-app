@@ -69,7 +69,7 @@ const NAV_JOUEUR_MORE = [
 export default function BottomNav() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const { profile, isCoach, isAdjoint, isJoueur } = useAuth()
+  const { profile, isCoach, isAdjoint, isJoueur, isStaff } = useAuth()
   const [showMore, setShowMore] = useState(false)
   const [nbAlertes, setNbAlertes] = useState(0)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -89,24 +89,28 @@ export default function BottomNav() {
   async function loadUnread() {
     const myAuthId = profile?.auth_id || profile?.id
     if (!myAuthId) return
-    // Messages privés non lus : suivi via la colonne `lu`. Messages du canal groupe :
-    // pas de destinataire ni de colonne "lu" par utilisateur, donc on compare à la date
-    // du dernier message groupe vu (posée par MessagesPage.jsx en localStorage). Si ce
-    // repère n'existe pas encore (jamais ouvert le canal sur cet appareil — nouveau
-    // joueur, ou nouvel appareil), tous les messages groupe existants comptent comme
+    // Messages privés non lus : suivi via la colonne `lu`. Messages de canal (groupe
+    // général, et staff pour le staff) : pas de destinataire ni de colonne "lu" par
+    // utilisateur, donc on compare à la date du dernier message vu par canal (posée
+    // par MessagesPage.jsx en localStorage). Si ce repère n'existe pas encore (jamais
+    // ouvert ce canal sur cet appareil), tous les messages existants comptent comme
     // non lus : c'est la réalité (ils n'ont jamais été vus), pas une valeur par défaut
-    // à zéro qui laissait le badge muet indéfiniment tant que personne n'avait ouvert
-    // l'onglet Messages au moins une fois.
-    const lastGroupRead = localStorage.getItem('fc-group-messages-last-read')
-    const [{ count: privCount }, groupResult] = await Promise.all([
+    // à zéro qui laissait le badge muet indéfiniment.
+    async function unreadForCanal(canal) {
+      const lastRead = localStorage.getItem(`fc-${canal}-messages-last-read`)
+      let query = supabase.from('messages').select('expediteur_id').eq('groupe', true).eq('canal', canal)
+      if (lastRead) query = query.gt('created_at', lastRead)
+      const { data } = await query
+      return (data || []).filter(m => m.expediteur_id !== myAuthId).length
+    }
+
+    const [{ count: privCount }, generalUnread, staffUnread] = await Promise.all([
       supabase.from('messages').select('*', { count: 'exact', head: true })
         .eq('destinataire_id', myAuthId).eq('lu', false),
-      lastGroupRead
-        ? supabase.from('messages').select('expediteur_id').eq('groupe', true).gt('created_at', lastGroupRead)
-        : supabase.from('messages').select('expediteur_id').eq('groupe', true),
+      unreadForCanal('general'),
+      isStaff ? unreadForCanal('staff') : Promise.resolve(0),
     ])
-    const groupUnread = (groupResult.data || []).filter(m => m.expediteur_id !== myAuthId).length
-    setUnreadCount((privCount || 0) + groupUnread)
+    setUnreadCount((privCount || 0) + generalUnread + staffUnread)
   }
 
   async function loadAlertes() {

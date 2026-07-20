@@ -5,7 +5,12 @@ import { Card, PageHeader, Spinner, Avatar, Button } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Mail, Users, MessageCircle, Search, ArrowLeft, ArrowRight, ChevronRight, Trash2, Send } from 'lucide-react'
+import { Mail, Users, MessageCircle, Search, ArrowLeft, ArrowRight, ChevronRight, Trash2, Send, Shield, Eye, X, CheckCircle2, Circle } from 'lucide-react'
+
+// Canal 'general' = tout le monde (joueurs + staff), canal 'staff' = staff uniquement
+// (réservé côté base via RLS, pas seulement caché dans l'UI — cf.
+// supabase-canal-staff-lectures.sql).
+const CANAUX = { general: { label: 'Groupe', icon: Users }, staff: { label: 'Staff', icon: Shield } }
 
 const AVATAR_COLORS = [
   { bg: '#B5D4F4', color: '#0C447C' },
@@ -16,9 +21,10 @@ const AVATAR_COLORS = [
 ]
 
 export default function MessagesPage() {
-  const { profile, isCoach } = useAuth()
-  const [activeTab, setActiveTab] = useState('groupe')
-  const [groupMessages, setGroupMessages] = useState([])
+  const { profile, isCoach, isStaff } = useAuth()
+  const [activeTab, setActiveTab] = useState('general')
+  const [canalMessages, setCanalMessages] = useState({ general: [], staff: [] })
+  const [showLecteurs, setShowLecteurs] = useState(false)
   const [contacts, setContacts] = useState([])
   const [activeConv, setActiveConv] = useState(null)
   const [convMessages, setConvMessages] = useState([])
@@ -29,22 +35,30 @@ export default function MessagesPage() {
   const [search, setSearch] = useState('')
   const [deletingId, setDeletingId] = useState(null)
   const bottomRef = useRef(null)
+  const myAuthId = profile?.auth_id || profile?.id
 
   useEffect(() => {
-    loadGroupMessages()
+    loadCanalMessages('general').then(() => setLoading(false))
     loadContacts()
   }, [])
 
+  useEffect(() => {
+    if ((activeTab === 'general' || activeTab === 'staff') && canalMessages[activeTab].length === 0) {
+      loadCanalMessages(activeTab)
+    }
+  }, [activeTab])
+
   // Abonnement temps réel : re-souscrit à chaque changement de conversation ouverte
   // pour que le filtre "message privé pertinent" reste à jour (fermeture/réouverture
-  // légère du channel, sans conséquence pour l'usage réel de la messagerie).
+  // légère du channel, sans conséquence pour l'usage réel de la messagerie). Les
+  // messages du canal staff ne sont de toute façon reçus ici que si l'utilisateur est
+  // staff — Supabase Realtime applique les mêmes policies RLS que les requêtes normales.
   useEffect(() => {
-    const myAuthId = profile?.auth_id || profile?.id
     const sub = supabase.channel('messages-realtime')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
         const msg = payload.new
-        if (msg.groupe) {
-          setGroupMessages(p => [...p, msg])
+        if (msg.groupe && (msg.canal === 'general' || msg.canal === 'staff')) {
+          setCanalMessages(p => ({ ...p, [msg.canal]: [...p[msg.canal], msg] }))
         } else if (
           activeConv &&
           ((msg.expediteur_id === myAuthId && msg.destinataire_id === activeConv.auth_id) ||
@@ -54,7 +68,10 @@ export default function MessagesPage() {
         }
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, payload => {
-        setGroupMessages(p => p.filter(m => m.id !== payload.old.id))
+        setCanalMessages(p => ({
+          general: p.general.filter(m => m.id !== payload.old.id),
+          staff: p.staff.filter(m => m.id !== payload.old.id),
+        }))
         setConvMessages(p => p.filter(m => m.id !== payload.old.id))
       })
       .subscribe()
@@ -63,21 +80,26 @@ export default function MessagesPage() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [groupMessages, convMessages])
+  }, [canalMessages, convMessages])
 
-  // Marque le canal groupe comme lu jusqu'au dernier message affiché — lu par
-  // BottomNav.jsx pour décider si la pastille "non lu" doit s'afficher.
+  // Marque le canal courant comme lu jusqu'au dernier message affiché — lu par
+  // BottomNav.jsx pour la pastille "non lu", et enregistré côté serveur
+  // (message_lectures) pour que le coach puisse voir qui a vu les messages.
   useEffect(() => {
-    if (activeTab === 'groupe' && groupMessages.length > 0) {
-      localStorage.setItem('fc-group-messages-last-read', groupMessages[groupMessages.length - 1].created_at)
-    }
-  }, [activeTab, groupMessages])
+    if ((activeTab !== 'general' && activeTab !== 'staff') || !myAuthId) return
+    const messages = canalMessages[activeTab]
+    if (messages.length === 0) return
+    const lastCreatedAt = messages[messages.length - 1].created_at
+    localStorage.setItem(`fc-${activeTab}-messages-last-read`, lastCreatedAt)
+    supabase.from('message_lectures')
+      .upsert({ user_id: myAuthId, canal: activeTab, derniere_lecture: new Date().toISOString() }, { onConflict: 'user_id,canal' })
+      .then(({ error }) => { if (error) console.error('Erreur enregistrement lecture:', error) })
+  }, [activeTab, canalMessages, myAuthId])
 
-  async function loadGroupMessages() {
+  async function loadCanalMessages(canal) {
     const { data } = await supabase.from('messages').select('*')
-      .eq('groupe', true).order('created_at', { ascending: true }).limit(300)
-    setGroupMessages(data || [])
-    setLoading(false)
+      .eq('groupe', true).eq('canal', canal).order('created_at', { ascending: true }).limit(300)
+    setCanalMessages(p => ({ ...p, [canal]: data || [] }))
   }
 
   async function loadContacts() {
@@ -108,15 +130,15 @@ export default function MessagesPage() {
       .eq('destinataire_id', myAuthId).eq('expediteur_id', theirAuthId)
   }
 
-  async function sendMessage(groupe = false) {
+  async function sendMessage(groupe = false, canal = 'general') {
     if (!input.trim()) return
-    const myAuthId = profile?.auth_id || profile?.id
     const msg = {
       expediteur_id: myAuthId,
       expediteur_nom: `${profile?.nom} ${profile?.prenom || ''}`.trim(),
       expediteur_role: profile?.role || 'joueur',
       destinataire_id: groupe ? null : activeConv?.auth_id,
       groupe,
+      canal: groupe ? canal : 'general',
       contenu: input
     }
     const { error } = await supabase.from('messages').insert(msg)
@@ -143,20 +165,19 @@ export default function MessagesPage() {
         await fetch('/api/notif-message-groupe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-          body: JSON.stringify({ contenu: input })
+          body: JSON.stringify({ contenu: input, canal })
         })
       } catch (err) { console.error('Erreur notif groupe:', err) }
     }
 
     setInput('')
-    if (groupe) loadGroupMessages()
+    if (groupe) loadCanalMessages(canal)
     else openConv(activeConv)
   }
 
   async function reactToMessage(msgId, emoji) {
-    const myAuthId = profile?.auth_id || profile?.id
-    // Récupérer le message
-    const msg = groupMessages.find(m => m.id === msgId)
+    const canal = activeTab === 'staff' ? 'staff' : 'general'
+    const msg = canalMessages[canal].find(m => m.id === msgId)
     if (!msg) return
     const reactions = msg.reactions || {}
     // Toggle : si même emoji déjà mis, on l'enlève
@@ -166,13 +187,14 @@ export default function MessagesPage() {
       reactions[myAuthId] = emoji
     }
     await supabase.from('messages').update({ reactions }).eq('id', msgId)
-    setGroupMessages(p => p.map(m => m.id === msgId ? { ...m, reactions } : m))
+    setCanalMessages(p => ({ ...p, [canal]: p[canal].map(m => m.id === msgId ? { ...m, reactions } : m) }))
   }
 
   async function deleteMessage(msgId) {
     if (!window.confirm('Supprimer ce message ?')) return
+    const canal = activeTab === 'staff' ? 'staff' : 'general'
     await supabase.from('messages').delete().eq('id', msgId)
-    setGroupMessages(p => p.filter(m => m.id !== msgId))
+    setCanalMessages(p => ({ ...p, [canal]: p[canal].filter(m => m.id !== msgId) }))
     setDeletingId(null)
   }
 
@@ -181,16 +203,17 @@ export default function MessagesPage() {
     try { return format(parseISO(ts), 'd MMM HH:mm', { locale: fr }) } catch { return '' }
   }
 
-  const myAuthId = profile?.auth_id || profile?.id
   const isMe = (msg) => msg.expediteur_id === myAuthId
 
   const filteredContacts = contacts.filter(c =>
     `${c.nom} ${c.prenom}`.toLowerCase().includes(searchContact.toLowerCase())
   )
 
+  const currentCanal = activeTab === 'staff' ? 'staff' : 'general'
+  const currentCanalMessages = canalMessages[currentCanal] || []
   const filteredGroupMessages = search
-    ? groupMessages.filter(m => m.contenu?.toLowerCase().includes(search.toLowerCase()))
-    : groupMessages
+    ? currentCanalMessages.filter(m => m.contenu?.toLowerCase().includes(search.toLowerCase()))
+    : currentCanalMessages
 
   return (
     <div style={{ padding: 12 }}>
@@ -204,7 +227,7 @@ export default function MessagesPage() {
       />
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {[['groupe', Users, 'Groupe'],['prives', MessageCircle, 'Privés']].map(([tab, Icon, lbl]) => (
+        {[['general', Users, 'Groupe'], ...(isStaff ? [['staff', Shield, 'Staff']] : []), ['prives', MessageCircle, 'Privés']].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => { setActiveTab(tab); setActiveConv(null); setShowNewMsg(false) }} style={{
             padding: '5px 12px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid var(--border)',
@@ -218,18 +241,28 @@ export default function MessagesPage() {
 
       {loading ? <Spinner /> : (
         <>
-          {/* GROUPE */}
-          {activeTab === 'groupe' && (
+          {/* GROUPE / STAFF */}
+          {(activeTab === 'general' || activeTab === 'staff') && (
             <Card style={{ display: 'flex', flexDirection: 'column', height: '68vh' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 8, borderBottom: '0.5px solid var(--bg-secondary)' }}>
                 <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Users size={13} color={CAT_COLORS.violet.color} /> Canal groupe
+                  {activeTab === 'staff'
+                    ? <><Shield size={13} color={CAT_COLORS.slate.color} /> Canal staff</>
+                    : <><Users size={13} color={CAT_COLORS.violet.color} /> Canal groupe</>}
                 </p>
-                <div style={{ position: 'relative' }}>
-                  <Search size={11} color="var(--text-muted)" style={{ position: 'absolute', left: 7, top: '50%', transform: 'translateY(-50%)' }} />
-                  <input value={search} onChange={e => setSearch(e.target.value)}
-                    placeholder="Rechercher..."
-                    style={{ padding: '4px 8px 4px 24px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', width: 120 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {isCoach && (
+                    <button onClick={() => setShowLecteurs(true)} title="Qui a vu les messages"
+                      style={{ border: 'none', background: 'var(--primary-bg)', borderRadius: 8, padding: '4px 6px', cursor: 'pointer', display: 'flex' }}>
+                      <Eye size={13} color="var(--primary)" />
+                    </button>
+                  )}
+                  <div style={{ position: 'relative' }}>
+                    <Search size={11} color="var(--text-muted)" style={{ position: 'absolute', left: 7, top: '50%', transform: 'translateY(-50%)' }} />
+                    <input value={search} onChange={e => setSearch(e.target.value)}
+                      placeholder="Rechercher..."
+                      style={{ padding: '4px 8px 4px 24px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', width: 110 }} />
+                  </div>
                 </div>
               </div>
               <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
@@ -243,12 +276,17 @@ export default function MessagesPage() {
                     canDelete={isMe(msg) || isCoach}
                     onDelete={() => { if (window.confirm('Supprimer ce message ?')) deleteMessage(msg.id) }}
                     onReact={reactToMessage}
-                    myId={profile?.auth_id || profile?.id} />
+                    myId={myAuthId} />
                 ))}
                 <div ref={bottomRef} />
               </div>
-              <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(true)} />
+              <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(true, currentCanal)} />
             </Card>
+          )}
+
+          {showLecteurs && (
+            <LecteursPanel canal={currentCanal} lastMessage={currentCanalMessages[currentCanalMessages.length - 1]}
+              onClose={() => setShowLecteurs(false)} />
           )}
 
           {/* PRIVÉS */}
@@ -409,6 +447,70 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
             )}
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// Visible coach uniquement (le bouton qui ouvre ce panneau n'est rendu que pour
+// isCoach) : qui, dans l'audience du canal, a ouvert la messagerie après le dernier
+// message. Basé sur message_lectures (une ligne par utilisateur/canal, mise à jour à
+// chaque consultation), pas un accusé de lecture par message individuel — un
+// indicateur "à jour / pas encore vu le dernier message / jamais ouvert" suffit pour
+// répondre au besoin sans exploser le volume de données à suivre.
+function LecteursPanel({ canal, lastMessage, onClose }) {
+  const [loading, setLoading] = useState(true)
+  const [rows, setRows] = useState([])
+
+  useEffect(() => { loadLecteurs() }, [canal])
+
+  async function loadLecteurs() {
+    setLoading(true)
+    const [{ data: staff }, { data: joueurs }, { data: lectures }] = await Promise.all([
+      supabase.from('staff').select('nom, prenom, auth_id').not('auth_id', 'is', null),
+      canal === 'general'
+        ? supabase.from('joueurs').select('nom, prenom, auth_id').not('auth_id', 'is', null)
+        : Promise.resolve({ data: [] }),
+      supabase.from('message_lectures').select('user_id, derniere_lecture').eq('canal', canal),
+    ])
+    const lectureMap = {}
+    for (const l of (lectures || [])) lectureMap[l.user_id] = l.derniere_lecture
+    const audience = [...(staff || []), ...(joueurs || [])]
+      .map(p => ({ nom: `${p.nom} ${p.prenom}`, derniereLecture: lectureMap[p.auth_id] || null }))
+      .sort((a, b) => a.nom.localeCompare(b.nom))
+    setRows(audience)
+    setLoading(false)
+  }
+
+  const lastMessageAt = lastMessage?.created_at ? new Date(lastMessage.created_at) : null
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: '18px 18px 0 0', padding: 16, width: '100%', maxWidth: 480, margin: '0 auto', maxHeight: '70vh', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <p style={{ fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Eye size={14} color="var(--primary)" /> Qui a vu les messages</p>
+          <button onClick={onClose} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><X size={18} color="var(--text-secondary)" /></button>
+        </div>
+        <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Visible uniquement par le coach — pas affiché aux autres membres.</p>
+        {loading ? <Spinner /> : rows.length === 0 ? (
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>Personne n'a encore de compte actif ici.</p>
+        ) : rows.map(r => {
+          const aVu = lastMessageAt && r.derniereLecture && new Date(r.derniereLecture) >= lastMessageAt
+          return (
+            <div key={r.nom} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+              <span style={{ fontSize: 13 }}>{r.nom}</span>
+              {aVu ? (
+                <span style={{ fontSize: 11, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={12} /> À jour</span>
+              ) : r.derniereLecture ? (
+                <span style={{ fontSize: 11, color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Circle size={9} fill="currentColor" /> Vu le {format(parseISO(r.derniereLecture), 'd MMM HH:mm', { locale: fr })}
+                </span>
+              ) : (
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Jamais ouvert</span>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
