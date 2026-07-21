@@ -1,6 +1,17 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { Sentry } from '../lib/sentry'
+
+// La mise à jour de last_seen passe par une route serveur (droits admin) plutôt qu'un
+// update direct depuis le navigateur : côté staff, la policy RLS "staff_update_coach_only"
+// ne permet qu'aux coachs de modifier une ligne staff, donc un adjoint/éducateur/
+// préparateur qui se connecte ne pouvait jamais mettre à jour sa propre ligne. Appelée
+// en tâche de fond, sans bloquer le chargement du profil si elle échoue.
+function touchLastSeen() {
+  authHeaders()
+    .then(headers => fetch('/api/touch-last-seen', { method: 'POST', headers }))
+    .catch(err => console.error('Erreur touchLastSeen:', err))
+}
 
 const AuthContext = createContext(null)
 
@@ -43,11 +54,13 @@ export function AuthProvider({ children }) {
         .from('staff').select('*').eq('auth_id', userId).maybeSingle()
 
       if (staffData) {
-        // Mise à jour last_seen dans staff — jusqu'ici seule la table joueurs était
-        // mise à jour ici, donc le staff n'avait aucune trace de connexion réelle
-        // (le badge "compte actif" ne reflétait que la création du compte, pas son
-        // utilisation).
-        await supabase.from('staff').update({ last_seen: now }).eq('id', staffData.id)
+        // last_seen mis à jour via une route serveur (droits admin), pas un update
+        // direct depuis le navigateur : la policy RLS "staff_update_coach_only" ne
+        // permet qu'aux coachs de modifier une ligne staff, donc un adjoint/éducateur/
+        // préparateur qui se connecte ne pouvait jamais mettre à jour sa propre ligne
+        // (échec silencieux, RLS bloque sans erreur) — son statut restait "jamais
+        // connecté" malgré une utilisation normale de l'appli.
+        touchLastSeen()
         setProfile({ ...staffData, last_seen: now, type: 'staff' })
         setNeedsOnboarding(false)
         setLoading(false)
@@ -59,7 +72,7 @@ export function AuthProvider({ children }) {
         .from('joueurs').select('*').eq('auth_id', userId).maybeSingle()
 
       if (joueurData) {
-        await supabase.from('joueurs').update({ last_seen: now }).eq('id', joueurData.id)
+        touchLastSeen()
         setProfile({ ...joueurData, last_seen: now, type: 'joueur', role: 'joueur' })
         // Vérifie si onboarding nécessaire
         setNeedsOnboarding(!joueurData.onboarding_done)
