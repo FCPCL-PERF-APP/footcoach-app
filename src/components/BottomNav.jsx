@@ -41,10 +41,16 @@ const NAV_STAFF_MAIN = [
   { path: '/plus',       icon: Menu,            label: 'Plus' },
 ]
 const NAV_STAFF_MORE = [
-  { section: null, items: [
+  { section: 'Suivi', items: [
     { path: '/rpe',        icon: Heart,  label: 'RPE équipe', cat: 'rose' },
     { path: '/footbar',    icon: Radio,  label: 'Footbar équipe', cat: 'orange' },
     { path: '/ressources', icon: Folder, label: 'Ressources', cat: 'teal' },
+  ]},
+  { section: 'Autres', items: [
+    { path: '/staff',    icon: Settings,  label: 'Staff', cat: 'slate' },
+    { path: '/sondages', icon: ListChecks, label: 'Sondages', cat: 'amber' },
+    { path: '/cpa',      icon: Compass,   label: 'CPA', cat: 'cyan' },
+    { path: '/fun',      icon: Gamepad2,  label: 'Fun & Jeux', cat: 'pink' },
   ]},
 ]
 const NAV_JOUEUR_MAIN = [
