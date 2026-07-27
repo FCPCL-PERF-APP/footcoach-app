@@ -134,6 +134,12 @@ export default function ProfilCoachPage() {
         </Button>
       </Card>
 
+      {/* Notifications */}
+      <Card>
+        <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Notifications</p>
+        <PushToggle />
+      </Card>
+
       {/* Changement mot de passe */}
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: changingPwd ? 12 : 0 }}>
