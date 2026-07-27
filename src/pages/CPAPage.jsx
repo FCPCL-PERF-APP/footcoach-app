@@ -28,7 +28,7 @@ const MODES = [
 ]
 
 export default function CPAPage() {
-  const { isCoach, isJoueur, profile } = useAuth()
+  const { isStaff, isJoueur, profile } = useAuth()
   const [cpas, setCpas] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState('tous')
@@ -72,7 +72,7 @@ export default function CPAPage() {
   }
 
   function handleTerrainClick(e) {
-    if (!isCoach) return
+    if (!isStaff) return
     const coords = getCoords(e)
     if (!coords) return
 
@@ -142,8 +142,8 @@ export default function CPAPage() {
     const type = CPA_TYPES.find(t => t.key === cpa.type)
     await supabase.from('messages').insert({
       expediteur_id: user?.id,
-      expediteur_nom: 'Coach',
-      expediteur_role: 'coach',
+      expediteur_nom: `${profile?.prenom || ''} ${profile?.nom || ''}`.trim() || 'Staff',
+      expediteur_role: profile?.role || 'coach',
       groupe: true,
       contenu: `CPA — ${cpa.titre}\n${type?.label || ''}\n${cpa.description ? `\n${cpa.description}` : ''}\n\nConsulte le schéma dans Menu → CPA`
     })
@@ -156,7 +156,7 @@ export default function CPAPage() {
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}><Compass size={17} color={'var(--primary)'} /> CPA</h1>
-        {isCoach && (
+        {isStaff && (
           <button onClick={() => { setShowCreate(!showCreate); setSelectedCpa(null); if (showCreate) resetForm() }}
             style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: showCreate ? 'var(--text-secondary)' : 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
             {showCreate ? <><X size={12} /> Annuler</> : <><Plus size={12} /> Créer</>}
@@ -173,7 +173,7 @@ export default function CPAPage() {
       </div>
 
       {/* Formulaire création */}
-      {showCreate && isCoach && (
+      {showCreate && isStaff && (
         <Card>
           <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Nouveau schéma CPA</p>
 
@@ -298,7 +298,7 @@ export default function CPAPage() {
               {selectedCpa.fleches.some(f => f.type === 'zone') && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Square size={11} /> Zone</span>}
             </div>
           )}
-          {isCoach && (
+          {isStaff && (
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => partagerCpa(selectedCpa)} style={{ flex: 1, padding: 10, borderRadius: 10, border: `1px solid ${'var(--primary)'}`, background: 'var(--primary-bg)', color: 'var(--primary)', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                 <MessageSquare size={12} /> Partager dans le groupe
@@ -313,7 +313,7 @@ export default function CPAPage() {
       {loading ? <Spinner /> : !showCreate && !selectedCpa && (
         cpaFiltres.length === 0 ? (
           <Card><p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
-            {isCoach ? 'Aucun schéma. Clique sur "+ Créer" !' : 'Aucun schéma CPA disponible pour l\'instant.'}
+            {isStaff ? 'Aucun schéma. Clique sur "+ Créer" !' : 'Aucun schéma CPA disponible pour l\'instant.'}
           </p></Card>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>

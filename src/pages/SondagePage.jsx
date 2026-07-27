@@ -8,7 +8,7 @@ import { fr } from 'date-fns/locale'
 import { ListChecks, Plus, X, Check, Circle, Lock } from 'lucide-react'
 
 export default function SondagePage() {
-  const { profile, isCoach, isJoueur } = useAuth()
+  const { profile, isStaff, isJoueur } = useAuth()
   const [sondages, setSondages] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
@@ -70,7 +70,7 @@ export default function SondagePage() {
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><ListChecks size={17} color={'var(--primary)'} /> Sondages</h1>
-        {isCoach && (
+        {isStaff && (
           <button onClick={() => setShowCreate(!showCreate)} style={{
             padding: '6px 14px', borderRadius: 8, border: 'none',
             background: 'var(--primary)', color: '#fff', fontSize: 12, cursor: 'pointer', fontWeight: 600,
@@ -80,7 +80,7 @@ export default function SondagePage() {
       </div>
 
       {/* Formulaire création */}
-      {showCreate && isCoach && (
+      {showCreate && isStaff && (
         <Card>
           <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Nouveau sondage</p>
           <div style={{ marginBottom: 10 }}>
@@ -127,7 +127,7 @@ export default function SondagePage() {
         sondages.length === 0 ? (
           <Card>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>
-              Aucun sondage pour l'instant.{isCoach && ' Crée-en un !'}
+              Aucun sondage pour l'instant.{isStaff && ' Crée-en un !'}
             </p>
           </Card>
         ) : (
@@ -181,7 +181,7 @@ export default function SondagePage() {
                   )
                 })}
 
-                {isCoach && s.actif && (
+                {isStaff && s.actif && (
                   <button onClick={() => clotureSondage(s.id)}
                     style={{ fontSize: 11, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Lock size={11} /> Clôturer
