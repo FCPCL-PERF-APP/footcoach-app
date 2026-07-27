@@ -180,7 +180,12 @@ export default function MonSuiviPage() {
     // Le Footbar est facultatif (capteur pas toujours dispo/porté, club amateur) : seul
     // le RPE conditionne la sortie de "à faire", pour un match comme pour une séance.
     // Sur un match, seuls les joueurs convoqués sont concernés.
+    // Au-delà d'une semaine, un RPE non rempli reste non rempli par flemme plutôt que par
+    // oubli — on arrête de le réclamer dans "à faire" pour ne pas laisser traîner
+    // indéfiniment une liste de formulaires en retard que le joueur ne remplira jamais.
+    const uneSemaine = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     const eligibles = passes.filter(e => {
+      if (new Date(e.date_heure) < uneSemaine) return false
       if (presMap[e.id] === 'absent' || presMap[e.id] === 'blesse') return false
       if (e.type === 'match' && !convocMap[e.id]) return false
       return true
