@@ -35,6 +35,7 @@ export default function FootbarPage() {
   const [events, setEvents] = useState([])
   const [joueurs, setJoueurs] = useState([])
   const [convoqueIds, setConvoqueIds] = useState(null)
+  const [absentIds, setAbsentIds] = useState(new Set())
   const [selectedEvent, setSelectedEvent] = useState(eventIdParam || '')
   const [footData, setFootData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -47,7 +48,7 @@ export default function FootbarPage() {
   const [relanceState, setRelanceState] = useState(null)
 
   useEffect(() => { loadData() }, [])
-  useEffect(() => { if (selectedEvent) { loadFootbar(); loadConvocations() } }, [selectedEvent])
+  useEffect(() => { if (selectedEvent) { loadFootbar(); loadConvocations(); loadPresences() } }, [selectedEvent])
 
   async function loadData() {
     // Pas de limite arbitraire — cf. RpePage.jsx, sinon les événements les plus anciens
@@ -85,6 +86,14 @@ export default function FootbarPage() {
     setConvoqueIds(new Set((data || []).map(c => c.joueur_id)))
   }
 
+  // Un joueur absent ou blessé sur cet événement n'a pas à remplir de Footbar — sans ce
+  // filtre, il apparaissait dans "Manquants" au même titre que ceux qui devaient
+  // réellement le faire, ce qui gonflait artificiellement la liste de relance.
+  async function loadPresences() {
+    const { data } = await supabase.from('presences').select('joueur_id, statut').eq('evenement_id', selectedEvent)
+    setAbsentIds(new Set((data || []).filter(p => p.statut === 'absent' || p.statut === 'blesse').map(p => p.joueur_id)))
+  }
+
   async function handleSave() {
     if (!selectedEvent || !selectedJoueur) return
     setSaving(true)
@@ -111,7 +120,8 @@ export default function FootbarPage() {
 
   const currentEvent = events.find(e => e.id === selectedEvent)
   // Effectif ciblé : tout le monde pour une séance, seulement les convoqués pour un match
-  const joueursCibles = convoqueIds ? joueurs.filter(j => convoqueIds.has(j.id)) : joueurs
+  const joueursCibles = (convoqueIds ? joueurs.filter(j => convoqueIds.has(j.id)) : joueurs)
+    .filter(j => !absentIds.has(j.id))
   const joueursSansFootbar = joueursCibles.filter(j => !footData.find(f => f.joueur_id === j.id))
 
   async function relancerManquants() {

@@ -45,11 +45,12 @@ export default function RpePage() {
   const [rpeData, setRpeData] = useState([])
   const [joueurs, setJoueurs] = useState([])
   const [convoqueIds, setConvoqueIds] = useState(null)
+  const [absentIds, setAbsentIds] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [relanceState, setRelanceState] = useState(null)
 
   useEffect(() => { loadEvents(); loadJoueurs() }, [])
-  useEffect(() => { if (selectedEvent) { loadRpe(); loadConvocations() } }, [selectedEvent])
+  useEffect(() => { if (selectedEvent) { loadRpe(); loadConvocations(); loadPresences() } }, [selectedEvent])
 
   async function loadEvents() {
     // Pas de limite arbitraire — une saison ne dépasse jamais quelques centaines
@@ -89,11 +90,21 @@ export default function RpePage() {
     setConvoqueIds(new Set((data || []).map(c => c.joueur_id)))
   }
 
+  // Un joueur absent ou blessé sur cet événement n'a pas à remplir de RPE — sans ce
+  // filtre, il apparaissait dans "Manquants" au même titre que ceux qui devaient
+  // réellement le faire, ce qui gonflait artificiellement la liste de relance.
+  async function loadPresences() {
+    const { data } = await supabase.from('presences').select('joueur_id, statut').eq('evenement_id', selectedEvent)
+    setAbsentIds(new Set((data || []).filter(p => p.statut === 'absent' || p.statut === 'blesse').map(p => p.joueur_id)))
+  }
+
   const currentEvent = events.find(e => e.id === selectedEvent)
   const items = currentEvent?.type === 'match' ? RPE_ITEMS_MATCH : RPE_ITEMS_SEANCE
   // Effectif ciblé par cet événement : tout le monde pour une séance, seulement les
-  // convoqués pour un match (les autres n'ont pas à remplir leur RPE).
-  const joueursCibles = convoqueIds ? joueurs.filter(j => convoqueIds.has(j.id)) : joueurs
+  // convoqués pour un match (les autres n'ont pas à remplir leur RPE) — dans les deux
+  // cas, on retire les absents/blessés qui n'ont rien à saisir.
+  const joueursCibles = (convoqueIds ? joueurs.filter(j => convoqueIds.has(j.id)) : joueurs)
+    .filter(j => !absentIds.has(j.id))
 
   // Calcul moyennes groupe
   function groupAvg(key) {
