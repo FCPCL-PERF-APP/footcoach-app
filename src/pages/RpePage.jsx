@@ -129,7 +129,14 @@ export default function RpePage() {
         })
       })
       const data = await res.json()
-      setRelanceState(data.success ? `${data.sent} notification(s) envoyée(s)` : `Erreur : ${data.error || 'inconnue'}`)
+      // Distingue "personne n'a activé les notifications" (total=0, rien d'anormal) d'un
+      // vrai échec d'envoi (total>0 mais sent<total, ex. souci VAPID/serveur) — sinon le
+      // coach ne peut pas savoir si "0 envoyée" est normal ou un bug à signaler.
+      setRelanceState(data.success
+        ? (data.total > 0
+            ? `${data.sent}/${data.total} notification(s) envoyée(s)`
+            : '0 joueur avec notifications activées')
+        : `Erreur : ${data.error || 'inconnue'}`)
     } catch {
       setRelanceState('Erreur réseau')
     }
