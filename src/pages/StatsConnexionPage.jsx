@@ -3,24 +3,36 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
-import { differenceInDays, differenceInHours } from 'date-fns'
-import { ArrowLeft, Smartphone, Circle } from 'lucide-react'
+import { differenceInDays, differenceInHours, format, parseISO } from 'date-fns'
+import { fr } from 'date-fns/locale'
+import { ArrowLeft, Smartphone, Circle, Bell, BellOff } from 'lucide-react'
 
 export default function StatsConnexionPage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [joueurs, setJoueurs] = useState([])
   const [filter, setFilter] = useState('tous')
+  const [pushByAuthId, setPushByAuthId] = useState({})
 
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
     setLoading(true)
-    const { data } = await supabase
-      .from('joueurs')
-      .select('id, nom, prenom, poste, groupe, auth_id, email, last_seen, onboarding_done')
-      .order('nom')
+    const [{ data }, { data: subs }] = await Promise.all([
+      supabase
+        .from('joueurs')
+        .select('id, nom, prenom, poste, groupe, auth_id, email, last_seen, onboarding_done')
+        .order('nom'),
+      // Un joueur peut avoir plusieurs abonnements (plusieurs appareils) — on ne garde
+      // que le plus récent par user_id pour savoir "depuis quand" il est notifiable.
+      supabase.from('push_subscriptions').select('user_id, created_at')
+    ])
     setJoueurs(data || [])
+    const byId = {}
+    for (const s of (subs || [])) {
+      if (!byId[s.user_id] || s.created_at > byId[s.user_id].created_at) byId[s.user_id] = s
+    }
+    setPushByAuthId(byId)
     setLoading(false)
   }
 
@@ -141,6 +153,7 @@ export default function StatsConnexionPage() {
             : heures < 24 ? `Il y a ${heures}h`
             : `Il y a ${jours}j`
             : null
+          const push = j.auth_id ? pushByAuthId[j.auth_id] : null
           return (
             <div key={j.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
               <div style={{ flex: 1 }}>
@@ -158,6 +171,13 @@ export default function StatsConnexionPage() {
                   {!j.last_seen && j.auth_id && ' · Invitation envoyee'}
                   {!j.auth_id && j.email && ` · ${j.email}`}
                 </p>
+                {j.auth_id && (
+                  <p style={{ fontSize: 10, marginTop: 2, display: 'flex', alignItems: 'center', gap: 3, color: push ? 'var(--success)' : 'var(--text-muted)' }}>
+                    {push
+                      ? <><Bell size={10} /> Notifs actives depuis le {format(parseISO(push.created_at), 'd MMM à HH:mm', { locale: fr })}</>
+                      : <><BellOff size={10} /> Notifications non activées</>}
+                  </p>
+                )}
               </div>
               <span style={{
                 fontSize: 10, fontWeight: 600, color: st.color, background: st.bg,
