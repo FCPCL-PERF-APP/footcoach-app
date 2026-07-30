@@ -53,15 +53,24 @@ export function usePush(userId) {
         applicationServerKey: keyBytes
       })
 
-      // Sauvegarder dans Supabase
+      // Sauvegarder dans Supabase — l'erreur n'était jusqu'ici jamais vérifiée : si
+      // l'upsert échouait côté serveur (ex. contrainte manquante pour onConflict), le
+      // bouton affichait quand même "Activées" alors qu'aucune ligne n'était réellement
+      // enregistrée, et la personne ne recevait donc jamais aucune notification.
       const subJson = sub.toJSON()
-      await supabase.from('push_subscriptions').upsert({
+      const { error } = await supabase.from('push_subscriptions').upsert({
         user_id: userId,
         endpoint: subJson.endpoint,
         p256dh: subJson.keys?.p256dh,
         auth: subJson.keys?.auth,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' })
+
+      if (error) {
+        console.error('Erreur enregistrement abonnement push:', error)
+        await sub.unsubscribe()
+        return false
+      }
 
       setPushEnabled(true)
       return true
