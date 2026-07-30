@@ -54,7 +54,8 @@ export function usePush(userId) {
       })
 
       // Sauvegarder dans Supabase — l'erreur n'était jusqu'ici jamais vérifiée : si
-      // l'upsert échouait côté serveur (ex. contrainte manquante pour onConflict), le
+      // l'upsert échouait côté serveur (colonne "updated_at" inexistante — la vraie
+      // colonne est "created_at" — et/ou contrainte manquante pour onConflict), le
       // bouton affichait quand même "Activées" alors qu'aucune ligne n'était réellement
       // enregistrée, et la personne ne recevait donc jamais aucune notification.
       const subJson = sub.toJSON()
@@ -63,7 +64,7 @@ export function usePush(userId) {
         endpoint: subJson.endpoint,
         p256dh: subJson.keys?.p256dh,
         auth: subJson.keys?.auth,
-        updated_at: new Date().toISOString()
+        created_at: new Date().toISOString()
       }, { onConflict: 'user_id' })
 
       if (error) {

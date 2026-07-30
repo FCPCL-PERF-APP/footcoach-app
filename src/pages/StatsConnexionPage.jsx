@@ -25,14 +25,14 @@ export default function StatsConnexionPage() {
         .order('nom'),
       // Un joueur peut avoir plusieurs abonnements (plusieurs appareils) — on ne garde
       // que le plus récent par user_id pour savoir "depuis quand" il est notifiable.
-      // updated_at (pas created_at, colonne inexistante sur cette table — cf. l'upsert
-      // dans usePush.js) : fixé à la date d'activation, mis à jour à chaque réactivation.
-      supabase.from('push_subscriptions').select('user_id, updated_at')
+      // created_at (seule colonne de date sur cette table — usePush.js la met à jour à
+      // chaque upsert, malgré son nom, faute d'une colonne updated_at dédiée).
+      supabase.from('push_subscriptions').select('user_id, created_at')
     ])
     setJoueurs(data || [])
     const byId = {}
     for (const s of (subs || [])) {
-      if (!byId[s.user_id] || s.updated_at > byId[s.user_id].updated_at) byId[s.user_id] = s
+      if (!byId[s.user_id] || s.created_at > byId[s.user_id].created_at) byId[s.user_id] = s
     }
     setPushByAuthId(byId)
     setLoading(false)
@@ -176,7 +176,7 @@ export default function StatsConnexionPage() {
                 {j.auth_id && (
                   <p style={{ fontSize: 10, marginTop: 2, display: 'flex', alignItems: 'center', gap: 3, color: push ? 'var(--success)' : 'var(--text-muted)' }}>
                     {push
-                      ? <><Bell size={10} /> Notifs actives depuis le {format(parseISO(push.updated_at), 'd MMM à HH:mm', { locale: fr })}</>
+                      ? <><Bell size={10} /> Notifs actives depuis le {format(parseISO(push.created_at), 'd MMM à HH:mm', { locale: fr })}</>
                       : <><BellOff size={10} /> Notifications non activées</>}
                   </p>
                 )}
