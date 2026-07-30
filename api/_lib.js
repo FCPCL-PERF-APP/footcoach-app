@@ -44,11 +44,13 @@ export async function sendPushToSubscriptions(webpush, supabase, authIds, payloa
 
   let sent = 0
   for (const sub of (subs || [])) {
+    // L'abonnement complet est stocké tel quel dans la colonne jsonb "subscription"
+    // (endpoint + clés), pas dans des colonnes séparées endpoint/p256dh/auth — cette
+    // table n'a jamais eu ces colonnes, d'où l'échec systématique côté écriture
+    // (usePush.js) découvert et corrigé au même moment côté client.
+    if (!sub.subscription?.endpoint) continue
     try {
-      await webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-        JSON.stringify(payload)
-      )
+      await webpush.sendNotification(sub.subscription, JSON.stringify(payload))
       sent++
     } catch (err) {
       if (err.statusCode === 410 || err.statusCode === 404) {

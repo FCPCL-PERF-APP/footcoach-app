@@ -68,17 +68,15 @@ export function usePush(userId) {
         applicationServerKey: keyBytes
       })
 
-      // Sauvegarder dans Supabase — l'erreur n'était jusqu'ici jamais vérifiée : si
-      // l'upsert échouait côté serveur (colonne "updated_at" inexistante — la vraie
-      // colonne est "created_at" — et/ou contrainte manquante pour onConflict), le
-      // bouton affichait quand même "Activées" alors qu'aucune ligne n'était réellement
-      // enregistrée, et la personne ne recevait donc jamais aucune notification.
+      // Sauvegarder dans Supabase — l'abonnement complet (endpoint + clés) est stocké
+      // tel quel dans la colonne jsonb "subscription", cette table n'a jamais eu de
+      // colonnes séparées endpoint/p256dh/auth (schéma réel vérifié via
+      // information_schema.columns). L'erreur n'était par ailleurs jusqu'ici jamais
+      // vérifiée : le bouton affichait "Activées" même quand rien n'était enregistré.
       const subJson = sub.toJSON()
       const { error } = await supabase.from('push_subscriptions').upsert({
         user_id: userId,
-        endpoint: subJson.endpoint,
-        p256dh: subJson.keys?.p256dh,
-        auth: subJson.keys?.auth,
+        subscription: subJson,
         created_at: new Date().toISOString()
       }, { onConflict: 'user_id' })
 
