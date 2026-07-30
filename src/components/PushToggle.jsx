@@ -23,7 +23,7 @@ export default function PushToggle() {
       setMsg({ ok: false, text: '🔕 Notifications désactivées.' })
     } else {
       const success = await enablePush()
-      if (success) setMsg({ ok: true, text: '🔔 Notifications activées ! Tu recevras les convocations et rappels.' })
+      if (success) setMsg({ ok: true, text: '🔔 Notifications activées ! Tu recevras les messages, convocations et rappels.' })
       else setMsg({ ok: false, text: `❌ Impossible d'activer.${pushError ? ` ${pushError}` : ' Vérifie les autorisations dans les réglages.'}` })
     }
     setLoading(false)
