@@ -4,6 +4,11 @@ import { supabase } from '../lib/supabase'
 export function usePush(userId) {
   const [pushSupported, setPushSupported] = useState(false)
   const [pushEnabled, setPushEnabled] = useState(false)
+  // Détail de la dernière erreur d'activation, affiché par PushToggle — sans ça, un
+  // échec silencieux (permission refusée, abonnement corrompu, erreur serveur...) ne
+  // laisse qu'un message générique "vérifie les autorisations" impossible à diagnostiquer
+  // à distance quand la personne n'a pas accès à la console du navigateur (ex. iPhone).
+  const [pushError, setPushError] = useState(null)
 
   useEffect(() => {
     if (!userId) return
@@ -37,16 +42,26 @@ export function usePush(userId) {
 
   async function enablePush() {
     if (!pushSupported) return false
+    setPushError(null)
     try {
       const reg = await navigator.serviceWorker.ready
       const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
       if (!vapidKey) {
         console.error('VAPID public key manquante')
+        setPushError('Configuration serveur incomplète (clé VAPID manquante).')
         return false
       }
 
       // Convertir la clé VAPID
       const keyBytes = urlBase64ToUint8Array(vapidKey)
+
+      // Un abonnement navigateur existant (ex. tentative précédente restée dans un état
+      // incohérent) fait échouer subscribe() avec "already subscribed with a different
+      // applicationServerKey" même quand la permission iOS est bien accordée — sans
+      // rapport avec les réglages de notifications. On repart d'un état propre à chaque
+      // activation plutôt que de laisser cette erreur silencieuse bloquer le bouton.
+      const existing = await reg.pushManager.getSubscription()
+      if (existing) await existing.unsubscribe()
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -69,6 +84,7 @@ export function usePush(userId) {
 
       if (error) {
         console.error('Erreur enregistrement abonnement push:', error)
+        setPushError(`Erreur serveur : ${error.message}`)
         await sub.unsubscribe()
         return false
       }
@@ -77,6 +93,9 @@ export function usePush(userId) {
       return true
     } catch (err) {
       console.error('Erreur activation push:', err)
+      setPushError(err.name === 'NotAllowedError'
+        ? 'Permission refusée par le téléphone/navigateur.'
+        : `${err.name || 'Erreur'} : ${err.message}`)
       return false
     }
   }
@@ -95,7 +114,7 @@ export function usePush(userId) {
     }
   }
 
-  return { pushSupported, pushEnabled, enablePush, disablePush }
+  return { pushSupported, pushEnabled, pushError, enablePush, disablePush }
 }
 
 function arraysEqual(a, b) {
