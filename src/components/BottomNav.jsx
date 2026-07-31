@@ -6,7 +6,7 @@ import { THEME, CAT_COLORS } from '../theme'
 import {
   Calendar, Users, MessageCircle, LayoutDashboard, Menu,
   Heart, Radio, BarChart3, Settings, Archive, Folder,
-  ListChecks, Gamepad2, Compass, Home, User, Award, ClipboardList
+  ListChecks, Gamepad2, Compass, Home, User, Award, ClipboardList, Shuffle
 } from 'lucide-react'
 
 const NAV_COACH_MAIN = [
@@ -28,9 +28,10 @@ const NAV_COACH_MORE = [
     { path: '/ressources',      icon: Folder,   label: 'Ressources', cat: 'teal' },
   ]},
   { section: 'Autres', items: [
-    { path: '/sondages', icon: ListChecks, label: 'Sondages', cat: 'amber' },
-    { path: '/fun',      icon: Gamepad2,   label: 'Fun & Jeux', cat: 'pink' },
-    { path: '/cpa',      icon: Compass,    label: 'CPA', cat: 'cyan' },
+    { path: '/sondages',       icon: ListChecks, label: 'Sondages', cat: 'amber' },
+    { path: '/fun',            icon: Gamepad2,   label: 'Fun & Jeux', cat: 'pink' },
+    { path: '/cpa',            icon: Compass,    label: 'CPA', cat: 'cyan' },
+    { path: '/tirage-au-sort', icon: Shuffle,    label: 'Tirage au sort', cat: 'violet' },
   ]},
 ]
 const NAV_STAFF_MAIN = [
@@ -47,10 +48,11 @@ const NAV_STAFF_MORE = [
     { path: '/ressources', icon: Folder, label: 'Ressources', cat: 'teal' },
   ]},
   { section: 'Autres', items: [
-    { path: '/staff',    icon: Settings,  label: 'Staff', cat: 'slate' },
-    { path: '/sondages', icon: ListChecks, label: 'Sondages', cat: 'amber' },
-    { path: '/cpa',      icon: Compass,   label: 'CPA', cat: 'cyan' },
-    { path: '/fun',      icon: Gamepad2,  label: 'Fun & Jeux', cat: 'pink' },
+    { path: '/staff',          icon: Settings,   label: 'Staff', cat: 'slate' },
+    { path: '/sondages',       icon: ListChecks, label: 'Sondages', cat: 'amber' },
+    { path: '/cpa',            icon: Compass,    label: 'CPA', cat: 'cyan' },
+    { path: '/fun',            icon: Gamepad2,   label: 'Fun & Jeux', cat: 'pink' },
+    { path: '/tirage-au-sort', icon: Shuffle,    label: 'Tirage au sort', cat: 'violet' },
   ]},
 ]
 const NAV_JOUEUR_MAIN = [

@@ -50,6 +50,7 @@ const CPAPage                = lazy(() => import('./pages/CPAPage'))
 const ExportFicheJoueurPage  = lazy(() => import('./pages/ExportFicheJoueurPage'))
 const OnboardingCoachPage    = lazy(() => import('./pages/OnboardingCoachPage'))
 const SearchPage             = lazy(() => import('./pages/SearchPage'))
+const TirageAuSortPage       = lazy(() => import('./pages/TirageAuSortPage'))
 const FunPage                = lazy(() => import('./pages/FunPage'))
 
 const routeFallback = (
@@ -181,6 +182,7 @@ function AppContent() {
 <Route path="/mon-profil-joueur" element={isJoueur ? <MonProfilJoueurPage /> : <Navigate to="/" />} />
 <Route path="/set-password" element={<SetPasswordPage />} />
           <Route path="/mon-profil"             element={isStaff ? <ProfilCoachPage /> : <Navigate to="/" />} />
+          <Route path="/tirage-au-sort"         element={isStaff ? <TirageAuSortPage /> : <Navigate to="/" />} />
           <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
 <Route path="/classement" element={isCoach ? <ClassementButeursPage /> : <Navigate to="/" />} />
 <Route path="/stats-connexion" element={isCoach ? <StatsConnexionPage /> : <Navigate to="/" />} />
