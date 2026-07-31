@@ -3,9 +3,10 @@ import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner, Avatar, Button } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
+import { validateFile } from '../lib/upload'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Mail, Users, MessageCircle, Search, ArrowLeft, ArrowRight, ChevronRight, Trash2, Send, Shield, Eye, X, CheckCircle2, Circle } from 'lucide-react'
+import { Mail, Users, MessageCircle, Search, ArrowLeft, ArrowRight, ChevronRight, Trash2, Send, Shield, Eye, X, CheckCircle2, Circle, Image as ImageIcon } from 'lucide-react'
 
 // Canal 'general' = tout le monde (joueurs + staff), canal 'staff' = staff uniquement
 // (réservé côté base via RLS, pas seulement caché dans l'UI — cf.
@@ -29,6 +30,9 @@ export default function MessagesPage() {
   const [activeConv, setActiveConv] = useState(null)
   const [convMessages, setConvMessages] = useState([])
   const [input, setInput] = useState('')
+  const [pendingImage, setPendingImage] = useState(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [imageError, setImageError] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showNewMsg, setShowNewMsg] = useState(false)
   const [searchContact, setSearchContact] = useState('')
@@ -131,7 +135,22 @@ export default function MessagesPage() {
   }
 
   async function sendMessage(groupe = false, canal = 'general') {
-    if (!input.trim()) return
+    if (!input.trim() && !pendingImage) return
+
+    let imageUrl = null
+    if (pendingImage) {
+      setUploadingImage(true)
+      const path = `messages/${Date.now()}_${myAuthId}.jpg`
+      const { error: uploadError } = await supabase.storage.from('joueurs').upload(path, pendingImage)
+      setUploadingImage(false)
+      if (uploadError) {
+        setImageError('Erreur envoi photo : ' + uploadError.message)
+        return
+      }
+      const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
+      imageUrl = urlData.publicUrl
+    }
+
     const msg = {
       expediteur_id: myAuthId,
       expediteur_nom: `${profile?.nom} ${profile?.prenom || ''}`.trim(),
@@ -139,13 +158,18 @@ export default function MessagesPage() {
       destinataire_id: groupe ? null : activeConv?.auth_id,
       groupe,
       canal: groupe ? canal : 'general',
-      contenu: input
+      contenu: input,
+      image_url: imageUrl
     }
     const { error } = await supabase.from('messages').insert(msg)
     if (error) {
       alert('Erreur lors de l\'envoi du message : ' + error.message)
       return
     }
+
+    // Une notification sans texte (photo seule) doit quand même avoir un corps lisible
+    // — les endpoints de notif exigent un contenu non vide.
+    const notifContenu = input.trim() || (imageUrl ? '📷 Photo' : '')
 
     if (!groupe && activeConv?.auth_id) {
       try {
@@ -154,7 +178,7 @@ export default function MessagesPage() {
           headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
           body: JSON.stringify({
             destinataireId: activeConv.auth_id,
-            contenu: input
+            contenu: notifContenu
           })
         })
       } catch (err) { console.error('Erreur notif:', err) }
@@ -165,14 +189,23 @@ export default function MessagesPage() {
         await fetch('/api/notif-message-groupe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-          body: JSON.stringify({ contenu: input, canal })
+          body: JSON.stringify({ contenu: notifContenu, canal })
         })
       } catch (err) { console.error('Erreur notif groupe:', err) }
     }
 
     setInput('')
+    setPendingImage(null)
+    setImageError(null)
     if (groupe) loadCanalMessages(canal)
     else openConv(activeConv)
+  }
+
+  function handleImageSelect(file) {
+    setImageError(null)
+    const err = validateFile(file, 'image')
+    if (err) { setImageError(err); return }
+    setPendingImage(file)
   }
 
   async function reactToMessage(msgId, emoji) {
@@ -280,7 +313,9 @@ export default function MessagesPage() {
                 ))}
                 <div ref={bottomRef} />
               </div>
-              <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(true, currentCanal)} />
+              <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(true, currentCanal)}
+                pendingImage={pendingImage} onImageSelect={handleImageSelect} onRemoveImage={() => setPendingImage(null)}
+                uploading={uploadingImage} imageError={imageError} />
             </Card>
           )}
 
@@ -357,7 +392,9 @@ export default function MessagesPage() {
                     ))}
                     <div ref={bottomRef} />
                   </div>
-                  <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(false)} />
+                  <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(false)}
+                    pendingImage={pendingImage} onImageSelect={handleImageSelect} onRemoveImage={() => setPendingImage(null)}
+                    uploading={uploadingImage} imageError={imageError} />
                 </Card>
               ) : !showNewMsg && (
                 <Card style={{ padding: 0 }}>
@@ -413,7 +450,10 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
           {!isMe && msg.expediteur_nom && (
             <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 3, color: 'var(--primary)' }}>{msg.expediteur_nom}</p>
           )}
-          <p style={{ fontSize: 13, lineHeight: 1.4 }}>{msg.contenu}</p>
+          {msg.image_url && (
+            <img src={msg.image_url} alt="" style={{ maxWidth: '100%', borderRadius: 10, display: 'block', marginBottom: msg.contenu ? 6 : 0 }} />
+          )}
+          {msg.contenu && <p style={{ fontSize: 13, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>{msg.contenu}</p>}
           <p style={{ fontSize: 9, opacity: .6, marginTop: 3, textAlign: 'right' }}>{formatTime(msg.created_at)}</p>
         </div>
 
@@ -516,19 +556,37 @@ function LecteursPanel({ canal, lastMessage, onClose }) {
   )
 }
 
-function MsgInput({ value, onChange, onSend }) {
+function MsgInput({ value, onChange, onSend, pendingImage, onImageSelect, onRemoveImage, uploading, imageError }) {
   // Zone de texte multi-lignes (plutôt qu'un <input> mono-ligne) : "Entrée" insère
   // un retour à la ligne comme dans n'importe quelle appli de messagerie, y compris
   // au clavier mobile (pas de touche Maj pour distinguer "envoyer" de "nouvelle
   // ligne" sur téléphone). L'envoi se fait uniquement via le bouton dédié.
   const rows = Math.min(6, Math.max(1, (value.match(/\n/g)?.length || 0) + 1))
+  const canSend = (value.trim() || pendingImage) && !uploading
   return (
-    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', borderTop: '0.5px solid var(--bg-secondary)', paddingTop: 10 }}>
-      <textarea value={value} onChange={e => onChange(e.target.value)}
-        placeholder="Écrire un message..."
-        rows={rows}
-        style={{ flex: 1, padding: '9px 12px', border: '0.5px solid var(--border)', borderRadius: 16, fontSize: 13, outline: 'none', background: 'var(--bg-secondary)', resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box' }} />
-      <button onClick={onSend} style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--gradient)', border: 'none', cursor: 'pointer', color: '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Send size={16} /></button>
+    <div style={{ borderTop: '0.5px solid var(--bg-secondary)', paddingTop: 10 }}>
+      {pendingImage && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <img src={URL.createObjectURL(pendingImage)} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }} />
+          <span style={{ fontSize: 11, color: 'var(--text-muted)', flex: 1 }}>{pendingImage.name}</span>
+          <button onClick={onRemoveImage} style={{ border: 'none', background: 'var(--danger-bg)', borderRadius: 8, padding: 5, cursor: 'pointer', display: 'flex' }}><X size={12} color="var(--danger)" /></button>
+        </div>
+      )}
+      {imageError && <p style={{ fontSize: 11, color: 'var(--danger)', marginBottom: 6 }}>{imageError}</p>}
+      <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+        <label style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+          <ImageIcon size={16} color="var(--text-secondary)" />
+          <input type="file" accept="image/*" style={{ display: 'none' }}
+            onChange={e => { if (e.target.files[0]) onImageSelect(e.target.files[0]); e.target.value = '' }} />
+        </label>
+        <textarea value={value} onChange={e => onChange(e.target.value)}
+          placeholder="Écrire un message..."
+          rows={rows}
+          style={{ flex: 1, padding: '9px 12px', border: '0.5px solid var(--border)', borderRadius: 16, fontSize: 13, outline: 'none', background: 'var(--bg-secondary)', resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box' }} />
+        <button onClick={onSend} disabled={!canSend} style={{ width: 38, height: 38, borderRadius: '50%', background: canSend ? 'var(--gradient)' : 'var(--border)', border: 'none', cursor: canSend ? 'pointer' : 'not-allowed', color: '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Send size={16} />
+        </button>
+      </div>
     </div>
   )
 }
