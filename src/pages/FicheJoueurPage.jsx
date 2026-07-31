@@ -201,6 +201,7 @@ export default function FicheJoueurPage() {
       contact_urgence_tel: form.contact_urgence_tel,
       taille: form.taille ? parseInt(form.taille) : null,
       poids: form.poids ? parseFloat(form.poids) : null,
+      vma: form.vma ? parseFloat(form.vma) : null,
       fc_max: form.fc_max ? parseInt(form.fc_max) : null,
       fc_repos: form.fc_repos ? parseInt(form.fc_repos) : null,
       points_forts: form.points_forts,
@@ -575,6 +576,11 @@ export default function FicheJoueurPage() {
       {/* PHYSIOLOGIE */}
       {activeTab === 'physio' && (
         <>
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>VMA</p>
+            <Field label="VMA (km/h)" field="vma" type="number" step="0.1" disabled={!editing} />
+            {editing && <Button variant="primary" style={{ width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveIdentite} disabled={saving}><Save size={13} /> Enregistrer VMA</Button>}
+          </Card>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Fréquence cardiaque</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
