@@ -6,7 +6,7 @@ import { THEME, CAT_COLORS } from '../theme'
 import {
   Calendar, Users, MessageCircle, LayoutDashboard, Menu,
   Heart, Radio, BarChart3, Settings, Archive, Folder,
-  ListChecks, Gamepad2, Compass, Home, User, Award, ClipboardList, Shuffle
+  ListChecks, Gamepad2, Compass, Home, User, Award, ClipboardList, Shuffle, CalendarRange
 } from 'lucide-react'
 
 const NAV_COACH_MAIN = [
@@ -28,10 +28,11 @@ const NAV_COACH_MORE = [
     { path: '/ressources',      icon: Folder,   label: 'Ressources', cat: 'teal' },
   ]},
   { section: 'Autres', items: [
-    { path: '/sondages',       icon: ListChecks, label: 'Sondages', cat: 'amber' },
-    { path: '/fun',            icon: Gamepad2,   label: 'Fun & Jeux', cat: 'pink' },
-    { path: '/cpa',            icon: Compass,    label: 'CPA', cat: 'cyan' },
-    { path: '/tirage-au-sort', icon: Shuffle,    label: 'Tirage au sort', cat: 'violet' },
+    { path: '/sondages',          icon: ListChecks,    label: 'Sondages', cat: 'amber' },
+    { path: '/fun',               icon: Gamepad2,      label: 'Fun & Jeux', cat: 'pink' },
+    { path: '/cpa',               icon: Compass,       label: 'CPA', cat: 'cyan' },
+    { path: '/tirage-au-sort',    icon: Shuffle,       label: 'Tirage au sort', cat: 'violet' },
+    { path: '/calendrier-general', icon: CalendarRange, label: 'Calendrier général', cat: 'blue' },
   ]},
 ]
 const NAV_STAFF_MAIN = [
@@ -48,11 +49,12 @@ const NAV_STAFF_MORE = [
     { path: '/ressources', icon: Folder, label: 'Ressources', cat: 'teal' },
   ]},
   { section: 'Autres', items: [
-    { path: '/staff',          icon: Settings,   label: 'Staff', cat: 'slate' },
-    { path: '/sondages',       icon: ListChecks, label: 'Sondages', cat: 'amber' },
-    { path: '/cpa',            icon: Compass,    label: 'CPA', cat: 'cyan' },
-    { path: '/fun',            icon: Gamepad2,   label: 'Fun & Jeux', cat: 'pink' },
-    { path: '/tirage-au-sort', icon: Shuffle,    label: 'Tirage au sort', cat: 'violet' },
+    { path: '/staff',           icon: Settings,      label: 'Staff', cat: 'slate' },
+    { path: '/sondages',        icon: ListChecks,    label: 'Sondages', cat: 'amber' },
+    { path: '/cpa',             icon: Compass,       label: 'CPA', cat: 'cyan' },
+    { path: '/fun',             icon: Gamepad2,      label: 'Fun & Jeux', cat: 'pink' },
+    { path: '/tirage-au-sort',  icon: Shuffle,       label: 'Tirage au sort', cat: 'violet' },
+    { path: '/calendrier-general', icon: CalendarRange, label: 'Calendrier général', cat: 'blue' },
   ]},
 ]
 const NAV_JOUEUR_MAIN = [
@@ -71,6 +73,7 @@ const NAV_JOUEUR_MORE = [
     { path: '/cpa',         icon: Compass,        label: 'CPA', cat: 'cyan' },
     { path: '/fun',         icon: Gamepad2,       label: 'Fun & Jeux', cat: 'pink' },
     { path: '/ressources',  icon: Folder,         label: 'Ressources', cat: 'teal' },
+    { path: '/calendrier-general', icon: CalendarRange, label: 'Calendrier général', cat: 'blue' },
   ]},
 ]
 

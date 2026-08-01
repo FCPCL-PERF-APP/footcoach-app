@@ -51,6 +51,7 @@ const ExportFicheJoueurPage  = lazy(() => import('./pages/ExportFicheJoueurPage'
 const OnboardingCoachPage    = lazy(() => import('./pages/OnboardingCoachPage'))
 const SearchPage             = lazy(() => import('./pages/SearchPage'))
 const TirageAuSortPage       = lazy(() => import('./pages/TirageAuSortPage'))
+const CalendrierGeneralPage  = lazy(() => import('./pages/CalendrierGeneralPage'))
 const FunPage                = lazy(() => import('./pages/FunPage'))
 
 const routeFallback = (
@@ -145,6 +146,7 @@ function AppContent() {
           <Route path="/"                       element={<Navigate to={defaultRoute} replace />} />
           <Route path="/calendrier"             element={<CalendrierPage />} />
           <Route path="/calendrier-visuel"      element={<CalendrierVisuelPage />} />
+          <Route path="/calendrier-general"     element={<CalendrierGeneralPage />} />
 <Route path="/fun" element={<FunPage />} />
           <Route path="/rpe"                    element={isCoach || isAdjoint ? <RpePage /> : <Navigate to="/" />} />
 <Route path="/cpa" element={<CPAPage />} />
