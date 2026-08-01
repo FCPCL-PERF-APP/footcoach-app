@@ -8,12 +8,14 @@ import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isWeeke
 import { fr } from 'date-fns/locale'
 import { CalendarRange, X, Trash2, Check } from 'lucide-react'
 
-// Championnat/Coupe/Amical sont recalculés depuis evenements (source unique de
-// vérité) — jamais stockés ici, pour ne jamais se désynchroniser d'un match déplacé.
+// Entraînement/Championnat/Coupe/Amical sont recalculés depuis evenements (source
+// unique de vérité) — jamais stockés ici, pour ne jamais se désynchroniser d'une
+// séance ou d'un match déplacé.
 const MATCH_CATS = {
-  championnat: { label: 'Championnat', cat: 'blue' },
-  coupe:       { label: 'Coupe',        cat: 'purple' },
-  amical:      { label: 'Match amical', cat: 'teal' },
+  entrainement: { label: 'Entraînement', cat: 'blue' },
+  championnat:  { label: 'Championnat',  cat: 'teal' },
+  coupe:        { label: 'Coupe',        cat: 'purple' },
+  amical:       { label: 'Match amical', cat: 'cyan' },
 }
 
 // Catégories placées à la main par le staff (vacances, tests, etc.), une par ligne de
@@ -48,7 +50,6 @@ export default function CalendrierGeneralPage() {
 
     const [{ data: evs }, { data: jours }] = await Promise.all([
       supabase.from('evenements').select('id, titre, type, match_type, date_heure')
-        .eq('type', 'match')
         .gte('date_heure', debut.toISOString()).lte('date_heure', fin.toISOString())
         .order('date_heure', { ascending: true }),
       supabase.from('calendrier_jours').select('*')
@@ -60,9 +61,13 @@ export default function CalendrierGeneralPage() {
     for (const ev of (evs || [])) {
       const dateStr = ev.date_heure.slice(0, 10)
       let kind, label
-      if (ev.match_type === 'coupe') { nCoupe++; kind = 'coupe'; label = `CDF${nCoupe}` }
+      if (ev.type === 'seance') { kind = 'entrainement'; label = '' }
+      else if (ev.match_type === 'coupe') { nCoupe++; kind = 'coupe'; label = `CDF${nCoupe}` }
       else if (ev.match_type === 'preparation') { kind = 'amical'; label = 'Amical' }
       else { nChamp++; kind = 'championnat'; label = `J${nChamp}` }
+      // Un match l'emporte sur un entraînement le même jour (rare, mais un match
+      // prime visuellement sur une séance dans une vue d'ensemble de saison).
+      if (map[dateStr] && map[dateStr].kind !== 'entrainement' && kind === 'entrainement') continue
       map[dateStr] = { kind, label, evId: ev.id, titre: ev.titre }
     }
     setMatchesByDate(map)
