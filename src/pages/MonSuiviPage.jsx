@@ -334,9 +334,10 @@ export default function MonSuiviPage() {
                     </div>
 
                     {/* Bloc RPE */}
-                    <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
                       <Heart size={13} color={CAT_COLORS.rose.color} /> RPE
                     </p>
+                    <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>0 = très faible · 5 = très élevé</p>
                     {RPE_ITEMS.map(item => {
                       const val = rpeForm[item.key]
                       return (
@@ -355,6 +356,10 @@ export default function MonSuiviPage() {
                                 fontSize: 13, fontWeight: val === v ? 700 : 400, cursor: 'pointer'
                               }}>{v}</button>
                             ))}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+                            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Très faible</span>
+                            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Très élevé</span>
                           </div>
                         </div>
                       )
