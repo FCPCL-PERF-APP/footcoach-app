@@ -10,7 +10,7 @@ import { fr } from 'date-fns/locale'
 import {
   CalendarDays, Repeat, Plus, X, Pencil, Trash2, MapPin, Clock, Send, Hourglass,
   CheckCircle2, RefreshCw, XCircle, Bandage, BarChart3, Heart, Radio, Copy,
-  Swords, Footprints, History, WifiOff, Save, Check, Circle
+  Swords, Footprints, History, WifiOff, Save, Check, Circle, Eye, EyeOff
 } from 'lucide-react'
 
 export default function CalendrierPage() {
@@ -295,13 +295,22 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
   const isStaff = isCoach || isAdjoint
   const [presenceCount, setPresenceCount] = useState(null)
   const [convoque, setConvoque] = useState(null)
+  // Pour un joueur, la liste nominative n'est chargée/affichée qu'à la demande (bouton
+  // "Voir les présences"), pas automatiquement à l'ouverture de l'agenda — pour le
+  // staff en revanche le résumé reste visible d'emblée, comme avant.
+  const [showPresences, setShowPresences] = useState(false)
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
   useEffect(() => {
-    if (isStaff || isJoueur) loadPresenceCount()
+    if (isStaff) loadPresenceCount()
     if (isJoueur && profile?.id) checkConvocation()
   }, [ev.id])
+
+  function toggleShowPresences() {
+    if (!showPresences && presenceCount === null) loadPresenceCount()
+    setShowPresences(p => !p)
+  }
 
   // Les joueurs peuvent aussi voir qui est présent/absent (pas seulement le staff) —
   // le join sur joueurs(nom,prenom) sert à leur afficher les noms, pas juste le compte.
@@ -369,10 +378,23 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
         </p>
       )}
 
+      {/* Côté joueur, le résumé n'est pas affiché d'office : un bouton "Voir les
+          présences" le charge et l'affiche à la demande, pour ne pas surcharger
+          l'agenda par défaut. Le staff continue à le voir automatiquement. */}
+      {isJoueur && (
+        <button onClick={toggleShowPresences} style={{
+          border: 'none', background: 'var(--bg-secondary)', borderRadius: 8, padding: '5px 10px',
+          fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer', marginBottom: 8,
+          display: 'inline-flex', alignItems: 'center', gap: 5
+        }}>
+          {showPresences ? <EyeOff size={12} /> : <Eye size={12} />} {showPresences ? 'Masquer les présences' : 'Voir les présences'}
+        </button>
+      )}
+
       {/* Résumé présences — compte visible au staff comme aux joueurs, détail nominatif
           (qui est présent/absent) réservé aux joueurs : le staff a déjà cette info en
           détail via la page Présences dédiée, pas besoin de dupliquer ici. */}
-      {(isStaff || isJoueur) && presenceCount !== null && (
+      {((isStaff && presenceCount !== null) || (isJoueur && showPresences && presenceCount !== null)) && (
         <div style={{ marginBottom: 8, padding: '6px 10px', background: 'var(--bg-secondary)', borderRadius: 8 }}>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 11, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 3 }}><CheckCircle2 size={11} /> {presenceCount.present}</span>
