@@ -299,12 +299,14 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
   useEffect(() => {
-    if (isStaff) loadPresenceCount()
+    if (isStaff || isJoueur) loadPresenceCount()
     if (isJoueur && profile?.id) checkConvocation()
   }, [ev.id])
 
+  // Les joueurs peuvent aussi voir qui est présent/absent (pas seulement le staff) —
+  // le join sur joueurs(nom,prenom) sert à leur afficher les noms, pas juste le compte.
   async function loadPresenceCount() {
-    const { data } = await supabase.from('presences').select('statut').eq('evenement_id', ev.id)
+    const { data } = await supabase.from('presences').select('statut, joueurs(nom, prenom)').eq('evenement_id', ev.id)
     if (data) setPresenceCount({
       present: data.filter(p => p.statut === 'present').length,
       absent: data.filter(p => p.statut === 'absent').length,
@@ -367,14 +369,38 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
         </p>
       )}
 
-      {/* Résumé présences staff */}
-      {isStaff && presenceCount !== null && (
-        <div style={{ display: 'flex', gap: 10, marginBottom: 8, padding: '6px 10px', background: 'var(--bg-secondary)', borderRadius: 8, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 3 }}><CheckCircle2 size={11} /> {presenceCount.present}</span>
-          {presenceCount.exterieur > 0 && <span style={{ fontSize: 11, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 3 }}><RefreshCw size={11} /> {presenceCount.exterieur}</span>}
-          <span style={{ fontSize: 11, color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: 3 }}><XCircle size={11} /> {presenceCount.absent}</span>
-          <span style={{ fontSize: 11, color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 3 }}><Bandage size={11} /> {presenceCount.blesse}</span>
-          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>· {presenceCount.total} réponse(s)</span>
+      {/* Résumé présences — compte visible au staff comme aux joueurs, détail nominatif
+          (qui est présent/absent) réservé aux joueurs : le staff a déjà cette info en
+          détail via la page Présences dédiée, pas besoin de dupliquer ici. */}
+      {(isStaff || isJoueur) && presenceCount !== null && (
+        <div style={{ marginBottom: 8, padding: '6px 10px', background: 'var(--bg-secondary)', borderRadius: 8 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 11, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 3 }}><CheckCircle2 size={11} /> {presenceCount.present}</span>
+            {presenceCount.exterieur > 0 && <span style={{ fontSize: 11, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 3 }}><RefreshCw size={11} /> {presenceCount.exterieur}</span>}
+            <span style={{ fontSize: 11, color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: 3 }}><XCircle size={11} /> {presenceCount.absent}</span>
+            <span style={{ fontSize: 11, color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: 3 }}><Bandage size={11} /> {presenceCount.blesse}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>· {presenceCount.total} réponse(s)</span>
+          </div>
+          {isJoueur && presenceCount.detail.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+              {presenceCount.detail
+                .filter(p => p.statut !== 'inconnu')
+                .sort((a, b) => (a.joueurs?.nom || '').localeCompare(b.joueurs?.nom || ''))
+                .map((p, i) => {
+                  const style = {
+                    present:   { bg: 'var(--success-bg)', color: 'var(--success)' },
+                    exterieur: { bg: 'var(--primary-bg)', color: 'var(--primary)' },
+                    absent:    { bg: 'var(--danger-bg)',  color: 'var(--danger)' },
+                    blesse:    { bg: 'var(--warning-bg)', color: 'var(--warning)' },
+                  }[p.statut] || { bg: 'var(--bg-card)', color: 'var(--text-muted)' }
+                  return (
+                    <span key={i} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 12, background: style.bg, color: style.color }}>
+                      {p.joueurs?.prenom} {p.joueurs?.nom}
+                    </span>
+                  )
+                })}
+            </div>
+          )}
         </div>
       )}
 
