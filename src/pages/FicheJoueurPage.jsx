@@ -600,14 +600,22 @@ export default function FicheJoueurPage() {
                   ['Zone 3 — Seuil', 0.7, 0.8, '#FAEEDA', 'var(--warning)'],
                   ['Zone 4 — Haute intensité', 0.8, 0.9, '#FCEBEB', '#A32D2D'],
                   ['Zone 5 — Maximale', 0.9, 1.0, '#F5C4B3', '#712B13'],
-                ].map(([label, min, max, bg, color]) => (
-                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', borderRadius: 8, marginBottom: 4, background: bg }}>
-                    <span style={{ fontSize: 11, color }}>{label}</span>
-                    <strong style={{ fontSize: 11, color }}>
-                      {Math.round(joueur.fc_repos + fcReserve * min)}–{Math.round(joueur.fc_repos + fcReserve * max)} bpm
-                    </strong>
-                  </div>
-                ))}
+                ].map(([label, min, max, bg, color]) => {
+                  // Cible individualisée = point médian de la zone (méthode Karvonen), pas
+                  // seulement la fourchette — un chiffre unique à viser, propre à ce joueur.
+                  const cible = Math.round(joueur.fc_repos + fcReserve * ((min + max) / 2))
+                  return (
+                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', borderRadius: 8, marginBottom: 4, background: bg }}>
+                      <span style={{ fontSize: 11, color }}>{label}</span>
+                      <div style={{ textAlign: 'right' }}>
+                        <strong style={{ fontSize: 13, color }}>{cible} bpm</strong>
+                        <p style={{ fontSize: 9, color, opacity: .75 }}>
+                          {Math.round(joueur.fc_repos + fcReserve * min)}–{Math.round(joueur.fc_repos + fcReserve * max)} bpm
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
               </>
             )}
             {editing && <Button variant="primary" style={{ width: '100%', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveIdentite} disabled={saving}><Save size={13} /> Enregistrer FC</Button>}
