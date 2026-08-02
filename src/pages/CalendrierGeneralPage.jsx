@@ -146,10 +146,13 @@ function MonthGrid({ month, matchesByDate, findManuelForDate, onDayClick }) {
           const match = matchesByDate[dateStr]
           // Cherché même quand un match/entraînement existe le même jour : dans ce
           // cas le remplissage reste celui du match, mais un contour reprend la
-          // couleur de la période manuelle (vacances/férié/coupure) pour ne pas la
-          // faire disparaître visuellement — ex. entraînement maintenu un 11 novembre.
+          // couleur de la période manuelle (vacances/férié) pour ne pas la faire
+          // disparaître visuellement — ex. entraînement maintenu un 11 novembre.
+          // Sans événement, vacances/jours fériés s'affichent aussi encadrés (plutôt
+          // qu'un simple aplat), pour un rendu plus soigné.
           const manuel = findManuelForDate(dateStr)
           const manuelInfo = manuel ? MANUAL_CATS[manuel.categorie] : null
+          const cadre = manuel && (manuel.categorie === 'vacances_scolaires' || manuel.categorie === 'jour_ferie')
           const info = match ? MATCH_CATS[match.kind] : manuelInfo
           const c = info || null
           const weekend = isWeekend(day) && !c
@@ -161,7 +164,7 @@ function MonthGrid({ month, matchesByDate, findManuelForDate, onDayClick }) {
               color: c ? c.color : 'var(--text-secondary)',
               fontWeight: c ? 700 : 400,
               boxSizing: 'border-box',
-              border: match && manuelInfo ? `2px solid ${manuelInfo.color}` : 'none'
+              border: cadre ? `2px solid ${manuelInfo.color}` : 'none'
             }} title={[match?.titre, manuel?.label || manuelInfo?.label].filter(Boolean).join(' · ')}>
               <span>{format(day, 'd')}</span>
               {match && <span style={{ fontSize: 7, lineHeight: 1 }}>{match.label}</span>}
