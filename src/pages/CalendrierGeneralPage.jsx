@@ -21,13 +21,14 @@ const MATCH_CATS = {
 }
 
 // Catégories placées à la main par le staff, une par ligne de calendrier_jours,
-// éventuellement sur une plage de plusieurs jours. Vacances/jours fériés en gris
-// pastel neutre exprès : ce ne sont pas des "événements" à mettre en valeur comme un
-// match, juste des repères de période pour se projeter.
+// éventuellement sur une plage de plusieurs jours. Toutes en teintes pastel neutres
+// exprès : ce ne sont pas des "événements" à mettre en valeur comme un match, juste
+// des repères de période — mais chacune avec une teinte distincte (gris / sable /
+// bleu-gris) pour rester lisible entre elles.
 const MANUAL_CATS = {
-  vacances_scolaires: { label: 'Vacances scolaires',  color: '#9CA3AF', bg: '#F1F2F4' },
-  jour_ferie:         { label: 'Jour férié',           color: '#8B8D92', bg: '#EAEAEC' },
-  semaine_coupure:    { label: 'Semaine de coupure',   color: CAT_COLORS.slate.color, bg: CAT_COLORS.slate.bg },
+  vacances_scolaires: { label: 'Vacances scolaires',  color: '#6B7280', bg: '#ECEDF0' },
+  jour_ferie:         { label: 'Jour férié',           color: '#92795E', bg: '#F3ECDF' },
+  semaine_coupure:    { label: 'Semaine de coupure',   color: '#3F6B85', bg: '#DCE6EC' },
 }
 
 function toISODate(d) { return format(d, 'yyyy-MM-dd') }
