@@ -77,8 +77,15 @@ export default function CalendrierGeneralPage() {
     setLoading(false)
   }
 
+  // Un jour peut être couvert par deux périodes en même temps (ex. la semaine de
+  // coupure tombe pendant les vacances de Noël) — renvoie toutes celles qui
+  // s'appliquent à cette date, pas seulement la première trouvée.
+  function findManuelsForDate(dateStr) {
+    return joursManuel.filter(j => j.date_debut <= dateStr && j.date_fin >= dateStr)
+  }
+
   function findManuelForDate(dateStr) {
-    return joursManuel.find(j => j.date_debut <= dateStr && j.date_fin >= dateStr)
+    return findManuelsForDate(dateStr)[0]
   }
 
   function handleDayClick(dateStr, hasMatch) {
@@ -113,7 +120,7 @@ export default function CalendrierGeneralPage() {
 
       {months.map(month => (
         <MonthGrid key={month.toISOString()} month={month}
-          matchesByDate={matchesByDate} findManuelForDate={findManuelForDate}
+          matchesByDate={matchesByDate} findManuelsForDate={findManuelsForDate}
           onDayClick={handleDayClick} />
       ))}
 
@@ -125,7 +132,7 @@ export default function CalendrierGeneralPage() {
   )
 }
 
-function MonthGrid({ month, matchesByDate, findManuelForDate, onDayClick }) {
+function MonthGrid({ month, matchesByDate, findManuelsForDate, onDayClick }) {
   const monthStart = startOfMonth(month)
   const monthEnd = endOfMonth(month)
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
@@ -144,15 +151,16 @@ function MonthGrid({ month, matchesByDate, findManuelForDate, onDayClick }) {
         {days.map(day => {
           const dateStr = toISODate(day)
           const match = matchesByDate[dateStr]
-          // Cherché même quand un match/entraînement existe le même jour : dans ce
-          // cas le remplissage reste celui du match, mais un contour reprend la
-          // couleur de la période manuelle (vacances/férié) pour ne pas la faire
-          // disparaître visuellement — ex. entraînement maintenu un 11 novembre.
-          // Sans événement, vacances/jours fériés s'affichent aussi encadrés (plutôt
-          // qu'un simple aplat), pour un rendu plus soigné.
-          const manuel = findManuelForDate(dateStr)
-          const manuelInfo = manuel ? MANUAL_CATS[manuel.categorie] : null
-          const cadre = manuel && (manuel.categorie === 'vacances_scolaires' || manuel.categorie === 'jour_ferie')
+          // Un jour peut cumuler plusieurs marquages (ex. semaine de coupure pendant
+          // les vacances de Noël) — le remplissage privilégie semaine de coupure
+          // (plus spécifique) sinon vacances/férié, et le contour reprend la couleur
+          // de la période vacances/férié dès qu'elle s'applique, même si elle n'est
+          // pas celle utilisée pour le remplissage (ou qu'un match a lieu ce jour-là).
+          const manuels = findManuelsForDate(dateStr)
+          const manuelBordure = manuels.find(j => j.categorie === 'vacances_scolaires' || j.categorie === 'jour_ferie')
+          const manuelRemplissage = manuels.find(j => j.categorie === 'semaine_coupure') || manuelBordure
+          const manuelInfo = manuelRemplissage ? MANUAL_CATS[manuelRemplissage.categorie] : null
+          const bordureInfo = manuelBordure ? MANUAL_CATS[manuelBordure.categorie] : null
           const info = match ? MATCH_CATS[match.kind] : manuelInfo
           const c = info || null
           const weekend = isWeekend(day) && !c
@@ -164,8 +172,8 @@ function MonthGrid({ month, matchesByDate, findManuelForDate, onDayClick }) {
               color: c ? c.color : 'var(--text-secondary)',
               fontWeight: c ? 700 : 400,
               boxSizing: 'border-box',
-              border: cadre ? `2px solid ${manuelInfo.color}` : 'none'
-            }} title={[match?.titre, manuel?.label || manuelInfo?.label].filter(Boolean).join(' · ')}>
+              border: bordureInfo ? `2px solid ${bordureInfo.color}` : 'none'
+            }} title={[match?.titre, ...manuels.map(m => m.label || MANUAL_CATS[m.categorie]?.label)].filter(Boolean).join(' · ')}>
               <span>{format(day, 'd')}</span>
               {match && <span style={{ fontSize: 7, lineHeight: 1 }}>{match.label}</span>}
             </div>
