@@ -15,9 +15,9 @@ import { CalendarRange, X, Trash2, Check } from 'lucide-react'
 // pour bien les regrouper visuellement comme "matchs" ; l'entraînement reste à part.
 const MATCH_CATS = {
   entrainement: { label: 'Entraînement', color: CAT_COLORS.blue.color, bg: CAT_COLORS.blue.bg },
-  amical:       { label: 'Match amical', color: '#A16207', bg: '#FEF9C3' },
+  amical:       { label: 'Match amical', color: '#78350F', bg: '#F0DFCB' },
   coupe:        { label: 'Coupe',        color: '#C2410C', bg: '#FFEDD5' },
-  championnat:  { label: 'Championnat',  color: '#78350F', bg: '#F0DFCB' },
+  championnat:  { label: 'Championnat',  color: '#A16207', bg: '#FEF9C3' },
 }
 
 // Catégories placées à la main par le staff, une par ligne de calendrier_jours,
