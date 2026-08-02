@@ -10,23 +10,24 @@ import { CalendarRange, X, Trash2, Check } from 'lucide-react'
 
 // Entraînement/Championnat/Coupe/Amical sont recalculés depuis evenements (source
 // unique de vérité) — jamais stockés ici, pour ne jamais se désynchroniser d'une
-// séance ou d'un match déplacé.
+// séance ou d'un match déplacé. Les 3 types de match partagent une même famille de
+// teinte (jaune → orange → marron), du plus léger (amical) au plus fort (championnat),
+// pour bien les regrouper visuellement comme "matchs" ; l'entraînement reste à part.
 const MATCH_CATS = {
-  entrainement: { label: 'Entraînement', cat: 'blue' },
-  championnat:  { label: 'Championnat',  cat: 'teal' },
-  coupe:        { label: 'Coupe',        cat: 'purple' },
-  amical:       { label: 'Match amical', cat: 'cyan' },
+  entrainement: { label: 'Entraînement', color: CAT_COLORS.blue.color, bg: CAT_COLORS.blue.bg },
+  amical:       { label: 'Match amical', color: '#A16207', bg: '#FEF9C3' },
+  coupe:        { label: 'Coupe',        color: '#C2410C', bg: '#FFEDD5' },
+  championnat:  { label: 'Championnat',  color: '#78350F', bg: '#F0DFCB' },
 }
 
-// Catégories placées à la main par le staff (vacances, tests, etc.), une par ligne de
-// calendrier_jours, éventuellement sur une plage de plusieurs jours.
+// Catégories placées à la main par le staff, une par ligne de calendrier_jours,
+// éventuellement sur une plage de plusieurs jours. Vacances/jours fériés en gris
+// pastel neutre exprès : ce ne sont pas des "événements" à mettre en valeur comme un
+// match, juste des repères de période pour se projeter.
 const MANUAL_CATS = {
-  vacances_scolaires: { label: 'Vacances scolaires',   cat: 'amber' },
-  jour_ferie:         { label: 'Jour férié',            cat: 'rose' },
-  semaine_coupure:    { label: 'Semaine de coupure',    cat: 'slate' },
-  reunion_technique:  { label: 'Réunion technique',     cat: 'orange' },
-  test:                { label: 'Test',                 cat: 'gold' },
-  animation:           { label: 'Animation',            cat: 'pink' },
+  vacances_scolaires: { label: 'Vacances scolaires',  color: '#9CA3AF', bg: '#F1F2F4' },
+  jour_ferie:         { label: 'Jour férié',           color: '#8B8D92', bg: '#EAEAEC' },
+  semaine_coupure:    { label: 'Semaine de coupure',   color: CAT_COLORS.slate.color, bg: CAT_COLORS.slate.bg },
 }
 
 function toISODate(d) { return format(d, 'yyyy-MM-dd') }
@@ -100,15 +101,12 @@ export default function CalendrierGeneralPage() {
       {/* Légende */}
       <Card style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {[...Object.entries(MATCH_CATS), ...Object.entries(MANUAL_CATS)].map(([key, info]) => {
-            const c = CAT_COLORS[info.cat]
-            return (
-              <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, background: c.bg, color: c.color, borderRadius: 20, padding: '3px 8px' }}>
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: c.color, display: 'inline-block' }} />
-                {info.label}
-              </span>
-            )
-          })}
+          {[...Object.entries(MATCH_CATS), ...Object.entries(MANUAL_CATS)].map(([key, info]) => (
+            <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, background: info.bg, color: info.color, borderRadius: 20, padding: '3px 8px' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: info.color, display: 'inline-block' }} />
+              {info.label}
+            </span>
+          ))}
         </div>
       </Card>
 
@@ -147,7 +145,7 @@ function MonthGrid({ month, matchesByDate, findManuelForDate, onDayClick }) {
           const match = matchesByDate[dateStr]
           const manuel = !match ? findManuelForDate(dateStr) : null
           const info = match ? MATCH_CATS[match.kind] : manuel ? MANUAL_CATS[manuel.categorie] : null
-          const c = info ? CAT_COLORS[info.cat] : null
+          const c = info || null
           const weekend = isWeekend(day) && !c
           return (
             <div key={dateStr} onClick={() => onDayClick(dateStr, !!match)} style={{
@@ -203,7 +201,7 @@ function JourSheet({ date, existing, onClose, onSaved }) {
         <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>Catégorie</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
           {Object.entries(MANUAL_CATS).map(([key, info]) => {
-            const c = CAT_COLORS[info.cat]
+            const c = info
             const active = categorie === key
             return (
               <button key={key} onClick={() => setCategorie(key)} style={{
