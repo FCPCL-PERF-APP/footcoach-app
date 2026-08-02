@@ -398,14 +398,22 @@ export default function MaFichePage() {
                     ['Zone 3 — Seuil (70-80%)', 0.7, 0.8, '#BA7517'],
                     ['Zone 4 — Haute intensité (80-90%)', 0.8, 0.9, '#D85A30'],
                     ['Zone 5 — Maximale (90-100%)', 0.9, 1.0, '#A32D2D'],
-                  ].map(([label, min, max, color]) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 8px', borderRadius: 6, marginBottom: 3, background: `${color}15` }}>
-                      <span style={{ fontSize: 11, color }}>{label}</span>
-                      <strong style={{ fontSize: 11, color }}>
-                        {Math.round(fcRepos + fcReserve * min)}–{Math.round(fcRepos + fcReserve * max)} bpm
-                      </strong>
-                    </div>
-                  ))}
+                  ].map(([label, min, max, color]) => {
+                    // Cible individualisée = point médian de la zone, comme pour le coach
+                    // (FicheJoueurPage.jsx) — un chiffre unique à viser, pas qu'une fourchette.
+                    const cible = Math.round(fcRepos + fcReserve * ((min + max) / 2))
+                    return (
+                      <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 8px', borderRadius: 6, marginBottom: 3, background: `${color}15` }}>
+                        <span style={{ fontSize: 11, color }}>{label}</span>
+                        <div style={{ textAlign: 'right' }}>
+                          <strong style={{ fontSize: 12, color }}>{cible} bpm</strong>
+                          <p style={{ fontSize: 9, color, opacity: .75 }}>
+                            {Math.round(fcRepos + fcReserve * min)}–{Math.round(fcRepos + fcReserve * max)} bpm
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
