@@ -375,7 +375,10 @@ export default function MaFichePage() {
 
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Fréquence cardiaque</p>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>Renseigne ta FC max et ta FC de repos pour calculer tes zones d'entraînement.</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Renseigne ta FC max et ta FC de repos pour calculer tes zones d'entraînement.</p>
+            <p style={{ fontSize: 11, color: 'var(--warning)', marginBottom: 10 }}>
+              ⚠️ Ces valeurs se notent en battements par <strong>minute entière</strong>. Si tu l'as prise sur 15 secondes (méthode rapide utilisée à l'entraînement), <strong>multiplie le résultat par 4</strong> avant de le rentrer.
+            </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
               <Field label="FC max (bpm)" type="number" value={f('fc_max')} onChange={s('fc_max')} note="modifiable" />
               <Field label="FC repos (bpm)" type="number" value={f('fc_repos')} onChange={s('fc_repos')} note="modifiable" />

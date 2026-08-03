@@ -582,7 +582,10 @@ export default function FicheJoueurPage() {
             {editing && <Button variant="primary" style={{ width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveIdentite} disabled={saving}><Save size={13} /> Enregistrer VMA</Button>}
           </Card>
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Fréquence cardiaque</p>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Fréquence cardiaque</p>
+            <p style={{ fontSize: 11, color: 'var(--warning)', marginBottom: 10 }}>
+              ⚠️ Valeurs en battements par <strong>minute entière</strong>. Prise sur 15 secondes (méthode rapide utilisée à l'entraînement) : <strong>multiplier par 4</strong>.
+            </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
               <Field label="FC max" field="fc_max" type="number" disabled={!editing} />
               <Field label="FC repos" field="fc_repos" type="number" disabled={!editing} />
