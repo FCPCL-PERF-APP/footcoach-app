@@ -141,11 +141,16 @@ export default function DashboardPage() {
     const [{ data: rpeData }, { data: footData }, { data: statsDataRaw },
            { data: joueursData }, { data: presencesData }, { data: eventsData },
            { data: absencesData }] = await Promise.all([
-      supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure)').order('created_at', { ascending: false }).limit(300),
+      // Triées par date de l'événement (evenements.date_heure), pas par created_at :
+      // une resaisie/import de présences ou de RPE sur un événement ancien remonte son
+      // created_at à aujourd'hui, ce qui le faisait passer devant des événements plus
+      // récents dans la fenêtre des N lignes récupérées — et donc apparaître en tête
+      // de "Évolution présences/RPE" à la place des séances réellement les plus proches.
+      supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure)').order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(300),
       supabase.from('footbar').select('distance_km, joueurs(nom,prenom)').order('created_at', { ascending: false }).limit(100),
       supabase.from('stats_collectives').select('*, evenements(date_heure,titre,match_type)').order('created_at', { ascending: false }).limit(20),
       supabase.from('joueurs').select('id,nom,prenom').order('nom'),
-      supabase.from('presences').select('*, evenements(date_heure)').order('created_at', { ascending: false }).limit(500),
+      supabase.from('presences').select('*, evenements(date_heure)').order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(500),
       supabase.from('evenements').select('*').gte('date_heure', new Date().toISOString()).order('date_heure', { ascending: true }).limit(1),
       supabase.from('presences').select('joueur_id, statut, evenement_id').in('statut', ['absent','blesse']),
     ])
