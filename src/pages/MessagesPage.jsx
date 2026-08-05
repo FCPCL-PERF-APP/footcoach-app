@@ -108,14 +108,20 @@ export default function MessagesPage() {
 
   async function loadContacts() {
     const myAuthId = profile?.auth_id || profile?.id
-    const [{ data: joueurs }, { data: staff }] = await Promise.all([
+    const [{ data: joueurs }, { data: staff }, { data: nonLus }] = await Promise.all([
       supabase.from('joueurs').select('id, nom, prenom, poste, auth_id').order('nom'),
-      supabase.from('staff').select('id, nom, prenom, role, auth_id').order('nom')
+      supabase.from('staff').select('id, nom, prenom, role, auth_id').order('nom'),
+      // Sert à faire remonter en haut de liste les contacts ayant un message non lu —
+      // sans ça, la liste par défaut (alphabétique, tronquée à 10) peut masquer
+      // complètement qui a écrit un message resté non lu.
+      myAuthId ? supabase.from('messages').select('expediteur_id').eq('destinataire_id', myAuthId).eq('lu', false) : Promise.resolve({ data: [] }),
     ])
+    const nonLusIds = new Set((nonLus || []).map(m => m.expediteur_id))
     const all = [
       ...(joueurs || []).filter(j => j.auth_id && j.auth_id !== myAuthId).map(j => ({ ...j, type: 'joueur' })),
       ...(staff || []).filter(s => s.auth_id && s.auth_id !== myAuthId).map(s => ({ ...s, type: 'staff' }))
-    ]
+    ].map(c => ({ ...c, nonLu: nonLusIds.has(c.auth_id) }))
+      .sort((a, b) => (b.nonLu - a.nonLu) || a.nom.localeCompare(b.nom))
     setContacts(all)
   }
 
@@ -132,6 +138,9 @@ export default function MessagesPage() {
     setConvMessages(data || [])
     await supabase.from('messages').update({ lu: true })
       .eq('destinataire_id', myAuthId).eq('expediteur_id', theirAuthId)
+    // Retire immédiatement la pastille "non lu" de ce contact dans la liste, sans
+    // attendre un rechargement complet de la page.
+    setContacts(p => p.map(c => c.id === contact.id ? { ...c, nonLu: false } : c))
   }
 
   async function sendMessage(groupe = false, canal = 'general') {
@@ -406,19 +415,27 @@ export default function MessagesPage() {
                       Les contacts apparaîtront ici une fois que les joueurs auront un compte.
                     </p>
                   ) : (
-                    contacts.slice(0, 10).map((c, i) => {
-                      const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
-                      return (
-                        <div key={c.id} onClick={() => openConv(c)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', cursor: 'pointer', borderBottom: '0.5px solid var(--bg-secondary)' }}>
-                          <Avatar initials={`${c.nom?.[0]}${c.prenom?.[0]}`} bg={col.bg} color={col.color} size={38} />
-                          <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: 13, fontWeight: 500 }}>{c.nom} {c.prenom}</p>
-                            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
+                    // Non tronqué : la liste précédente s'arrêtait aux 10 premiers par ordre
+                    // alphabétique, ce qui pouvait cacher entièrement un contact ayant écrit
+                    // un message resté non lu. Triée non-lus d'abord (cf. loadContacts), donc
+                    // la personne concernée est désormais toujours visible sans avoir à
+                    // scroller ni chercher.
+                    <div style={{ maxHeight: 480, overflowY: 'auto' }}>
+                      {contacts.map((c, i) => {
+                        const col = AVATAR_COLORS[i % AVATAR_COLORS.length]
+                        return (
+                          <div key={c.id} onClick={() => openConv(c)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', cursor: 'pointer', borderBottom: '0.5px solid var(--bg-secondary)', background: c.nonLu ? 'var(--primary-bg)' : 'transparent' }}>
+                            <Avatar initials={`${c.nom?.[0]}${c.prenom?.[0]}`} bg={col.bg} color={col.color} size={38} />
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontSize: 13, fontWeight: c.nonLu ? 700 : 500 }}>{c.nom} {c.prenom}</p>
+                              <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
+                            </div>
+                            {c.nonLu && <Circle size={9} fill="var(--primary)" color="var(--primary)" />}
+                            <ChevronRight size={18} color="var(--border)" />
                           </div>
-                          <ChevronRight size={18} color="var(--border)" />
-                        </div>
-                      )
-                    })
+                        )
+                      })}
+                    </div>
                   )}
                 </Card>
               )}
