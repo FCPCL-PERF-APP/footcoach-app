@@ -334,7 +334,12 @@ export default function FicheJoueurPage() {
 
   const initials = `${joueur.nom?.[0] || ''}${joueur.prenom?.[0] || ''}`
   const imc = joueur.taille && joueur.poids ? (joueur.poids / ((joueur.taille / 100) ** 2)).toFixed(1) : '—'
-  const fcReserve = joueur.fc_max && joueur.fc_repos ? joueur.fc_max - joueur.fc_repos : null
+  // fc_max/fc_repos sont saisis en comptage sur 15 secondes (méthode utilisée à
+  // l'entraînement, plus rapide) — ×4 pour obtenir le vrai bpm/minute utilisé par les
+  // zones Karvonen, sans que le joueur ait à faire cette conversion lui-même.
+  const fcMaxBpm = joueur.fc_max ? joueur.fc_max * 4 : null
+  const fcReposBpm = joueur.fc_repos ? joueur.fc_repos * 4 : null
+  const fcReserve = fcMaxBpm && fcReposBpm ? fcMaxBpm - fcReposBpm : null
   // Matchs officiels seulement (hors préparation), comme ClassementButeursPage/
   // DashboardStatsPage/BadgesJoueurPage/ComparatifJoueursPage
   const statsOfficielles = statsHistory.filter(s => s.evenements?.match_type !== 'preparation')
@@ -586,12 +591,12 @@ export default function FicheJoueurPage() {
           </Card>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Fréquence cardiaque</p>
-            <p style={{ fontSize: 11, color: 'var(--warning)', marginBottom: 10 }}>
-              ⚠️ Valeurs en battements par <strong>minute entière</strong>. Prise sur 15 secondes (méthode rapide utilisée à l'entraînement) : <strong>multiplier par 4</strong>.
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>
+              Compte les battements sur <strong>15 secondes</strong> (l'appli convertit automatiquement). La FC de repos se prend le matin au réveil, avant de se lever.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
-              <Field form={form} setForm={setForm} label="FC max" field="fc_max" type="number" disabled={!editing} />
-              <Field form={form} setForm={setForm} label="FC repos" field="fc_repos" type="number" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="FC max (15s)" field="fc_max" type="number" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="FC repos (15s)" field="fc_repos" type="number" disabled={!editing} />
               <div style={{ marginBottom: 8 }}>
                 <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>FC réserve</label>
                 <input value={fcReserve || '—'} disabled style={inputStyle(true)} />
@@ -609,14 +614,14 @@ export default function FicheJoueurPage() {
                 ].map(([label, min, max, bg, color]) => {
                   // Cible individualisée = point médian de la zone (méthode Karvonen), pas
                   // seulement la fourchette — un chiffre unique à viser, propre à ce joueur.
-                  const cible = Math.round(joueur.fc_repos + fcReserve * ((min + max) / 2))
+                  const cible = Math.round(fcReposBpm + fcReserve * ((min + max) / 2))
                   return (
                     <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', borderRadius: 8, marginBottom: 4, background: bg }}>
                       <span style={{ fontSize: 11, color }}>{label}</span>
                       <div style={{ textAlign: 'right' }}>
                         <strong style={{ fontSize: 13, color }}>{cible} bpm</strong>
                         <p style={{ fontSize: 9, color, opacity: .75 }}>
-                          {Math.round(joueur.fc_repos + fcReserve * min)}–{Math.round(joueur.fc_repos + fcReserve * max)} bpm
+                          {Math.round(fcReposBpm + fcReserve * min)}–{Math.round(fcReposBpm + fcReserve * max)} bpm
                         </p>
                       </div>
                     </div>

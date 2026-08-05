@@ -199,8 +199,11 @@ export default function MaFichePage() {
   const imc = form.taille && form.poids
     ? (form.poids / ((form.taille / 100) ** 2)).toFixed(1)
     : '—'
-  const fcMax = parseInt(form.fc_max) || 0
-  const fcRepos = parseInt(form.fc_repos) || 0
+  // fc_max/fc_repos sont saisis en comptage sur 15 secondes (méthode utilisée à
+  // l'entraînement, plus rapide) — ×4 pour obtenir le vrai bpm/minute utilisé par les
+  // zones Karvonen, sans que le joueur ait à faire cette conversion lui-même.
+  const fcMax = (parseInt(form.fc_max) || 0) * 4
+  const fcRepos = (parseInt(form.fc_repos) || 0) * 4
   const fcReserve = fcMax && fcRepos ? fcMax - fcRepos : null
 
   const totalButs = statsHistory.reduce((s, r) => s + (r.buts || 0), 0)
@@ -375,13 +378,12 @@ export default function MaFichePage() {
 
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Fréquence cardiaque</p>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Renseigne ta FC max et ta FC de repos pour calculer tes zones d'entraînement.</p>
-            <p style={{ fontSize: 11, color: 'var(--warning)', marginBottom: 10 }}>
-              ⚠️ Ces valeurs se notent en battements par <strong>minute entière</strong>. Si tu l'as prise sur 15 secondes (méthode rapide utilisée à l'entraînement), <strong>multiplie le résultat par 4</strong> avant de le rentrer.
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10 }}>
+              Compte les battements sur <strong>15 secondes</strong> (l'appli convertit automatiquement pour calculer tes zones). La FC de repos se prend le matin au réveil, avant de se lever.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-              <Field label="FC max (bpm)" type="number" value={f('fc_max')} onChange={s('fc_max')} note="modifiable" />
-              <Field label="FC repos (bpm)" type="number" value={f('fc_repos')} onChange={s('fc_repos')} note="modifiable" />
+              <Field label="FC max (15s)" type="number" value={f('fc_max')} onChange={s('fc_max')} note="modifiable" />
+              <Field label="FC repos (15s)" type="number" value={f('fc_repos')} onChange={s('fc_repos')} note="modifiable" />
             </div>
 
             {/* FC calculées */}
