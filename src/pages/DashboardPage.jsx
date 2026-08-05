@@ -179,8 +179,13 @@ export default function DashboardPage() {
     for (const [evId, v] of Object.entries(presRowsByEvent)) {
       presByEvent[evId] = { ...computePresenceBreakdown(v.rows), date: v.date }
     }
+    // Un joueur peut déclarer sa disponibilité pour un match avant qu'il ait lieu (cf.
+    // JoueurEventActions dans CalendrierPage.jsx) — sans exclure les événements futurs,
+    // ces déclarations anticipées faussaient "Présence moy." et "Évolution présences"
+    // en y mêlant des matchs pas encore joués.
+    const maintenant = new Date()
     const unMoisAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-    const presEventsCeMois = Object.values(presByEvent).filter(p => p.total > 0 && p.date && new Date(p.date) >= unMoisAgo && p.tauxEngagement !== null)
+    const presEventsCeMois = Object.values(presByEvent).filter(p => p.total > 0 && p.date && new Date(p.date) >= unMoisAgo && new Date(p.date) <= maintenant && p.tauxEngagement !== null)
     const presenceMoy = presEventsCeMois.length
       ? presEventsCeMois.reduce((s, p) => s + p.tauxEngagement, 0) / presEventsCeMois.length
       : 0
@@ -222,7 +227,7 @@ export default function DashboardPage() {
       label, value: parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1))
     })))
 
-    setPresenceEvolution(Object.values(presByEvent).filter(p => p.total > 0 && p.date && p.tauxEngagement !== null)
+    setPresenceEvolution(Object.values(presByEvent).filter(p => p.total > 0 && p.date && new Date(p.date) <= maintenant && p.tauxEngagement !== null)
       .sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-8)
       .map(p => ({ label: format(parseISO(p.date), 'd/M', { locale: fr }), value: p.tauxEngagement })))
 
