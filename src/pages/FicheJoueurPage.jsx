@@ -36,6 +36,38 @@ const AVATAR_COLORS = [
   { bg: '#9FE1CB', color: '#085041' },
 ]
 
+const inputStyle = (disabled) => ({
+  width: '100%', padding: '8px 10px',
+  border: `0.5px solid ${disabled ? 'var(--bg-secondary)' : 'var(--border)'}`,
+  borderRadius: 10, fontSize: 13, outline: 'none',
+  boxSizing: 'border-box',
+  background: disabled ? 'var(--bg-secondary)' : 'var(--bg-card)',
+  color: disabled ? 'var(--text-muted)' : 'var(--text-primary)'
+})
+
+// Défini au niveau module (pas à l'intérieur de FicheJoueurPage) : un composant
+// redéfini à chaque rendu du parent change d'identité à chaque frappe, ce qui fait
+// perdre le focus du champ — et donc fermer le clavier mobile après chaque touche.
+function Field({ label, field, form, setForm, type = 'text', disabled = false, options = null, step }) {
+  if (options) return (
+    <div style={{ marginBottom: 8 }}>
+      <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
+      <select value={form[field] || ''} onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
+        disabled={disabled} style={inputStyle(disabled)}>
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </div>
+  )
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
+      <input type={type} step={step} value={form[field] || ''} disabled={disabled}
+        onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
+        style={inputStyle(disabled)} />
+    </div>
+  )
+}
+
 export default function FicheJoueurPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -324,35 +356,6 @@ export default function FicheJoueurPage() {
     { key: 'notes',     icon: MessageSquare, label: 'Notes', cat: 'amber' },
   ]
 
-  const inputStyle = (disabled) => ({
-    width: '100%', padding: '8px 10px',
-    border: `0.5px solid ${disabled ? 'var(--bg-secondary)' : 'var(--border)'}`,
-    borderRadius: 10, fontSize: 13, outline: 'none',
-    boxSizing: 'border-box',
-    background: disabled ? 'var(--bg-secondary)' : 'var(--bg-card)',
-    color: disabled ? 'var(--text-muted)' : 'var(--text-primary)'
-  })
-
-  function Field({ label, field, type = 'text', disabled = false, options = null, step }) {
-    if (options) return (
-      <div style={{ marginBottom: 8 }}>
-        <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
-        <select value={form[field] || ''} onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
-          disabled={disabled} style={inputStyle(disabled)}>
-          {options.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
-      </div>
-    )
-    return (
-      <div style={{ marginBottom: 8 }}>
-        <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
-        <input type={type} step={step} value={form[field] || ''} disabled={disabled}
-          onChange={e => setForm(p => ({...p, [field]: e.target.value}))}
-          style={inputStyle(disabled)} />
-      </div>
-    )
-  }
-
   return (
     <div style={{ padding: 12 }}>
       {pendingPhoto && (
@@ -532,33 +535,33 @@ export default function FicheJoueurPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Informations personnelles</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Field label="Nom" field="nom" disabled={!editing} />
-              <Field label="Prénom" field="prenom" disabled={!editing} />
-              <Field label="Date de naissance" field="date_naissance" type="date" disabled={!editing} />
-              <Field label="N° Licence" field="licence" disabled={!editing} />
-              <Field label="Pied fort" field="pied" disabled={!editing} options={['Droit','Gauche','Les deux']} />
-              <Field label="Poste" field="poste" disabled={!editing} />
-              <Field label="Numéro" field="numero" type="number" disabled={!editing} />
-              <Field label="Pôle / Groupe" field="groupe" disabled={!editing} options={['A','B','C','D','E']} />
+              <Field form={form} setForm={setForm} label="Nom" field="nom" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Prénom" field="prenom" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Date de naissance" field="date_naissance" type="date" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="N° Licence" field="licence" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Pied fort" field="pied" disabled={!editing} options={['Droit','Gauche','Les deux']} />
+              <Field form={form} setForm={setForm} label="Poste" field="poste" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Numéro" field="numero" type="number" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Pôle / Groupe" field="groupe" disabled={!editing} options={['A','B','C','D','E']} />
             </div>
           </Card>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Coordonnées</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Field label="Téléphone" field="telephone" disabled={!editing} />
-              <Field label="Email" field="email" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Téléphone" field="telephone" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Email" field="email" disabled={!editing} />
             </div>
-            <Field label="Adresse" field="adresse" disabled={!editing} />
+            <Field form={form} setForm={setForm} label="Adresse" field="adresse" disabled={!editing} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <Field label="Contact urgence" field="contact_urgence_nom" disabled={!editing} />
-              <Field label="Tél. urgence" field="contact_urgence_tel" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Contact urgence" field="contact_urgence_nom" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Tél. urgence" field="contact_urgence_tel" disabled={!editing} />
             </div>
           </Card>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Morphologie</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-              <Field label="Taille (cm)" field="taille" type="number" disabled={!editing} />
-              <Field label="Poids (kg)" field="poids" type="number" step="0.1" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Taille (cm)" field="taille" type="number" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="Poids (kg)" field="poids" type="number" step="0.1" disabled={!editing} />
               <div style={{ marginBottom: 8 }}>
                 <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>IMC</label>
                 <input value={imc} disabled style={inputStyle(true)} />
@@ -578,7 +581,7 @@ export default function FicheJoueurPage() {
         <>
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>VMA</p>
-            <Field label="VMA (km/h)" field="vma" type="number" step="0.1" disabled={!editing} />
+            <Field form={form} setForm={setForm} label="VMA (km/h)" field="vma" type="number" step="0.1" disabled={!editing} />
             {editing && <Button variant="primary" style={{ width: '100%', marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveIdentite} disabled={saving}><Save size={13} /> Enregistrer VMA</Button>}
           </Card>
           <Card>
@@ -587,8 +590,8 @@ export default function FicheJoueurPage() {
               ⚠️ Valeurs en battements par <strong>minute entière</strong>. Prise sur 15 secondes (méthode rapide utilisée à l'entraînement) : <strong>multiplier par 4</strong>.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
-              <Field label="FC max" field="fc_max" type="number" disabled={!editing} />
-              <Field label="FC repos" field="fc_repos" type="number" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="FC max" field="fc_max" type="number" disabled={!editing} />
+              <Field form={form} setForm={setForm} label="FC repos" field="fc_repos" type="number" disabled={!editing} />
               <div style={{ marginBottom: 8 }}>
                 <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>FC réserve</label>
                 <input value={fcReserve || '—'} disabled style={inputStyle(true)} />
