@@ -67,6 +67,12 @@ export default function ConvocationsPage() {
     ])
     if (eventIdRef.current !== eventId) return
     setEvent(ev)
+    // rdvHeure/rdvLieu restaient au défaut initial ('14:00', vide) au lieu de reprendre
+    // le RDV déjà défini sur l'événement — et comme saveConvocations() réécrit ces
+    // champs dans evenements à chaque enregistrement, ça écrasait silencieusement le
+    // vrai horaire de RDV (ex. 13h30) par "14:00" à chaque sauvegarde des convocations.
+    if (ev?.rdv_heure) setRdvHeure(ev.rdv_heure)
+    if (ev?.rdv_lieu) setRdvLieu(ev.rdv_lieu)
     const dispoMap = {}
     for (const p of (pres || [])) dispoMap[p.joueur_id] = p.statut
     setDispos(dispoMap)

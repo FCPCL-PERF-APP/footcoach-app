@@ -11,6 +11,8 @@ export default function StatsConnexionPage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [joueurs, setJoueurs] = useState([])
+  const [staff, setStaff] = useState([])
+  const [scope, setScope] = useState('joueurs')
   const [filter, setFilter] = useState('tous')
   const [pushByAuthId, setPushByAuthId] = useState({})
 
@@ -18,11 +20,15 @@ export default function StatsConnexionPage() {
 
   async function loadData() {
     setLoading(true)
-    const [{ data }, { data: subs }] = await Promise.all([
+    const [{ data }, { data: staffData }, { data: subs }] = await Promise.all([
       supabase
         .from('joueurs')
         .select('id, nom, prenom, poste, groupe, auth_id, email, last_seen, onboarding_done')
         .order('nom'),
+      // Même diagnostic pour le staff — sans ça, impossible de vérifier soi-même si
+      // l'abonnement push d'un coach/adjoint est bien actif (ex. pour comprendre
+      // pourquoi un message du canal staff n'a pas généré de notification).
+      supabase.from('staff').select('id, nom, prenom, role, auth_id, email, last_seen').order('nom'),
       // Un joueur peut avoir plusieurs abonnements (plusieurs appareils) — on ne garde
       // que le plus récent par user_id pour savoir "depuis quand" il est notifiable.
       // created_at (seule colonne de date sur cette table — usePush.js la met à jour à
@@ -30,6 +36,7 @@ export default function StatsConnexionPage() {
       supabase.from('push_subscriptions').select('user_id, created_at')
     ])
     setJoueurs(data || [])
+    setStaff(staffData || [])
     const byId = {}
     for (const s of (subs || [])) {
       if (!byId[s.user_id] || s.created_at > byId[s.user_id].created_at) byId[s.user_id] = s
@@ -58,7 +65,8 @@ export default function StatsConnexionPage() {
     non_invite:      { label: "Non invite",          color: 'var(--text-primary)', bg: 'var(--bg-secondary)' },
   }
 
-  const enriched = joueurs.map(j => ({ ...j, statut: getStatut(j) }))
+  const source = scope === 'staff' ? staff : joueurs
+  const enriched = source.map(j => ({ ...j, statut: getStatut(j) }))
   const filtered = filter === 'tous' ? enriched : enriched.filter(j => j.statut === filter)
 
   const counts = {}
@@ -79,6 +87,18 @@ export default function StatsConnexionPage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
         <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
         <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><Smartphone size={17} color={'var(--primary)'} /> Adoption de l'app</h1>
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+        {[['joueurs', 'Joueurs'], ['staff', 'Staff']].map(([key, label]) => (
+          <button key={key} onClick={() => { setScope(key); setFilter('tous') }} style={{
+            flex: 1, padding: '8px 10px', borderRadius: 10, cursor: 'pointer',
+            border: `1.5px solid ${scope === key ? 'var(--primary)' : 'var(--border)'}`,
+            background: scope === key ? 'var(--primary-bg)' : 'var(--bg-card)',
+            color: scope === key ? 'var(--primary)' : 'var(--text-secondary)',
+            fontWeight: scope === key ? 700 : 500, fontSize: 13
+          }}>{label}</button>
+        ))}
       </div>
 
       {/* Résumé 6 cases */}
@@ -145,7 +165,7 @@ export default function StatsConnexionPage() {
       {/* Liste joueurs */}
       <Card>
         {filtered.length === 0 ? (
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>Aucun joueur dans cette categorie.</p>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 20 }}>Aucun résultat dans cette catégorie.</p>
         ) : filtered.map(j => {
           const st = STATUTS[j.statut]
           const jours = j.last_seen ? differenceInDays(new Date(), new Date(j.last_seen)) : null
@@ -168,7 +188,7 @@ export default function StatsConnexionPage() {
                   )}
                 </div>
                 <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                  {j.poste || ''}
+                  {j.poste || j.role || ''}
                   {vuIlYa && ` · Vu ${vuIlYa}`}
                   {!j.last_seen && j.auth_id && ' · Invitation envoyee'}
                   {!j.auth_id && j.email && ` · ${j.email}`}
