@@ -228,14 +228,16 @@ export default function MessagesPage() {
     } else {
       reactions[myAuthId] = emoji
     }
-    await supabase.from('messages').update({ reactions }).eq('id', msgId)
+    const { error } = await supabase.from('messages').update({ reactions }).eq('id', msgId)
+    if (error) { console.error('Erreur réaction:', error); return }
     setCanalMessages(p => ({ ...p, [canal]: p[canal].map(m => m.id === msgId ? { ...m, reactions } : m) }))
   }
 
   async function deleteMessage(msgId) {
     if (!window.confirm('Supprimer ce message ?')) return
     const canal = activeTab === 'staff' ? 'staff' : 'general'
-    await supabase.from('messages').delete().eq('id', msgId)
+    const { error } = await supabase.from('messages').delete().eq('id', msgId)
+    if (error) { alert('Erreur lors de la suppression : ' + error.message); return }
     setCanalMessages(p => ({ ...p, [canal]: p[canal].filter(m => m.id !== msgId) }))
     setDeletingId(null)
   }
@@ -384,7 +386,8 @@ export default function MessagesPage() {
                     {convMessages.map(msg => (
                       <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime}
                         canDelete={isMe(msg)} onDelete={async () => {
-                          await supabase.from('messages').delete().eq('id', msg.id)
+                          const { error } = await supabase.from('messages').delete().eq('id', msg.id)
+                          if (error) { alert('Erreur lors de la suppression : ' + error.message); return }
                           openConv(activeConv)
                         }}
                     onReact={async (msgId, emoji) => {
@@ -394,7 +397,8 @@ export default function MessagesPage() {
                           const myAuthId = profile?.auth_id || profile?.id
                           if (reactions[myAuthId] === emoji) delete reactions[myAuthId]
                           else reactions[myAuthId] = emoji
-                          await supabase.from('messages').update({ reactions }).eq('id', msgId)
+                          const { error } = await supabase.from('messages').update({ reactions }).eq('id', msgId)
+                          if (error) { console.error('Erreur réaction:', error); return }
                           openConv(activeConv)
                         }}
                     myId={profile?.auth_id || profile?.id} />

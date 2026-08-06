@@ -95,13 +95,15 @@ export default function MesObjectifsPage() {
       .eq('joueur_id', profile.id)
       .maybeSingle()
 
-    if (existing) {
-      await supabase.from('objectifs_joueur').update(payload).eq('id', existing.id)
-    } else {
-      await supabase.from('objectifs_joueur').insert(payload)
-    }
+    const { error } = existing
+      ? await supabase.from('objectifs_joueur').update(payload).eq('id', existing.id)
+      : await supabase.from('objectifs_joueur').insert(payload)
 
     setSaving(false)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+      return
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }

@@ -102,16 +102,12 @@ export default function FootbarPage() {
       joueur_id: selectedJoueur,
       ...Object.fromEntries(FOOTBAR_FIELDS.map(f => [f.key, form[f.key] ? parseFloat(form[f.key]) : null]))
     }
-    // Vérifie si une entrée existe déjà
-    const { data: existing } = await supabase.from('footbar').select('id')
-      .eq('evenement_id', selectedEvent).eq('joueur_id', selectedJoueur).maybeSingle()
-
-    if (existing) {
-      await supabase.from('footbar').update(payload).eq('id', existing.id)
-    } else {
-      await supabase.from('footbar').insert(payload)
-    }
+    const { error } = await supabase.from('footbar').upsert(payload, { onConflict: 'evenement_id,joueur_id' })
     setSaving(false)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+      return
+    }
     setSaved(true)
     setForm({})
     setTimeout(() => setSaved(false), 3000)

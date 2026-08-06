@@ -520,9 +520,9 @@ export default function FicheJoueurPage() {
         })}
       </div>
 
-      {/* Liens rapides blessures/objectifs */}
+      {/* Liens rapides blessures/objectifs/radar/export */}
       {isCoach && (
-        <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
           <button onClick={() => navigate(`/joueurs/${id}/blessures`)}
             style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid var(--border)', background: blessureActive ? 'var(--danger-bg)' : 'transparent', color: blessureActive ? 'var(--danger)' : 'var(--text-secondary)', fontSize: 11, cursor: 'pointer', fontWeight: blessureActive ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
             <Bandage size={12} /> Blessures {blessureActive ? '· 1 active' : ''}
@@ -530,6 +530,18 @@ export default function FicheJoueurPage() {
           <button onClick={() => navigate(`/joueurs/${id}/objectifs`)}
             style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
             <Target size={12} /> Objectifs · {objectifs.filter(o => o.statut === 'en_cours').length} en cours
+          </button>
+        </div>
+      )}
+      {isCoach && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+          <button onClick={() => navigate(`/joueurs/${id}/radar`)}
+            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <TrendingUp size={12} /> Radar
+          </button>
+          <button onClick={() => navigate(`/export-fiche/${id}`)}
+            style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <Mail size={12} /> Export PDF
           </button>
         </div>
       )}

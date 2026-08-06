@@ -132,7 +132,8 @@ export default function CPAPage() {
 
   async function deleteCpa(id) {
     if (!window.confirm('Supprimer ce schéma ?')) return
-    await supabase.from('cpa').delete().eq('id', id)
+    const { error } = await supabase.from('cpa').delete().eq('id', id)
+    if (error) { alert('Erreur lors de la suppression : ' + error.message); return }
     setSelectedCpa(null)
     loadData()
   }

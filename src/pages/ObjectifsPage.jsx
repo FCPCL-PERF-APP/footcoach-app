@@ -56,7 +56,7 @@ export default function ObjectifsPage() {
   async function handleSave() {
     if (!form.titre) return
     setSaving(true)
-    await supabase.from('objectifs').insert({
+    const { error } = await supabase.from('objectifs').insert({
       joueur_id: joueurId,
       ...form,
       valeur_cible: form.valeur_cible ? parseFloat(form.valeur_cible) : null,
@@ -64,18 +64,24 @@ export default function ObjectifsPage() {
       date_echeance: form.date_echeance || null,
     })
     setSaving(false)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+      return
+    }
     setShowAdd(false)
     setForm({ categorie: 'physique', titre: '', description: '', valeur_cible: '', valeur_actuelle: '', unite: '', date_echeance: '', statut: 'en_cours' })
     loadData()
   }
 
   async function updateStatut(id, statut) {
-    await supabase.from('objectifs').update({ statut }).eq('id', id)
+    const { error } = await supabase.from('objectifs').update({ statut }).eq('id', id)
+    if (error) { alert('Erreur : ' + error.message); return }
     loadData()
   }
 
   async function updateProgression(id, valeur_actuelle) {
-    await supabase.from('objectifs').update({ valeur_actuelle: parseFloat(valeur_actuelle) }).eq('id', id)
+    const { error } = await supabase.from('objectifs').update({ valeur_actuelle: parseFloat(valeur_actuelle) }).eq('id', id)
+    if (error) { alert('Erreur : ' + error.message); return }
     loadData()
   }
 

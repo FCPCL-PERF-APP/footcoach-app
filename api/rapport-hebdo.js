@@ -35,13 +35,20 @@ export default async function handler(req, res) {
     }).filter(v => v !== null)
     const rpeMoy = rpeVals.length ? (rpeVals.reduce((a,b) => a+b, 0) / rpeVals.length).toFixed(1) : null
 
-    // Présences semaine
-    const { data: presData } = await supabase
+    // Présences semaine — filtrées sur la date réelle de l'événement (evenements.
+    // date_heure), pas sur created_at : un joueur peut déclarer sa disponibilité pour
+    // un match à venir avant qu'il ait lieu, ce qui gonflait/faussait le taux de
+    // présence de la semaine écoulée avec des réponses concernant de futurs matchs.
+    const now = new Date()
+    const { data: presDataRaw } = await supabase
       .from('presences')
-      .select('statut, joueur_id')
-      .gte('created_at', since.toISOString())
-    const presents = (presData || []).filter(p => p.statut === 'present').length
-    const total = (presData || []).length
+      .select('statut, joueur_id, evenements!inner(date_heure)')
+      .gte('evenements.date_heure', since.toISOString())
+    // Filtre JS en plus du filtre serveur : la relation embarquée n'est pas garantie
+    // d'exclure le futur, seul le côté client sait comparer à "maintenant" avec certitude.
+    const presData = (presDataRaw || []).filter(p => p.evenements?.date_heure && new Date(p.evenements.date_heure) <= now)
+    const presents = presData.filter(p => p.statut === 'present').length
+    const total = presData.length
     const tauxPresence = total ? Math.round(presents / total * 100) : null
 
     // Alertes actives
@@ -50,8 +57,10 @@ export default async function handler(req, res) {
       .select('joueur_id, zone')
       .is('date_retour_effective', null)
 
-    // Joueurs sans RPE cette semaine
-    const { data: joueurs } = await supabase.from('joueurs').select('id, nom')
+    // Joueurs sans RPE cette semaine — limité aux joueurs réellement invités (auth_id
+    // renseigné), sinon un joueur jamais invité à l'appli (donc qui ne peut matériellement
+    // pas remplir de RPE) gonflait artificiellement ce compteur en permanence.
+    const { data: joueurs } = await supabase.from('joueurs').select('id, nom').not('auth_id', 'is', null)
     const joueursAvecRpe = new Set((rpeData || []).map(r => r.joueur_id))
     const sansRpe = (joueurs || []).filter(j => !joueursAvecRpe.has(j.id)).length
 

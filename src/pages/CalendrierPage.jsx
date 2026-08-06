@@ -71,6 +71,20 @@ export default function CalendrierPage() {
       alert('Erreur lors de l\'enregistrement : ' + error.message)
       return
     }
+
+    // Un événement créé ou déplacé n'envoyait jusqu'ici aucune notification (seuls les
+    // rappels automatiques J-1/J-2 existent) — sans ça, un match ajouté ou reprogrammé
+    // pouvait passer totalement inaperçu jusqu'à la veille.
+    const reschedule = editingEvent && editingEvent.date_heure !== payload.date_heure
+    if (!editingEvent || reschedule) {
+      const dateStr = new Date(payload.date_heure).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
+      fetch('/api/notif-evenement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({ titre: payload.titre, dateStr, reschedule: !!reschedule })
+      }).catch(err => console.error('Erreur notif événement:', err))
+    }
+
     setShowAdd(false); setEditingEvent(null)
     setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '' })
     loadEvents()
@@ -624,15 +638,18 @@ function FormeWidget({ evenementId, joueurId }) {
 
   async function saveForme(val) {
     setSaving(true)
+    const ancienneForme = forme
     setForme(val)
     const { data: existing } = await supabase.from('forme_joueur').select('id')
       .eq('evenement_id', evenementId).eq('joueur_id', joueurId).maybeSingle()
-    if (existing?.id) {
-      await supabase.from('forme_joueur').update({ forme: val }).eq('id', existing.id)
-    } else {
-      await supabase.from('forme_joueur').insert({ evenement_id: evenementId, joueur_id: joueurId, forme: val })
-    }
+    const { error } = existing?.id
+      ? await supabase.from('forme_joueur').update({ forme: val }).eq('id', existing.id)
+      : await supabase.from('forme_joueur').insert({ evenement_id: evenementId, joueur_id: joueurId, forme: val })
     setSaving(false)
+    if (error) {
+      setForme(ancienneForme)
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+    }
   }
 
   return (
@@ -678,6 +695,16 @@ function RecurringModal({ onClose, onSave }) {
       alert('Erreur lors de la création des séances : ' + error.message)
       return
     }
+    // Une seule notification récapitulative plutôt qu'une par séance créée (qui
+    // spammerait pour un cycle de plusieurs mois d'entraînements récurrents).
+    fetch('/api/notif-evenement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+      body: JSON.stringify({
+        titre: form.titre,
+        dateStr: `${seances.length} séances, tous les ${JOURS[jourNum].toLowerCase()} à ${form.heure}`
+      })
+    }).catch(err => console.error('Erreur notif événement:', err))
     alert(`${seances.length} séances créées !`)
     onSave(); onClose()
   }

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { PageHeader, IconTile } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
-import { BarChart3, Trophy, Award, TrendingUp, Scale, TrendingDown, Smartphone, ChevronRight } from 'lucide-react'
+import { BarChart3, Trophy, Award, TrendingUp, Scale, TrendingDown, Smartphone, Download, ChevronRight } from 'lucide-react'
 
 const ANALYSES = [
   { path: '/stats-matchs',    icon: BarChart3, cat: 'blue', label: 'Bilan des matchs',        desc: 'Résultats, buts marqués et encaissés par période' },
@@ -11,6 +11,7 @@ const ANALYSES = [
   { path: '/comparatif',      icon: Scale, cat: 'violet', label: 'Comparatif joueurs',      desc: 'Comparer deux joueurs sur RPE et Footbar' },
   { path: '/correlation',     icon: TrendingDown, cat: 'purple', label: 'Corrélation RPE / Perf.', desc: 'Lien entre charge perçue et résultats' },
   { path: '/stats-connexion', icon: Smartphone, cat: 'teal', label: "Adoption de l'app",       desc: "Taux d'invitation et de connexion des joueurs" },
+  { path: '/export',          icon: Download, cat: 'slate', label: 'Export des données',      desc: 'Télécharger joueurs, RPE, Footbar, stats en CSV' },
 ]
 
 export default function AnalysePage() {

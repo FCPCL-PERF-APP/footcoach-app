@@ -181,6 +181,7 @@ export default function StatsPage() {
 
     const tendanceReelle = scoreReel_dom > scoreReel_ext ? 'V' : scoreReel_dom < scoreReel_ext ? 'D' : 'N'
 
+    let echecs = 0
     for (const prono of pronos) {
       const dom = prono.score_domicile
       const ext = prono.score_exterieur
@@ -193,8 +194,13 @@ export default function StatsPage() {
         if (tendanceProno === tendanceReelle) pts = 1 // Bonne tendance
       }
 
-      await supabase.from('pronostics').update({ score_points: pts }).eq('id', prono.id)
+      const { error } = await supabase.from('pronostics').update({ score_points: pts }).eq('id', prono.id)
+      if (error) echecs++
     }
+    // Une échec isolé ne doit pas empêcher le reste de la saisie du match de
+    // s'enregistrer (déjà fait à ce stade) — juste prévenir qu'un pronostic n'a pas
+    // été noté, plutôt que de laisser un joueur avec des points manquants sans trace.
+    if (echecs > 0) alert(`${echecs} pronostic(s) n'ont pas pu être notés (erreur réseau/serveur). Réessaie en rouvrant cette page.`)
   }
 
   async function saveStatsJoueur() {

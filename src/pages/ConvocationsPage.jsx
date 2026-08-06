@@ -33,6 +33,7 @@ export default function ConvocationsPage() {
   const [rdvLieu, setRdvLieu] = useState('')
   const [saving, setSaving] = useState(false)
   const [sent, setSent] = useState(false)
+  const [notifResult, setNotifResult] = useState(null)
   const [loading, setLoading] = useState(true)
   const [existingConvocs, setExistingConvocs] = useState([])
   const [dispos, setDispos] = useState({})
@@ -138,14 +139,16 @@ export default function ConvocationsPage() {
       return
     }
 
-    // Envoie notification push aux joueurs convoqués
+    // Envoie notification push aux joueurs convoqués — le résultat réel (X/Y envoyées)
+    // est affiché au coach au lieu d'un simple "Convocations enregistrées !" qui laissait
+    // croire que tout le monde avait été notifié même quand 0 notification n'était partie.
     const convoquesIds = joueurs.filter(j => selected.has(j.id)).map(j => j.id)
     if (convoquesIds.length > 0) {
       try {
         const dateStr = event?.date_heure
           ? new Date(event.date_heure).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
           : ''
-        await fetch('/api/notif-convocation', {
+        const res = await fetch('/api/notif-convocation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
           body: JSON.stringify({
@@ -157,8 +160,11 @@ export default function ConvocationsPage() {
             joueurIds: convoquesIds
           })
         })
+        const data = await res.json()
+        setNotifResult(data.success ? { sent: data.sent, total: data.total } : { error: data.error })
       } catch (err) {
         console.error('Erreur notif convocation:', err)
+        setNotifResult({ error: 'Erreur réseau' })
       }
     }
 
@@ -217,6 +223,15 @@ export default function ConvocationsPage() {
                 <CheckCircle2 size={44} color={'var(--success)'} style={{ marginBottom: 12 }} />
                 <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--success)' }}>Convocations enregistrées !</p>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>{selected.size} joueur(s) convoqué(s)</p>
+                {notifResult && (
+                  <p style={{ fontSize: 12, color: notifResult.error ? 'var(--danger)' : 'var(--text-secondary)', marginTop: 8 }}>
+                    {notifResult.error
+                      ? `Notification non envoyée : ${notifResult.error}`
+                      : notifResult.total > 0
+                        ? `${notifResult.sent}/${notifResult.total} notification(s) envoyée(s)`
+                        : '0 joueur convoqué avec notifications activées'}
+                  </p>
+                )}
               </>
             )}
             <Button variant="primary" style={{ marginTop: 16, width: '100%' }} onClick={() => navigate('/calendrier')}>

@@ -41,6 +41,13 @@ export default async function handler(req, res) {
 
     if (aRelancer.length) {
       const { data: joueurs } = await supabase.from('joueurs').select('id, auth_id, prenom').not('auth_id', 'is', null)
+      // Déjà relancés (cf. supabase-notif-relances.sql) : sans ça, tant qu'un joueur ne
+      // remplit pas son RPE, ce cron (toutes les 15 min, fenêtre 48h) le renvoie en
+      // boucle — jusqu'à ~190 notifications pour un seul événement.
+      const { data: dejaRelances } = await supabase.from('notif_relances')
+        .select('evenement_id, joueur_id').eq('type', 'rpe')
+        .in('evenement_id', aRelancer.map(ev => ev.id))
+      const dejaRelanceSet = new Set((dejaRelances || []).map(r => `${r.evenement_id}:${r.joueur_id}`))
 
       for (const ev of aRelancer) {
         const { data: pres } = await supabase.from('presences').select('joueur_id, statut').eq('evenement_id', ev.id)
@@ -55,16 +62,22 @@ export default async function handler(req, res) {
         const rpeIds = new Set((rpes || []).map(r => r.joueur_id))
 
         for (const joueur of eligibles) {
-          if (!rpeIds.has(joueur.id)) {
-            const r = await sendPushToSubscriptions(webpush, supabase, [joueur.auth_id], {
-              title: '❤️ RPE à compléter',
-              body: `${joueur.prenom}, comment s'est passé(e) ${ev.titre} ? Remplis ton RPE.`,
-              url: '/mon-suivi',
-              icon: '/icons/logo.jpg',
-              tag: 'rpe-rappel'
-            })
-            sent += r.sent
-          }
+          if (rpeIds.has(joueur.id)) continue
+          if (dejaRelanceSet.has(`${ev.id}:${joueur.id}`)) continue
+          const r = await sendPushToSubscriptions(webpush, supabase, [joueur.auth_id], {
+            title: '❤️ RPE à compléter',
+            body: `${joueur.prenom}, comment s'est passé(e) ${ev.titre} ? Remplis ton RPE.`,
+            url: '/mon-suivi',
+            icon: '/icons/logo.jpg',
+            tag: 'rpe-rappel'
+          })
+          sent += r.sent
+          // Marqué relancé même si l'envoi a échoué (0 abonnement actif) — sinon un
+          // joueur sans notifications activées serait "retenté" à chaque cycle pour rien.
+          await supabase.from('notif_relances').upsert(
+            { evenement_id: ev.id, joueur_id: joueur.id, type: 'rpe' },
+            { onConflict: 'evenement_id,joueur_id,type' }
+          )
         }
       }
     }

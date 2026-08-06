@@ -31,7 +31,7 @@ export default function SondagePage() {
     const opts = form.options.filter(o => o.trim())
     if (!form.question || opts.length < 2) return
     setSaving(true)
-    await supabase.from('sondages').insert({
+    const { error } = await supabase.from('sondages').insert({
       question: form.question,
       options: opts,
       created_by: profile?.auth_id || profile?.id,
@@ -39,6 +39,10 @@ export default function SondagePage() {
       actif: true
     })
     setSaving(false)
+    if (error) {
+      alert('Erreur lors de la création du sondage : ' + error.message)
+      return
+    }
     setForm({ question: '', options: ['', ''], expire_at: '' })
     setShowCreate(false)
     loadSondages()
@@ -50,17 +54,19 @@ export default function SondagePage() {
     const dejaVote = sondage?.sondage_votes?.find(v => v.user_id === myId)
     if (dejaVote) return
 
-    await supabase.from('sondage_votes').insert({
+    const { error } = await supabase.from('sondage_votes').insert({
       sondage_id: sondageId,
       user_id: myId,
       option_index: optionIndex
     })
+    if (error) { alert('Erreur lors du vote : ' + error.message); return }
     setVotes(p => ({ ...p, [sondageId]: optionIndex }))
     loadSondages()
   }
 
   async function clotureSondage(id) {
-    await supabase.from('sondages').update({ actif: false }).eq('id', id)
+    const { error } = await supabase.from('sondages').update({ actif: false }).eq('id', id)
+    if (error) { alert('Erreur : ' + error.message); return }
     loadSondages()
   }
 

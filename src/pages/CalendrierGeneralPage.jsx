@@ -203,7 +203,8 @@ function JourSheet({ date, existing, onClose, onSaved }) {
 
   async function remove() {
     if (!existing || !window.confirm('Supprimer cette période ?')) return
-    await supabase.from('calendrier_jours').delete().eq('id', existing.id)
+    const { error } = await supabase.from('calendrier_jours').delete().eq('id', existing.id)
+    if (error) { alert('Erreur lors de la suppression : ' + error.message); return }
     onSaved()
   }
 
