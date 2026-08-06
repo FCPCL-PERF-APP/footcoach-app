@@ -41,6 +41,7 @@ function pearson(xs, ys) {
 
 export default function CorrelationPage() {
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [data, setData] = useState([])
   const [correlationCharge, setCorrelationCharge] = useState(null)
   const [correlationPerf, setCorrelationPerf] = useState(null)
@@ -50,18 +51,21 @@ export default function CorrelationPage() {
 
   async function loadData() {
     setLoading(true)
+    setLoadError(null)
     const { debut, fin } = bornesSaison()
-    const { data: eventsSaisonIds } = await supabase.from('evenements').select('id')
+    const { data: eventsSaisonIds, error: e0 } = await supabase.from('evenements').select('id')
       .gte('date_heure', debut).lte('date_heure', fin)
+    if (e0) { setLoadError(e0.message); setLoading(false); return }
     const idsSaison = (eventsSaisonIds || []).map(e => e.id)
 
     // Récupère les RPE et les stats collectives liés aux mêmes événements, de la saison en cours
-    const [{ data: rpeData }, { data: statsData }] = await Promise.all([
+    const [{ data: rpeData, error: e1 }, { data: statsData, error: e2 }] = await Promise.all([
       supabase.from('rpe').select('evenement_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
         .in('evenement_id', idsSaison).order('created_at', { ascending: false }),
       supabase.from('stats_collectives').select('*, evenements(titre, date_heure)')
         .in('evenement_id', idsSaison).order('created_at', { ascending: false })
     ])
+    if (e1 || e2) { setLoadError((e1 || e2).message); setLoading(false); return }
 
     // Moyennes charge / perf ressentie par événement
     const chargeByEvent = {}
@@ -138,7 +142,13 @@ export default function CorrelationPage() {
     <div style={{ padding: 12 }}>
       <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><TrendingDown size={18} /> Corrélation RPE / Perf.</span>} />
 
-      {loading ? <Spinner /> : (
+      {loadError && (
+        <Card style={{ marginBottom: 12, background: 'var(--danger-bg)' }}>
+          <p style={{ fontSize: 13, color: 'var(--danger)' }}>Erreur de chargement : {loadError}</p>
+        </Card>
+      )}
+
+      {loading ? <Spinner /> : loadError ? null : (
         <>
           {/* Coefficients de corrélation — deux dimensions distinctes */}
           <Card>

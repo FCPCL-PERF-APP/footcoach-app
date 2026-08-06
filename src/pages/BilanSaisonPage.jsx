@@ -18,6 +18,7 @@ function StatBox({ label, value, sub, color = 'var(--primary)', big = false }) {
 
 export default function BilanSaisonPage() {
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [bilan, setBilan] = useState(null)
   const [saisonYear, setSaisonYear] = useState(null)
 
@@ -25,23 +26,25 @@ export default function BilanSaisonPage() {
 
   async function loadBilan() {
     setLoading(true)
+    setLoadError(null)
     const { year, debut, fin } = bornesSaison()
     setSaisonYear(year)
 
     // Récupère d'abord les IDs des événements de la saison en cours, pour borner
     // toutes les stats qui en dépendent (sinon "bilan de saison" mélange plusieurs
     // saisons tant que l'archivage n'a pas eu lieu).
-    const { data: eventsSaisonIds } = await supabase.from('evenements').select('id')
+    const { data: eventsSaisonIds, error: e0 } = await supabase.from('evenements').select('id')
       .gte('date_heure', debut).lte('date_heure', fin)
+    if (e0) { setLoadError(e0.message); setLoading(false); return }
     const idsSaison = (eventsSaisonIds || []).map(e => e.id)
 
     const [
-      { data: matchStatsRaw },
-      { data: rpeData },
-      { data: footData },
-      { data: statsIndivRaw },
-      { data: presences },
-      { data: eventsRaw },
+      { data: matchStatsRaw, error: e1 },
+      { data: rpeData, error: e2 },
+      { data: footData, error: e3 },
+      { data: statsIndivRaw, error: e4 },
+      { data: presences, error: e5 },
+      { data: eventsRaw, error: e6 },
     ] = await Promise.all([
       supabase.from('stats_collectives').select('*, evenements(titre,date_heure,match_type)').in('evenement_id', idsSaison).order('created_at', { ascending: true }),
       supabase.from('rpe').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
@@ -50,6 +53,8 @@ export default function BilanSaisonPage() {
       supabase.from('presences').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison),
       supabase.from('evenements').select('*').eq('type', 'match').gte('date_heure', debut).lte('date_heure', fin),
     ])
+    const premiereErreur = e1 || e2 || e3 || e4 || e5 || e6
+    if (premiereErreur) { setLoadError(premiereErreur.message); setLoading(false); return }
 
     // Ne garder que les matchs officiels (hors préparation), comme ClassementButeursPage/
     // DashboardStatsPage/BadgesJoueurPage
@@ -128,6 +133,13 @@ export default function BilanSaisonPage() {
   }
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
+  if (loadError) return (
+    <div style={{ padding: 12 }}>
+      <Card style={{ background: 'var(--danger-bg)' }}>
+        <p style={{ fontSize: 13, color: 'var(--danger)' }}>Erreur de chargement : {loadError}</p>
+      </Card>
+    </div>
+  )
   if (!bilan) return null
 
   const ptsCalcules = bilan.victoires * 3 + bilan.nuls

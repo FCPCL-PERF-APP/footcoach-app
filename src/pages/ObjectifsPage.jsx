@@ -32,6 +32,7 @@ export default function ObjectifsPage() {
   const [joueur, setJoueur] = useState(null)
   const [objectifs, setObjectifs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({
     categorie: 'physique', titre: '', description: '',
@@ -44,17 +45,19 @@ export default function ObjectifsPage() {
 
   async function loadData() {
     setLoading(true)
-    const [{ data: j }, { data: obj }] = await Promise.all([
+    setLoadError(null)
+    const [{ data: j, error: e1 }, { data: obj, error: e2 }] = await Promise.all([
       supabase.from('joueurs').select('nom,prenom,poste').eq('id', joueurId).single(),
       supabase.from('objectifs').select('*').eq('joueur_id', joueurId).order('created_at', { ascending: false })
     ])
+    if (e1 || e2) { setLoadError((e1 || e2).message); setLoading(false); return }
     setJoueur(j)
     setObjectifs(obj || [])
     setLoading(false)
   }
 
   async function handleSave() {
-    if (!form.titre) return
+    if (!form.titre || saving) return
     setSaving(true)
     const { error } = await supabase.from('objectifs').insert({
       joueur_id: joueurId,
@@ -104,6 +107,13 @@ export default function ObjectifsPage() {
   if (isJoueur) return <Navigate to="/mes-objectifs" replace />
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
+  if (loadError) return (
+    <div style={{ padding: 12 }}>
+      <Card style={{ background: 'var(--danger-bg)' }}>
+        <p style={{ fontSize: 13, color: 'var(--danger)' }}>Erreur de chargement : {loadError}</p>
+      </Card>
+    </div>
+  )
 
   return (
     <div style={{ padding: 12 }}>

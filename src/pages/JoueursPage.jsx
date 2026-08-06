@@ -32,12 +32,17 @@ export default function JoueursPage() {
   const [filterPoste, setFilterPoste] = useState('tous')
   const [sortBy, setSortBy] = useState('nom') // 'nom' | 'rpe'
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
 
   useEffect(() => { loadJoueurs() }, [])
 
   async function loadJoueurs() {
-    const { data } = await supabase.from('joueurs').select('*').order('nom')
+    setLoadError(null)
+    const { data, error } = await supabase.from('joueurs').select('*').order('nom')
+    // Sans ce garde-fou, un échec réseau/RLS affichait "Aucun joueur" — indiscernable
+    // d'un effectif réellement vide sur la page centrale de gestion des joueurs.
+    if (error) { setLoadError(error.message); setLoading(false); return }
     setJoueurs(data || [])
     const { data: rpe } = await supabase.from('rpe')
       .select('joueur_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
@@ -182,7 +187,13 @@ export default function JoueursPage() {
         </div>
       )}
 
-      {loading ? <Spinner /> : (
+      {loadError && (
+        <div style={{ background: 'var(--danger-bg)', borderRadius: 12, padding: 12, marginBottom: 12 }}>
+          <p style={{ fontSize: 13, color: 'var(--danger)' }}>Erreur de chargement : {loadError}</p>
+        </div>
+      )}
+
+      {loading ? <Spinner /> : loadError ? null : (
         <>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
             {filtered.length} joueur(s)

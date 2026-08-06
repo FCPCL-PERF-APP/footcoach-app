@@ -101,6 +101,7 @@ export default function RessourcesPage() {
   }
 
   async function deleteRessource(id) {
+    if (!window.confirm('Supprimer cette ressource ?')) return
     const { error } = await supabase.from('ressources').delete().eq('id', id)
     if (error) {
       alert('Erreur lors de la suppression : ' + error.message)

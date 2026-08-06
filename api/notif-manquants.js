@@ -9,9 +9,11 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 )
 
-// Mêmes tags que les rappels automatiques (cron-notifications.js, cron-rpe-footbar-relance.js)
-// pour qu'une relance manuelle du coach remplace un rappel automatique déjà reçu au lieu
-// de s'empiler à côté dans le centre de notifications.
+// Le tag "rpe-rappel" correspond à un vrai rappel automatique (cron-rpe-footbar-
+// relance.js) : une relance manuelle du coach le remplace donc dans le centre de
+// notifications au lieu de s'empiler à côté. Le Footbar est facultatif (capteur pas
+// toujours disponible, club amateur) et n'a volontairement aucun équivalent
+// automatique — "footbar-rappel" n'existe donc que pour cette relance manuelle.
 const MESSAGES = {
   rpe: (eventTitre) => ({
     title: '❤️ RPE à compléter',

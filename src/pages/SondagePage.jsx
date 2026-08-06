@@ -29,7 +29,7 @@ export default function SondagePage() {
 
   async function createSondage() {
     const opts = form.options.filter(o => o.trim())
-    if (!form.question || opts.length < 2) return
+    if (!form.question || opts.length < 2 || saving) return
     setSaving(true)
     const { error } = await supabase.from('sondages').insert({
       question: form.question,

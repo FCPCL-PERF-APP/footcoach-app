@@ -48,6 +48,7 @@ export default function StaffPage() {
   const { isCoach } = useAuth()
   const [staff, setStaff] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ nom: '', prenom: '', email: '', role: 'adjoint', telephone: '', diplome: '' })
   const [saving, setSaving] = useState(false)
@@ -64,7 +65,9 @@ export default function StaffPage() {
 
   async function loadStaff() {
     setLoading(true)
-    const { data } = await supabase.from('staff').select('*').order('nom')
+    setLoadError(null)
+    const { data, error } = await supabase.from('staff').select('*').order('nom')
+    if (error) { setLoadError(error.message); setLoading(false); return }
     setStaff(data || [])
     setLoading(false)
   }
@@ -291,8 +294,14 @@ export default function StaffPage() {
         </Card>
       )}
 
+      {loadError && (
+        <Card style={{ marginBottom: 12, background: 'var(--danger-bg)' }}>
+          <p style={{ fontSize: 13, color: 'var(--danger)' }}>Erreur de chargement : {loadError}</p>
+        </Card>
+      )}
+
       {/* Liste staff */}
-      {loading ? <Spinner /> : (
+      {loading ? <Spinner /> : loadError ? null : (
         <>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>{staff.length} membre(s) du staff</p>
           {staff.map((s, i) => {

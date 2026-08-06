@@ -86,6 +86,7 @@ export default function MesObjectifsPage() {
   }
 
   async function handleSave() {
+    if (saving) return
     setSaving(true)
     const payload = { ...data, joueur_id: profile.id }
 

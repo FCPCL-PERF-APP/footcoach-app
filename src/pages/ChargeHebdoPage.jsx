@@ -24,6 +24,7 @@ function rpeLabel(v) {
 
 export default function ChargeHebdoPage() {
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [semaines, setSemaines] = useState([])
   const [activeView, setActiveView] = useState('charge')
 
@@ -31,6 +32,7 @@ export default function ChargeHebdoPage() {
 
   async function loadData() {
     setLoading(true)
+    setLoadError(null)
     // Fenêtre glissante de 12 semaines, sans jamais remonter avant le début de la saison
     // en cours (sinon en début de saison, la fenêtre mélangerait avec la saison précédente).
     const { debut: debutSaison } = bornesSaison()
@@ -38,12 +40,19 @@ export default function ChargeHebdoPage() {
     const depuisDate = depuis12sem > new Date(debutSaison) ? depuis12sem : new Date(debutSaison)
     const depuis = depuisDate.toISOString()
 
-    const [{ data: rpeData }, { data: eventsData }] = await Promise.all([
+    const [{ data: rpeData, error: e1 }, { data: eventsData, error: e2 }] = await Promise.all([
       supabase.from('rpe').select('*, evenements(date_heure, type)')
         .gte('created_at', depuis).order('created_at', { ascending: true }),
       supabase.from('evenements').select('*')
         .gte('date_heure', depuis).order('date_heure', { ascending: true }),
     ])
+    // Sans ce garde-fou, une erreur réseau/RLS rendait la page comme si aucune donnée
+    // n'existait (état vide), impossible à distinguer d'une saison qui vient de démarrer.
+    if (e1 || e2) {
+      setLoadError((e1 || e2).message)
+      setLoading(false)
+      return
+    }
 
     // Groupe par semaine
     const weeks = eachWeekOfInterval(
@@ -127,7 +136,13 @@ export default function ChargeHebdoPage() {
     <div style={{ padding: 12 }}>
       <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><TrendingUp size={18} /> Charge hebdomadaire</span>} />
 
-      {loading ? <Spinner /> : (
+      {loadError && (
+        <Card style={{ marginBottom: 12, background: 'var(--danger-bg)' }}>
+          <p style={{ fontSize: 13, color: 'var(--danger)' }}>Erreur de chargement : {loadError}</p>
+        </Card>
+      )}
+
+      {loading ? <Spinner /> : loadError ? null : (
         <>
           {/* Résumé semaine en cours */}
           {derniereSemaine && (

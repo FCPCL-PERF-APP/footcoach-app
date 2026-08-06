@@ -95,7 +95,7 @@ export default function FootbarPage() {
   }
 
   async function handleSave() {
-    if (!selectedEvent || !selectedJoueur) return
+    if (!selectedEvent || !selectedJoueur || saving) return
     setSaving(true)
     const payload = {
       evenement_id: selectedEvent,
