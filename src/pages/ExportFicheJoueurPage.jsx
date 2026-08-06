@@ -7,7 +7,7 @@ import { ArrowLeft, Printer } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { computePresenceBreakdown } from '../lib/presenceStats'
-import { labelSaison } from '../lib/saison'
+import { labelSaison, bornesSaison } from '../lib/saison'
 
 export default function ExportFicheJoueurPage() {
   const { id } = useParams()
@@ -20,6 +20,11 @@ export default function ExportFicheJoueurPage() {
 
   async function loadData() {
     setLoading(true)
+    // Bornées à la saison en cours (comme le laisse entendre l'en-tête "Saison
+    // 2026/2027" du document exporté) — sans ça, stats/RPE/présences remontaient sur
+    // tout l'historique du joueur, y compris des saisons précédentes, en contradiction
+    // avec le libellé affiché en haut du PDF.
+    const { debut, fin } = bornesSaison()
     const [
       { data: joueur },
       { data: stats },
@@ -29,11 +34,13 @@ export default function ExportFicheJoueurPage() {
       { data: presences },
     ] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', id).single(),
-      supabase.from('stats_match').select('*, evenements(match_type)').eq('joueur_id', id),
-      supabase.from('rpe').select('*').eq('joueur_id', id).order('created_at', { ascending: false }).limit(20),
+      supabase.from('stats_match').select('*, evenements!inner(match_type, date_heure)').eq('joueur_id', id)
+        .gte('evenements.date_heure', debut).lte('evenements.date_heure', fin),
+      supabase.from('rpe').select('*').eq('joueur_id', id).gte('created_at', debut).lte('created_at', fin).order('created_at', { ascending: false }).limit(20),
       supabase.from('blessures').select('*').eq('joueur_id', id).order('date_debut', { ascending: false }),
       supabase.from('objectifs_joueur').select('*').eq('joueur_id', id).maybeSingle(),
-      supabase.from('presences').select('statut, evenements(type)').eq('joueur_id', id),
+      supabase.from('presences').select('statut, evenements!inner(type, date_heure)').eq('joueur_id', id)
+        .gte('evenements.date_heure', debut).lte('evenements.date_heure', fin),
     ])
 
     // Calculs stats

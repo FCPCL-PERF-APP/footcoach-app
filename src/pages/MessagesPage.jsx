@@ -162,7 +162,9 @@ export default function MessagesPage() {
 
     const msg = {
       expediteur_id: myAuthId,
-      expediteur_nom: `${profile?.nom} ${profile?.prenom || ''}`.trim(),
+      // "Prénom Nom" — cohérent avec le nom affiché dans les notifications push
+      // (api/notif-message-*.js), qui utilisaient déjà cet ordre.
+      expediteur_nom: `${profile?.prenom || ''} ${profile?.nom || ''}`.trim(),
       expediteur_role: profile?.role || 'joueur',
       destinataire_id: groupe ? null : activeConv?.auth_id,
       groupe,

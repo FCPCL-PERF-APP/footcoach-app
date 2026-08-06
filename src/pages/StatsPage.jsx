@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { Card, Button, Input, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -250,15 +250,29 @@ export default function StatsPage() {
   async function shareRapportInApp() {
     const { data: { user } } = await supabase.auth.getUser()
     const { data: staff } = await supabase.from('staff').select('nom,prenom').eq('auth_id', user?.id).maybeSingle()
-    const auteurNom = staff ? `${staff.nom} ${staff.prenom}` : 'Coach'
+    // "Prénom Nom" — cohérent avec le nom affiché dans les notifications push.
+    const auteurNom = staff ? `${staff.prenom} ${staff.nom}` : 'Coach'
     const r = resultat
     const contenu = `${event?.titre} — ${r === 'V' ? 'Victoire' : r === 'N' ? 'Nul' : 'Défaite'} ${formCollectif.buts_marques}-${formCollectif.buts_encaisses}\n` +
       (formRapport.points_forts_globaux ? `Points forts : ${formRapport.points_forts_globaux}\n` : '') +
       (formRapport.points_faibles_globaux ? `À améliorer : ${formRapport.points_faibles_globaux}` : '')
-    await supabase.from('messages').insert({
+    const { error } = await supabase.from('messages').insert({
       expediteur_id: user?.id, expediteur_nom: auteurNom,
-      expediteur_role: 'coach', groupe: true, contenu
+      expediteur_role: 'coach', groupe: true, canal: 'general', contenu
     })
+    if (error) {
+      alert('Erreur lors du partage : ' + error.message)
+      return
+    }
+    // Comme pour un message normal (MessagesPage.jsx) : sans cet appel, personne n'est
+    // notifié du résumé, il faut ouvrir la messagerie par hasard pour le découvrir.
+    try {
+      await fetch('/api/notif-message-groupe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({ contenu, canal: 'general' })
+      })
+    } catch (err) { console.error('Erreur notif groupe:', err) }
     alert('Résumé partagé dans le canal groupe !')
   }
 

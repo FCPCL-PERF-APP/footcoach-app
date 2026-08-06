@@ -47,14 +47,21 @@ export default function BadgesJoueurPage() {
       { data: rpe },
       { data: pastEvents },
     ] = await Promise.all([
-      supabase.from('presences').select('evenement_id, statut, evenements(type,date_heure)').eq('joueur_id', joueurId).order('created_at', { ascending: false }),
+      supabase.from('presences').select('evenement_id, statut, evenements(type,date_heure)').eq('joueur_id', joueurId),
       supabase.from('stats_match').select('buts, passes_decisives, titulaire, evenements(match_type)').eq('joueur_id', joueurId),
       supabase.from('rpe').select('evenement_id, created_at').eq('joueur_id', joueurId).order('created_at', { ascending: false }),
       supabase.from('evenements').select('id').lte('date_heure', new Date().toISOString()).order('date_heure', { ascending: true }),
     ])
 
-    // Calcul série présences
-    const presSeances = (presences || []).filter(p => p.evenements?.type === 'seance')
+    // Calcul série présences — un joueur peut déclarer sa disponibilité pour un
+    // événement avant qu'il ait lieu (JoueurEventActions, CalendrierPage.jsx), donc
+    // sans ce filtre + tri chronologique, un badge de série pouvait se débloquer sur
+    // des séances/matchs pas encore joués (et le tri par created_at ne correspondait
+    // de toute façon pas à l'ordre réel des événements).
+    const maintenant = new Date()
+    const presSeances = (presences || [])
+      .filter(p => p.evenements?.type === 'seance' && p.evenements?.date_heure && new Date(p.evenements.date_heure) <= maintenant)
+      .sort((a, b) => new Date(a.evenements.date_heure) - new Date(b.evenements.date_heure))
     let serie = 0, maxSerie = 0
     for (const p of presSeances) {
       if (p.statut === 'present' || p.statut === 'exterieur') { serie++; maxSerie = Math.max(maxSerie, serie) }

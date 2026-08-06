@@ -63,10 +63,13 @@ export default function ChargeHebdoPage() {
         return d >= weekStart && d <= weekEnd
       })
 
-      // Événements de cette semaine
+      // Événements de cette semaine — exclut les événements pas encore joués, sinon la
+      // semaine en cours comptait dès le lundi des séances/matchs prévus plus tard dans
+      // la semaine, gonflant "charge" (rpeMoy × nb séances) au-delà de la charge
+      // réellement subie jusqu'ici.
       const weekEvents = (eventsData || []).filter(e => {
         const d = parseISO(e.date_heure)
-        return d >= weekStart && d <= weekEnd
+        return d >= weekStart && d <= weekEnd && d <= new Date()
       })
 
       // Calcul RPE moyen

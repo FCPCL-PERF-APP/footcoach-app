@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { bornesSaison } from '../lib/saison'
 import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { ArrowLeft, ClipboardList, ArrowUpRight, ArrowDownRight } from 'lucide-react'
@@ -87,10 +88,15 @@ export default function RadarJoueurPage() {
 
   async function loadData() {
     setLoading(true)
+    // Borné à la saison en cours — sans ça, un joueur présent depuis plusieurs saisons
+    // mélangeait d'anciennes données avec la saison actuelle, et la moyenne "équipe"
+    // (limit 200, tous joueurs confondus, ~8 séances pour 25 joueurs) pouvait remonter
+    // jusqu'à une saison précédente au lieu de refléter la saison en cours.
+    const { debut, fin } = bornesSaison()
     const [{ data: j }, { data: rpeJoueur }, { data: rpeEquipe }] = await Promise.all([
       supabase.from('joueurs').select('nom,prenom,poste,photo_url').eq('id', id).single(),
-      supabase.from('rpe').select('*').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
-      supabase.from('rpe').select('*').order('created_at', { ascending: false }).limit(200),
+      supabase.from('rpe').select('*').eq('joueur_id', id).gte('created_at', debut).lte('created_at', fin).order('created_at', { ascending: false }).limit(10),
+      supabase.from('rpe').select('*').gte('created_at', debut).lte('created_at', fin).order('created_at', { ascending: false }).limit(200),
     ])
     if (idRef.current !== id) return
 

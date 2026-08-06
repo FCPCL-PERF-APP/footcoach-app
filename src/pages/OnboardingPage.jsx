@@ -71,7 +71,13 @@ export default function OnboardingPage() {
   async function finish() {
     // Marque l'onboarding comme complété
     if (profile?.id) {
-      await supabase.from('joueurs').update({ onboarding_done: true }).eq('id', profile.id)
+      const { error } = await supabase.from('joueurs').update({ onboarding_done: true }).eq('id', profile.id)
+      if (error) {
+        // Sans ce garde-fou, un échec silencieux ici faisait réafficher l'onboarding
+        // à chaque connexion suivante (App.jsx se base sur onboarding_done).
+        alert('Erreur lors de la finalisation : ' + error.message + '\nRéessaie.')
+        return
+      }
 
       // Message de bienvenue automatique dans la messagerie privée
       try {
@@ -85,7 +91,8 @@ export default function OnboardingPage() {
           const myAuthId = profile?.auth_id || profile?.id
           await supabase.from('messages').insert({
             expediteur_id: coach.auth_id,
-            expediteur_nom: `${coach.nom} ${coach.prenom}`,
+            // "Prénom Nom" — cohérent avec le nom affiché dans les notifications push.
+            expediteur_nom: `${coach.prenom} ${coach.nom}`,
             expediteur_role: 'coach',
             destinataire_id: myAuthId,
             groupe: false,

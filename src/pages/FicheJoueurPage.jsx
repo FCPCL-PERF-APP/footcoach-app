@@ -201,15 +201,25 @@ export default function FicheJoueurPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       const { data: staffData } = await supabase.from('staff').select('nom, prenom').eq('auth_id', user?.id).maybeSingle()
-      const coachNom = staffData ? `${staffData.nom} ${staffData.prenom}` : 'Le coach'
+      // "Prénom Nom" — cohérent avec le nom affiché dans les notifications push.
+      const coachNom = staffData ? `${staffData.prenom} ${staffData.nom}` : 'Le coach'
       if (joueur.auth_id) {
+        const contenuMsg = `Ton bilan de saison a été complété par le coach. Consulte-le dans Ma fiche → Objectifs → Bilan saison.`
         await supabase.from('messages').insert({
           expediteur_id: user?.id,
           expediteur_nom: coachNom,
           expediteur_role: 'coach',
           destinataire_id: joueur.auth_id,
           groupe: false,
-          contenu: `Ton bilan de saison a été complété par le coach. Consulte-le dans Ma fiche → Objectifs → Bilan saison.`
+          contenu: contenuMsg
+        })
+        // Comme pour un message envoyé depuis la messagerie normale : sans cet appel,
+        // le joueur ne reçoit aucune notification, il ne découvre le message qu'en
+        // ouvrant l'appli par hasard.
+        await fetch('/api/notif-message-prive', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+          body: JSON.stringify({ destinataireId: joueur.auth_id, contenu: contenuMsg })
         })
       }
     } catch(e) { console.error('Notif bilan:', e) }
@@ -241,12 +251,14 @@ export default function FicheJoueurPage() {
     }
     const { error } = await supabase.from('joueurs').update(payload).eq('id', id)
     setSaving(false)
-    if (!error) {
-      setSaved(true)
-      setEditing(false)
-      setJoueur({ ...joueur, ...payload })
-      setTimeout(() => setSaved(false), 3000)
+    if (error) {
+      alert('Erreur lors de l\'enregistrement : ' + error.message)
+      return
     }
+    setSaved(true)
+    setEditing(false)
+    setJoueur({ ...joueur, ...payload })
+    setTimeout(() => setSaved(false), 3000)
   }
 
   async function uploadPhoto(file) {

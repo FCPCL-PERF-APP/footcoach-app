@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -141,13 +141,28 @@ export default function CPAPage() {
   async function partagerCpa(cpa) {
     const { data: { user } } = await supabase.auth.getUser()
     const type = CPA_TYPES.find(t => t.key === cpa.type)
-    await supabase.from('messages').insert({
+    const contenu = `CPA — ${cpa.titre}\n${type?.label || ''}\n${cpa.description ? `\n${cpa.description}` : ''}\n\nConsulte le schéma dans Menu → CPA`
+    const { error } = await supabase.from('messages').insert({
       expediteur_id: user?.id,
       expediteur_nom: `${profile?.prenom || ''} ${profile?.nom || ''}`.trim() || 'Staff',
       expediteur_role: profile?.role || 'coach',
       groupe: true,
-      contenu: `CPA — ${cpa.titre}\n${type?.label || ''}\n${cpa.description ? `\n${cpa.description}` : ''}\n\nConsulte le schéma dans Menu → CPA`
+      canal: 'general',
+      contenu
     })
+    if (error) {
+      alert('Erreur lors du partage : ' + error.message)
+      return
+    }
+    // Comme pour un message normal (MessagesPage.jsx) : sans cet appel, personne n'est
+    // notifié du schéma partagé, il faut ouvrir la messagerie par hasard pour le voir.
+    try {
+      await fetch('/api/notif-message-groupe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({ contenu, canal: 'general' })
+      })
+    } catch (err) { console.error('Erreur notif groupe:', err) }
     alert('Schéma partagé dans le groupe !')
   }
 
