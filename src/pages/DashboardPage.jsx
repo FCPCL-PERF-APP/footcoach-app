@@ -147,7 +147,10 @@ export default function DashboardPage() {
       // récents dans la fenêtre des N lignes récupérées — et donc apparaître en tête
       // de "Évolution présences/RPE" à la place des séances réellement les plus proches.
       supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure)').order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(300),
-      supabase.from('footbar').select('distance_km, joueurs(nom,prenom)').order('created_at', { ascending: false }).limit(100),
+      // Jointure evenements(type) pour ne garder que les données prises en match — sinon
+      // la distance moyenne "match" se retrouvait diluée par les footbar de séances
+      // d'entraînement, cf. ClassementButeursPage.jsx qui applique le même filtre.
+      supabase.from('footbar').select('distance_km, joueurs(nom,prenom), evenements(type)').order('created_at', { ascending: false }).limit(100),
       supabase.from('stats_collectives').select('*, evenements(date_heure,titre,match_type)').order('created_at', { ascending: false }).limit(20),
       supabase.from('joueurs').select('id,nom,prenom').order('nom'),
       supabase.from('presences').select('*, evenements(date_heure)').order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(500),
@@ -155,11 +158,15 @@ export default function DashboardPage() {
       supabase.from('presences').select('joueur_id, statut, evenement_id').in('statut', ['absent','blesse']),
     ])
 
-    // Matchs officiels (hors préparation), triés par date réelle du match plutôt que
-    // par date de saisie — comme ClassementButeursPage/DashboardStatsPage/BadgesJoueurPage
-    const statsData = (statsDataRaw || [])
-      .filter(s => s.evenements?.match_type !== 'preparation')
+    // Tous les matchs joués (préparation incluse) triés par date réelle plutôt que par
+    // date de saisie — utilisé pour "Buts / match", qui doit compter tous les buts
+    // marqués quel que soit le type de match.
+    const statsDataTousMatchs = (statsDataRaw || [])
       .sort((a, b) => new Date(b.evenements?.date_heure || 0) - new Date(a.evenements?.date_heure || 0))
+    // Matchs officiels (hors préparation) — comme ClassementButeursPage/DashboardStatsPage/
+    // BadgesJoueurPage — utilisé pour la série de résultats "Résultats récents".
+    const statsData = statsDataTousMatchs
+      .filter(s => s.evenements?.match_type !== 'preparation')
 
     // Set des joueurs absents/blessés sur au moins un événement récent
     const joueursAbsentsBlessesSurEvenement = new Set((absencesData || []).map(p => p.joueur_id))
@@ -196,9 +203,12 @@ export default function DashboardPage() {
       return items.length ? items.reduce((a, b) => a + b, 0) / items.length : null
     }).filter(v => v !== null)
     const rpeMoy = rpeVals.length ? rpeVals.reduce((a, b) => a + b, 0) / rpeVals.length : 0
-    const distances = (footData || []).map(f => f.distance_km).filter(Boolean)
+    const distances = (footData || []).filter(f => f.evenements?.type === 'match').map(f => f.distance_km).filter(Boolean)
     const distMoy = distances.length ? distances.reduce((a, b) => a + b, 0) / distances.length : 0
-    const buts = (statsData || []).map(s => s.buts_marques || 0)
+    // Buts marqués : tous les matchs joués, y compris préparation — seul un vrai score
+    // renseigné compte (buts_marques null = pas encore saisi, ne doit pas tirer la
+    // moyenne vers 0).
+    const buts = statsDataTousMatchs.map(s => s.buts_marques).filter(v => v !== null && v !== undefined)
     const butsMoy = buts.length ? buts.reduce((a, b) => a + b, 0) / buts.length : 0
     setMetrics({ rpeMoy: rpeMoy.toFixed(1), presence: presenceMoy.toFixed(0), distMoy: distMoy.toFixed(1), butsMoy: butsMoy.toFixed(1) })
 
