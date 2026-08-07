@@ -126,7 +126,7 @@ export default function StatsPage() {
     setLoading(true)
     const [{ data: ev }, { data: jrs }, { data: si }, { data: sc }, { data: rp }] = await Promise.all([
       supabase.from('evenements').select('*').eq('id', eventId).single(),
-      supabase.from('joueurs').select('id,nom,prenom,poste,numero').order('nom'),
+      supabase.from('joueurs').select('id,nom,prenom,poste,numero,photo_url').order('nom'),
       supabase.from('stats_match').select('*').eq('evenement_id', eventId),
       supabase.from('stats_collectives').select('*').eq('evenement_id', eventId).maybeSingle(),
       supabase.from('rapports_match').select('*').eq('evenement_id', eventId).maybeSingle(),
@@ -157,6 +157,19 @@ export default function StatsPage() {
   // vide '' dans le state (input contrôlé), que Postgres refuse pour une colonne
   // entière ("invalid input syntax for type integer"), il faut donc convertir en null.
   const CHAMPS_TEXTE_COLLECTIF = new Set(['score_mi_temps', 'score_final'])
+
+  // Modifie le numéro de maillot d'un joueur depuis l'écran Compo (évite d'avoir à
+  // aller sur sa fiche pour un profil qui n'a jamais eu de numéro renseigné) : mise à
+  // jour immédiate en local pour un retour visuel fluide pendant la saisie, écriture en
+  // base seulement à la perte du focus pour ne pas spammer une requête par frappe.
+  function updateNumeroLocal(joueurId, valeur) {
+    setJoueurs(p => p.map(j => j.id === joueurId ? { ...j, numero: valeur } : j))
+  }
+  async function persistNumero(joueurId, valeur) {
+    const numero = valeur === '' ? null : parseInt(valeur)
+    const { error } = await supabase.from('joueurs').update({ numero }).eq('id', joueurId)
+    if (error) console.error('Erreur mise à jour numéro:', error)
+  }
 
   async function saveStatsCollectives() {
     setSaving(true)
@@ -600,9 +613,12 @@ export default function StatsPage() {
                         <circle cx={pos.x + 6.5} cy={cy + 6.5} r="3.2" fill="var(--primary)" stroke="#fff" strokeWidth=".5" />
                         <text x={pos.x + 6.5} y={cy + 7.4} textAnchor="middle" dominantBaseline="middle"
                           fontSize="3" fill="#fff" fontWeight="700">{joueur.numero || (i+1)}</text>
-                        <rect x={pos.x - 13} y={cy + 10.5} width="26" height="6" rx="1.5" fill="rgba(0,0,0,.55)" />
-                        <text x={pos.x} y={cy + 14.6} textAnchor="middle" fontSize="4" fill="#fff" fontWeight="600">
-                          {joueur.nom?.slice(0,9)}
+                        {/* Bandeau plus étroit que la version initiale (26 → 19) : les postes
+                            voisins d'une même formation peuvent n'être espacés que de ~20
+                            unités, un bandeau trop large faisait chevaucher les noms adjacents. */}
+                        <rect x={pos.x - 9.5} y={cy + 10.5} width="19" height="5.2" rx="1.2" fill="rgba(0,0,0,.6)" />
+                        <text x={pos.x} y={cy + 14.2} textAnchor="middle" fontSize="3.2" fill="#fff" fontWeight="600">
+                          {joueur.nom?.slice(0,7)}
                         </text>
                       </>
                     ) : (
@@ -615,18 +631,31 @@ export default function StatsPage() {
             </svg>
           </div>
 
-          {/* Sélection joueurs par poste */}
+          {/* Sélection joueurs par poste — le numéro affiché sur le terrain vient du profil
+              du joueur (joueurs.numero) ; modifiable ici directement pour les joueurs qui
+              n'en ont pas encore un renseigné, sans avoir à aller sur leur fiche. */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
-            {currentFormation.positions.map(pos => (
-              <div key={pos.id}>
-                <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>{pos.label}</label>
-                <select value={compo[pos.id] || ''} onChange={e => setCompo(p => ({...p, [pos.id]: e.target.value}))}
-                  style={{ width: '100%', padding: '5px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', boxSizing: 'border-box' }}>
-                  <option value="">— Choisir —</option>
-                  {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}{j.numero ? ` (${j.numero})` : ''}</option>)}
-                </select>
-              </div>
-            ))}
+            {currentFormation.positions.map(pos => {
+              const joueur = joueurs.find(j => j.id === compo[pos.id])
+              return (
+                <div key={pos.id}>
+                  <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>{pos.label}</label>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <select value={compo[pos.id] || ''} onChange={e => setCompo(p => ({...p, [pos.id]: e.target.value}))}
+                      style={{ flex: 1, minWidth: 0, padding: '5px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', boxSizing: 'border-box' }}>
+                      <option value="">— Choisir —</option>
+                      {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}{j.numero ? ` (${j.numero})` : ''}</option>)}
+                    </select>
+                    {joueur && (
+                      <input type="number" placeholder="N°" value={joueur.numero ?? ''}
+                        onChange={e => updateNumeroLocal(joueur.id, e.target.value)}
+                        onBlur={e => persistNumero(joueur.id, e.target.value)}
+                        style={{ width: 34, padding: '5px 4px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
