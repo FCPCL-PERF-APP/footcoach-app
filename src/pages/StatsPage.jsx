@@ -667,32 +667,51 @@ export default function StatsPage() {
 
       {/* RAPPORT */}
       {activeTab === 'rapport' && (
-        <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Rapport de match</p>
-          {[
-            ["Causerie d'avant-match", 'causerie'],
-            ['Animation offensive', 'animation_offensive'],
-            ['Animation défensive', 'animation_defensive'],
-            ['Points positifs offensifs', 'points_positifs_off'],
-            ['Problèmes offensifs', 'problemes_off'],
-            ['Points positifs défensifs', 'points_positifs_def'],
-            ['Problèmes défensifs', 'problemes_def'],
-            ['Points forts globaux', 'points_forts_globaux'],
-            ['Points faibles globaux', 'points_faibles_globaux'],
-            ['Composition adversaire', 'compo_adversaire'],
-          ].map(([label, field]) => (
-            <div key={field} style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
-              <textarea value={formRapport[field] || ''} onChange={e => setFormRapport(p => ({...p, [field]: e.target.value}))}
-                rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
-            </div>
-          ))}
-          <Input label="Arbitre" value={formRapport.arbitre || ''} onChange={v => setFormRapport(p => ({...p, arbitre: v}))} />
-          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Avant-match : ce qui est préparé/annoncé avant le coup d'envoi */}
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Avant-match</p>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>Préparation et consignes annoncées avant le coup d'envoi</p>
+            {[
+              ["Causerie d'avant-match", 'causerie'],
+              ['Animation offensive', 'animation_offensive'],
+              ['Animation défensive', 'animation_defensive'],
+            ].map(([label, field]) => (
+              <div key={field} style={{ marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
+                <textarea value={formRapport[field] || ''} onChange={e => setFormRapport(p => ({...p, [field]: e.target.value}))}
+                  rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              </div>
+            ))}
+            <Input label="Arbitre" value={formRapport.arbitre || ''} onChange={v => setFormRapport(p => ({...p, arbitre: v}))} />
+          </Card>
+
+          {/* Après-match : débrief, adversaire d'abord puis notre propre analyse */}
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Après-match — débrief</p>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>Analyse de l'adversaire puis de notre match</p>
+            {[
+              ['Composition adversaire', 'compo_adversaire'],
+              ['Points forts globaux (adversaire)', 'points_forts_globaux'],
+              ['Points faibles globaux (adversaire)', 'points_faibles_globaux'],
+              ['Points positifs offensifs', 'points_positifs_off'],
+              ['Problèmes offensifs', 'problemes_off'],
+              ['Points positifs défensifs', 'points_positifs_def'],
+              ['Problèmes défensifs', 'problemes_def'],
+            ].map(([label, field]) => (
+              <div key={field} style={{ marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
+                <textarea value={formRapport[field] || ''} onChange={e => setFormRapport(p => ({...p, [field]: e.target.value}))}
+                  rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              </div>
+            ))}
+          </Card>
+
+          <div style={{ display: 'flex', gap: 8 }}>
             <Button variant="primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveRapport} disabled={saving}><Save size={13} /> Enregistrer</Button>
             <Button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={shareRapportInApp}><Share2 size={13} /> Partager</Button>
           </div>
-        </Card>
+        </div>
       )}
     </div>
   )
