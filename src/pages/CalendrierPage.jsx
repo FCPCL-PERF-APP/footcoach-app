@@ -13,6 +13,14 @@ import {
   Swords, Footprints, History, WifiOff, Save, Check, Circle, Eye, EyeOff
 } from 'lucide-react'
 
+// Championnat/coupe/préparation — même vocabulaire que ConvocationsPage.jsx (cap de
+// convocables) et CalendrierGeneralPage.jsx (couleurs du calendrier saison).
+const MATCH_TYPE_LABELS = {
+  championnat: { label: 'Championnat', cat: 'teal' },
+  coupe:       { label: 'Coupe',        cat: 'purple' },
+  preparation: { label: 'Préparation',  cat: 'cyan' },
+}
+
 export default function CalendrierPage() {
   const { isCoach, isAdjoint, isJoueur, profile } = useAuth()
   const navigate = useNavigate()
@@ -313,13 +321,22 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
   // "Voir les présences"), pas automatiquement à l'ouverture de l'agenda — pour le
   // staff en revanche le résumé reste visible d'emblée, comme avant.
   const [showPresences, setShowPresences] = useState(false)
+  const [score, setScore] = useState(null)
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
   useEffect(() => {
     if (isStaff) loadPresenceCount()
     if (isJoueur && profile?.id) checkConvocation()
+    // Le score est public une fois saisi — visible par tous, pas seulement le staff,
+    // pour que la liste de l'agenda serve aussi de suivi rapide des résultats.
+    if (ev.type === 'match') loadScore()
   }, [ev.id])
+
+  async function loadScore() {
+    const { data } = await supabase.from('stats_collectives').select('buts_marques, buts_encaisses').eq('evenement_id', ev.id).maybeSingle()
+    if (data && data.buts_marques !== null && data.buts_encaisses !== null) setScore(data)
+  }
 
   function toggleShowPresences() {
     if (!showPresences && presenceCount === null) loadPresenceCount()
@@ -361,7 +378,36 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
               {ev.type === 'match' ? <Swords size={10} /> : <Footprints size={10} />} {ev.type === 'match' ? 'Match' : 'Séance'}
             </span>
           </Badge>
+          {/* Championnat/coupe/préparation — saisi à la création du match mais jusqu'ici
+              jamais affiché nulle part sur la fiche/carte de l'événement. */}
+          {ev.type === 'match' && ev.match_type && MATCH_TYPE_LABELS[ev.match_type] && (
+            <span style={{
+              fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+              background: CAT_COLORS[MATCH_TYPE_LABELS[ev.match_type].cat].bg,
+              color: CAT_COLORS[MATCH_TYPE_LABELS[ev.match_type].cat].color,
+            }}>{MATCH_TYPE_LABELS[ev.match_type].label}</span>
+          )}
           <span style={{ fontSize: 13, fontWeight: 600 }}>{ev.titre}</span>
+          {/* Score — visible dès qu'il a été saisi dans Stats collectives, pour retrouver
+              d'un coup d'œil dans l'agenda la série de résultats en s'enchaînant. */}
+          {score && (() => {
+            const dom = ev.domicile !== false
+            const scoreNous = dom ? score.buts_marques : score.buts_encaisses
+            const scoreAdv = dom ? score.buts_encaisses : score.buts_marques
+            const resultat = score.buts_marques > score.buts_encaisses ? 'V' : score.buts_marques < score.buts_encaisses ? 'D' : 'N'
+            const resultatColor = { V: 'var(--success)', N: 'var(--warning)', D: 'var(--danger)' }[resultat]
+            const resultatBg = { V: 'var(--success-bg)', N: 'var(--warning-bg)', D: 'var(--danger-bg)' }[resultat]
+            return (
+              <span style={{
+                fontSize: 12, fontWeight: 700, padding: '2px 9px', borderRadius: 20,
+                background: resultatBg, color: resultatColor,
+                display: 'inline-flex', alignItems: 'center', gap: 5
+              }}>
+                <Circle size={7} fill={resultatColor} color={resultatColor} />
+                {dom ? `${scoreNous} - ${scoreAdv}` : `${scoreAdv} - ${scoreNous}`}
+              </span>
+            )
+          })()}
           {/* Badge convocation joueur */}
           {isJoueur && ev.type === 'match' && convoque !== null && (
             <span style={{
