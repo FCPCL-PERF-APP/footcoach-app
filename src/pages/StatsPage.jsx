@@ -541,40 +541,73 @@ export default function StatsPage() {
 
           {/* Terrain SVG */}
           <div style={{ position: 'relative', background: '#2d7a27', borderRadius: 12, overflow: 'hidden', marginBottom: 14 }}>
-            <svg viewBox="0 0 100 100" style={{ width: '100%', aspectRatio: '2/3' }}>
+            <svg viewBox="0 0 100 150" style={{ width: '100%', aspectRatio: '2/3' }}>
+              <defs>
+                {currentFormation.positions.map(pos => {
+                  const joueur = joueurs.find(j => j.id === compo[pos.id])
+                  if (!joueur?.photo_url) return null
+                  return (
+                    <clipPath key={pos.id} id={`compo-clip-${pos.id}`}>
+                      <circle cx={pos.x} cy={pos.y * 1.5} r="8.5" />
+                    </clipPath>
+                  )
+                })}
+              </defs>
+
+              {/* Pelouse rayée */}
+              {[0,1,2,3,4,5,6,7,8,9].map(i => (
+                <rect key={i} x="0" y={i * 15} width="100" height="15" fill={i % 2 === 0 ? 'rgba(255,255,255,.03)' : 'transparent'} />
+              ))}
               {/* Terrain */}
-              <rect x="5" y="2" width="90" height="96" fill="none" stroke="rgba(255,255,255,.4)" strokeWidth=".5" rx="1" />
-              <line x1="5" y1="50" x2="95" y2="50" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
-              <circle cx="50" cy="50" r="10" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
-              <circle cx="50" cy="50" r=".8" fill="rgba(255,255,255,.5)" />
-              {/* Surface de réparation */}
-              <rect x="25" y="2" width="50" height="18" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
-              <rect x="35" y="2" width="30" height="8" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
-              <rect x="25" y="80" width="50" height="18" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
-              <rect x="35" y="90" width="30" height="8" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+              <rect x="5" y="3" width="90" height="144" fill="none" stroke="rgba(255,255,255,.4)" strokeWidth=".5" rx="1" />
+              <line x1="5" y1="75" x2="95" y2="75" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+              <circle cx="50" cy="75" r="14" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+              <circle cx="50" cy="75" r=".8" fill="rgba(255,255,255,.5)" />
+              {/* Surfaces de réparation */}
+              <rect x="25" y="3" width="50" height="26" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+              <rect x="37" y="3" width="26" height="12" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+              <rect x="25" y="121" width="50" height="26" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+              <rect x="37" y="135" width="26" height="12" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
 
               {/* Joueurs sur le terrain */}
               {currentFormation.positions.map((pos, i) => {
                 const joueurId = compo[pos.id]
                 const joueur = joueurs.find(j => j.id === joueurId)
+                const cy = pos.y * 1.5
                 return (
                   <g key={pos.id}>
-                    <circle cx={pos.x} cy={pos.y} r="6"
-                      fill={joueurId ? 'var(--primary)' : 'rgba(255,255,255,.2)'}
-                      stroke="rgba(255,255,255,.6)" strokeWidth=".5" />
+                    {joueur?.photo_url ? (
+                      <>
+                        <circle cx={pos.x} cy={cy} r="9" fill="#fff" />
+                        <image href={joueur.photo_url} x={pos.x - 8.5} y={cy - 8.5} width="17" height="17"
+                          clipPath={`url(#compo-clip-${pos.id})`} preserveAspectRatio="xMidYMid slice" />
+                        <circle cx={pos.x} cy={cy} r="8.5" fill="none" stroke="var(--primary)" strokeWidth=".7" />
+                      </>
+                    ) : (
+                      <circle cx={pos.x} cy={cy} r="8.5"
+                        fill={joueurId ? 'var(--primary)' : 'rgba(255,255,255,.15)'}
+                        stroke="rgba(255,255,255,.6)" strokeWidth=".5" />
+                    )}
                     {joueur ? (
                       <>
-                        <text x={pos.x} y={pos.y + 1} textAnchor="middle" dominantBaseline="middle"
-                          fontSize="3.5" fill="#fff" fontWeight="700">
-                          {joueur.numero || (i+1)}
-                        </text>
-                        <text x={pos.x} y={pos.y + 9} textAnchor="middle" fontSize="3" fill="rgba(255,255,255,.9)">
-                          {joueur.nom?.slice(0,6)}
+                        {!joueur.photo_url && (
+                          <text x={pos.x} y={cy + 1.2} textAnchor="middle" dominantBaseline="middle"
+                            fontSize="4.5" fill="#fff" fontWeight="700">
+                            {joueur.numero || (i+1)}
+                          </text>
+                        )}
+                        {/* Pastille numéro (toujours visible, même avec photo) */}
+                        <circle cx={pos.x + 6.5} cy={cy + 6.5} r="3.2" fill="var(--primary)" stroke="#fff" strokeWidth=".5" />
+                        <text x={pos.x + 6.5} y={cy + 7.4} textAnchor="middle" dominantBaseline="middle"
+                          fontSize="3" fill="#fff" fontWeight="700">{joueur.numero || (i+1)}</text>
+                        <rect x={pos.x - 13} y={cy + 10.5} width="26" height="6" rx="1.5" fill="rgba(0,0,0,.55)" />
+                        <text x={pos.x} y={cy + 14.6} textAnchor="middle" fontSize="4" fill="#fff" fontWeight="600">
+                          {joueur.nom?.slice(0,9)}
                         </text>
                       </>
                     ) : (
-                      <text x={pos.x} y={pos.y + 1} textAnchor="middle" dominantBaseline="middle"
-                        fontSize="3" fill="rgba(255,255,255,.5)">{pos.label}</text>
+                      <text x={pos.x} y={cy + 1} textAnchor="middle" dominantBaseline="middle"
+                        fontSize="4" fill="rgba(255,255,255,.5)">{pos.label}</text>
                     )}
                   </g>
                 )
