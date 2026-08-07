@@ -144,9 +144,21 @@ export default function StatsPage() {
   const resultatColors = { V: 'var(--success)', N: 'var(--warning)', D: 'var(--danger)' }
   const resultatLabels = { V: 'Victoire', N: 'Match nul', D: 'Défaite' }
 
+  // Seuls ces deux champs sont du texte libre ("1 - 0") — tous les autres champs de
+  // formCollectif sont des colonnes numériques : un champ laissé vide reste une chaîne
+  // vide '' dans le state (input contrôlé), que Postgres refuse pour une colonne
+  // entière ("invalid input syntax for type integer"), il faut donc convertir en null.
+  const CHAMPS_TEXTE_COLLECTIF = new Set(['score_mi_temps', 'score_final'])
+
   async function saveStatsCollectives() {
     setSaving(true)
-    const payload = { evenement_id: eventId, ...formCollectif }
+    const payload = {
+      evenement_id: eventId,
+      ...Object.fromEntries(Object.entries(formCollectif).map(([k, v]) => [
+        k,
+        CHAMPS_TEXTE_COLLECTIF.has(k) ? (v || null) : (v === '' || v === null || v === undefined ? null : parseInt(v))
+      ]))
+    }
     let result
     try {
       result = await upsertOrQueue('stats_collectives', payload, 'evenement_id')
