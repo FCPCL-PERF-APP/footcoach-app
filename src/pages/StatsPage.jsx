@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
+import { validateFile } from '../lib/upload'
 import { Card, Button, Input, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   ArrowLeft, CheckCircle2, User, BarChart3, Swords, FileText,
-  Save, Share2, ThumbsUp, AlertTriangle, Goal, Shield, WifiOff
+  Save, Share2, ThumbsUp, AlertTriangle, Goal, Shield, WifiOff, ImagePlus, X, Loader2
 } from 'lucide-react'
 
 const STATS_QUEUE_TABLES = ['stats_match', 'stats_collectives', 'rapports_match']
@@ -77,6 +78,37 @@ const FORMATIONS = {
   },
 }
 
+// Emplacement pour un schéma tactique (photo, ex. slide PowerPoint exportée en image).
+// Composant au niveau module (pas imbriqué dans StatsPage) pour éviter que React ne
+// démonte/remonte l'input à chaque re-render — cf. le bug clavier corrigé sur
+// FicheJoueurPage.jsx pour la même raison.
+function SchemaField({ label, value, uploading, onUpload, onRemove }) {
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
+      {value ? (
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <img src={value} alt={label} onClick={() => window.open(value, '_blank')}
+            style={{ maxWidth: 160, maxHeight: 160, borderRadius: 10, border: '0.5px solid var(--border)', cursor: 'zoom-in', display: 'block' }} />
+          <button onClick={onRemove} style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: '50%',
+            background: 'var(--danger)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <X size={13} />
+          </button>
+        </div>
+      ) : (
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10,
+          border: '1px dashed var(--border)', fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+          {uploading ? <Loader2 size={14} style={{ animation: 'fc-schema-spin 0.8s linear infinite' }} /> : <ImagePlus size={14} />}
+          {uploading ? 'Envoi...' : 'Ajouter un schéma (photo)'}
+          <input type="file" accept="image/*" hidden disabled={uploading}
+            onChange={e => { const f = e.target.files?.[0]; if (f) onUpload(f); e.target.value = '' }} />
+        </label>
+      )}
+      <style>{`@keyframes fc-schema-spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
+}
+
 export default function StatsPage() {
   const { id: eventId } = useParams()
   const navigate = useNavigate()
@@ -103,7 +135,14 @@ export default function StatsPage() {
     points_positifs_def: '', problemes_def: '',
     points_forts_globaux: '', points_faibles_globaux: '',
     compo_adversaire: '', arbitre: '',
+    // Schémas tactiques (photos, ex. slides PowerPoint exportées) — complètent le texte
+    // pour tout ce qui se lit mieux en image qu'en description écrite.
+    schema_animation_offensive: '', schema_animation_defensive: '',
+    schema_cpa_corner_pour: '', schema_cpa_corner_contre: '', schema_cpa_interieur: '',
+    schema_compo_adverse: '', joueurs_a_surveiller: '',
   })
+  const [uploadingSchema, setUploadingSchema] = useState(null)
+  const [schemaError, setSchemaError] = useState('')
 
   const [queueCount, setQueueCount] = useState(0)
 
@@ -281,6 +320,24 @@ export default function StatsPage() {
     setQueueCount(statsQueueCount())
     setSaving(false); setSaved(true); setSavedOffline(result.queued); setTimeout(() => setSaved(false), 2000)
     if (!result.queued) loadData()
+  }
+
+  // Schémas tactiques (photos, ex. slides PowerPoint exportées en image) — même bucket
+  // Storage "joueurs" que les photos de messagerie, un dossier "rapports" dédié.
+  async function uploadSchema(field, file) {
+    const err = validateFile(file, 'image')
+    if (err) { setSchemaError(err); return }
+    setSchemaError('')
+    setUploadingSchema(field)
+    try {
+      const path = `rapports/${eventId}_${field}_${Date.now()}.jpg`
+      const { error: uploadError } = await supabase.storage.from('joueurs').upload(path, file)
+      if (uploadError) { setSchemaError('Erreur envoi photo : ' + uploadError.message); return }
+      const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
+      setFormRapport(p => ({ ...p, [field]: urlData.publicUrl }))
+    } finally {
+      setUploadingSchema(null)
+    }
   }
 
   async function shareRapportInApp() {
@@ -672,17 +729,36 @@ export default function StatsPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Avant-match</p>
             <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>Préparation et consignes annoncées avant le coup d'envoi</p>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Causerie d'avant-match</label>
+              <textarea value={formRapport.causerie || ''} onChange={e => setFormRapport(p => ({...p, causerie: e.target.value}))}
+                rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
             {[
-              ["Causerie d'avant-match", 'causerie'],
-              ['Animation offensive', 'animation_offensive'],
-              ['Animation défensive', 'animation_defensive'],
-            ].map(([label, field]) => (
+              ['Animation offensive', 'animation_offensive', 'schema_animation_offensive'],
+              ['Animation défensive', 'animation_defensive', 'schema_animation_defensive'],
+            ].map(([label, field, schemaField]) => (
               <div key={field} style={{ marginBottom: 10 }}>
                 <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
                 <textarea value={formRapport[field] || ''} onChange={e => setFormRapport(p => ({...p, [field]: e.target.value}))}
-                  rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+                  rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: 6 }} />
+                <SchemaField label="Schéma" value={formRapport[schemaField]} uploading={uploadingSchema === schemaField}
+                  onUpload={f => uploadSchema(schemaField, f)} onRemove={() => setFormRapport(p => ({...p, [schemaField]: ''}))} />
               </div>
             ))}
+            <p style={{ fontSize: 13, fontWeight: 600, marginTop: 16, marginBottom: 2 }}>CPA</p>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>Combinaisons préparées, en schéma</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginBottom: 10 }}>
+              {[
+                ['Corner pour', 'schema_cpa_corner_pour'],
+                ['Corner contre', 'schema_cpa_corner_contre'],
+                ['CPA à l\'intérieur', 'schema_cpa_interieur'],
+              ].map(([label, schemaField]) => (
+                <SchemaField key={schemaField} label={label} value={formRapport[schemaField]} uploading={uploadingSchema === schemaField}
+                  onUpload={f => uploadSchema(schemaField, f)} onRemove={() => setFormRapport(p => ({...p, [schemaField]: ''}))} />
+              ))}
+            </div>
+            {schemaError && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 10 }}>{schemaError}</p>}
             <Input label="Arbitre" value={formRapport.arbitre || ''} onChange={v => setFormRapport(p => ({...p, arbitre: v}))} />
           </Card>
 
@@ -690,8 +766,19 @@ export default function StatsPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Après-match — débrief</p>
             <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>Analyse de l'adversaire puis de notre match</p>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Composition adversaire</label>
+              <SchemaField label="Schéma" value={formRapport.schema_compo_adverse} uploading={uploadingSchema === 'schema_compo_adverse'}
+                onUpload={f => uploadSchema('schema_compo_adverse', f)} onRemove={() => setFormRapport(p => ({...p, schema_compo_adverse: ''}))} />
+              <textarea value={formRapport.compo_adversaire || ''} onChange={e => setFormRapport(p => ({...p, compo_adversaire: e.target.value}))}
+                rows={2} placeholder="Noms, postes..."
+                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: 6 }} />
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Joueurs à surveiller</label>
+              <textarea value={formRapport.joueurs_a_surveiller || ''} onChange={e => setFormRapport(p => ({...p, joueurs_a_surveiller: e.target.value}))}
+                rows={2} placeholder="Numéro, nom, point fort..."
+                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
             {[
-              ['Composition adversaire', 'compo_adversaire'],
               ['Points forts globaux (adversaire)', 'points_forts_globaux'],
               ['Points faibles globaux (adversaire)', 'points_faibles_globaux'],
               ['Points positifs offensifs', 'points_positifs_off'],
