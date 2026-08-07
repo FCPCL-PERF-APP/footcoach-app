@@ -16,6 +16,29 @@ function statsQueueCount() {
   return STATS_QUEUE_TABLES.reduce((sum, t) => sum + getQueueCount(t), 0)
 }
 
+// Liste exhaustive des champs du formulaire "Stats collectives" — sert aussi de liste
+// blanche au moment de l'enregistrement (cf. saveStatsCollectives) : loadData() fait
+// setFormCollectif(p => ({ ...p, ...sc })) avec la ligne existante en base, qui contient
+// aussi id/evenement_id/created_at. Sans cette liste blanche, ces colonnes internes se
+// glissaient dans le payload renvoyé et created_at (un timestamp) se faisait tronquer
+// en entier par erreur ("2026"), que Postgres refusait pour une colonne timestamp.
+const FORM_COLLECTIF_INITIAL = {
+  buts_marques: '', buts_encaisses: '',
+  score_mi_temps: '', score_final: '',
+  // Buts marqués par type
+  but_marque_attaque_placee: '', but_marque_contre_attaque: '',
+  but_marque_corner: '', but_marque_penalty: '', but_marque_coup_franc: '',
+  // Buts encaissés par type
+  but_enc_attaque_placee: '', but_enc_contre_attaque: '',
+  but_enc_corner: '', but_enc_penalty: '', but_enc_coup_franc: '',
+  // Buts par période
+  buts_0_15: '', buts_15_30: '', buts_30_45: '',
+  buts_45_60: '', buts_60_75: '', buts_75_90: '',
+  // Buts encaissés par période
+  buts_enc_0_15: '', buts_enc_15_30: '', buts_enc_30_45: '',
+  buts_enc_45_60: '', buts_enc_60_75: '', buts_enc_75_90: '',
+}
+
 const FORMATIONS = {
   '4-4-2': {
     label: '1-4-4-2',
@@ -72,22 +95,7 @@ export default function StatsPage() {
   const [selectedJoueur, setSelectedJoueur] = useState('')
   const [formJ, setFormJ] = useState({ note: '', temps_jeu: '', buts: 0, passes_decisives: 0, titulaire: true, carton_jaune: false, carton_rouge: false })
 
-  const [formCollectif, setFormCollectif] = useState({
-    buts_marques: '', buts_encaisses: '',
-    score_mi_temps: '', score_final: '',
-    // Buts marqués par type
-    but_marque_attaque_placee: '', but_marque_contre_attaque: '',
-    but_marque_corner: '', but_marque_penalty: '', but_marque_coup_franc: '',
-    // Buts encaissés par type
-    but_enc_attaque_placee: '', but_enc_contre_attaque: '',
-    but_enc_corner: '', but_enc_penalty: '', but_enc_coup_franc: '',
-    // Buts par période
-    buts_0_15: '', buts_15_30: '', buts_30_45: '',
-    buts_45_60: '', buts_60_75: '', buts_75_90: '',
-    // Buts encaissés par période
-    buts_enc_0_15: '', buts_enc_15_30: '', buts_enc_30_45: '',
-    buts_enc_45_60: '', buts_enc_60_75: '', buts_enc_75_90: '',
-  })
+  const [formCollectif, setFormCollectif] = useState({ ...FORM_COLLECTIF_INITIAL })
 
   const [formRapport, setFormRapport] = useState({
     causerie: '', animation_offensive: '', animation_defensive: '',
@@ -154,10 +162,13 @@ export default function StatsPage() {
     setSaving(true)
     const payload = {
       evenement_id: eventId,
-      ...Object.fromEntries(Object.entries(formCollectif).map(([k, v]) => [
-        k,
-        CHAMPS_TEXTE_COLLECTIF.has(k) ? (v || null) : (v === '' || v === null || v === undefined ? null : parseInt(v))
-      ]))
+      // Object.keys(FORM_COLLECTIF_INITIAL), pas Object.entries(formCollectif) : formCollectif
+      // peut contenir des colonnes internes (id, created_at...) fusionnées depuis la ligne
+      // existante par loadData(), qu'il ne faut surtout pas renvoyer telles quelles.
+      ...Object.fromEntries(Object.keys(FORM_COLLECTIF_INITIAL).map(k => {
+        const v = formCollectif[k]
+        return [k, CHAMPS_TEXTE_COLLECTIF.has(k) ? (v || null) : (v === '' || v === null || v === undefined ? null : parseInt(v))]
+      }))
     }
     let result
     try {
