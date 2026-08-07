@@ -32,6 +32,7 @@ export default function MessagesPage() {
   const [input, setInput] = useState('')
   const [pendingImage, setPendingImage] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [sending, setSending] = useState(false)
   const [imageError, setImageError] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showNewMsg, setShowNewMsg] = useState(false)
@@ -145,71 +146,81 @@ export default function MessagesPage() {
 
   async function sendMessage(groupe = false, canal = 'general') {
     if (!input.trim() && !pendingImage) return
+    // Sans ce garde-fou, l'envoi (upload photo éventuel + insert + notif) prend assez
+    // de temps pour donner l'impression que rien ne s'est passé — l'utilisateur
+    // rappuie, et le message part 2-3 fois. Le bouton est aussi désactivé pendant
+    // l'envoi (cf. MsgInput) pour rendre l'attente visible.
+    if (sending) return
+    setSending(true)
 
-    let imageUrl = null
-    if (pendingImage) {
-      setUploadingImage(true)
-      const path = `messages/${Date.now()}_${myAuthId}.jpg`
-      const { error: uploadError } = await supabase.storage.from('joueurs').upload(path, pendingImage)
-      setUploadingImage(false)
-      if (uploadError) {
-        setImageError('Erreur envoi photo : ' + uploadError.message)
+    try {
+      let imageUrl = null
+      if (pendingImage) {
+        setUploadingImage(true)
+        const path = `messages/${Date.now()}_${myAuthId}.jpg`
+        const { error: uploadError } = await supabase.storage.from('joueurs').upload(path, pendingImage)
+        setUploadingImage(false)
+        if (uploadError) {
+          setImageError('Erreur envoi photo : ' + uploadError.message)
+          return
+        }
+        const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
+        imageUrl = urlData.publicUrl
+      }
+
+      const msg = {
+        expediteur_id: myAuthId,
+        // "Prénom Nom" — cohérent avec le nom affiché dans les notifications push
+        // (api/notif-message-*.js), qui utilisaient déjà cet ordre.
+        expediteur_nom: `${profile?.prenom || ''} ${profile?.nom || ''}`.trim(),
+        expediteur_role: profile?.role || 'joueur',
+        destinataire_id: groupe ? null : activeConv?.auth_id,
+        groupe,
+        canal: groupe ? canal : 'general',
+        contenu: input,
+        image_url: imageUrl
+      }
+      const { error } = await supabase.from('messages').insert(msg)
+      if (error) {
+        alert('Erreur lors de l\'envoi du message : ' + error.message)
         return
       }
-      const { data: urlData } = supabase.storage.from('joueurs').getPublicUrl(path)
-      imageUrl = urlData.publicUrl
-    }
 
-    const msg = {
-      expediteur_id: myAuthId,
-      // "Prénom Nom" — cohérent avec le nom affiché dans les notifications push
-      // (api/notif-message-*.js), qui utilisaient déjà cet ordre.
-      expediteur_nom: `${profile?.prenom || ''} ${profile?.nom || ''}`.trim(),
-      expediteur_role: profile?.role || 'joueur',
-      destinataire_id: groupe ? null : activeConv?.auth_id,
-      groupe,
-      canal: groupe ? canal : 'general',
-      contenu: input,
-      image_url: imageUrl
-    }
-    const { error } = await supabase.from('messages').insert(msg)
-    if (error) {
-      alert('Erreur lors de l\'envoi du message : ' + error.message)
-      return
-    }
+      // Une notification sans texte (photo seule) doit quand même avoir un corps lisible
+      // — les endpoints de notif exigent un contenu non vide.
+      const notifContenu = input.trim() || (imageUrl ? '📷 Photo' : '')
 
-    // Une notification sans texte (photo seule) doit quand même avoir un corps lisible
-    // — les endpoints de notif exigent un contenu non vide.
-    const notifContenu = input.trim() || (imageUrl ? '📷 Photo' : '')
-
-    if (!groupe && activeConv?.auth_id) {
-      try {
-        await fetch('/api/notif-message-prive', {
+      // Notifications envoyées en tâche de fond (sans attendre la réponse) : le message
+      // lui-même est déjà enregistré à ce stade, il n'y a aucune raison de faire
+      // patienter l'utilisateur pour l'envoi des push, qui peut prendre un moment côté
+      // serveur selon le nombre de destinataires.
+      if (!groupe && activeConv?.auth_id) {
+        authHeaders().then(headers => fetch('/api/notif-message-prive', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+          headers: { 'Content-Type': 'application/json', ...headers },
           body: JSON.stringify({
             destinataireId: activeConv.auth_id,
             contenu: notifContenu
           })
-        })
-      } catch (err) { console.error('Erreur notif:', err) }
-    }
+        })).catch(err => console.error('Erreur notif:', err))
+      }
 
-    if (groupe) {
-      try {
-        await fetch('/api/notif-message-groupe', {
+      if (groupe) {
+        authHeaders().then(headers => fetch('/api/notif-message-groupe', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+          headers: { 'Content-Type': 'application/json', ...headers },
           body: JSON.stringify({ contenu: notifContenu, canal })
-        })
-      } catch (err) { console.error('Erreur notif groupe:', err) }
-    }
+        })).catch(err => console.error('Erreur notif groupe:', err))
+      }
 
-    setInput('')
-    setPendingImage(null)
-    setImageError(null)
-    if (groupe) loadCanalMessages(canal)
-    else openConv(activeConv)
+      setInput('')
+      setPendingImage(null)
+      setImageError(null)
+      if (groupe) loadCanalMessages(canal)
+      else openConv(activeConv)
+    } finally {
+      setSending(false)
+    }
   }
 
   function handleImageSelect(file) {
@@ -328,7 +339,7 @@ export default function MessagesPage() {
               </div>
               <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(true, currentCanal)}
                 pendingImage={pendingImage} onImageSelect={handleImageSelect} onRemoveImage={() => setPendingImage(null)}
-                uploading={uploadingImage} imageError={imageError} />
+                uploading={uploadingImage} imageError={imageError} sending={sending} />
             </Card>
           )}
 
@@ -409,7 +420,7 @@ export default function MessagesPage() {
                   </div>
                   <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(false)}
                     pendingImage={pendingImage} onImageSelect={handleImageSelect} onRemoveImage={() => setPendingImage(null)}
-                    uploading={uploadingImage} imageError={imageError} />
+                    uploading={uploadingImage} imageError={imageError} sending={sending} />
                 </Card>
               ) : !showNewMsg && (
                 <Card style={{ padding: 0 }}>
@@ -579,13 +590,16 @@ function LecteursPanel({ canal, lastMessage, onClose }) {
   )
 }
 
-function MsgInput({ value, onChange, onSend, pendingImage, onImageSelect, onRemoveImage, uploading, imageError }) {
+function MsgInput({ value, onChange, onSend, pendingImage, onImageSelect, onRemoveImage, uploading, imageError, sending }) {
   // Zone de texte multi-lignes (plutôt qu'un <input> mono-ligne) : "Entrée" insère
   // un retour à la ligne comme dans n'importe quelle appli de messagerie, y compris
   // au clavier mobile (pas de touche Maj pour distinguer "envoyer" de "nouvelle
   // ligne" sur téléphone). L'envoi se fait uniquement via le bouton dédié.
   const rows = Math.min(6, Math.max(1, (value.match(/\n/g)?.length || 0) + 1))
-  const canSend = (value.trim() || pendingImage) && !uploading
+  // sending désactive le bouton pendant l'envoi (upload photo + insert + notif) et le
+  // rend visuellement différent — sans ça, l'envoi n'a rien d'instantané et l'absence
+  // de retour visuel pousse à rappuyer, envoyant le même message 2-3 fois.
+  const canSend = (value.trim() || pendingImage) && !uploading && !sending
   return (
     <div style={{ borderTop: '0.5px solid var(--bg-secondary)', paddingTop: 10 }}>
       {pendingImage && (
@@ -606,7 +620,7 @@ function MsgInput({ value, onChange, onSend, pendingImage, onImageSelect, onRemo
           placeholder="Écrire un message..."
           rows={rows}
           style={{ flex: 1, padding: '9px 12px', border: '0.5px solid var(--border)', borderRadius: 16, fontSize: 13, outline: 'none', background: 'var(--bg-secondary)', resize: 'none', fontFamily: 'inherit', lineHeight: 1.4, maxHeight: 120, overflowY: 'auto', boxSizing: 'border-box' }} />
-        <button onClick={onSend} disabled={!canSend} style={{ width: 38, height: 38, borderRadius: '50%', background: canSend ? 'var(--gradient)' : 'var(--border)', border: 'none', cursor: canSend ? 'pointer' : 'not-allowed', color: '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={onSend} disabled={!canSend} style={{ width: 38, height: 38, borderRadius: '50%', background: canSend ? 'var(--gradient)' : 'var(--border)', border: 'none', cursor: canSend ? 'pointer' : 'not-allowed', opacity: sending ? .6 : 1, color: '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Send size={16} />
         </button>
       </div>
