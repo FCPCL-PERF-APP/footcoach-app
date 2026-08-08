@@ -9,7 +9,8 @@ import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   ArrowLeft, CheckCircle2, User, BarChart3, Swords, FileText,
-  Save, Share2, ThumbsUp, AlertTriangle, Goal, Shield, WifiOff, ImagePlus, X, Loader2
+  Save, Share2, ThumbsUp, AlertTriangle, Goal, Shield, WifiOff, ImagePlus, X, Loader2,
+  Target, Plus, Trash2
 } from 'lucide-react'
 
 const STATS_QUEUE_TABLES = ['stats_match', 'stats_collectives', 'rapports_match']
@@ -109,6 +110,17 @@ function SchemaField({ label, value, uploading, onUpload, onRemove }) {
   )
 }
 
+// Types d'événements de la chronologie live — mêmes items que le carnet papier (but
+// pour/contre, cartons, changement) + une case libre.
+const CHRONO_TYPES = {
+  but_pour:     { label: 'But pour',       color: 'var(--success)', bg: 'var(--success-bg)' },
+  but_contre:   { label: 'But contre',     color: 'var(--danger)', bg: 'var(--danger-bg)' },
+  carton_jaune: { label: 'Carton jaune',   color: '#A16207', bg: '#FEF9C3' },
+  carton_rouge: { label: 'Carton rouge',   color: 'var(--danger)', bg: 'var(--danger-bg)' },
+  changement:   { label: 'Changement',     color: 'var(--primary)', bg: 'var(--primary-bg)' },
+  autre:        { label: 'Autre',          color: 'var(--text-secondary)', bg: 'var(--bg-secondary)' },
+}
+
 export default function StatsPage() {
   const { id: eventId } = useParams()
   const navigate = useNavigate()
@@ -140,9 +152,20 @@ export default function StatsPage() {
     schema_animation_offensive: '', schema_animation_defensive: '',
     schema_cpa_corner_pour: '', schema_cpa_corner_contre: '', schema_cpa_interieur: '',
     schema_compo_adverse: '', joueurs_a_surveiller: '',
+    // Suivi en direct pendant le match — remplace le carnet papier rempli en tribune :
+    // croix de placement (supériorités de zone) + chronologie horodatée + notes de
+    // mi-temps, avant la synthèse "Après-match" une fois le match terminé.
+    terrain_marks: [], chronologie: [],
+    recap_mi_temps: '', mt_axes_amelioration: '', mt_projection: '', mt_note_adjoint: '',
+    notes_libres: '',
   })
   const [uploadingSchema, setUploadingSchema] = useState(null)
   const [schemaError, setSchemaError] = useState('')
+
+  // Suivi live — couleur active pour la prochaine croix posée sur le terrain, et
+  // formulaire d'ajout d'un événement à la chronologie.
+  const [markTeam, setMarkTeam] = useState('nous')
+  const [chronoForm, setChronoForm] = useState({ minute: '', type: 'but_pour', description: '' })
 
   const [queueCount, setQueueCount] = useState(0)
 
@@ -340,6 +363,31 @@ export default function StatsPage() {
     }
   }
 
+  // Croix de placement sur le terrain (supériorités de zone) — équivalent numérique des
+  // croix bleu/adversaire notées à la main sur le carnet papier pendant le match.
+  function addMark(x, y) {
+    setFormRapport(p => ({ ...p, terrain_marks: [...(p.terrain_marks || []), { x, y, team: markTeam }] }))
+  }
+  function removeMark(idx) {
+    setFormRapport(p => ({ ...p, terrain_marks: (p.terrain_marks || []).filter((_, i) => i !== idx) }))
+  }
+  function clearMarks() {
+    if (!confirm('Effacer toutes les croix du terrain ?')) return
+    setFormRapport(p => ({ ...p, terrain_marks: [] }))
+  }
+
+  // Chronologie horodatée (minute + événement) — équivalent des ronds annotés à droite
+  // du carnet papier (but, carton, changement...).
+  function addChronoEvent() {
+    if (chronoForm.minute === '') return
+    const entry = { minute: parseInt(chronoForm.minute) || 0, type: chronoForm.type, description: chronoForm.description }
+    setFormRapport(p => ({ ...p, chronologie: [...(p.chronologie || []), entry].sort((a, b) => a.minute - b.minute) }))
+    setChronoForm({ minute: '', type: chronoForm.type, description: '' })
+  }
+  function removeChronoEvent(idx) {
+    setFormRapport(p => ({ ...p, chronologie: (p.chronologie || []).filter((_, i) => i !== idx) }))
+  }
+
   async function shareRapportInApp() {
     const { data: { user } } = await supabase.auth.getUser()
     const { data: staff } = await supabase.from('staff').select('nom,prenom').eq('auth_id', user?.id).maybeSingle()
@@ -394,6 +442,7 @@ export default function StatsPage() {
     { key: 'individuel', icon: User, label: 'Indiv.' },
     { key: 'collectif',  icon: BarChart3, label: 'Collectif' },
     { key: 'compo',      icon: Swords, label: 'Compo' },
+    { key: 'suivi',      icon: Target, label: 'Suivi live' },
     { key: 'rapport',    icon: FileText, label: 'Rapport' },
   ]
 
@@ -720,6 +769,147 @@ export default function StatsPage() {
             <Button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={shareRapportInApp}><Share2 size={13} /> Partager</Button>
           </div>
         </Card>
+      )}
+
+      {/* SUIVI LIVE — remplace le carnet papier rempli en tribune pendant le match */}
+      {activeTab === 'suivi' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Disposition terrain</p>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>
+              Touche le terrain pour poser une croix — repère les zones où on est en supériorité.
+            </p>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <button onClick={() => setMarkTeam('nous')} style={{
+                flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
+                border: `1.5px solid ${markTeam === 'nous' ? '#2563EB' : 'var(--border)'}`,
+                background: markTeam === 'nous' ? '#2563EB20' : 'transparent',
+                color: markTeam === 'nous' ? '#2563EB' : 'var(--text-secondary)', fontWeight: markTeam === 'nous' ? 700 : 400,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+              }}><X size={12} strokeWidth={3} /> Nous</button>
+              <button onClick={() => setMarkTeam('adversaire')} style={{
+                flex: 1, padding: '7px 4px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
+                border: `1.5px solid ${markTeam === 'adversaire' ? '#EA580C' : 'var(--border)'}`,
+                background: markTeam === 'adversaire' ? '#EA580C20' : 'transparent',
+                color: markTeam === 'adversaire' ? '#EA580C' : 'var(--text-secondary)', fontWeight: markTeam === 'adversaire' ? 700 : 400,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+              }}><X size={12} strokeWidth={3} /> Adversaire</button>
+            </div>
+
+            <div style={{ position: 'relative', background: '#2d7a27', borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
+              <svg viewBox="0 0 100 150" style={{ width: '100%', aspectRatio: '2/3', touchAction: 'manipulation' }}
+                onClick={e => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const x = ((e.clientX - rect.left) / rect.width) * 100
+                  const y = ((e.clientY - rect.top) / rect.height) * 150
+                  addMark(Math.round(x * 10) / 10, Math.round(y * 10) / 10)
+                }}>
+                {[0,1,2,3,4,5,6,7,8,9].map(i => (
+                  <rect key={i} x="0" y={i * 15} width="100" height="15" fill={i % 2 === 0 ? 'rgba(255,255,255,.03)' : 'transparent'} />
+                ))}
+                <rect x="5" y="3" width="90" height="144" fill="none" stroke="rgba(255,255,255,.4)" strokeWidth=".5" rx="1" />
+                <line x1="5" y1="75" x2="95" y2="75" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+                <circle cx="50" cy="75" r="14" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+                <circle cx="50" cy="75" r=".8" fill="rgba(255,255,255,.5)" />
+                <rect x="25" y="3" width="50" height="26" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+                <rect x="37" y="3" width="26" height="12" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+                <rect x="25" y="121" width="50" height="26" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+                <rect x="37" y="135" width="26" height="12" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+
+                {(formRapport.terrain_marks || []).map((m, i) => {
+                  const color = m.team === 'nous' ? '#2563EB' : '#EA580C'
+                  return (
+                    <g key={i} onClick={e => { e.stopPropagation(); removeMark(i) }} style={{ cursor: 'pointer' }}>
+                      <line x1={m.x - 2.5} y1={m.y - 2.5} x2={m.x + 2.5} y2={m.y + 2.5} stroke={color} strokeWidth="1.1" strokeLinecap="round" />
+                      <line x1={m.x - 2.5} y1={m.y + 2.5} x2={m.x + 2.5} y2={m.y - 2.5} stroke={color} strokeWidth="1.1" strokeLinecap="round" />
+                    </g>
+                  )
+                })}
+              </svg>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                <span style={{ color: '#2563EB', fontWeight: 700 }}>{(formRapport.terrain_marks || []).filter(m => m.team === 'nous').length}</span> nous ·{' '}
+                <span style={{ color: '#EA580C', fontWeight: 700 }}>{(formRapport.terrain_marks || []).filter(m => m.team === 'adversaire').length}</span> adversaire
+                {' · '}touche une croix pour l'effacer
+              </p>
+              {(formRapport.terrain_marks || []).length > 0 && (
+                <button onClick={clearMarks} style={{ border: 'none', background: 'none', color: 'var(--danger)', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <Trash2 size={12} /> Tout effacer
+                </button>
+              )}
+            </div>
+          </Card>
+
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Chronologie</p>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+              <input type="number" placeholder="Min." value={chronoForm.minute} onChange={e => setChronoForm(p => ({...p, minute: e.target.value}))}
+                style={{ width: 50, padding: '7px 6px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+              <select value={chronoForm.type} onChange={e => setChronoForm(p => ({...p, type: e.target.value}))}
+                style={{ flex: 1, minWidth: 0, padding: '7px 6px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}>
+                {Object.entries(CHRONO_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <input placeholder="Descriptif (facultatif)" value={chronoForm.description} onChange={e => setChronoForm(p => ({...p, description: e.target.value}))}
+                style={{ flex: 1, minWidth: 0, padding: '7px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+              <button onClick={addChronoEvent} style={{ padding: '7px 10px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600 }}>
+                <Plus size={13} /> Ajouter
+              </button>
+            </div>
+
+            {(formRapport.chronologie || []).length === 0 ? (
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0' }}>Aucun événement noté pour l'instant.</p>
+            ) : (
+              <div>
+                {formRapport.chronologie.map((ev2, i) => {
+                  const t = CHRONO_TYPES[ev2.type] || CHRONO_TYPES.autre
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 8, marginBottom: 4, background: t.bg }}>
+                      <strong style={{ fontSize: 12, color: t.color, minWidth: 30 }}>{ev2.minute}'</strong>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: t.color }}>{t.label}</span>
+                      {ev2.description && <span style={{ fontSize: 11, color: t.color, opacity: .85, flex: 1 }}>{ev2.description}</span>}
+                      <button onClick={() => removeChronoEvent(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: t.color, opacity: .6, display: 'flex' }}><X size={13} /></button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Mi-temps</p>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Récapitulatif 1ère mi-temps</label>
+              <textarea value={formRapport.recap_mi_temps || ''} onChange={e => setFormRapport(p => ({...p, recap_mi_temps: e.target.value}))}
+                rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Axes d'amélioration</label>
+              <textarea value={formRapport.mt_axes_amelioration || ''} onChange={e => setFormRapport(p => ({...p, mt_axes_amelioration: e.target.value}))}
+                rows={3} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Projection 2nde mi-temps</label>
+              <textarea value={formRapport.mt_projection || ''} onChange={e => setFormRapport(p => ({...p, mt_projection: e.target.value}))}
+                rows={3} placeholder="Consignes à faire passer, avec le timing si besoin..."
+                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
+            <Input label="Consigne à l'adjoint" value={formRapport.mt_note_adjoint || ''} onChange={v => setFormRapport(p => ({...p, mt_note_adjoint: v}))} />
+          </Card>
+
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Notes en vrac</p>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>Pêle-mêle pendant le match, à retranscrire ensuite dans le rapport</p>
+            <textarea value={formRapport.notes_libres || ''} onChange={e => setFormRapport(p => ({...p, notes_libres: e.target.value}))}
+              rows={5} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+          </Card>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button variant="primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveRapport} disabled={saving}><Save size={13} /> Enregistrer</Button>
+          </div>
+        </div>
       )}
 
       {/* RAPPORT */}
