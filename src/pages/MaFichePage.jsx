@@ -55,10 +55,16 @@ function Field({ label, value, onChange, type = 'text', step, disabled = false, 
 function ZoneFC({ label, pct, fcRepos, fcReserve, color }) {
   if (!fcReserve) return null
   const val = Math.round(fcRepos + fcReserve * pct)
+  // Affichage en battements/15s — la façon dont les joueurs comptent réellement à
+  // l'entraînement — pour qu'ils sachent tout de suite quoi viser sans convertir.
+  const val15 = Math.round(val / 4)
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', borderRadius: 8, marginBottom: 4, background: `${color}20` }}>
       <span style={{ fontSize: 12, color }}>{label}</span>
-      <strong style={{ fontSize: 13, color }}>{val} bpm</strong>
+      <div style={{ textAlign: 'right' }}>
+        <strong style={{ fontSize: 13, color }}>{val15} batt/15s</strong>
+        <p style={{ fontSize: 9, color, opacity: .75 }}>{val} bpm</p>
+      </div>
     </div>
   )
 }
@@ -406,14 +412,17 @@ export default function MaFichePage() {
                   ].map(([label, min, max, color]) => {
                     // Cible individualisée = point médian de la zone, comme pour le coach
                     // (FicheJoueurPage.jsx) — un chiffre unique à viser, pas qu'une fourchette.
+                    // Affiché en battements/15s (méthode de comptage réelle à l'entraînement),
+                    // le bpm reste en petit pour référence.
                     const cible = Math.round(fcRepos + fcReserve * ((min + max) / 2))
+                    const bMin = Math.round(fcRepos + fcReserve * min), bMax = Math.round(fcRepos + fcReserve * max)
                     return (
                       <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 8px', borderRadius: 6, marginBottom: 3, background: `${color}15` }}>
                         <span style={{ fontSize: 11, color }}>{label}</span>
                         <div style={{ textAlign: 'right' }}>
-                          <strong style={{ fontSize: 12, color }}>{cible} bpm</strong>
+                          <strong style={{ fontSize: 12, color }}>{Math.round(cible / 4)} batt/15s</strong>
                           <p style={{ fontSize: 9, color, opacity: .75 }}>
-                            {Math.round(fcRepos + fcReserve * min)}–{Math.round(fcRepos + fcReserve * max)} bpm
+                            {Math.round(bMin / 4)}–{Math.round(bMax / 4)} batt/15s · {bMin}–{bMax} bpm
                           </p>
                         </div>
                       </div>

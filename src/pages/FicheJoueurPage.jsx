@@ -638,14 +638,17 @@ export default function FicheJoueurPage() {
                 ].map(([label, min, max, bg, color]) => {
                   // Cible individualisée = point médian de la zone (méthode Karvonen), pas
                   // seulement la fourchette — un chiffre unique à viser, propre à ce joueur.
+                  // Affiché en battements/15s (méthode de comptage réelle à l'entraînement),
+                  // le bpm reste en petit pour référence.
                   const cible = Math.round(fcReposBpm + fcReserve * ((min + max) / 2))
+                  const bMin = Math.round(fcReposBpm + fcReserve * min), bMax = Math.round(fcReposBpm + fcReserve * max)
                   return (
                     <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', borderRadius: 8, marginBottom: 4, background: bg }}>
                       <span style={{ fontSize: 11, color }}>{label}</span>
                       <div style={{ textAlign: 'right' }}>
-                        <strong style={{ fontSize: 13, color }}>{cible} bpm</strong>
+                        <strong style={{ fontSize: 13, color }}>{Math.round(cible / 4)} batt/15s</strong>
                         <p style={{ fontSize: 9, color, opacity: .75 }}>
-                          {Math.round(fcReposBpm + fcReserve * min)}–{Math.round(fcReposBpm + fcReserve * max)} bpm
+                          {Math.round(bMin / 4)}–{Math.round(bMax / 4)} batt/15s · {bMin}–{bMax} bpm
                         </p>
                       </div>
                     </div>
