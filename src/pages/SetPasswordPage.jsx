@@ -74,7 +74,7 @@ export default function SetPasswordPage() {
     <div style={{ minHeight: '100vh', background: 'var(--gradient)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <div style={{ width: 72, height: 72, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)', background: '#fff', padding: 6, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-          <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <img src="/icons/logo.png" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
         <h1 style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>FC PCL</h1>
       </div>

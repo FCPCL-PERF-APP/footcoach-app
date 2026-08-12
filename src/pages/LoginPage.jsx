@@ -42,7 +42,7 @@ export default function LoginPage() {
           animation: logoLoaded ? 'none' : 'pulse 1.5s infinite',
         }}>
           <img
-            src="/icons/logo.jpg" alt="FC PCL"
+            src="/icons/logo.png" alt="FC PCL"
             onLoad={() => setLogoLoaded(true)}
             style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: logoLoaded ? 1 : 0, transition: 'opacity .3s' }}
           />

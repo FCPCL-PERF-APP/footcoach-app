@@ -68,7 +68,7 @@ export default function AppHeader() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div onClick={() => navigate(isCoach ? '/calendrier' : '/mon-dashboard')}
           style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,.4)', background: '#fff', padding: 2, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <img src="/icons/logo.png" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
         <div>
           <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{title}</p>

@@ -30,7 +30,7 @@ export function exportRapportPDF(rapport, event, stats, compo) {
     @media print{body{padding:10px}}
   </style></head><body>
   <div class="header">
-    <img src="${window.location.origin}/icons/logo.jpg" onerror="this.style.display='none'" />
+    <img src="${window.location.origin}/icons/logo.png" onerror="this.style.display='none'" />
     <div><h1>FC PCL — Rapport de match</h1>
     <p style="color:#666;margin-top:2px">${event?.titre || ''} · ${dateStr}</p>
     <p style="color:#666">${event?.domicile ? 'Domicile' : 'Déplacement'} · ${event?.lieu || ''}</p></div>

@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component {
           padding: 24, background: 'var(--bg-secondary)', textAlign: 'center'
         }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', marginBottom: 16, background: '#fff', border: '1px solid var(--border)', padding: 5, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src="/icons/logo.jpg" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <img src="/icons/logo.png" alt="FC PCL" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Oups, quelque chose s'est mal passé</h2>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24, maxWidth: 300 }}>
