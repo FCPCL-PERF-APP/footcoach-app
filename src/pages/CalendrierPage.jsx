@@ -321,6 +321,8 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
   // "Voir les présences"), pas automatiquement à l'ouverture de l'agenda — pour le
   // staff en revanche le résumé reste visible d'emblée, comme avant.
   const [showPresences, setShowPresences] = useState(false)
+  const [showConvoques, setShowConvoques] = useState(false)
+  const [listeConvoques, setListeConvoques] = useState(null)
   const [score, setScore] = useState(null)
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
@@ -363,6 +365,21 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
       .eq('evenement_id', ev.id).eq('joueur_id', profile.id).maybeSingle()
     // null = le coach n'a pas encore fait sa sélection (à distinguer de "non retenu")
     setConvoque(data ? data.convoque : null)
+  }
+
+  // Un joueur non retenu voyait juste son propre badge "Non convoqué", sans pouvoir
+  // vérifier la liste des retenus — ce bouton lui montre qui l'est, comme le staff le
+  // voit sur la page Convocations, pour qu'il comprenne sans avoir à demander.
+  function toggleShowConvoques() {
+    if (!showConvoques && listeConvoques === null) loadConvoques()
+    setShowConvoques(p => !p)
+  }
+  async function loadConvoques() {
+    const { data } = await supabase.from('convocations').select('joueurs(nom, prenom)')
+      .eq('evenement_id', ev.id).eq('convoque', true)
+    setListeConvoques((data || [])
+      .filter(c => c.joueurs)
+      .sort((a, b) => (a.joueurs?.nom || '').localeCompare(b.joueurs?.nom || '')))
   }
 
   // Liseré coloré à gauche pour distinguer les cartes d'un coup d'œil dans la liste
@@ -442,13 +459,47 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
           présences" le charge et l'affiche à la demande, pour ne pas surcharger
           l'agenda par défaut. Le staff continue à le voir automatiquement. */}
       {isJoueur && (
-        <button onClick={toggleShowPresences} style={{
-          border: 'none', background: 'var(--bg-secondary)', borderRadius: 8, padding: '5px 10px',
-          fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer', marginBottom: 8,
-          display: 'inline-flex', alignItems: 'center', gap: 5
-        }}>
-          {showPresences ? <EyeOff size={12} /> : <Eye size={12} />} {showPresences ? 'Masquer les présences' : 'Voir les présences'}
-        </button>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+          <button onClick={toggleShowPresences} style={{
+            border: 'none', background: 'var(--bg-secondary)', borderRadius: 8, padding: '5px 10px',
+            fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer',
+            display: 'inline-flex', alignItems: 'center', gap: 5
+          }}>
+            {showPresences ? <EyeOff size={12} /> : <Eye size={12} />} {showPresences ? 'Masquer les présences' : 'Voir les présences'}
+          </button>
+          {/* Uniquement une fois que le coach a fait sa sélection (convoque !== null) —
+              sinon la liste serait vide et prêterait à confusion. */}
+          {ev.type === 'match' && convoque !== null && (
+            <button onClick={toggleShowConvoques} style={{
+              border: 'none', background: 'var(--bg-secondary)', borderRadius: 8, padding: '5px 10px',
+              fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 5
+            }}>
+              {showConvoques ? <EyeOff size={12} /> : <Eye size={12} />} {showConvoques ? 'Masquer les convoqués' : 'Voir les convoqués'}
+            </button>
+          )}
+        </div>
+      )}
+
+      {isJoueur && showConvoques && (
+        <div style={{ marginBottom: 8, padding: '6px 10px', background: 'var(--bg-secondary)', borderRadius: 8 }}>
+          {listeConvoques === null ? (
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Chargement...</p>
+          ) : listeConvoques.length === 0 ? (
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Aucun joueur convoqué pour l'instant.</p>
+          ) : (
+            <>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>{listeConvoques.length} convoqué(s)</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {listeConvoques.map((c, i) => (
+                  <span key={i} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 12, background: 'var(--primary-bg)', color: 'var(--primary)' }}>
+                    {c.joueurs?.prenom} {c.joueurs?.nom}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       )}
 
       {/* Résumé présences — compte visible au staff comme aux joueurs, détail nominatif
