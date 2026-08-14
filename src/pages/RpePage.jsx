@@ -6,7 +6,7 @@ import { supabase, authHeaders } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Badge, Button, Select, Textarea, BarChart, Spinner, AlertCard } from '../components/UI'
 import { THEME } from '../theme'
-import { BarChart3, Users, Hourglass, AlertTriangle, CheckCircle2, MessageSquare, Bell } from 'lucide-react'
+import { BarChart3, Users, Hourglass, AlertTriangle, CheckCircle2, MessageSquare, Bell, ClipboardCheck, Save } from 'lucide-react'
 
 const RPE_ITEMS_SEANCE = [
   { key: 'difficulte',        label: 'Difficulté ressentie' },
@@ -22,6 +22,18 @@ const RPE_ITEMS_MATCH = [
   { key: 'motivation',        label: 'Motivation' },
   { key: 'implication',       label: 'Implication' },
   { key: 'fatigue',           label: 'Fatigue ressentie' },
+]
+
+// "Perçu par le coach" — même échelle que le RPE auto-déclaré (difficulté, fatigue,
+// implication, motivation, perf individuelle), remplie par le coach lui-même pour
+// chaque joueur, sur le modèle du carnet papier "RPE coach" (mêmes 5 items côté
+// séance et côté match dans ce modèle).
+const RPE_COACH_ITEMS = [
+  { key: 'difficulte',        label: 'Difficulté ressentie' },
+  { key: 'fatigue',           label: 'Fatigue ressentie' },
+  { key: 'implication',       label: 'Implication' },
+  { key: 'motivation',        label: 'Motivation' },
+  { key: 'perf_individuelle', label: 'Perf. individuelle' },
 ]
 
 const RPE_COLORS = ['#3B6D11','#639922','#97C459','#BA7517','#D85A30','#A32D2D']
@@ -48,9 +60,14 @@ export default function RpePage() {
   const [absentIds, setAbsentIds] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [relanceState, setRelanceState] = useState(null)
+  const [rpeCoachData, setRpeCoachData] = useState([])
+  const [selectedJoueurCoach, setSelectedJoueurCoach] = useState('')
+  const [formCoach, setFormCoach] = useState({})
+  const [savingCoach, setSavingCoach] = useState(false)
+  const [savedCoach, setSavedCoach] = useState(false)
 
   useEffect(() => { loadEvents(); loadJoueurs() }, [])
-  useEffect(() => { if (selectedEvent) { loadRpe(); loadConvocations(); loadPresences() } }, [selectedEvent])
+  useEffect(() => { if (selectedEvent) { loadRpe(); loadConvocations(); loadPresences(); loadRpeCoach() } }, [selectedEvent])
 
   async function loadEvents() {
     // Pas de limite arbitraire — une saison ne dépasse jamais quelques centaines
@@ -78,6 +95,36 @@ export default function RpePage() {
   async function loadRpe() {
     const { data } = await supabase.from('rpe').select('*, joueurs(nom,prenom,poste)').eq('evenement_id', selectedEvent)
     setRpeData(data || [])
+  }
+
+  async function loadRpeCoach() {
+    const { data } = await supabase.from('rpe_coach').select('*, joueurs(nom,prenom,poste)').eq('evenement_id', selectedEvent)
+    setRpeCoachData(data || [])
+  }
+
+  // Sélectionne un joueur dans l'onglet "RPE Coach" — précharge sa saisie existante
+  // pour cet événement s'il y en a déjà une, sinon repart d'un formulaire vide.
+  function selectJoueurCoach(joueurId) {
+    setSelectedJoueurCoach(joueurId)
+    const existing = rpeCoachData.find(r => r.joueur_id === joueurId)
+    setFormCoach(existing
+      ? Object.fromEntries(RPE_COACH_ITEMS.map(i => [i.key, existing[i.key]]))
+      : {})
+  }
+
+  async function saveRpeCoach() {
+    if (!selectedJoueurCoach) return
+    setSavingCoach(true)
+    const payload = {
+      evenement_id: selectedEvent,
+      joueur_id: selectedJoueurCoach,
+      ...Object.fromEntries(RPE_COACH_ITEMS.map(i => [i.key, formCoach[i.key] ?? null]))
+    }
+    const { error } = await supabase.from('rpe_coach').upsert(payload, { onConflict: 'evenement_id,joueur_id' })
+    setSavingCoach(false)
+    if (error) { alert('Erreur lors de l\'enregistrement : ' + error.message); return }
+    setSavedCoach(true); setTimeout(() => setSavedCoach(false), 2000)
+    loadRpeCoach()
   }
 
   // Sur un match, seuls les joueurs convoqués sont concernés par le RPE — requête directe
@@ -171,7 +218,7 @@ export default function RpePage() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {[['bilan', BarChart3, 'Bilan groupe'],['detail', Users, 'Par joueur'],['manquants', Hourglass, 'Manquants']].map(([tab, Icon, lbl]) => (
+        {[['bilan', BarChart3, 'Bilan groupe'],['detail', Users, 'Par joueur'],['manquants', Hourglass, 'Manquants'],['coach', ClipboardCheck, 'RPE Coach']].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid var(--border)',
@@ -295,6 +342,66 @@ export default function RpePage() {
                     </Button>
                   </>
               }
+            </Card>
+          )}
+
+          {/* RPE COACH — perception du coach, joueur par joueur, même échelle que le
+              RPE auto-déclaré, pour pouvoir comparer ressenti déclaré et perçu. */}
+          {activeTab === 'coach' && (
+            <Card>
+              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>RPE Coach</p>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                Ton ressenti sur chaque joueur — 0 = très faible · 5 = très élevé
+              </p>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>
+                {rpeCoachData.length}/{joueursCibles.length} joueur(s) évalué(s)
+              </p>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Joueur</label>
+                <select value={selectedJoueurCoach} onChange={e => selectJoueurCoach(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
+                  <option value="">— Choisir —</option>
+                  {joueursCibles.map(j => (
+                    <option key={j.id} value={j.id}>
+                      {rpeCoachData.find(r => r.joueur_id === j.id) ? '✓ ' : ''}{j.nom} {j.prenom} — {j.poste}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedJoueurCoach && (
+                <>
+                  {RPE_COACH_ITEMS.map(item => {
+                    const val = formCoach[item.key]
+                    return (
+                      <div key={item.key} style={{ marginBottom: 14 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                          <label style={{ fontSize: 12, fontWeight: 600 }}>{item.label}</label>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: val !== undefined && val !== null ? rpeColor(val) : 'var(--border)' }}>
+                            {val !== undefined && val !== null ? val : '—'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 5 }}>
+                          {[0,1,2,3,4,5].map(v => (
+                            <button key={v} onClick={() => setFormCoach(p => ({ ...p, [item.key]: v }))} style={{
+                              flex: 1, padding: '8px 4px', borderRadius: 8,
+                              border: `1.5px solid ${val === v ? rpeColor(v) : 'var(--border)'}`,
+                              background: val === v ? `${rpeColor(v)}20` : 'transparent',
+                              color: val === v ? rpeColor(v) : 'var(--text-secondary)',
+                              fontSize: 13, fontWeight: val === v ? 700 : 400, cursor: 'pointer'
+                            }}>{v}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                    disabled={savingCoach} onClick={saveRpeCoach}>
+                    {savedCoach ? <><CheckCircle2 size={13} /> Enregistré !</> : <><Save size={13} /> {savingCoach ? 'Enregistrement...' : 'Enregistrer'}</>}
+                  </Button>
+                </>
+              )}
             </Card>
           )}
         </>
