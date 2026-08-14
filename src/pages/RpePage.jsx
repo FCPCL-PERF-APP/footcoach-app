@@ -24,16 +24,22 @@ const RPE_ITEMS_MATCH = [
   { key: 'fatigue',           label: 'Fatigue ressentie' },
 ]
 
-// "Perçu par le coach" — même échelle que le RPE auto-déclaré (difficulté, fatigue,
-// implication, motivation, perf individuelle), remplie par le coach lui-même pour
-// chaque joueur, sur le modèle du carnet papier "RPE coach" (mêmes 5 items côté
-// séance et côté match dans ce modèle).
-const RPE_COACH_ITEMS = [
+// "Perçu par le coach" — même échelle que le RPE auto-déclaré, remplie par le coach
+// lui-même pour chaque joueur. Le carnet papier n'a PAS les mêmes items côté séance
+// et côté match : la séance a 5 items dont la difficulté (DD/DF/I/M/PI), le match n'a
+// que 4 items sans la difficulté (PI/M/DI/DF — DI = degré d'implication).
+const RPE_COACH_ITEMS_SEANCE = [
   { key: 'difficulte',        label: 'Difficulté ressentie' },
   { key: 'fatigue',           label: 'Fatigue ressentie' },
   { key: 'implication',       label: 'Implication' },
   { key: 'motivation',        label: 'Motivation' },
   { key: 'perf_individuelle', label: 'Perf. individuelle' },
+]
+const RPE_COACH_ITEMS_MATCH = [
+  { key: 'perf_individuelle', label: 'Perf. individuelle (niveau de jeu proposé)' },
+  { key: 'motivation',        label: 'Motivation' },
+  { key: 'implication',       label: 'Implication' },
+  { key: 'fatigue',           label: 'Fatigue ressentie' },
 ]
 
 const RPE_COLORS = ['#3B6D11','#639922','#97C459','#BA7517','#D85A30','#A32D2D']
@@ -67,7 +73,14 @@ export default function RpePage() {
   const [savedCoach, setSavedCoach] = useState(false)
 
   useEffect(() => { loadEvents(); loadJoueurs() }, [])
-  useEffect(() => { if (selectedEvent) { loadRpe(); loadConvocations(); loadPresences(); loadRpeCoach() } }, [selectedEvent])
+  useEffect(() => {
+    if (selectedEvent) { loadRpe(); loadConvocations(); loadPresences(); loadRpeCoach() }
+    // Changer d'événement doit vider la sélection joueur de l'onglet RPE Coach — sinon
+    // le formulaire affichait encore les notes du joueur sélectionné sur l'événement
+    // précédent, en les faisant passer pour celles du nouvel événement.
+    setSelectedJoueurCoach('')
+    setFormCoach({})
+  }, [selectedEvent])
 
   async function loadEvents() {
     // Pas de limite arbitraire — une saison ne dépasse jamais quelques centaines
@@ -106,19 +119,23 @@ export default function RpePage() {
   // pour cet événement s'il y en a déjà une, sinon repart d'un formulaire vide.
   function selectJoueurCoach(joueurId) {
     setSelectedJoueurCoach(joueurId)
+    const currentEv = events.find(e => e.id === selectedEvent)
+    const itemsC = currentEv?.type === 'match' ? RPE_COACH_ITEMS_MATCH : RPE_COACH_ITEMS_SEANCE
     const existing = rpeCoachData.find(r => r.joueur_id === joueurId)
     setFormCoach(existing
-      ? Object.fromEntries(RPE_COACH_ITEMS.map(i => [i.key, existing[i.key]]))
+      ? Object.fromEntries(itemsC.map(i => [i.key, existing[i.key]]))
       : {})
   }
 
   async function saveRpeCoach() {
     if (!selectedJoueurCoach) return
     setSavingCoach(true)
+    const currentEv = events.find(e => e.id === selectedEvent)
+    const itemsC = currentEv?.type === 'match' ? RPE_COACH_ITEMS_MATCH : RPE_COACH_ITEMS_SEANCE
     const payload = {
       evenement_id: selectedEvent,
       joueur_id: selectedJoueurCoach,
-      ...Object.fromEntries(RPE_COACH_ITEMS.map(i => [i.key, formCoach[i.key] ?? null]))
+      ...Object.fromEntries(itemsC.map(i => [i.key, formCoach[i.key] ?? null]))
     }
     const { error } = await supabase.from('rpe_coach').upsert(payload, { onConflict: 'evenement_id,joueur_id' })
     setSavingCoach(false)
@@ -147,6 +164,21 @@ export default function RpePage() {
 
   const currentEvent = events.find(e => e.id === selectedEvent)
   const items = currentEvent?.type === 'match' ? RPE_ITEMS_MATCH : RPE_ITEMS_SEANCE
+  const itemsCoach = currentEvent?.type === 'match' ? RPE_COACH_ITEMS_MATCH : RPE_COACH_ITEMS_SEANCE
+
+  // Bilan du RPE Coach pour cet événement — même principe que "Bilan groupe" côté RPE
+  // joueur, pour que le coach puisse relire une synthèse de ses propres évaluations
+  // plutôt que de devoir rouvrir chaque joueur un par un.
+  function groupAvgCoach(key) {
+    const vals = rpeCoachData.map(r => r[key]).filter(v => v !== null && v !== undefined)
+    if (!vals.length) return null
+    return vals.reduce((a, b) => a + b, 0) / vals.length
+  }
+  const bilanCoachData = itemsCoach.map(item => ({
+    label: item.label,
+    value: groupAvgCoach(item.key) ?? 0,
+    color: rpeColor(groupAvgCoach(item.key) ?? 0)
+  }))
   // Effectif ciblé par cet événement : tout le monde pour une séance, seulement les
   // convoqués pour un match (les autres n'ont pas à remplir leur RPE) — dans les deux
   // cas, on retire les absents/blessés qui n'ont rien à saisir.
@@ -348,13 +380,24 @@ export default function RpePage() {
           {/* RPE COACH — perception du coach, joueur par joueur, même échelle que le
               RPE auto-déclaré, pour pouvoir comparer ressenti déclaré et perçu. */}
           {activeTab === 'coach' && (
-            <Card>
-              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>RPE Coach</p>
-              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>
-                Ton ressenti sur chaque joueur — 0 = très faible · 5 = très élevé
-              </p>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>
-                {rpeCoachData.length}/{joueursCibles.length} joueur(s) évalué(s)
+            <>
+              {/* Bilan — synthèse des évaluations déjà saisies pour cet événement, pour
+                  ne pas avoir à rouvrir chaque joueur pour se faire une idée d'ensemble. */}
+              <Card>
+                <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Bilan RPE Coach</p>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                  Moyenne de tes évaluations — {rpeCoachData.length}/{joueursCibles.length} joueur(s) évalué(s)
+                </p>
+                {rpeCoachData.length === 0
+                  ? <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Aucune évaluation pour l'instant.</p>
+                  : <BarChart data={bilanCoachData} maxValue={5} />
+                }
+              </Card>
+
+              <Card>
+              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Ton évaluation, joueur par joueur</p>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                0 = très faible · 5 = très élevé
               </p>
 
               <div style={{ marginBottom: 14 }}>
@@ -372,7 +415,7 @@ export default function RpePage() {
 
               {selectedJoueurCoach && (
                 <>
-                  {RPE_COACH_ITEMS.map(item => {
+                  {itemsCoach.map(item => {
                     const val = formCoach[item.key]
                     return (
                       <div key={item.key} style={{ marginBottom: 14 }}>
@@ -402,7 +445,8 @@ export default function RpePage() {
                   </Button>
                 </>
               )}
-            </Card>
+              </Card>
+            </>
           )}
         </>
       )}
