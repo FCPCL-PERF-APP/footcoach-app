@@ -168,6 +168,12 @@ export default function RpePage() {
   const currentEvent = events.find(e => e.id === selectedEvent)
   const items = currentEvent?.type === 'match' ? RPE_ITEMS_MATCH : RPE_ITEMS_SEANCE
 
+  // Revient sur "Bilan groupe" si l'onglet RPE Coach était affiché et que
+  // l'événement sélectionné change pour une séance (onglet réservé aux matchs).
+  useEffect(() => {
+    if (activeTab === 'coach' && currentEvent && currentEvent.type !== 'match') setActiveTab('bilan')
+  }, [currentEvent?.type])
+
   // Bilan du RPE Coach pour cet événement — même principe que "Bilan groupe" côté RPE
   // joueur, pour que le coach puisse relire une synthèse de ses propres évaluations
   // plutôt que de devoir rouvrir chaque joueur un par un.
@@ -250,9 +256,15 @@ export default function RpePage() {
         }))}
       />
 
-      {/* Tabs */}
+      {/* Tabs — RPE Coach n'a d'intérêt que sur un match pour l'instant (pas de sens
+          côté séance pour le moment), donc masqué sur une séance. */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {[['bilan', BarChart3, 'Bilan groupe'],['detail', Users, 'Par joueur'],['manquants', Hourglass, 'Manquants'],['coach', ClipboardCheck, 'RPE Coach']].map(([tab, Icon, lbl]) => (
+        {[
+          ['bilan', BarChart3, 'Bilan groupe'],
+          ['detail', Users, 'Par joueur'],
+          ['manquants', Hourglass, 'Manquants'],
+          ...(currentEvent?.type === 'match' ? [['coach', ClipboardCheck, 'RPE Coach']] : []),
+        ].map(([tab, Icon, lbl]) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '5px 10px', borderRadius: 8, fontSize: 11, cursor: 'pointer',
             border: '0.5px solid var(--border)',
