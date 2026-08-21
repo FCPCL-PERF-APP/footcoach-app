@@ -516,8 +516,22 @@ export default function StatsPage() {
                 {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom} — {j.poste}</option>)}
               </select>
             </div>
+            {/* La Note n'est plus saisie ici — elle est désormais calculée automatiquement
+                depuis le RPE Coach (moyenne des 4 items, x2 pour rester sur /10), pour ne
+                pas noter le joueur deux fois avec deux méthodes différentes. */}
+            {selectedJoueur && (
+              <div style={{ marginBottom: 10, padding: '8px 10px', background: 'var(--bg-secondary)', borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Note (calculée via RPE Coach)</p>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: formJ.note ? 'var(--primary)' : 'var(--text-muted)' }}>
+                    {formJ.note ? `${formJ.note}/10` : 'Pas encore évalué'}
+                  </p>
+                </div>
+                <Button size="sm" onClick={() => navigate(`/rpe?event=${eventId}`)}>Évaluer</Button>
+              </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-              {[['Note (/10)', 'note', '0.5'], ['Temps jeu (min)', 'temps_jeu', '1'], ['Buts', 'buts', '1'], ['Passes déc.', 'passes_decisives', '1']].map(([label, field, step]) => (
+              {[['Temps jeu (min)', 'temps_jeu', '1'], ['Buts', 'buts', '1'], ['Passes déc.', 'passes_decisives', '1']].map(([label, field, step]) => (
                 <div key={field}>
                   <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
                   <input type="number" step={step} value={formJ[field] || ''} onChange={e => setFormJ(p => ({...p, [field]: e.target.value}))}

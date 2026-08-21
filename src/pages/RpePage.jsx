@@ -24,22 +24,15 @@ const RPE_ITEMS_MATCH = [
   { key: 'fatigue',           label: 'Fatigue ressentie' },
 ]
 
-// "Perçu par le coach" — même échelle que le RPE auto-déclaré, remplie par le coach
-// lui-même pour chaque joueur. Le carnet papier n'a PAS les mêmes items côté séance
-// et côté match : la séance a 5 items dont la difficulté (DD/DF/I/M/PI), le match n'a
-// que 4 items sans la difficulté (PI/M/DI/DF — DI = degré d'implication).
-const RPE_COACH_ITEMS_SEANCE = [
-  { key: 'difficulte',        label: 'Difficulté ressentie' },
-  { key: 'fatigue',           label: 'Fatigue ressentie' },
-  { key: 'implication',       label: 'Implication' },
-  { key: 'motivation',        label: 'Motivation' },
-  { key: 'perf_individuelle', label: 'Perf. individuelle' },
-]
-const RPE_COACH_ITEMS_MATCH = [
-  { key: 'perf_individuelle', label: 'Perf. individuelle (niveau de jeu proposé)' },
-  { key: 'motivation',        label: 'Motivation' },
-  { key: 'implication',       label: 'Implication' },
-  { key: 'fatigue',           label: 'Fatigue ressentie' },
+// "Perçu par le coach" — recentré sur ce qu'un coach peut réellement observer de
+// l'extérieur (contrairement à fatigue/implication/motivation, qui sont des ressentis
+// internes déjà couverts par le RPE auto-déclaré du joueur). Mêmes 4 items pour une
+// séance ou un match.
+const RPE_COACH_ITEMS = [
+  { key: 'perf_individuelle', label: 'Performance individuelle' },
+  { key: 'investissement',    label: 'Investissement / intensité observée' },
+  { key: 'consignes',         label: 'Respect des consignes' },
+  { key: 'qualite_technique', label: 'Qualité technique' },
 ]
 
 const RPE_COLORS = ['#3B6D11','#639922','#97C459','#BA7517','#D85A30','#A32D2D']
@@ -119,27 +112,37 @@ export default function RpePage() {
   // pour cet événement s'il y en a déjà une, sinon repart d'un formulaire vide.
   function selectJoueurCoach(joueurId) {
     setSelectedJoueurCoach(joueurId)
-    const currentEv = events.find(e => e.id === selectedEvent)
-    const itemsC = currentEv?.type === 'match' ? RPE_COACH_ITEMS_MATCH : RPE_COACH_ITEMS_SEANCE
     const existing = rpeCoachData.find(r => r.joueur_id === joueurId)
     setFormCoach(existing
-      ? Object.fromEntries(itemsC.map(i => [i.key, existing[i.key]]))
+      ? Object.fromEntries(RPE_COACH_ITEMS.map(i => [i.key, existing[i.key]]))
       : {})
   }
 
   async function saveRpeCoach() {
     if (!selectedJoueurCoach) return
     setSavingCoach(true)
-    const currentEv = events.find(e => e.id === selectedEvent)
-    const itemsC = currentEv?.type === 'match' ? RPE_COACH_ITEMS_MATCH : RPE_COACH_ITEMS_SEANCE
     const payload = {
       evenement_id: selectedEvent,
       joueur_id: selectedJoueurCoach,
-      ...Object.fromEntries(itemsC.map(i => [i.key, formCoach[i.key] ?? null]))
+      ...Object.fromEntries(RPE_COACH_ITEMS.map(i => [i.key, formCoach[i.key] ?? null]))
     }
     const { error } = await supabase.from('rpe_coach').upsert(payload, { onConflict: 'evenement_id,joueur_id' })
     setSavingCoach(false)
     if (error) { alert('Erreur lors de l\'enregistrement : ' + error.message); return }
+
+    // La Note (/10) de stats_match — jusqu'ici tapée à la main dans Stats match —
+    // devient calculée depuis le RPE Coach : moyenne des 4 items (x2 pour rester sur la
+    // même échelle /10 qu'avant, pour ne rien casser des radars/comparatifs/badges qui
+    // en dépendent déjà). Upsert ciblé sur la seule colonne "note" : ne touche pas aux
+    // autres champs de stats_match (temps de jeu, buts...) saisis par ailleurs.
+    const vals = RPE_COACH_ITEMS.map(i => payload[i.key]).filter(v => v !== null && v !== undefined)
+    if (vals.length) {
+      const moyenne = vals.reduce((a, b) => a + b, 0) / vals.length
+      await supabase.from('stats_match').upsert({
+        evenement_id: selectedEvent, joueur_id: selectedJoueurCoach, note: parseFloat((moyenne * 2).toFixed(1))
+      }, { onConflict: 'evenement_id,joueur_id' })
+    }
+
     setSavedCoach(true); setTimeout(() => setSavedCoach(false), 2000)
     loadRpeCoach()
   }
@@ -164,7 +167,6 @@ export default function RpePage() {
 
   const currentEvent = events.find(e => e.id === selectedEvent)
   const items = currentEvent?.type === 'match' ? RPE_ITEMS_MATCH : RPE_ITEMS_SEANCE
-  const itemsCoach = currentEvent?.type === 'match' ? RPE_COACH_ITEMS_MATCH : RPE_COACH_ITEMS_SEANCE
 
   // Bilan du RPE Coach pour cet événement — même principe que "Bilan groupe" côté RPE
   // joueur, pour que le coach puisse relire une synthèse de ses propres évaluations
@@ -174,7 +176,7 @@ export default function RpePage() {
     if (!vals.length) return null
     return vals.reduce((a, b) => a + b, 0) / vals.length
   }
-  const bilanCoachData = itemsCoach.map(item => ({
+  const bilanCoachData = RPE_COACH_ITEMS.map(item => ({
     label: item.label,
     value: groupAvgCoach(item.key) ?? 0,
     color: rpeColor(groupAvgCoach(item.key) ?? 0)
@@ -396,8 +398,11 @@ export default function RpePage() {
 
               <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Ton évaluation, joueur par joueur</p>
-              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>
                 0 = très faible · 5 = très élevé
+              </p>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>
+                La moyenne de ces 4 items remplace automatiquement la Note (/10) du joueur dans Stats match.
               </p>
 
               <div style={{ marginBottom: 14 }}>
@@ -415,7 +420,7 @@ export default function RpePage() {
 
               {selectedJoueurCoach && (
                 <>
-                  {itemsCoach.map(item => {
+                  {RPE_COACH_ITEMS.map(item => {
                     const val = formCoach[item.key]
                     return (
                       <div key={item.key} style={{ marginBottom: 14 }}>
