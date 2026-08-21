@@ -58,6 +58,7 @@ export default function DashboardJoueurPage() {
       { data: eventsProchesJoueur },
       { data: presReponses },
       { data: convocsJoueur },
+      { data: convocsAll },
     ] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', joueurId).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)')
@@ -83,6 +84,7 @@ export default function DashboardJoueurPage() {
         .lte('date_heure', new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()),
       supabase.from('presences').select('evenement_id').eq('joueur_id', joueurId),
       supabase.from('convocations').select('evenement_id').eq('joueur_id', joueurId).eq('convoque', true),
+      supabase.from('convocations').select('evenement_id, convoque').eq('joueur_id', joueurId),
     ])
 
     setJoueur(j)
@@ -95,12 +97,33 @@ export default function DashboardJoueurPage() {
 
     const rpeIds = new Set((rpesFaits || []).map(r => r.evenement_id))
     const footIds = new Set((footFaits || []).map(f => f.evenement_id))
+
+    // Un événement où le joueur était absent/blessé, ou un match auquel il n'était pas
+    // convoqué, ne compte pas comme "RPE en attente" — sinon ce badge annonçait des RPE
+    // à faire que la page "Mon suivi" (qui applique déjà ce filtre) ne réclamait pas,
+    // ce qui faisait dire au joueur "à jour" alors que le Dashboard affichait encore
+    // un chiffre. Un RPE non rempli depuis plus d'une semaine n'est plus réclamé non
+    // plus, même logique que "Mon suivi" (MonSuiviPage.jsx).
+    const presStatutMap = {}
+    for (const p of (pres || [])) presStatutMap[p.evenement_id] = p.statut
+    const convocMap = {}
+    for (const c of (convocsAll || [])) convocMap[c.evenement_id] = c.convoque
+    const uneSemaine = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    function estEligibleRpe(e) {
+      if (new Date(e.date_heure) < uneSemaine) return false
+      if (presStatutMap[e.id] === 'absent' || presStatutMap[e.id] === 'blesse') return false
+      if (e.type === 'match' && !convocMap[e.id]) return false
+      return true
+    }
+
     // Le Footbar est facultatif (capteur pas toujours dispo, club amateur) : seul le RPE
     // conditionne le badge "à faire".
-    const aFaire = (evs || []).filter(e => !rpeIds.has(e.id))
+    const aFaire = (evs || []).filter(e => estEligibleRpe(e) && !rpeIds.has(e.id))
     setEventsAFaire(aFaire)
-    setNbRpeAFaire((evs || []).filter(e => new Date(e.date_heure) < new Date() && !rpeIds.has(e.id)).length)
-    setNbFootAFaire((evs || []).filter(e => new Date(e.date_heure) < new Date() && !footIds.has(e.id)).length)
+    setNbRpeAFaire(aFaire.length)
+    // Même filtre d'éligibilité que pour le RPE — un match non convoqué ou une séance
+    // manquée ne doit pas non plus compter comme Footbar "à compléter".
+    setNbFootAFaire((evs || []).filter(e => estEligibleRpe(e) && !footIds.has(e.id)).length)
 
     // Présence à confirmer : événements proches concernés (séances + matchs où convoqué)
     // et pour lesquels aucune réponse n'a encore été enregistrée.
