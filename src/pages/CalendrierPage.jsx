@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { savePresenceOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { useAuth } from '../hooks/useAuth'
-import { Card, Badge, Button, Input, Select, Spinner } from '../components/UI'
+import { Card, Badge, Button, Input, Select, Spinner, Textarea } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO, isAfter, isBefore } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   CalendarDays, Repeat, Plus, X, Pencil, Trash2, MapPin, Clock, Send, Hourglass,
   CheckCircle2, RefreshCw, XCircle, Bandage, BarChart3, Heart, Radio, Copy,
-  Swords, Footprints, History, WifiOff, Save, Check, Circle, Eye, EyeOff
+  Swords, Footprints, History, WifiOff, Save, Check, Circle, Eye, EyeOff, Info
 } from 'lucide-react'
 
 // Championnat/coupe/préparation — même vocabulaire que ConvocationsPage.jsx (cap de
@@ -36,7 +36,7 @@ export default function CalendrierPage() {
   const [form, setForm] = useState({
     type: 'match', titre: '', date: '', heure: '15:00',
     lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '',
-    match_type: 'championnat'
+    match_type: 'championnat', commentaire: ''
   })
   const [saving, setSaving] = useState(false)
   const [queueCount, setQueueCount] = useState(0)
@@ -70,6 +70,9 @@ export default function CalendrierPage() {
       rdv_heure: form.type === 'match' ? form.rdv_heure : null,
       rdv_lieu: form.type === 'match' ? form.rdv_lieu : null,
       match_type: form.type === 'match' ? form.match_type : null,
+      // Commentaire libre du coach (synthétique, RDV sur place...) — visible par tous
+      // sur la carte du match, éditable uniquement par le coach.
+      commentaire: form.type === 'match' ? (form.commentaire || null) : null,
     }
     const { error } = editingEvent
       ? await supabase.from('evenements').update(payload).eq('id', editingEvent.id)
@@ -94,7 +97,7 @@ export default function CalendrierPage() {
     }
 
     setShowAdd(false); setEditingEvent(null)
-    setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '' })
+    setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '', commentaire: '' })
     loadEvents()
   }
 
@@ -106,7 +109,7 @@ export default function CalendrierPage() {
       heure: ev.date_heure?.split('T')[1]?.slice(0,5) || '15:00',
       lieu: ev.lieu || '', domicile: ev.domicile !== false,
       rdv_heure: ev.rdv_heure || '14:00', rdv_lieu: ev.rdv_lieu || '',
-      match_type: ev.match_type || 'championnat'
+      match_type: ev.match_type || 'championnat', commentaire: ev.commentaire || ''
     })
     setShowAdd(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -129,7 +132,9 @@ export default function CalendrierPage() {
       heure: ev.date_heure?.split('T')[1]?.slice(0,5) || '15:00',
       lieu: ev.lieu || '', domicile: ev.domicile !== false,
       rdv_heure: ev.rdv_heure || '14:00', rdv_lieu: ev.rdv_lieu || '',
-      match_type: ev.match_type || 'championnat'
+      // Pas de report du commentaire — spécifique au match d'origine (synthétique, RDV
+      // sur place...), qui n'a aucune raison d'être valable pour le match dupliqué.
+      match_type: ev.match_type || 'championnat', commentaire: ''
     })
     setShowAdd(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -256,6 +261,11 @@ export default function CalendrierPage() {
                   <Input label="Lieu de RDV" value={form.rdv_lieu} onChange={v => setForm(p => ({...p, rdv_lieu: v}))} placeholder="Vestiaires..." />
                 </div>
               </div>
+              {/* Commentaire libre, visible par tous sur la carte du match (staff et
+                  joueurs), mais éditable uniquement ici par le coach. */}
+              <Textarea label="Commentaire (visible par tous)" rows={2}
+                value={form.commentaire} onChange={v => setForm(p => ({...p, commentaire: v}))}
+                placeholder="Ex : match sur synthétique, RDV 14h sur place pour ceux qui viennent directement..." />
             </>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
@@ -453,6 +463,15 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
         <p style={{ fontSize: 11, color: 'var(--primary)', marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
           <Clock size={11} /> RDV {ev.rdv_heure}{ev.rdv_lieu ? ` · ${ev.rdv_lieu}` : ''}
         </p>
+      )}
+      {/* Commentaire libre du coach (terrain synthétique, RDV pour ceux qui viennent
+          directement...) — visible par tout le monde, éditable uniquement par le coach
+          via le formulaire de modification de l'événement. */}
+      {ev.type === 'match' && ev.commentaire && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: 8, padding: '6px 9px', background: 'var(--warning-bg)', borderRadius: 8 }}>
+          <Info size={12} color={'var(--warning)'} style={{ flexShrink: 0, marginTop: 1 }} />
+          <p style={{ fontSize: 11, color: 'var(--warning)' }}>{ev.commentaire}</p>
+        </div>
       )}
 
       {/* Côté joueur, le résumé n'est pas affiché d'office : un bouton "Voir les
