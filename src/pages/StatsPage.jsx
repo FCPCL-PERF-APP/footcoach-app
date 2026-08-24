@@ -27,6 +27,9 @@ function statsQueueCount() {
 const FORM_COLLECTIF_INITIAL = {
   buts_marques: '', buts_encaisses: '',
   score_mi_temps: '', score_final: '',
+  // Sert de base au calcul du temps de jeu depuis les changements de la chronologie
+  // (Suivi live) — 90' par défaut si laissé vide.
+  duree_match: '',
   // Buts marqués par type
   but_marque_attaque_placee: '', but_marque_contre_attaque: '',
   but_marque_corner: '', but_marque_penalty: '', but_marque_coup_franc: '',
@@ -121,6 +124,29 @@ const CHRONO_TYPES = {
   autre:        { label: 'Autre',          color: 'var(--text-secondary)', bg: 'var(--bg-secondary)' },
 }
 
+// Mêmes catégories que "Buts marqués/encaissés — par type" dans l'onglet Collectif —
+// choisir la phase sur un but de la chronologie alimente directement ces compteurs, au
+// lieu de les ressaisir séparément.
+const PHASES_BUT = [
+  { key: 'attaque_placee', label: 'Attaque placée' },
+  { key: 'contre_attaque', label: 'Contre-attaque' },
+  { key: 'corner',         label: 'Corner' },
+  { key: 'penalty',        label: 'Penalty' },
+  { key: 'coup_franc',     label: 'Coup franc' },
+]
+
+// Découpage en périodes de 15' — identique à "Buts marqués/encaissés — par période"
+// dans l'onglet Collectif, déduit automatiquement de la minute saisie sur l'événement.
+function periodeButs(minute, prefix) {
+  const m = minute || 0
+  if (m < 15) return `${prefix}0_15`
+  if (m < 30) return `${prefix}15_30`
+  if (m < 45) return `${prefix}30_45`
+  if (m < 60) return `${prefix}45_60`
+  if (m < 75) return `${prefix}60_75`
+  return `${prefix}75_90`
+}
+
 export default function StatsPage() {
   const { id: eventId } = useParams()
   const navigate = useNavigate()
@@ -165,7 +191,10 @@ export default function StatsPage() {
   // Suivi live — couleur active pour la prochaine croix posée sur le terrain, et
   // formulaire d'ajout d'un événement à la chronologie.
   const [markTeam, setMarkTeam] = useState('nous')
-  const [chronoForm, setChronoForm] = useState({ minute: '', type: 'but_pour', description: '' })
+  const [chronoForm, setChronoForm] = useState({
+    minute: '', type: 'but_pour', description: '',
+    buteur_id: '', passeur_id: '', phase: '', joueur_id: '', sortant_id: '', entrant_id: ''
+  })
 
   const [queueCount, setQueueCount] = useState(0)
 
@@ -219,6 +248,16 @@ export default function StatsPage() {
   // vide '' dans le state (input contrôlé), que Postgres refuse pour une colonne
   // entière ("invalid input syntax for type integer"), il faut donc convertir en null.
   const CHAMPS_TEXTE_COLLECTIF = new Set(['score_mi_temps', 'score_final'])
+
+  // Dès qu'un fait de jeu est tracé en direct dans la chronologie (Suivi live), les
+  // champs correspondants ailleurs (Collectif, Indiv.) deviennent calculés
+  // automatiquement et se grisent — sinon (aucun suivi live sur ce match) ils restent
+  // modifiables à la main comme avant.
+  const chronologieList = formRapport.chronologie || []
+  const hasButPourLive = chronologieList.some(e => e.type === 'but_pour')
+  const hasButContreLive = chronologieList.some(e => e.type === 'but_contre')
+  const hasCartonsLive = chronologieList.some(e => e.type === 'carton_jaune' || e.type === 'carton_rouge')
+  const hasChangementsLive = chronologieList.some(e => e.type === 'changement') && Object.values(compo).some(Boolean)
 
   // Modifie le numéro de maillot d'un joueur depuis l'écran Compo (évite d'avoir à
   // aller sur sa fiche pour un profil qui n'a jamais eu de numéro renseigné) : mise à
@@ -329,6 +368,107 @@ export default function StatsPage() {
     if (!result.queued) loadData()
   }
 
+  // Recalcule Collectif (buts marqués/encaissés, par type et par période) et Indiv.
+  // (buts, passes décisives, cartons, temps de jeu, titulaire) à partir de la
+  // chronologie — recompté en entier à chaque appel (pas d'incrément/décrément) pour
+  // rester juste même après correction ou suppression d'un événement. Ne touche que les
+  // champs concernés : si aucun but/carton/changement n'est tracé en live, les champs
+  // correspondants restent tels quels, modifiables à la main.
+  async function recomputeFromChronologie(chronologie) {
+    const entries = chronologie || []
+    const butsPour = entries.filter(e => e.type === 'but_pour')
+    const butsContre = entries.filter(e => e.type === 'but_contre')
+    const cartons = entries.filter(e => e.type === 'carton_jaune' || e.type === 'carton_rouge')
+    const changements = entries.filter(e => e.type === 'changement')
+
+    // --- Stats collectives : buts marqués / encaissés, par type et par période ---
+    if (butsPour.length || butsContre.length) {
+      const payloadCollectif = { evenement_id: eventId }
+      if (butsPour.length) {
+        payloadCollectif.buts_marques = butsPour.length
+        const phase = { attaque_placee: 0, contre_attaque: 0, corner: 0, penalty: 0, coup_franc: 0 }
+        const periode = { buts_0_15: 0, buts_15_30: 0, buts_30_45: 0, buts_45_60: 0, buts_60_75: 0, buts_75_90: 0 }
+        for (const e of butsPour) {
+          if (e.phase && phase[e.phase] !== undefined) phase[e.phase]++
+          periode[periodeButs(e.minute, 'buts_')]++
+        }
+        payloadCollectif.but_marque_attaque_placee = phase.attaque_placee
+        payloadCollectif.but_marque_contre_attaque = phase.contre_attaque
+        payloadCollectif.but_marque_corner = phase.corner
+        payloadCollectif.but_marque_penalty = phase.penalty
+        payloadCollectif.but_marque_coup_franc = phase.coup_franc
+        Object.assign(payloadCollectif, periode)
+      }
+      if (butsContre.length) {
+        payloadCollectif.buts_encaisses = butsContre.length
+        const phase = { attaque_placee: 0, contre_attaque: 0, corner: 0, penalty: 0, coup_franc: 0 }
+        const periode = { buts_enc_0_15: 0, buts_enc_15_30: 0, buts_enc_30_45: 0, buts_enc_45_60: 0, buts_enc_60_75: 0, buts_enc_75_90: 0 }
+        for (const e of butsContre) {
+          if (e.phase && phase[e.phase] !== undefined) phase[e.phase]++
+          periode[periodeButs(e.minute, 'buts_enc_')]++
+        }
+        payloadCollectif.but_enc_attaque_placee = phase.attaque_placee
+        payloadCollectif.but_enc_contre_attaque = phase.contre_attaque
+        payloadCollectif.but_enc_corner = phase.corner
+        payloadCollectif.but_enc_penalty = phase.penalty
+        payloadCollectif.but_enc_coup_franc = phase.coup_franc
+        Object.assign(payloadCollectif, periode)
+      }
+      await supabase.from('stats_collectives').upsert(payloadCollectif, { onConflict: 'evenement_id' })
+    }
+
+    // --- Stats individuelles : buts et passes décisives ---
+    if (butsPour.length) {
+      const buts = {}, passes = {}
+      for (const e of butsPour) {
+        if (e.buteur_id) buts[e.buteur_id] = (buts[e.buteur_id] || 0) + 1
+        if (e.passeur_id) passes[e.passeur_id] = (passes[e.passeur_id] || 0) + 1
+      }
+      const concernes = new Set([...Object.keys(buts), ...Object.keys(passes), ...statsIndiv.map(s => s.joueur_id)])
+      for (const joueurId of concernes) {
+        await supabase.from('stats_match').upsert({
+          evenement_id: eventId, joueur_id: joueurId,
+          buts: buts[joueurId] || 0, passes_decisives: passes[joueurId] || 0,
+        }, { onConflict: 'evenement_id,joueur_id' })
+      }
+    }
+
+    // --- Cartons ---
+    if (cartons.length) {
+      const jaune = new Set(cartons.filter(e => e.type === 'carton_jaune' && e.joueur_id).map(e => e.joueur_id))
+      const rouge = new Set(cartons.filter(e => e.type === 'carton_rouge' && e.joueur_id).map(e => e.joueur_id))
+      const concernes = new Set([...jaune, ...rouge, ...statsIndiv.map(s => s.joueur_id)])
+      for (const joueurId of concernes) {
+        await supabase.from('stats_match').upsert({
+          evenement_id: eventId, joueur_id: joueurId,
+          carton_jaune: jaune.has(joueurId), carton_rouge: rouge.has(joueurId),
+        }, { onConflict: 'evenement_id,joueur_id' })
+      }
+    }
+
+    // --- Temps de jeu et titulaire, déduits des changements + de la compo de départ ---
+    const titulaireIds = new Set(Object.values(compo).filter(Boolean))
+    if (changements.length && titulaireIds.size) {
+      const duree = parseInt(formCollectif.duree_match) || 90
+      const entrees = {}, sorties = {}
+      for (const id of titulaireIds) entrees[id] = 0
+      for (const e of changements) {
+        if (e.entrant_id) entrees[e.entrant_id] = e.minute || 0
+        if (e.sortant_id) sorties[e.sortant_id] = e.minute || 0
+      }
+      const concernes = new Set([...titulaireIds, ...changements.flatMap(e => [e.sortant_id, e.entrant_id].filter(Boolean))])
+      for (const joueurId of concernes) {
+        const entree = entrees[joueurId]
+        if (entree === undefined) continue
+        const sortie = sorties[joueurId] ?? duree
+        await supabase.from('stats_match').upsert({
+          evenement_id: eventId, joueur_id: joueurId,
+          temps_jeu: Math.max(0, sortie - entree), titulaire: titulaireIds.has(joueurId),
+        }, { onConflict: 'evenement_id,joueur_id' })
+      }
+    }
+  }
+
   async function saveRapport() {
     setSaving(true)
     const payload = { evenement_id: eventId, ...formRapport, formation, compo_visuelle: compo }
@@ -341,6 +481,9 @@ export default function StatsPage() {
       return
     }
     setQueueCount(statsQueueCount())
+    // Hors-ligne, la synchro se fera à la prochaine ouverture avec réseau, comme pour
+    // le calcul des points pronostics (calculerPointsPronostics).
+    if (!result.queued) await recomputeFromChronologie(payload.chronologie)
     setSaving(false); setSaved(true); setSavedOffline(result.queued); setTimeout(() => setSaved(false), 2000)
     if (!result.queued) loadData()
   }
@@ -377,12 +520,26 @@ export default function StatsPage() {
   }
 
   // Chronologie horodatée (minute + événement) — équivalent des ronds annotés à droite
-  // du carnet papier (but, carton, changement...).
+  // du carnet papier (but, carton, changement...). Les précisions (buteur/passeur/phase,
+  // joueur carton, sortant/entrant) alimentent directement Collectif et Indiv. à
+  // l'enregistrement (cf. recomputeFromChronologie), pour éviter de ressaisir deux fois
+  // les mêmes faits de jeu.
   function addChronoEvent() {
     if (chronoForm.minute === '') return
     const entry = { minute: parseInt(chronoForm.minute) || 0, type: chronoForm.type, description: chronoForm.description }
+    if (chronoForm.type === 'but_pour') {
+      if (chronoForm.buteur_id) entry.buteur_id = chronoForm.buteur_id
+      if (chronoForm.passeur_id) entry.passeur_id = chronoForm.passeur_id
+      if (chronoForm.phase) entry.phase = chronoForm.phase
+    }
+    if (chronoForm.type === 'but_contre' && chronoForm.phase) entry.phase = chronoForm.phase
+    if ((chronoForm.type === 'carton_jaune' || chronoForm.type === 'carton_rouge') && chronoForm.joueur_id) entry.joueur_id = chronoForm.joueur_id
+    if (chronoForm.type === 'changement') {
+      if (chronoForm.sortant_id) entry.sortant_id = chronoForm.sortant_id
+      if (chronoForm.entrant_id) entry.entrant_id = chronoForm.entrant_id
+    }
     setFormRapport(p => ({ ...p, chronologie: [...(p.chronologie || []), entry].sort((a, b) => a.minute - b.minute) }))
-    setChronoForm({ minute: '', type: chronoForm.type, description: '' })
+    setChronoForm({ minute: '', type: chronoForm.type, description: '', buteur_id: '', passeur_id: '', phase: '', joueur_id: '', sortant_id: '', entrant_id: '' })
   }
   function removeChronoEvent(idx) {
     setFormRapport(p => ({ ...p, chronologie: (p.chronologie || []).filter((_, i) => i !== idx) }))
@@ -530,25 +687,29 @@ export default function StatsPage() {
                 <Button size="sm" onClick={() => navigate(`/rpe?event=${eventId}`)}>Évaluer</Button>
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-              {[['Temps jeu (min)', 'temps_jeu', '1'], ['Buts', 'buts', '1'], ['Passes déc.', 'passes_decisives', '1']].map(([label, field, step]) => (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 4 }}>
+              {[['Temps jeu (min)', 'temps_jeu', '1', hasChangementsLive], ['Buts', 'buts', '1', hasButPourLive], ['Passes déc.', 'passes_decisives', '1', hasButPourLive]].map(([label, field, step, driven]) => (
                 <div key={field}>
                   <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
-                  <input type="number" step={step} value={formJ[field] || ''} onChange={e => setFormJ(p => ({...p, [field]: e.target.value}))}
-                    style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                  <input type="number" step={step} value={formJ[field] || ''} disabled={driven}
+                    onChange={e => setFormJ(p => ({...p, [field]: e.target.value}))}
+                    style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: driven ? 'var(--bg-secondary)' : 'var(--bg-card)', color: driven ? 'var(--text-muted)' : 'inherit' }} />
                 </div>
               ))}
             </div>
+            {(hasButPourLive || hasChangementsLive) && (
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>Calculé depuis Suivi live — modifie/supprime l'événement là-bas pour corriger.</p>
+            )}
             <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
-                <input type="checkbox" checked={formJ.titulaire} onChange={e => setFormJ(p => ({...p, titulaire: e.target.checked}))} /> Titulaire
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: hasChangementsLive ? 'default' : 'pointer', opacity: hasChangementsLive ? .6 : 1 }}>
+                <input type="checkbox" checked={formJ.titulaire} disabled={hasChangementsLive} onChange={e => setFormJ(p => ({...p, titulaire: e.target.checked}))} /> Titulaire
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
-                <input type="checkbox" checked={formJ.carton_jaune} onChange={e => setFormJ(p => ({...p, carton_jaune: e.target.checked}))} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: hasCartonsLive ? 'default' : 'pointer', opacity: hasCartonsLive ? .6 : 1 }}>
+                <input type="checkbox" checked={formJ.carton_jaune} disabled={hasCartonsLive} onChange={e => setFormJ(p => ({...p, carton_jaune: e.target.checked}))} />
                 <span style={{ width: 9, height: 12, background: 'var(--warning)', borderRadius: 1, display: 'inline-block' }} /> Carton
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
-                <input type="checkbox" checked={formJ.carton_rouge} onChange={e => setFormJ(p => ({...p, carton_rouge: e.target.checked}))} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: hasCartonsLive ? 'default' : 'pointer', opacity: hasCartonsLive ? .6 : 1 }}>
+                <input type="checkbox" checked={formJ.carton_rouge} disabled={hasCartonsLive} onChange={e => setFormJ(p => ({...p, carton_rouge: e.target.checked}))} />
                 <span style={{ width: 9, height: 12, background: 'var(--danger)', borderRadius: 1, display: 'inline-block' }} /> Carton
               </label>
             </div>
@@ -588,17 +749,31 @@ export default function StatsPage() {
           <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Stats collectives</p>
 
           {/* Score */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-            {[['Score mi-temps', 'score_mi_temps', 'text'], ['Score final', 'score_final', 'text'],
-              ['Buts marqués', 'buts_marques', 'number'], ['Buts encaissés', 'buts_encaisses', 'number']].map(([label, field, type]) => (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+            {[['Score mi-temps', 'score_mi_temps', 'text'], ['Score final', 'score_final', 'text']].map(([label, field, type]) => (
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
                 <input type={type} value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
-                  placeholder={type === 'text' ? '2-1' : ''}
+                  placeholder="2-1"
                   style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
               </div>
             ))}
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 4 }}>
+            {[['Buts marqués', 'buts_marques', hasButPourLive], ['Buts encaissés', 'buts_encaisses', hasButContreLive]].map(([label, field, driven]) => (
+              <div key={field}>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
+                <input type="number" value={formCollectif[field] || ''} disabled={driven}
+                  onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
+                  style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: driven ? 'var(--bg-secondary)' : 'var(--bg-card)', color: driven ? 'var(--text-muted)' : 'inherit' }} />
+              </div>
+            ))}
+          </div>
+          {(hasButPourLive || hasButContreLive) && (
+            <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>Calculé depuis Suivi live — modifie/supprime l'événement là-bas pour corriger.</p>
+          )}
+          <Input label="Durée du match (min)" type="number" value={formCollectif.duree_match || ''}
+            onChange={v => setFormCollectif(p => ({...p, duree_match: v}))} placeholder="90" />
 
           {/* Buts marqués par type */}
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--success)', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Goal size={13} /> Buts marqués — par type</p>
@@ -607,8 +782,9 @@ export default function StatsPage() {
               ['Corner', 'but_marque_corner'], ['Pénalty', 'but_marque_penalty'], ['Coup-franc', 'but_marque_coup_franc']].map(([label, field]) => (
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2, textAlign: 'center' }}>{label}</label>
-                <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
-                  style={{ width: '100%', padding: '6px 8px', border: '0.5px solid var(--success)', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+                <input type="number" min="0" value={formCollectif[field] || ''} disabled={hasButPourLive}
+                  onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
+                  style={{ width: '100%', padding: '6px 8px', border: '0.5px solid var(--success)', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center', background: hasButPourLive ? 'var(--bg-secondary)' : 'var(--bg-card)', color: hasButPourLive ? 'var(--text-muted)' : 'inherit' }} />
               </div>
             ))}
           </div>
@@ -620,8 +796,9 @@ export default function StatsPage() {
               ['Corner', 'but_enc_corner'], ['Pénalty', 'but_enc_penalty'], ['Coup-franc', 'but_enc_coup_franc']].map(([label, field]) => (
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2, textAlign: 'center' }}>{label}</label>
-                <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
-                  style={{ width: '100%', padding: '6px 8px', border: '0.5px solid var(--danger)', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+                <input type="number" min="0" value={formCollectif[field] || ''} disabled={hasButContreLive}
+                  onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
+                  style={{ width: '100%', padding: '6px 8px', border: '0.5px solid var(--danger)', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box', textAlign: 'center', background: hasButContreLive ? 'var(--bg-secondary)' : 'var(--bg-card)', color: hasButContreLive ? 'var(--text-muted)' : 'inherit' }} />
               </div>
             ))}
           </div>
@@ -632,8 +809,9 @@ export default function StatsPage() {
             {[['0-15', 'buts_0_15'], ['15-30', 'buts_15_30'], ['30-45', 'buts_30_45'], ['45-60', 'buts_45_60'], ['60-75', 'buts_60_75'], ['75-90', 'buts_75_90']].map(([label, field]) => (
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 9, color: 'var(--text-muted)', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
-                <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
-                  style={{ width: '100%', padding: '6px 4px', border: '0.5px solid var(--success)', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+                <input type="number" min="0" value={formCollectif[field] || ''} disabled={hasButPourLive}
+                  onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
+                  style={{ width: '100%', padding: '6px 4px', border: '0.5px solid var(--success)', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center', background: hasButPourLive ? 'var(--bg-secondary)' : 'var(--bg-card)', color: hasButPourLive ? 'var(--text-muted)' : 'inherit' }} />
               </div>
             ))}
           </div>
@@ -644,8 +822,9 @@ export default function StatsPage() {
             {[['0-15', 'buts_enc_0_15'], ['15-30', 'buts_enc_15_30'], ['30-45', 'buts_enc_30_45'], ['45-60', 'buts_enc_45_60'], ['60-75', 'buts_enc_60_75'], ['75-90', 'buts_enc_75_90']].map(([label, field]) => (
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 9, color: 'var(--text-muted)', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
-                <input type="number" min="0" value={formCollectif[field] || ''} onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
-                  style={{ width: '100%', padding: '6px 4px', border: '0.5px solid var(--danger)', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center' }} />
+                <input type="number" min="0" value={formCollectif[field] || ''} disabled={hasButContreLive}
+                  onChange={e => setFormCollectif(p => ({...p, [field]: e.target.value}))}
+                  style={{ width: '100%', padding: '6px 4px', border: '0.5px solid var(--danger)', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box', textAlign: 'center', background: hasButContreLive ? 'var(--bg-secondary)' : 'var(--bg-card)', color: hasButContreLive ? 'var(--text-muted)' : 'inherit' }} />
               </div>
             ))}
           </div>
@@ -865,6 +1044,57 @@ export default function StatsPage() {
                 {Object.entries(CHRONO_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
             </div>
+
+            {/* Précisions par type — alimentent directement Collectif/Indiv. à
+                l'enregistrement, pas besoin de les ressaisir ailleurs. */}
+            {chronoForm.type === 'but_pour' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+                <select value={chronoForm.buteur_id} onChange={e => setChronoForm(p => ({...p, buteur_id: e.target.value}))}
+                  style={{ width: '100%', padding: '7px 8px', border: '0.5px solid var(--success)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}>
+                  <option value="">Buteur...</option>
+                  {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
+                </select>
+                <select value={chronoForm.passeur_id} onChange={e => setChronoForm(p => ({...p, passeur_id: e.target.value}))}
+                  style={{ width: '100%', padding: '7px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}>
+                  <option value="">Passeur (facultatif)...</option>
+                  {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
+                </select>
+                <select value={chronoForm.phase} onChange={e => setChronoForm(p => ({...p, phase: e.target.value}))}
+                  style={{ width: '100%', padding: '7px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}>
+                  <option value="">Phase de jeu (facultatif)...</option>
+                  {PHASES_BUT.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+                </select>
+              </div>
+            )}
+            {chronoForm.type === 'but_contre' && (
+              <select value={chronoForm.phase} onChange={e => setChronoForm(p => ({...p, phase: e.target.value}))}
+                style={{ width: '100%', padding: '7px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}>
+                <option value="">Phase de jeu (facultatif)...</option>
+                {PHASES_BUT.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+              </select>
+            )}
+            {(chronoForm.type === 'carton_jaune' || chronoForm.type === 'carton_rouge') && (
+              <select value={chronoForm.joueur_id} onChange={e => setChronoForm(p => ({...p, joueur_id: e.target.value}))}
+                style={{ width: '100%', padding: '7px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}>
+                <option value="">Joueur...</option>
+                {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
+              </select>
+            )}
+            {chronoForm.type === 'changement' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+                <select value={chronoForm.sortant_id} onChange={e => setChronoForm(p => ({...p, sortant_id: e.target.value}))}
+                  style={{ width: '100%', padding: '7px 8px', border: '0.5px solid var(--danger)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}>
+                  <option value="">Sortant...</option>
+                  {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
+                </select>
+                <select value={chronoForm.entrant_id} onChange={e => setChronoForm(p => ({...p, entrant_id: e.target.value}))}
+                  style={{ width: '100%', padding: '7px 8px', border: '0.5px solid var(--success)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}>
+                  <option value="">Entrant...</option>
+                  {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
+                </select>
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
               <input placeholder="Descriptif (facultatif)" value={chronoForm.description} onChange={e => setChronoForm(p => ({...p, description: e.target.value}))}
                 style={{ flex: 1, minWidth: 0, padding: '7px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
@@ -879,11 +1109,20 @@ export default function StatsPage() {
               <div>
                 {formRapport.chronologie.map((ev2, i) => {
                   const t = CHRONO_TYPES[ev2.type] || CHRONO_TYPES.autre
+                  const nom = id => { const j = joueurs.find(j => j.id === id); return j ? `${j.nom} ${j.prenom}` : null }
+                  const details = []
+                  if (ev2.buteur_id) details.push(nom(ev2.buteur_id))
+                  if (ev2.passeur_id) details.push(`passe : ${nom(ev2.passeur_id)}`)
+                  if (ev2.joueur_id) details.push(nom(ev2.joueur_id))
+                  if (ev2.sortant_id || ev2.entrant_id) details.push(`${nom(ev2.sortant_id) || '?'} → ${nom(ev2.entrant_id) || '?'}`)
+                  if (ev2.phase) details.push(PHASES_BUT.find(p => p.key === ev2.phase)?.label)
                   return (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 8, marginBottom: 4, background: t.bg }}>
                       <strong style={{ fontSize: 12, color: t.color, minWidth: 30 }}>{ev2.minute}'</strong>
                       <span style={{ fontSize: 11, fontWeight: 600, color: t.color }}>{t.label}</span>
-                      {ev2.description && <span style={{ fontSize: 11, color: t.color, opacity: .85, flex: 1 }}>{ev2.description}</span>}
+                      <span style={{ fontSize: 11, color: t.color, opacity: .85, flex: 1 }}>
+                        {[...details, ev2.description].filter(Boolean).join(' · ')}
+                      </span>
                       <button onClick={() => removeChronoEvent(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: t.color, opacity: .6, display: 'flex' }}><X size={13} /></button>
                     </div>
                   )
