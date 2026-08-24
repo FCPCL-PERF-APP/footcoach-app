@@ -163,6 +163,10 @@ export default function StatsPage() {
   const [savedOffline, setSavedOffline] = useState(false)
   const [formation, setFormation] = useState('4-4-2')
   const [compo, setCompo] = useState({})
+  // Remplaçants (numéros 12 à 16) — juste pour savoir qui est sur le banc, distinct de
+  // `compo` (qui ne doit contenir que les titulaires : recomputeFromChronologie s'en
+  // sert pour déduire qui a commencé le match).
+  const [banc, setBanc] = useState(['', '', '', '', ''])
 
   const [formIndiv, setFormIndiv] = useState({})
   const [selectedJoueur, setSelectedJoueur] = useState('')
@@ -232,8 +236,15 @@ export default function StatsPage() {
     if (sc) setFormCollectif(p => ({ ...p, ...sc }))
     if (rp) {
       setFormRapport(p => ({ ...p, ...rp }))
-      if (rp.formation) setFormation(rp.formation)
-      if (rp.compo_visuelle) setCompo(rp.compo_visuelle)
+      setFormation(rp.formation || '4-4-2')
+      // Toujours réinitialisés (pas de `if (rp.xxx)` conditionnel) — sinon en changeant
+      // d'événement vers un match dont la Compo n'a jamais été remplie, l'état gardait
+      // par erreur la compo/le banc du match précédent (contaminait le calcul du temps
+      // de jeu de recomputeFromChronologie).
+      setCompo(rp.compo_visuelle || {})
+      setBanc(rp.banc || ['', '', '', '', ''])
+    } else {
+      setFormation('4-4-2'); setCompo({}); setBanc(['', '', '', '', ''])
     }
     if (jrs?.length) setSelectedJoueur(jrs[0].id)
     setLoading(false)
@@ -385,7 +396,6 @@ export default function StatsPage() {
     const butsPour = entries.filter(e => e.type === 'but_pour')
     const butsContre = entries.filter(e => e.type === 'but_contre')
     const cartons = entries.filter(e => e.type === 'carton_jaune' || e.type === 'carton_rouge')
-    const changements = entries.filter(e => e.type === 'changement')
 
     // --- Stats collectives : buts marqués / encaissés, par type et par période ---
     if (butsPour.length || butsContre.length) {
@@ -455,34 +465,44 @@ export default function StatsPage() {
     // --- Temps de jeu et titulaire ---
     // Un joueur qui marque, passe ou prend un carton a forcément été sur le terrain à ce
     // moment-là, même sans changement le concernant (cas le plus fréquent : un titulaire
-    // qui joue le match entier n'apparaît jamais dans un événement "changement"). Par
-    // défaut chaque joueur mentionné n'importe où dans la chronologie est donc supposé
-    // avoir débuté à la 0' et être resté jusqu'à la fin, sauf s'il apparaît explicitement
-    // comme "entrant" (son entrée est alors cette minute) ou "sortant" (sa sortie).
+    // qui joue le match entier n'apparaît jamais dans un événement "changement"). Chaque
+    // joueur mentionné n'importe où dans la chronologie est donc par défaut supposé avoir
+    // débuté à la 0' et être resté jusqu'à la fin, sauf indication contraire.
+    // Gère aussi les allers-retours (sorti puis rentré plus tard dans le match) : les
+    // événements sortant/entrant du joueur sont rejoués dans l'ordre chronologique pour
+    // cumuler tous ses passages sur le terrain, pas juste une seule sortie/entrée.
     const titulaireIds = new Set([
       ...Object.values(compo).filter(Boolean),
       ...statsIndiv.filter(s => s.titulaire).map(s => s.joueur_id),
     ])
     const joueursVusEnChrono = new Set()
+    const mouvementsParJoueur = {}
     for (const e of entries) {
       for (const id of [e.buteur_id, e.passeur_id, e.joueur_id, e.sortant_id, e.entrant_id]) {
         if (id) joueursVusEnChrono.add(id)
+      }
+      if (e.type === 'changement') {
+        if (e.sortant_id) (mouvementsParJoueur[e.sortant_id] ||= []).push({ minute: e.minute || 0, sens: 'sort' })
+        if (e.entrant_id) (mouvementsParJoueur[e.entrant_id] ||= []).push({ minute: e.minute || 0, sens: 'entre' })
       }
     }
     const concernes = new Set([...titulaireIds, ...joueursVusEnChrono])
     if (concernes.size) {
       const duree = parseInt(formCollectif.duree_match) || 90
-      const entrees = {}, sorties = {}
-      for (const e of changements) {
-        if (e.entrant_id) entrees[e.entrant_id] = e.minute || 0
-        if (e.sortant_id) sorties[e.sortant_id] = e.minute || 0
-      }
       for (const joueurId of concernes) {
-        const entree = entrees[joueurId] ?? 0
-        const sortie = sorties[joueurId] ?? duree
+        const mouvements = (mouvementsParJoueur[joueurId] || []).slice().sort((a, b) => a.minute - b.minute)
+        // Titulaire = déjà connu comme tel, ou aucun mouvement "entre" avant un premier
+        // mouvement "sort" (on ne peut pas sortir sans avoir déjà commencé le match).
+        const titulaire = titulaireIds.has(joueurId) || mouvements[0]?.sens !== 'entre'
+        let surLeTerrain = titulaire, depuis = 0, tempsJeu = 0
+        for (const m of mouvements) {
+          if (m.sens === 'sort' && surLeTerrain) { tempsJeu += Math.max(0, m.minute - depuis); surLeTerrain = false }
+          else if (m.sens === 'entre' && !surLeTerrain) { surLeTerrain = true; depuis = m.minute }
+        }
+        if (surLeTerrain) tempsJeu += Math.max(0, duree - depuis)
         await supabase.from('stats_match').upsert({
           evenement_id: eventId, joueur_id: joueurId,
-          temps_jeu: Math.max(0, sortie - entree), titulaire: entree === 0,
+          temps_jeu: tempsJeu, titulaire,
         }, { onConflict: 'evenement_id,joueur_id' })
       }
     }
@@ -490,7 +510,7 @@ export default function StatsPage() {
 
   async function saveRapport() {
     setSaving(true)
-    const payload = { evenement_id: eventId, ...formRapport, formation, compo_visuelle: compo }
+    const payload = { evenement_id: eventId, ...formRapport, formation, compo_visuelle: compo, banc }
     let result
     try {
       result = await upsertOrQueue('rapports_match', payload, 'evenement_id')
@@ -974,6 +994,23 @@ export default function StatsPage() {
                 </div>
               )
             })}
+          </div>
+
+          {/* Remplaçants (12 à 16) — juste pour savoir qui est sur le banc, sans lien
+              avec le calcul du temps de jeu (qui se fait via les changements de la
+              chronologie dans Suivi live). */}
+          <p style={{ fontSize: 12, fontWeight: 700, margin: '4px 0 8px' }}>Remplaçants</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
+            {banc.map((joueurId, i) => (
+              <div key={i}>
+                <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>N°{12 + i}</label>
+                <select value={joueurId} onChange={e => setBanc(p => p.map((v, idx) => idx === i ? e.target.value : v))}
+                  style={{ width: '100%', padding: '5px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 11, outline: 'none', boxSizing: 'border-box' }}>
+                  <option value="">— Choisir —</option>
+                  {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
+                </select>
+              </div>
+            ))}
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
