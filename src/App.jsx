@@ -160,7 +160,7 @@ function AppContent() {
           <Route path="/joueurs/:id"            element={<FicheJoueurPage />} />
           <Route path="/joueurs/:id/blessures"  element={<BlessuresPage />} />
           <Route path="/joueurs/:id/objectifs"  element={<ObjectifsPage />} />
-<Route path="/export-fiche/:id" element={isCoach ? <ExportFicheJoueurPage /> : <Navigate to="/" />} />
+<Route path="/export-fiche/:id" element={isCoach || isAdjoint ? <ExportFicheJoueurPage /> : <Navigate to="/" />} />
 <Route path="/onboarding-coach" element={<OnboardingCoachPage />} />
 <Route path="/search" element={<SearchPage />} />
           <Route path="/ma-fiche"               element={isJoueur ? <MaFichePage /> : <Navigate to="/" />} />
@@ -171,12 +171,12 @@ function AppContent() {
           <Route path="/ressources"             element={<RessourcesPage />} />
           <Route path="/staff"                  element={<StaffPage />} />
           <Route path="/stats/:id"              element={isCoach || isAdjoint ? <StatsPage /> : <Navigate to="/" />} />
-          <Route path="/convocations/:id"       element={isCoach ? <ConvocationsPage /> : <Navigate to="/" />} />
+          <Route path="/convocations/:id"       element={isCoach || isAdjoint ? <ConvocationsPage /> : <Navigate to="/" />} />
           <Route path="/presences/:id"          element={isCoach || isAdjoint ? <PresencesMatchPage /> : <Navigate to="/" />} />
-          <Route path="/charge-hebdo"           element={isCoach ? <ChargeHebdoPage /> : <Navigate to="/" />} />
-          <Route path="/comparatif"             element={isCoach ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
-          <Route path="/bilan-saison"           element={isCoach ? <BilanSaisonPage /> : <Navigate to="/" />} />
-          <Route path="/correlation"            element={isCoach ? <CorrelationPage /> : <Navigate to="/" />} />
+          <Route path="/charge-hebdo"           element={isCoach || isAdjoint ? <ChargeHebdoPage /> : <Navigate to="/" />} />
+          <Route path="/comparatif"             element={isCoach || isAdjoint ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
+          <Route path="/bilan-saison"           element={isCoach || isAdjoint ? <BilanSaisonPage /> : <Navigate to="/" />} />
+          <Route path="/correlation"            element={isCoach || isAdjoint ? <CorrelationPage /> : <Navigate to="/" />} />
 <Route path="/mes-badges" element={isJoueur ? <BadgesJoueurPage /> : <Navigate to="/" />} />
 <Route path="/sondages" element={<SondagePage />} />
           <Route path="/onboarding"             element={<OnboardingPage />} />
@@ -186,12 +186,12 @@ function AppContent() {
           <Route path="/mon-profil"             element={isStaff ? <ProfilCoachPage /> : <Navigate to="/" />} />
           <Route path="/tirage-au-sort"         element={isStaff ? <TirageAuSortPage /> : <Navigate to="/" />} />
           <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
-<Route path="/classement" element={isCoach ? <ClassementButeursPage /> : <Navigate to="/" />} />
+<Route path="/classement" element={isCoach || isAdjoint ? <ClassementButeursPage /> : <Navigate to="/" />} />
 <Route path="/stats-connexion" element={isCoach ? <StatsConnexionPage /> : <Navigate to="/" />} />
-<Route path="/stats-matchs" element={isCoach ? <DashboardStatsPage /> : <Navigate to="/" />} />
-<Route path="/analyse" element={isCoach ? <AnalysePage /> : <Navigate to="/" />} />
+<Route path="/stats-matchs" element={isCoach || isAdjoint ? <DashboardStatsPage /> : <Navigate to="/" />} />
+<Route path="/analyse" element={isCoach || isAdjoint ? <AnalysePage /> : <Navigate to="/" />} />
 <Route path="/export" element={isCoach ? <ExportDonneesPage /> : <Navigate to="/" />} />
-<Route path="/joueurs/:id/radar" element={isCoach ? <RadarJoueurPage /> : <Navigate to="/" />} />
+<Route path="/joueurs/:id/radar" element={isCoach || isAdjoint ? <RadarJoueurPage /> : <Navigate to="/" />} />
 <Route path="*" element={<Navigate to={defaultRoute} replace />} />
         </Routes>
         </Suspense>

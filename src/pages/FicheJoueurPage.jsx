@@ -71,7 +71,7 @@ function Field({ label, field, form, setForm, type = 'text', disabled = false, o
 export default function FicheJoueurPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isCoach, isJoueur, canComment } = useAuth()
+  const { isCoach, isAdjoint, isJoueur, canComment } = useAuth()
   const [joueur, setJoueur] = useState(null)
   const [activeTab, setActiveTab] = useState('identite')
   const [rpeHistory, setRpeHistory] = useState([])
@@ -545,7 +545,7 @@ export default function FicheJoueurPage() {
           </button>
         </div>
       )}
-      {isCoach && (
+      {(isCoach || isAdjoint) && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
           <button onClick={() => navigate(`/joueurs/${id}/radar`)}
             style={{ flex: 1, padding: '7px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>

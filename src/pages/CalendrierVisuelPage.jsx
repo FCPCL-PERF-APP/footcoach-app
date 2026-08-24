@@ -165,7 +165,7 @@ export default function CalendrierVisuelPage() {
                 )}
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {isCoach && ev.type === 'match' && (
+                  {isStaff && ev.type === 'match' && (
                     <button onClick={() => navigate(`/convocations/${ev.id}`)}
                       style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><Send size={11} /> Convoquer</button>
                   )}

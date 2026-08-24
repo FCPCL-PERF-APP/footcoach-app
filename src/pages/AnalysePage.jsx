@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 import { PageHeader, IconTile } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
 import { BarChart3, Trophy, Award, TrendingUp, Scale, TrendingDown, Smartphone, Download, ChevronRight } from 'lucide-react'
@@ -10,16 +11,20 @@ const ANALYSES = [
   { path: '/charge-hebdo',    icon: TrendingUp, cat: 'rose', label: 'Charge hebdomadaire',     desc: "RPE et charge d'entraînement sur 12 semaines" },
   { path: '/comparatif',      icon: Scale, cat: 'violet', label: 'Comparatif joueurs',      desc: 'Comparer deux joueurs sur RPE et Footbar' },
   { path: '/correlation',     icon: TrendingDown, cat: 'purple', label: 'Corrélation RPE / Perf.', desc: 'Lien entre charge perçue et résultats' },
-  { path: '/stats-connexion', icon: Smartphone, cat: 'teal', label: "Adoption de l'app",       desc: "Taux d'invitation et de connexion des joueurs" },
-  { path: '/export',          icon: Download, cat: 'slate', label: 'Export des données',      desc: 'Télécharger joueurs, RPE, Footbar, stats en CSV' },
+  // Réservés au coach principal (outils d'administration, pas de la consultation) —
+  // masqués pour les autres coachs (adjoint/gardien/préparateur) plutôt que de les
+  // laisser cliquer sur un lien qui les renvoie à l'accueil.
+  { path: '/stats-connexion', icon: Smartphone, cat: 'teal', label: "Adoption de l'app",       desc: "Taux d'invitation et de connexion des joueurs", coachOnly: true },
+  { path: '/export',          icon: Download, cat: 'slate', label: 'Export des données',      desc: 'Télécharger joueurs, RPE, Footbar, stats en CSV', coachOnly: true },
 ]
 
 export default function AnalysePage() {
   const navigate = useNavigate()
+  const { isCoach } = useAuth()
   return (
     <div style={{ padding: 12 }}>
       <PageHeader title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><BarChart3 size={18} /> Analyse</span>} />
-      {ANALYSES.map(a => (
+      {ANALYSES.filter(a => !a.coachOnly || isCoach).map(a => (
         <div key={a.path} onClick={() => navigate(a.path)} style={{
           background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 14,
           padding: '12px 14px', marginBottom: 8, cursor: 'pointer',

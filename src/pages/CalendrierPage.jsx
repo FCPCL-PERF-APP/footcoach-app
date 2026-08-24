@@ -561,7 +561,7 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
           pilules grises identiques. */}
       {isStaff && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-          {isCoach && ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}><Send size={11} color={CAT_COLORS.blue.color} style={{ marginRight: 4, verticalAlign: -2 }} />Convocations</Button>}
+          {isStaff && ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}><Send size={11} color={CAT_COLORS.blue.color} style={{ marginRight: 4, verticalAlign: -2 }} />Convocations</Button>}
           <Button size="sm" onClick={() => navigate(`/presences/${ev.id}`)}><CheckCircle2 size={11} color={'var(--success)'} style={{ marginRight: 4, verticalAlign: -2 }} />Présences</Button>
           {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}><BarChart3 size={11} color={CAT_COLORS.purple.color} style={{ marginRight: 4, verticalAlign: -2 }} />Stats</Button>}
           <Button size="sm" onClick={() => navigate(`/rpe?event=${ev.id}`)}><Heart size={11} color={CAT_COLORS.rose.color} style={{ marginRight: 4, verticalAlign: -2 }} />RPE</Button>

@@ -92,8 +92,8 @@ export default function AppHeader() {
           <button onClick={() => navigate('/mon-profil')} style={btnStyle(CHIP.profil)}><User size={15} color="#fff" /></button>
         )}
 
-        {/* Bilan saison coach */}
-        {isCoach && (
+        {/* Bilan saison — staff (coach + adjoint/gardien/préparateur) */}
+        {isStaff && (
           <button onClick={() => navigate('/bilan-saison')} style={btnStyle(CHIP.trophy)}><Trophy size={15} color="#fff" /></button>
         )}
 

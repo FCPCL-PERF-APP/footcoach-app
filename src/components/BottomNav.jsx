@@ -43,10 +43,11 @@ const NAV_STAFF_MAIN = [
   { path: '/plus',       icon: Menu,            label: 'Plus' },
 ]
 const NAV_STAFF_MORE = [
-  { section: 'Suivi', items: [
-    { path: '/rpe',        icon: Heart,  label: 'RPE équipe', cat: 'rose' },
-    { path: '/footbar',    icon: Radio,  label: 'Footbar équipe', cat: 'orange' },
-    { path: '/ressources', icon: Folder, label: 'Ressources', cat: 'teal' },
+  { section: 'Suivi & analyse', items: [
+    { path: '/rpe',        icon: Heart,     label: 'RPE équipe', cat: 'rose' },
+    { path: '/footbar',    icon: Radio,     label: 'Footbar équipe', cat: 'orange' },
+    { path: '/analyse',    icon: BarChart3, label: 'Analyse', cat: 'purple' },
+    { path: '/ressources', icon: Folder,    label: 'Ressources', cat: 'teal' },
   ]},
   { section: 'Autres', items: [
     { path: '/staff',           icon: Settings,      label: 'Staff', cat: 'slate' },
