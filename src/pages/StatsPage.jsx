@@ -139,11 +139,14 @@ const PHASES_BUT = [
 // dans l'onglet Collectif, déduit automatiquement de la minute saisie sur l'événement.
 function periodeButs(minute, prefix) {
   const m = minute || 0
-  if (m < 15) return `${prefix}0_15`
-  if (m < 30) return `${prefix}15_30`
-  if (m < 45) return `${prefix}30_45`
-  if (m < 60) return `${prefix}45_60`
-  if (m < 75) return `${prefix}60_75`
+  // Bornes inclusives sur la fin de période — un but à la 45' (souvent le cas, fin de
+  // 1ère mi-temps/temps additionnel) doit tomber dans la période 30-45, pas 45-60 qui
+  // est en réalité le début de la 2nde mi-temps (46').
+  if (m <= 15) return `${prefix}0_15`
+  if (m <= 30) return `${prefix}15_30`
+  if (m <= 45) return `${prefix}30_45`
+  if (m <= 60) return `${prefix}45_60`
+  if (m <= 75) return `${prefix}60_75`
   return `${prefix}75_90`
 }
 
@@ -257,7 +260,10 @@ export default function StatsPage() {
   const hasButPourLive = chronologieList.some(e => e.type === 'but_pour')
   const hasButContreLive = chronologieList.some(e => e.type === 'but_contre')
   const hasCartonsLive = chronologieList.some(e => e.type === 'carton_jaune' || e.type === 'carton_rouge')
-  const hasChangementsLive = chronologieList.some(e => e.type === 'changement') && Object.values(compo).some(Boolean)
+  // Ne dépend plus uniquement de la Compo (terrain visuel) — recomputeFromChronologie
+  // retrouve aussi les titulaires via la case "Titulaire" déjà cochée à la main, et en
+  // dernier recours déduit qu'un joueur qui sort a forcément commencé le match.
+  const hasChangementsLive = chronologieList.some(e => e.type === 'changement')
 
   // Modifie le numéro de maillot d'un joueur depuis l'écran Compo (évite d'avoir à
   // aller sur sa fiche pour un profil qui n'a jamais eu de numéro renseigné) : mise à
@@ -446,15 +452,26 @@ export default function StatsPage() {
       }
     }
 
-    // --- Temps de jeu et titulaire, déduits des changements + de la compo de départ ---
-    const titulaireIds = new Set(Object.values(compo).filter(Boolean))
-    if (changements.length && titulaireIds.size) {
+    // --- Temps de jeu et titulaire, déduits des changements ---
+    // Titulaires connus via la Compo (terrain visuel) ET via la case "Titulaire" déjà
+    // cochée à la main dans Indiv. — sans ce 2e cumul, un match dont la Compo n'a pas
+    // été (entièrement) remplie perdait le temps de jeu de certains titulaires.
+    const titulaireIds = new Set([
+      ...Object.values(compo).filter(Boolean),
+      ...statsIndiv.filter(s => s.titulaire).map(s => s.joueur_id),
+    ])
+    if (changements.length) {
       const duree = parseInt(formCollectif.duree_match) || 90
       const entrees = {}, sorties = {}
       for (const id of titulaireIds) entrees[id] = 0
       for (const e of changements) {
         if (e.entrant_id) entrees[e.entrant_id] = e.minute || 0
         if (e.sortant_id) sorties[e.sortant_id] = e.minute || 0
+      }
+      // Dernier filet de sécurité : un joueur qui sort sans être connu comme titulaire
+      // ni comme entrant (Compo incomplète) a nécessairement commencé le match.
+      for (const e of changements) {
+        if (e.sortant_id && entrees[e.sortant_id] === undefined) entrees[e.sortant_id] = 0
       }
       const concernes = new Set([...titulaireIds, ...changements.flatMap(e => [e.sortant_id, e.entrant_id].filter(Boolean))])
       for (const joueurId of concernes) {
@@ -463,7 +480,7 @@ export default function StatsPage() {
         const sortie = sorties[joueurId] ?? duree
         await supabase.from('stats_match').upsert({
           evenement_id: eventId, joueur_id: joueurId,
-          temps_jeu: Math.max(0, sortie - entree), titulaire: titulaireIds.has(joueurId),
+          temps_jeu: Math.max(0, sortie - entree), titulaire: entree === 0,
         }, { onConflict: 'evenement_id,joueur_id' })
       }
     }
@@ -806,7 +823,7 @@ export default function StatsPage() {
           {/* Buts marqués par période */}
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--success)', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Goal size={13} /> Buts marqués — par période</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4, marginBottom: 12 }}>
-            {[['0-15', 'buts_0_15'], ['15-30', 'buts_15_30'], ['30-45', 'buts_30_45'], ['45-60', 'buts_45_60'], ['60-75', 'buts_60_75'], ['75-90', 'buts_75_90']].map(([label, field]) => (
+            {[['0-15', 'buts_0_15'], ['15-30', 'buts_15_30'], ['30-45', 'buts_30_45'], ['46-60', 'buts_45_60'], ['60-75', 'buts_60_75'], ['75-90', 'buts_75_90']].map(([label, field]) => (
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 9, color: 'var(--text-muted)', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} disabled={hasButPourLive}
@@ -819,7 +836,7 @@ export default function StatsPage() {
           {/* Buts encaissés par période */}
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--danger)', margin: '12px 0 8px', display: 'flex', alignItems: 'center', gap: 5 }}><Shield size={13} /> Buts encaissés — par période</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4, marginBottom: 12 }}>
-            {[['0-15', 'buts_enc_0_15'], ['15-30', 'buts_enc_15_30'], ['30-45', 'buts_enc_30_45'], ['45-60', 'buts_enc_45_60'], ['60-75', 'buts_enc_60_75'], ['75-90', 'buts_enc_75_90']].map(([label, field]) => (
+            {[['0-15', 'buts_enc_0_15'], ['15-30', 'buts_enc_15_30'], ['30-45', 'buts_enc_30_45'], ['46-60', 'buts_enc_45_60'], ['60-75', 'buts_enc_60_75'], ['75-90', 'buts_enc_75_90']].map(([label, field]) => (
               <div key={field}>
                 <label style={{ display: 'block', fontSize: 9, color: 'var(--text-muted)', marginBottom: 2, textAlign: 'center' }}>{label}'</label>
                 <input type="number" min="0" value={formCollectif[field] || ''} disabled={hasButContreLive}
