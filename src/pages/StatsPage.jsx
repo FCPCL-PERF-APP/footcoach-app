@@ -260,10 +260,10 @@ export default function StatsPage() {
   const hasButPourLive = chronologieList.some(e => e.type === 'but_pour')
   const hasButContreLive = chronologieList.some(e => e.type === 'but_contre')
   const hasCartonsLive = chronologieList.some(e => e.type === 'carton_jaune' || e.type === 'carton_rouge')
-  // Ne dépend plus uniquement de la Compo (terrain visuel) — recomputeFromChronologie
-  // retrouve aussi les titulaires via la case "Titulaire" déjà cochée à la main, et en
-  // dernier recours déduit qu'un joueur qui sort a forcément commencé le match.
-  const hasChangementsLive = chronologieList.some(e => e.type === 'changement')
+  // Tout événement qui nomme un joueur (but, passe, carton, changement) peut désormais
+  // faire calculer son temps de jeu (cf. recomputeFromChronologie) — pas seulement un
+  // changement le concernant directement.
+  const hasChangementsLive = chronologieList.some(e => e.type === 'changement' || e.buteur_id || e.passeur_id || e.joueur_id)
 
   // Modifie le numéro de maillot d'un joueur depuis l'écran Compo (évite d'avoir à
   // aller sur sa fiche pour un profil qui n'a jamais eu de numéro renseigné) : mise à
@@ -452,31 +452,33 @@ export default function StatsPage() {
       }
     }
 
-    // --- Temps de jeu et titulaire, déduits des changements ---
-    // Titulaires connus via la Compo (terrain visuel) ET via la case "Titulaire" déjà
-    // cochée à la main dans Indiv. — sans ce 2e cumul, un match dont la Compo n'a pas
-    // été (entièrement) remplie perdait le temps de jeu de certains titulaires.
+    // --- Temps de jeu et titulaire ---
+    // Un joueur qui marque, passe ou prend un carton a forcément été sur le terrain à ce
+    // moment-là, même sans changement le concernant (cas le plus fréquent : un titulaire
+    // qui joue le match entier n'apparaît jamais dans un événement "changement"). Par
+    // défaut chaque joueur mentionné n'importe où dans la chronologie est donc supposé
+    // avoir débuté à la 0' et être resté jusqu'à la fin, sauf s'il apparaît explicitement
+    // comme "entrant" (son entrée est alors cette minute) ou "sortant" (sa sortie).
     const titulaireIds = new Set([
       ...Object.values(compo).filter(Boolean),
       ...statsIndiv.filter(s => s.titulaire).map(s => s.joueur_id),
     ])
-    if (changements.length) {
+    const joueursVusEnChrono = new Set()
+    for (const e of entries) {
+      for (const id of [e.buteur_id, e.passeur_id, e.joueur_id, e.sortant_id, e.entrant_id]) {
+        if (id) joueursVusEnChrono.add(id)
+      }
+    }
+    const concernes = new Set([...titulaireIds, ...joueursVusEnChrono])
+    if (concernes.size) {
       const duree = parseInt(formCollectif.duree_match) || 90
       const entrees = {}, sorties = {}
-      for (const id of titulaireIds) entrees[id] = 0
       for (const e of changements) {
         if (e.entrant_id) entrees[e.entrant_id] = e.minute || 0
         if (e.sortant_id) sorties[e.sortant_id] = e.minute || 0
       }
-      // Dernier filet de sécurité : un joueur qui sort sans être connu comme titulaire
-      // ni comme entrant (Compo incomplète) a nécessairement commencé le match.
-      for (const e of changements) {
-        if (e.sortant_id && entrees[e.sortant_id] === undefined) entrees[e.sortant_id] = 0
-      }
-      const concernes = new Set([...titulaireIds, ...changements.flatMap(e => [e.sortant_id, e.entrant_id].filter(Boolean))])
       for (const joueurId of concernes) {
-        const entree = entrees[joueurId]
-        if (entree === undefined) continue
+        const entree = entrees[joueurId] ?? 0
         const sortie = sorties[joueurId] ?? duree
         await supabase.from('stats_match').upsert({
           evenement_id: eventId, joueur_id: joueurId,
