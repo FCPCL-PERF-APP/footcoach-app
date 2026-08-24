@@ -214,8 +214,10 @@ export default function MaFichePage() {
 
   const totalButs = statsHistory.reduce((s, r) => s + (r.buts || 0), 0)
   const totalPD = statsHistory.reduce((s, r) => s + (r.passes_decisives || 0), 0)
-  const noteMoy = statsHistory.length
-    ? (statsHistory.reduce((s, r) => s + (r.note || 0), 0) / statsHistory.length).toFixed(1)
+  // La note du coach est subjective et réservée à son usage — remplacée ici par le
+  // temps de jeu moyen, un indicateur plus objectif et utile au joueur lui-même.
+  const tempsJeuMoy = statsHistory.length
+    ? Math.round(statsHistory.reduce((s, r) => s + (r.temps_jeu || 0), 0) / statsHistory.length)
     : '—'
   // Répartition des présences aux entraînements — présent/extérieur comptent comme
   // investissement, les blessures sont exclues du taux d'engagement (absence non choisie)
@@ -268,7 +270,7 @@ export default function MaFichePage() {
 
       {/* Stats rapides */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
-        {[['Matchs', statsHistory.length], ['Buts', totalButs], ['PD', totalPD], ['Note', noteMoy]].map(([l, v]) => (
+        {[['Matchs', statsHistory.length], ['Buts', totalButs], ['PD', totalPD], ['Temps moy.', tempsJeuMoy !== '—' ? `${tempsJeuMoy}'` : '—']].map(([l, v]) => (
           <div key={l} style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
             <div style={{ fontSize: 17, fontWeight: 700 }}>{v}</div>
             <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{l}</div>
@@ -533,8 +535,9 @@ export default function MaFichePage() {
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700 }}>{s.note || '—'}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Note</div></div>
+                    {/* Pas de Note ici — subjective et réservée à l'usage du coach, cf. MaFichePage.jsx */}
                     <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Buts</div></div>
+                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary)' }}>{s.passes_decisives || 0}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>PD</div></div>
                   </div>
                 </div>
               ))

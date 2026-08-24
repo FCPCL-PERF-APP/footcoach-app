@@ -51,7 +51,9 @@ export default function MonBilanPage() {
     const totalButs = (statsData || []).reduce((s, r) => s + (r.buts || 0), 0)
     const totalPD = (statsData || []).reduce((s, r) => s + (r.passes_decisives || 0), 0)
     const totalMin = (statsData || []).reduce((s, r) => s + (r.temps_jeu || 0), 0)
-    const noteMoy = statsData?.length ? (statsData.reduce((s, r) => s + (r.note || 0), 0) / statsData.length).toFixed(1) : '—'
+    // La note du coach est subjective et réservée à son usage — remplacée ici par le
+    // temps de jeu moyen par match, un indicateur objectif utile au joueur.
+    const tempsMoyMin = totalMatchs ? Math.round(totalMin / totalMatchs) : '—'
     const titulaire = (statsData || []).filter(s => s.titulaire).length
     const cartons = (statsData || []).filter(s => s.carton_jaune).length
 
@@ -81,7 +83,7 @@ export default function MonBilanPage() {
     const objTotal = (objectifsData || []).length
 
     setStats({
-      totalMatchs, totalButs, totalPD, totalMin, noteMoy, titulaire, cartons,
+      totalMatchs, totalButs, totalPD, totalMin, tempsMoyMin, titulaire, cartons,
       rpeMoy, motivMoy, nbRpe: rpeData?.length || 0,
       presence: presBreakdown,
       tauxPresence: presBreakdown.tauxEngagement ?? 0,
@@ -141,7 +143,7 @@ export default function MonBilanPage() {
           { label: 'Buts', value: stats?.totalButs, color: 'var(--success)' },
           { label: 'Passes déc.', value: stats?.totalPD, color: 'var(--success)' },
           { label: 'Minutes jouées', value: stats?.totalMin, color: 'var(--primary)' },
-          { label: 'Note moyenne', value: stats?.noteMoy, color: 'var(--primary)' },
+          { label: 'Temps moy./match', value: stats?.tempsMoyMin !== '—' ? `${stats?.tempsMoyMin}'` : '—', color: 'var(--primary)' },
           { label: 'Titularisations', value: stats?.titulaire, color: 'var(--primary)' },
           { label: 'Cartons', value: stats?.cartons, color: 'var(--warning)' },
           { label: 'Dist. moy./match', value: stats?.distMoy ? `${stats.distMoy}km` : '—', color: 'var(--primary)' },
