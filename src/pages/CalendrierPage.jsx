@@ -115,7 +115,24 @@ export default function CalendrierPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // Tables qui référencent evenement_id — supprimées explicitement avant l'événement
+  // lui-même, plutôt que de compter sur une contrainte ON DELETE CASCADE en base (pas
+  // garantie sur toutes ces tables, certaines créées avant que cette convention soit
+  // systématique). Sans ça, supprimer un événement passé qui a déjà des stats/présences
+  // pouvait échouer avec une erreur de clé étrangère.
+  const TABLES_LIEES_EVENEMENT = [
+    'presences', 'rpe', 'rpe_coach', 'footbar', 'stats_match', 'stats_collectives',
+    'rapports_match', 'convocations', 'notif_relances', 'forme_joueur', 'pronostics',
+  ]
+
   async function deleteEvent(ev) {
+    for (const table of TABLES_LIEES_EVENEMENT) {
+      const { error } = await supabase.from(table).delete().eq('evenement_id', ev.id)
+      // Une table sans aucune ligne pour cet événement n'est pas une erreur — mais une
+      // vraie erreur réseau/permission sur l'une d'elles ne doit pas empêcher de tenter
+      // les autres, ni de masquer le problème au coach.
+      if (error) console.error(`Erreur suppression ${table}:`, error)
+    }
     const { error } = await supabase.from('evenements').delete().eq('id', ev.id)
     if (error) {
       alert('Erreur lors de la suppression : ' + error.message)
@@ -169,7 +186,12 @@ export default function CalendrierPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
             <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Supprimer cet événement ?</p>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}><strong>{deleteConfirm.titre}</strong> sera définitivement supprimé.</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+              <strong>{deleteConfirm.titre}</strong> sera définitivement supprimé.
+              {new Date(deleteConfirm.date_heure) < new Date() && (
+                <> Les présences, RPE, stats et convocations déjà enregistrées pour cet événement seront supprimées avec lui.</>
+              )}
+            </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: 10, border: '0.5px solid var(--border)', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
               <button onClick={() => deleteEvent(deleteConfirm)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: 'var(--danger)', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
