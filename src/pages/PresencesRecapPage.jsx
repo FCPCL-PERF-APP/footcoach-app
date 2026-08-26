@@ -57,14 +57,20 @@ export default function PresencesRecapPage() {
     setLoading(false)
   }
 
-  // Bornes de la période affichée selon la vue (hebdo/mensuel) et le décalage choisi.
+  // Bornes de la période affichée selon la vue (hebdo/mensuel/total) et le décalage
+  // choisi — "Total" couvre toute la saison en cours, sans navigation (une seule période).
   const now = new Date()
   const refDate = vue === 'hebdo' ? addWeeks(now, decalage) : addMonths(now, decalage)
-  const periodeDebut = vue === 'hebdo' ? startOfWeek(refDate, { weekStartsOn: 1 }) : startOfMonth(refDate)
-  const periodeFin = vue === 'hebdo' ? endOfWeek(refDate, { weekStartsOn: 1 }) : endOfMonth(refDate)
+  const periodeDebut = vue === 'hebdo' ? startOfWeek(refDate, { weekStartsOn: 1 })
+    : vue === 'mensuel' ? startOfMonth(refDate)
+    : parseISO(bornesSaison().debut)
+  const periodeFin = vue === 'hebdo' ? endOfWeek(refDate, { weekStartsOn: 1 })
+    : vue === 'mensuel' ? endOfMonth(refDate)
+    : now
   const periodeLabel = vue === 'hebdo'
     ? `Semaine du ${format(periodeDebut, 'd MMM', { locale: fr })} au ${format(periodeFin, 'd MMM yyyy', { locale: fr })}`
-    : format(refDate, 'MMMM yyyy', { locale: fr })
+    : vue === 'mensuel' ? format(refDate, 'MMMM yyyy', { locale: fr })
+    : `Depuis le ${format(periodeDebut, 'd MMM yyyy', { locale: fr })}`
 
   // Double filtre sur "passé" : la requête initiale (loadData) borne déjà aux séances
   // dont la date est passée au moment du chargement, mais on revérifie ici avec `now`
@@ -88,7 +94,7 @@ export default function PresencesRecapPage() {
     const denom = breakdown.total - breakdown.blesse
     const tauxCollectif = denom > 0 ? Math.round(breakdown.present / denom * 100) : null
     return { joueur: j, ...breakdown, tauxCollectif }
-  }).sort((a, b) => (a.tauxCollectif ?? 999) - (b.tauxCollectif ?? 999))
+  }).sort((a, b) => (b.tauxCollectif ?? -1) - (a.tauxCollectif ?? -1))
 
   return (
     <div style={{ padding: 12 }}>
@@ -100,9 +106,9 @@ export default function PresencesRecapPage() {
         </div>
       )}
 
-      {/* Vue Hebdo / Mensuel */}
+      {/* Vue Hebdo / Mensuel / Total */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-        {[['hebdo', 'Hebdo'], ['mensuel', 'Mensuel']].map(([v, lbl]) => (
+        {[['hebdo', 'Hebdo'], ['mensuel', 'Mensuel'], ['total', 'Total']].map(([v, lbl]) => (
           <button key={v} onClick={() => { setVue(v); setDecalage(0) }} style={{
             flex: 1, padding: '7px 10px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
             border: '0.5px solid var(--border)',
@@ -113,12 +119,17 @@ export default function PresencesRecapPage() {
         ))}
       </div>
 
-      {/* Navigation période */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <button onClick={() => setDecalage(p => p - 1)} style={{ border: 'none', background: 'var(--bg-secondary)', borderRadius: 8, padding: '6px 8px', cursor: 'pointer', display: 'flex' }}><ChevronLeft size={16} /></button>
-        <p style={{ fontSize: 13, fontWeight: 600, textTransform: vue === 'mensuel' ? 'capitalize' : 'none' }}>{periodeLabel}</p>
-        <button onClick={() => setDecalage(p => Math.min(0, p + 1))} disabled={decalage >= 0} style={{ border: 'none', background: 'var(--bg-secondary)', borderRadius: 8, padding: '6px 8px', cursor: decalage >= 0 ? 'default' : 'pointer', opacity: decalage >= 0 ? .4 : 1, display: 'flex' }}><ChevronRight size={16} /></button>
-      </div>
+      {/* Navigation période — pas de navigation en vue Total, une seule période fixe
+          (toute la saison en cours). */}
+      {vue !== 'total' ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <button onClick={() => setDecalage(p => p - 1)} style={{ border: 'none', background: 'var(--bg-secondary)', borderRadius: 8, padding: '6px 8px', cursor: 'pointer', display: 'flex' }}><ChevronLeft size={16} /></button>
+          <p style={{ fontSize: 13, fontWeight: 600, textTransform: vue === 'mensuel' ? 'capitalize' : 'none' }}>{periodeLabel}</p>
+          <button onClick={() => setDecalage(p => Math.min(0, p + 1))} disabled={decalage >= 0} style={{ border: 'none', background: 'var(--bg-secondary)', borderRadius: 8, padding: '6px 8px', cursor: decalage >= 0 ? 'default' : 'pointer', opacity: decalage >= 0 ? .4 : 1, display: 'flex' }}><ChevronRight size={16} /></button>
+        </div>
+      ) : (
+        <p style={{ fontSize: 13, fontWeight: 600, textAlign: 'center', marginBottom: 12 }}>{periodeLabel}</p>
+      )}
 
       {loading ? <Spinner /> : (
         <>
@@ -170,12 +181,12 @@ export default function PresencesRecapPage() {
                 </Card>
               )}
 
-              {/* Récap chiffré — dans les deux vues, trié du taux collectif le plus
-                  faible au plus élevé pour repérer d'un coup d'œil qui n'est pas encore
-                  prêt. */}
+              {/* Récap chiffré — dans les trois vues, trié du taux collectif le plus
+                  fort au plus faible, pour voir d'un coup d'œil le classement
+                  d'assiduité. */}
               <Card>
                 <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Récap — {seancesPeriode.length} séance(s) proposée(s)</p>
-                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>Trié du taux de présence collective le plus faible au plus élevé</p>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>Trié du taux de présence collective le plus fort au plus faible</p>
                 {recap.map(r => (
                   <div key={r.joueur.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
