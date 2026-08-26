@@ -66,9 +66,13 @@ export default function PresencesRecapPage() {
     ? `Semaine du ${format(periodeDebut, 'd MMM', { locale: fr })} au ${format(periodeFin, 'd MMM yyyy', { locale: fr })}`
     : format(refDate, 'MMMM yyyy', { locale: fr })
 
+  // Double filtre sur "passé" : la requête initiale (loadData) borne déjà aux séances
+  // dont la date est passée au moment du chargement, mais on revérifie ici avec `now`
+  // recalculé à chaque rendu — une séance du jour même, prévue plus tard dans la
+  // journée, ne doit jamais apparaître avant d'avoir réellement eu lieu.
   const seancesPeriode = seances.filter(e => {
     const d = parseISO(e.date_heure)
-    return d >= periodeDebut && d <= periodeFin
+    return d >= periodeDebut && d <= periodeFin && d <= now
   })
 
   function presencesJoueur(joueurId, evenementIds) {
