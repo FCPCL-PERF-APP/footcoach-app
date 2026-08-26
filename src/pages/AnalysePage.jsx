@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { PageHeader, IconTile } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
-import { BarChart3, Trophy, Award, TrendingUp, Scale, TrendingDown, Smartphone, Download, ChevronRight } from 'lucide-react'
+import { BarChart3, Trophy, Award, TrendingUp, Scale, TrendingDown, Smartphone, Download, ChevronRight, CalendarDays } from 'lucide-react'
 
 const ANALYSES = [
   { path: '/stats-matchs',    icon: BarChart3, cat: 'blue', label: 'Bilan des matchs',        desc: 'Résultats, buts marqués et encaissés par période' },
+  { path: '/presences-recap', icon: CalendarDays, cat: 'cyan', label: 'Présences entraînements', desc: 'Récap hebdo/mensuel — qui a suivi la préparation' },
   { path: '/bilan-saison',    icon: Trophy, cat: 'amber', label: 'Bilan de saison',         desc: 'Trophées individuels et stats collectives de la saison' },
   { path: '/classement',      icon: Award, cat: 'gold', label: 'Classements',             desc: 'Buteurs, passeurs, temps de jeu, distance...' },
   { path: '/charge-hebdo',    icon: TrendingUp, cat: 'rose', label: 'Charge hebdomadaire',     desc: "RPE et charge d'entraînement sur 12 semaines" },

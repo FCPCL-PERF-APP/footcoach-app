@@ -29,6 +29,7 @@ const StatsConnexionPage     = lazy(() => import('./pages/StatsConnexionPage'))
 const StatsPage              = lazy(() => import('./pages/StatsPage'))
 const ConvocationsPage       = lazy(() => import('./pages/ConvocationsPage'))
 const PresencesMatchPage     = lazy(() => import('./pages/PresencesMatchPage'))
+const PresencesRecapPage     = lazy(() => import('./pages/PresencesRecapPage'))
 const ChargeHebdoPage        = lazy(() => import('./pages/ChargeHebdoPage'))
 const ComparatifJoueursPage  = lazy(() => import('./pages/ComparatifJoueursPage'))
 const BilanSaisonPage        = lazy(() => import('./pages/BilanSaisonPage'))
@@ -173,6 +174,7 @@ function AppContent() {
           <Route path="/stats/:id"              element={isCoach || isAdjoint ? <StatsPage /> : <Navigate to="/" />} />
           <Route path="/convocations/:id"       element={isCoach || isAdjoint ? <ConvocationsPage /> : <Navigate to="/" />} />
           <Route path="/presences/:id"          element={isCoach || isAdjoint ? <PresencesMatchPage /> : <Navigate to="/" />} />
+          <Route path="/presences-recap"        element={isCoach || isAdjoint ? <PresencesRecapPage /> : <Navigate to="/" />} />
           <Route path="/charge-hebdo"           element={isCoach || isAdjoint ? <ChargeHebdoPage /> : <Navigate to="/" />} />
           <Route path="/comparatif"             element={isCoach || isAdjoint ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
           <Route path="/bilan-saison"           element={isCoach || isAdjoint ? <BilanSaisonPage /> : <Navigate to="/" />} />
