@@ -10,7 +10,7 @@ import { fr } from 'date-fns/locale'
 import {
   ArrowLeft, CheckCircle2, User, BarChart3, Swords, FileText,
   Save, Share2, ThumbsUp, AlertTriangle, Goal, Shield, WifiOff, ImagePlus, X, Loader2,
-  Target, Plus, Trash2
+  Target, Plus, Trash2, Maximize2, Minimize2
 } from 'lucide-react'
 
 const STATS_QUEUE_TABLES = ['stats_match', 'stats_collectives', 'rapports_match']
@@ -109,6 +109,30 @@ function SchemaField({ label, value, uploading, onUpload, onRemove }) {
         </label>
       )}
       <style>{`@keyframes fc-schema-spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
+}
+
+// Zone de texte du rapport de match (causerie, animations, débrief...) avec un bouton
+// agrandir/réduire explicite — le redimensionnement natif du textarea (poignée au coin,
+// resize: vertical) est peu visible et pas fiable sur mobile, d'où la confusion : une
+// seule zone semblait "agrandissable" alors qu'elles le sont toutes en théorie. Ce
+// bouton marche pareil partout, sur tous les appareils. Composant au niveau module
+// (pas imbriqué dans StatsPage) pour éviter le bug de démontage d'input à chaque frappe
+// déjà rencontré et corrigé sur FicheJoueurPage.jsx pour la même raison.
+function RapportTextarea({ label, value, onChange, placeholder, rows = 2, style = {} }) {
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <div style={{ marginBottom: 10, ...style }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+        {label && <label style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{label}</label>}
+        <button type="button" onClick={() => setExpanded(p => !p)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex', color: 'var(--text-muted)', padding: 2, marginLeft: 'auto' }}>
+          {expanded ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+        </button>
+      </div>
+      <textarea value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        rows={expanded ? 10 : rows}
+        style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
     </div>
   )
 }
@@ -1189,30 +1213,20 @@ export default function StatsPage() {
 
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Mi-temps</p>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Récapitulatif 1ère mi-temps</label>
-              <textarea value={formRapport.recap_mi_temps || ''} onChange={e => setFormRapport(p => ({...p, recap_mi_temps: e.target.value}))}
-                rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Axes d'amélioration</label>
-              <textarea value={formRapport.mt_axes_amelioration || ''} onChange={e => setFormRapport(p => ({...p, mt_axes_amelioration: e.target.value}))}
-                rows={3} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Projection 2nde mi-temps</label>
-              <textarea value={formRapport.mt_projection || ''} onChange={e => setFormRapport(p => ({...p, mt_projection: e.target.value}))}
-                rows={3} placeholder="Consignes à faire passer, avec le timing si besoin..."
-                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
-            </div>
+            <RapportTextarea label="Récapitulatif 1ère mi-temps" rows={2}
+              value={formRapport.recap_mi_temps} onChange={v => setFormRapport(p => ({...p, recap_mi_temps: v}))} />
+            <RapportTextarea label="Axes d'amélioration" rows={3}
+              value={formRapport.mt_axes_amelioration} onChange={v => setFormRapport(p => ({...p, mt_axes_amelioration: v}))} />
+            <RapportTextarea label="Projection 2nde mi-temps" rows={3} placeholder="Consignes à faire passer, avec le timing si besoin..."
+              value={formRapport.mt_projection} onChange={v => setFormRapport(p => ({...p, mt_projection: v}))} />
             <Input label="Consigne à l'adjoint" value={formRapport.mt_note_adjoint || ''} onChange={v => setFormRapport(p => ({...p, mt_note_adjoint: v}))} />
           </Card>
 
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Notes en vrac</p>
             <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>Pêle-mêle pendant le match, à retranscrire ensuite dans le rapport</p>
-            <textarea value={formRapport.notes_libres || ''} onChange={e => setFormRapport(p => ({...p, notes_libres: e.target.value}))}
-              rows={5} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+            <RapportTextarea rows={5} style={{ marginBottom: 0 }}
+              value={formRapport.notes_libres} onChange={v => setFormRapport(p => ({...p, notes_libres: v}))} />
           </Card>
 
           <div style={{ display: 'flex', gap: 8 }}>
@@ -1228,19 +1242,15 @@ export default function StatsPage() {
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Avant-match</p>
             <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>Préparation et consignes annoncées avant le coup d'envoi</p>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Causerie d'avant-match</label>
-              <textarea value={formRapport.causerie || ''} onChange={e => setFormRapport(p => ({...p, causerie: e.target.value}))}
-                rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
-            </div>
+            <RapportTextarea label="Causerie d'avant-match" rows={2}
+              value={formRapport.causerie} onChange={v => setFormRapport(p => ({...p, causerie: v}))} />
             {[
               ['Animation offensive', 'animation_offensive', 'schema_animation_offensive'],
               ['Animation défensive', 'animation_defensive', 'schema_animation_defensive'],
             ].map(([label, field, schemaField]) => (
               <div key={field} style={{ marginBottom: 10 }}>
-                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
-                <textarea value={formRapport[field] || ''} onChange={e => setFormRapport(p => ({...p, [field]: e.target.value}))}
-                  rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: 6 }} />
+                <RapportTextarea label={label} rows={2} style={{ marginBottom: 6 }}
+                  value={formRapport[field]} onChange={v => setFormRapport(p => ({...p, [field]: v}))} />
                 <SchemaField label="Schéma" value={formRapport[schemaField]} uploading={uploadingSchema === schemaField}
                   onUpload={f => uploadSchema(schemaField, f)} onRemove={() => setFormRapport(p => ({...p, [schemaField]: ''}))} />
               </div>
@@ -1269,13 +1279,10 @@ export default function StatsPage() {
               <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Composition adversaire</label>
               <SchemaField label="Schéma" value={formRapport.schema_compo_adverse} uploading={uploadingSchema === 'schema_compo_adverse'}
                 onUpload={f => uploadSchema('schema_compo_adverse', f)} onRemove={() => setFormRapport(p => ({...p, schema_compo_adverse: ''}))} />
-              <textarea value={formRapport.compo_adversaire || ''} onChange={e => setFormRapport(p => ({...p, compo_adversaire: e.target.value}))}
-                rows={2} placeholder="Noms, postes..."
-                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: 6 }} />
-              <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Joueurs à surveiller</label>
-              <textarea value={formRapport.joueurs_a_surveiller || ''} onChange={e => setFormRapport(p => ({...p, joueurs_a_surveiller: e.target.value}))}
-                rows={2} placeholder="Numéro, nom, point fort..."
-                style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+              <RapportTextarea rows={2} placeholder="Noms, postes..." style={{ marginBottom: 6 }}
+                value={formRapport.compo_adversaire} onChange={v => setFormRapport(p => ({...p, compo_adversaire: v}))} />
+              <RapportTextarea label="Joueurs à surveiller" rows={2} placeholder="Numéro, nom, point fort..." style={{ marginBottom: 0 }}
+                value={formRapport.joueurs_a_surveiller} onChange={v => setFormRapport(p => ({...p, joueurs_a_surveiller: v}))} />
             </div>
             {[
               ['Points forts globaux (adversaire)', 'points_forts_globaux'],
@@ -1285,11 +1292,8 @@ export default function StatsPage() {
               ['Points positifs défensifs', 'points_positifs_def'],
               ['Problèmes défensifs', 'problemes_def'],
             ].map(([label, field]) => (
-              <div key={field} style={{ marginBottom: 10 }}>
-                <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
-                <textarea value={formRapport[field] || ''} onChange={e => setFormRapport(p => ({...p, [field]: e.target.value}))}
-                  rows={2} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
-              </div>
+              <RapportTextarea key={field} label={label} rows={2}
+                value={formRapport[field]} onChange={v => setFormRapport(p => ({...p, [field]: v}))} />
             ))}
           </Card>
 
