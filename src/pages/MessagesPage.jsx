@@ -560,7 +560,7 @@ function LecteursPanel({ canal, lastMessage, onClose }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: '18px 18px 0 0', padding: 16, width: '100%', maxWidth: 480, margin: '0 auto', maxHeight: '70vh', overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: '18px 18px 0 0', padding: 16, width: '100%', maxWidth: 'var(--app-max-width)', margin: '0 auto', maxHeight: '70vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <p style={{ fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Eye size={14} color="var(--primary)" /> Qui a vu les messages</p>
           <button onClick={onClose} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><X size={18} color="var(--text-secondary)" /></button>

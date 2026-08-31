@@ -193,7 +193,7 @@ export default function BottomNav() {
             position: 'fixed', bottom: 64, left: 0, right: 0,
             background: THEME.blackSoft, zIndex: 99,
             borderTop: `1px solid ${'var(--primary)'}`,
-            maxWidth: 480, margin: '0 auto',
+            maxWidth: 'var(--app-max-width)', margin: '0 auto',
             boxShadow: '0 -4px 20px rgba(0,0,0,.4)'
           }}>
             {moreItems.map(({ section, items }) => (
@@ -240,7 +240,7 @@ export default function BottomNav() {
         display: 'flex', zIndex: 100,
         paddingBottom: 'env(safe-area-inset-bottom)',
         boxShadow: '0 -4px 20px rgba(0,0,0,.3)',
-        maxWidth: 480, margin: '0 auto'
+        maxWidth: 'var(--app-max-width)', margin: '0 auto'
       }}>
         {mainItems.map(item => {
           const active = item.path !== '/plus' && pathname.startsWith(item.path)

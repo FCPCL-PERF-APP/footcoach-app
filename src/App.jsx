@@ -139,7 +139,7 @@ function AppContent() {
   const defaultRoute = isJoueur ? '/mon-dashboard' : '/calendrier'
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: 'var(--bg-page)' }}>
+    <div style={{ maxWidth: 'var(--app-max-width)', margin: '0 auto', minHeight: '100vh', background: 'var(--bg-page)' }}>
       <AppHeader />
       <div style={{ paddingBottom: 80 }}>
         <Suspense fallback={routeFallback}>

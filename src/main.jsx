@@ -10,6 +10,10 @@ initSentry()
 const style = document.createElement('style')
 style.textContent = `
   :root {
+    /* Largeur du "shell" applicatif (App.jsx + BottomNav.jsx) — format téléphone par
+       défaut, élargi sur tablette/desktop pour profiter de l'écran (utile en direct
+       pendant un match, sur iPad, pour la saisie de stats). */
+    --app-max-width: 480px;
     --bg-page: #F0F2F5;
     --bg-card: #ffffff;
     --bg-secondary: #F5F7FA;
@@ -52,6 +56,11 @@ style.textContent = `
     --danger: #E05A5A;
     --danger-bg: #2E1616;
     --gradient: linear-gradient(135deg, #0A1730 0%, #1E4D8C 50%, #2E5CA8 100%);
+  }
+  /* iPad portrait et plus large — élargit le shell plutôt que de le laisser centré en
+     format téléphone au milieu de l'écran. */
+  @media (min-width: 700px) {
+    :root { --app-max-width: 900px; }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {

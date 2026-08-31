@@ -210,7 +210,7 @@ function JourSheet({ date, existing, onClose, onSaved }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: '18px 18px 0 0', padding: 16, width: '100%', maxWidth: 480, margin: '0 auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: '18px 18px 0 0', padding: 16, width: '100%', maxWidth: 'var(--app-max-width)', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <p style={{ fontSize: 14, fontWeight: 700 }}>
             {format(new Date(date), 'd MMMM yyyy', { locale: fr })}
