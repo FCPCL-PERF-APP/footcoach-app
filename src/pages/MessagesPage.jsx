@@ -83,9 +83,16 @@ export default function MessagesPage() {
     return () => supabase.removeChannel(sub)
   }, [activeConv, profile])
 
+  // `loading`/`activeTab` dans les dépendances : au tout premier chargement,
+  // setCanalMessages (general) arrive pendant que la liste est encore masquée par le
+  // spinner (loading=true) — bottomRef.current vaut alors null et l'effet ne scrolle
+  // nulle part. Sans reclencher l'effet une fois loading passé à false (liste montée
+  // pour de vrai), l'onglet Messages s'ouvrait toujours en haut au lieu du dernier
+  // message. Pas d'animation ('auto' plutôt que 'smooth') pour un positionnement
+  // fiable dès l'arrivée, pas juste "vers" le bas.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [canalMessages, convMessages])
+    bottomRef.current?.scrollIntoView({ behavior: 'auto' })
+  }, [canalMessages, convMessages, loading, activeTab])
 
   // Marque le canal courant comme lu jusqu'au dernier message affiché — lu par
   // BottomNav.jsx pour la pastille "non lu", et enregistré côté serveur
@@ -107,20 +114,35 @@ export default function MessagesPage() {
 
   async function loadContacts() {
     const myAuthId = profile?.auth_id || profile?.id
-    const [{ data: joueurs }, { data: staff }, { data: nonLus }] = await Promise.all([
+    const [{ data: joueurs }, { data: staff }, { data: nonLus }, { data: mesMessages }] = await Promise.all([
       supabase.from('joueurs').select('id, nom, prenom, poste, auth_id').order('nom'),
       supabase.from('staff').select('id, nom, prenom, role, auth_id').order('nom'),
       // Sert à faire remonter en haut de liste les contacts ayant un message non lu —
-      // sans ça, la liste par défaut (alphabétique, tronquée à 10) peut masquer
-      // complètement qui a écrit un message resté non lu.
+      // sans ça, la liste par défaut (tronquée à 10) peut masquer complètement qui a
+      // écrit un message resté non lu.
       myAuthId ? supabase.from('messages').select('expediteur_id').eq('destinataire_id', myAuthId).eq('lu', false) : Promise.resolve({ data: [] }),
+      // Date du dernier message échangé (envoyé ou reçu) avec chaque contact, pour
+      // trier la liste par échange le plus récent plutôt que par ordre alphabétique.
+      myAuthId ? supabase.from('messages').select('expediteur_id, destinataire_id, created_at').eq('groupe', false)
+        .or(`expediteur_id.eq.${myAuthId},destinataire_id.eq.${myAuthId}`) : Promise.resolve({ data: [] }),
     ])
     const nonLusIds = new Set((nonLus || []).map(m => m.expediteur_id))
+    const dernierEchange = {}
+    for (const m of (mesMessages || [])) {
+      const autreId = m.expediteur_id === myAuthId ? m.destinataire_id : m.expediteur_id
+      if (!autreId) continue
+      if (!dernierEchange[autreId] || m.created_at > dernierEchange[autreId]) dernierEchange[autreId] = m.created_at
+    }
     const all = [
       ...(joueurs || []).filter(j => j.auth_id && j.auth_id !== myAuthId).map(j => ({ ...j, type: 'joueur' })),
       ...(staff || []).filter(s => s.auth_id && s.auth_id !== myAuthId).map(s => ({ ...s, type: 'staff' }))
-    ].map(c => ({ ...c, nonLu: nonLusIds.has(c.auth_id) }))
-      .sort((a, b) => (b.nonLu - a.nonLu) || a.nom.localeCompare(b.nom))
+    ].map(c => ({ ...c, nonLu: nonLusIds.has(c.auth_id), dernierEchange: dernierEchange[c.auth_id] || null }))
+      // Non lus d'abord, puis échange le plus récent, puis alphabétique pour les
+      // contacts jamais contactés (pas de date à comparer).
+      .sort((a, b) => (b.nonLu - a.nonLu)
+        || (b.dernierEchange && a.dernierEchange ? b.dernierEchange.localeCompare(a.dernierEchange) : 0)
+        || (b.dernierEchange ? 1 : 0) - (a.dernierEchange ? 1 : 0)
+        || a.nom.localeCompare(b.nom))
     setContacts(all)
   }
 
