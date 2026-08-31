@@ -3,8 +3,15 @@ import { supabase } from '../lib/supabase'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner, BarChart } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
-import { Trophy, Award, Goal, Shield, Target, Heart, BarChart3, TrendingUp, CheckCircle2 } from 'lucide-react'
+import { Trophy, Award, Goal, Shield, Target, Heart, BarChart3, CheckCircle2 } from 'lucide-react'
 import { computePresenceBreakdown } from '../lib/presenceStats'
+
+// "E.Lucas" — initiale du prénom + nom, pour vraiment identifier le joueur (deux
+// joueurs peuvent partager le même nom de famille, l'initiale seule du nom ne suffit
+// pas à les distinguer).
+function initName(nom, prenom) {
+  return `${prenom?.[0] ? prenom[0] + '.' : ''}${nom || ''}`
+}
 
 function StatBox({ label, value, sub, color = 'var(--primary)', big = false }) {
   return (
@@ -48,7 +55,10 @@ export default function BilanSaisonPage() {
     ] = await Promise.all([
       supabase.from('stats_collectives').select('*, evenements(titre,date_heure,match_type)').in('evenement_id', idsSaison).order('created_at', { ascending: true }),
       supabase.from('rpe').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
-      supabase.from('footbar').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
+      // Jointure evenements(type) pour ne garder que le Footbar pris en match — sinon la
+      // distance moyenne se retrouve diluée par les séances d'entraînement (même
+      // filtre que DashboardPage.jsx/ClassementButeursPage.jsx).
+      supabase.from('footbar').select('*, joueurs(nom,prenom), evenements(type)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
       supabase.from('stats_match').select('*, joueurs(nom,prenom), evenements(match_type)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
       supabase.from('presences').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison),
       supabase.from('evenements').select('*').eq('type', 'match').gte('date_heure', debut).lte('date_heure', fin),
@@ -70,34 +80,37 @@ export default function BilanSaisonPage() {
     const totalButs = (matchStats || []).reduce((s, m) => s + (m.buts_marques || 0), 0)
     const totalEncaisses = (matchStats || []).reduce((s, m) => s + (m.buts_encaisses || 0), 0)
 
-    // ===== MEILLEUR BUTEUR =====
+    // ===== MEILLEUR BUTEUR ===== — clé "nom|prénom" pour ne pas confondre deux joueurs
+    // du même nom de famille ; libellé affiché "E.Lucas" (initiale prénom + nom).
     const butsParJoueur = {}
     for (const s of (statsIndiv || [])) {
       if (!s.joueurs || !s.buts) continue
-      const nom = `${s.joueurs.nom} ${s.joueurs.prenom}`
-      butsParJoueur[nom] = (butsParJoueur[nom] || 0) + s.buts
+      const key = `${s.joueurs.nom}|${s.joueurs.prenom}`
+      if (!butsParJoueur[key]) butsParJoueur[key] = { nom: s.joueurs.nom, prenom: s.joueurs.prenom, valeur: 0 }
+      butsParJoueur[key].valeur += s.buts
     }
-    const meilleurButeur = Object.entries(butsParJoueur).sort((a,b) => b[1]-a[1])[0]
+    const meilleurButeur = Object.values(butsParJoueur).sort((a,b) => b.valeur - a.valeur)[0]
 
     // ===== MEILLEUR PASSEUR =====
     const passesParJoueur = {}
     for (const s of (statsIndiv || [])) {
       if (!s.joueurs || !s.passes_decisives) continue
-      const nom = `${s.joueurs.nom} ${s.joueurs.prenom}`
-      passesParJoueur[nom] = (passesParJoueur[nom] || 0) + s.passes_decisives
+      const key = `${s.joueurs.nom}|${s.joueurs.prenom}`
+      if (!passesParJoueur[key]) passesParJoueur[key] = { nom: s.joueurs.nom, prenom: s.joueurs.prenom, valeur: 0 }
+      passesParJoueur[key].valeur += s.passes_decisives
     }
-    const meilleurPasseur = Object.entries(passesParJoueur).sort((a,b) => b[1]-a[1])[0]
+    const meilleurPasseur = Object.values(passesParJoueur).sort((a,b) => b.valeur - a.valeur)[0]
 
     // ===== PRÉSENCE ===== — taux d'engagement (présent + extérieur, blessures exclues)
     const presenceParJoueur = {}
     for (const p of (presences || [])) {
       if (!p.joueurs) continue
-      const nom = `${p.joueurs.nom} ${p.joueurs.prenom}`
-      if (!presenceParJoueur[nom]) presenceParJoueur[nom] = []
-      presenceParJoueur[nom].push(p)
+      const key = `${p.joueurs.nom}|${p.joueurs.prenom}`
+      if (!presenceParJoueur[key]) presenceParJoueur[key] = { nom: p.joueurs.nom, prenom: p.joueurs.prenom, rows: [] }
+      presenceParJoueur[key].rows.push(p)
     }
-    const topPresence = Object.entries(presenceParJoueur)
-      .map(([nom, rows]) => ({ nom, ...computePresenceBreakdown(rows), taux: computePresenceBreakdown(rows).tauxEngagement ?? 0 }))
+    const topPresence = Object.values(presenceParJoueur)
+      .map(({ nom, prenom, rows }) => ({ nom, prenom, ...computePresenceBreakdown(rows), taux: computePresenceBreakdown(rows).tauxEngagement ?? 0 }))
       .sort((a,b) => b.taux - a.taux)[0]
 
     // ===== RPE MOYEN SAISON =====
@@ -107,27 +120,33 @@ export default function BilanSaisonPage() {
     }).filter(v => v !== null)
     const rpeMoySaison = rpeVals.length ? (rpeVals.reduce((a,b) => a+b, 0) / rpeVals.length).toFixed(1) : '—'
 
-    // ===== DISTANCE TOTALE FOOTBAR =====
-    const distTotale = (footData || []).reduce((s, f) => s + (f.distance_km || 0), 0).toFixed(0)
+    // ===== DISTANCE MOYENNE PAR MATCH (Footbar pris en match uniquement) =====
+    const distancesMatch = (footData || []).filter(f => f.evenements?.type === 'match').map(f => f.distance_km).filter(Boolean)
+    const distMoyenne = distancesMatch.length ? (distancesMatch.reduce((a, b) => a + b, 0) / distancesMatch.length).toFixed(1) : '—'
 
-    // ===== TOP BUTEURS CHART =====
-    const topButeurs = Object.entries(butsParJoueur)
-      .sort((a,b) => b[1]-a[1]).slice(0,6)
-      .map(([nom, buts]) => ({ label: nom.split(' ')[0], value: buts, color: 'var(--primary)' }))
+    // ===== TOP BUTEURS / PASSEURS (graphiques) =====
+    const topButeurs = Object.values(butsParJoueur)
+      .sort((a,b) => b.valeur - a.valeur).slice(0,6)
+      .map(({ nom, prenom, valeur }) => ({ label: initName(nom, prenom), value: valeur, color: 'var(--primary)' }))
+    const topPasseurs = Object.values(passesParJoueur)
+      .sort((a,b) => b.valeur - a.valeur).slice(0,6)
+      .map(({ nom, prenom, valeur }) => ({ label: initName(nom, prenom), value: valeur, color: CAT_COLORS.violet.color }))
 
-    // ===== ÉVOLUTION RÉSULTATS =====
-    const resultats = (matchStats || []).map((s, i) => ({
-      label: `J${i+1}`,
-      value: s.buts_marques - s.buts_encaisses,
-      color: s.buts_marques > s.buts_encaisses ? 'var(--success)' : s.buts_marques === s.buts_encaisses ? '#BA7517' : 'var(--danger)'
-    }))
+    // ===== POINTS ===== — n'ont de sens qu'en championnat (la coupe n'a pas de
+    // classement) : calculés uniquement sur les matchs de championnat, et le tile
+    // "Pts" est masqué tant qu'aucun n'a été disputé (ex. en plein sur une préparation
+    // qui n'a joué que des matchs de coupe).
+    const matchStatsChampionnat = (matchStats || []).filter(s => s.evenements?.match_type === 'championnat')
+    const hasChampionnat = matchStatsChampionnat.length > 0
+    const ptsCalcules = matchStatsChampionnat.filter(s => s.buts_marques > s.buts_encaisses).length * 3
+      + matchStatsChampionnat.filter(s => s.buts_marques === s.buts_encaisses).length
 
     setBilan({
       victoires, nuls, defaites, totalMatchs,
       totalButs, totalEncaisses,
       meilleurButeur, meilleurPasseur,
-      topPresence, rpeMoySaison, distTotale,
-      topButeurs, resultats
+      topPresence, rpeMoySaison, distMoyenne,
+      topButeurs, topPasseurs, hasChampionnat, ptsCalcules
     })
     setLoading(false)
   }
@@ -142,7 +161,6 @@ export default function BilanSaisonPage() {
   )
   if (!bilan) return null
 
-  const ptsCalcules = bilan.victoires * 3 + bilan.nuls
   const diffButs = bilan.totalButs - bilan.totalEncaisses
 
   return (
@@ -154,9 +172,11 @@ export default function BilanSaisonPage() {
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', marginBottom: 10, textAlign: 'center' }}>
           Saison {saisonYear}/{saisonYear+1} · {bilan.totalMatchs} matchs disputés
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: bilan.hasChampionnat ? 'repeat(4,1fr)' : 'repeat(3,1fr)', gap: 8 }}>
           {[
-            ['Pts', ptsCalcules, '#FFD700'],
+            // Les points n'ont de sens qu'en championnat (pas de classement en coupe) —
+            // masqués tant qu'aucun match de championnat n'a été disputé.
+            ...(bilan.hasChampionnat ? [['Pts', bilan.ptsCalcules, '#FFD700']] : []),
             ['V', bilan.victoires, '#4ADE80'],
             ['N', bilan.nuls, '#FCD34D'],
             ['D', bilan.defaites, '#F87171'],
@@ -185,23 +205,23 @@ export default function BilanSaisonPage() {
           <Card>
             <div style={{ textAlign: 'center', marginBottom: 4 }}><Goal size={22} color={'var(--primary)'} /></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center' }}>Meilleur buteur</div>
-            <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{bilan.meilleurButeur[0].split(' ')[0]}</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary)', textAlign: 'center' }}>{bilan.meilleurButeur[1]} buts</div>
+            <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{initName(bilan.meilleurButeur.nom, bilan.meilleurButeur.prenom)}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary)', textAlign: 'center' }}>{bilan.meilleurButeur.valeur} buts</div>
           </Card>
         )}
         {bilan.meilleurPasseur && (
           <Card>
             <div style={{ textAlign: 'center', marginBottom: 4 }}><Target size={22} color={'var(--primary)'} /></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center' }}>Meilleur passeur</div>
-            <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{bilan.meilleurPasseur[0].split(' ')[0]}</div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary)', textAlign: 'center' }}>{bilan.meilleurPasseur[1]} passes</div>
+            <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{initName(bilan.meilleurPasseur.nom, bilan.meilleurPasseur.prenom)}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--primary)', textAlign: 'center' }}>{bilan.meilleurPasseur.valeur} passes</div>
           </Card>
         )}
         {bilan.topPresence && (
           <Card>
             <div style={{ textAlign: 'center', marginBottom: 4 }}><CheckCircle2 size={22} color={'var(--success)'} /></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', textAlign: 'center' }}>Meilleur engagement</div>
-            <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{bilan.topPresence.nom.split(' ')[0]}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, textAlign: 'center', marginTop: 2 }}>{initName(bilan.topPresence.nom, bilan.topPresence.prenom)}</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--success)', textAlign: 'center' }}>{bilan.topPresence.taux}%</div>
           </Card>
         )}
@@ -219,33 +239,22 @@ export default function BilanSaisonPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 14 }}>
         <StatBox label="Buts marqués" value={bilan.totalButs} color="var(--success)" />
         <StatBox label="Buts encaissés" value={bilan.totalEncaisses} color="var(--danger)" />
-        <StatBox label="Dist. totale" value={`${bilan.distTotale}km`} color={'var(--primary)'} />
+        <StatBox label="Dist. moy./match" value={bilan.distMoyenne !== '—' ? `${bilan.distMoyenne}km` : '—'} color={'var(--primary)'} />
       </div>
 
       {/* Top buteurs */}
       {bilan.topButeurs.length > 0 && (
-        <Card>
+        <Card style={{ marginBottom: 14 }}>
           <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Goal size={14} color={'var(--primary)'} /> Classement buteurs</p>
           <BarChart data={bilan.topButeurs} maxValue={Math.max(...bilan.topButeurs.map(b => b.value)) + 1} />
         </Card>
       )}
 
-      {/* Évolution résultats */}
-      {bilan.resultats.length > 0 && (
+      {/* Top passeurs — même présentation que le classement buteurs */}
+      {bilan.topPasseurs.length > 0 && (
         <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><TrendingUp size={14} color={'var(--primary)'} /> Différence de buts par match</p>
-          <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 60 }}>
-            {bilan.resultats.map((r, i) => {
-              const h = Math.abs(r.value) * 12 + 10
-              return (
-                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                  <div style={{ fontSize: 9, color: r.color, fontWeight: 600 }}>{r.value > 0 ? `+${r.value}` : r.value}</div>
-                  <div style={{ width: '100%', height: h, background: r.color, borderRadius: 3, opacity: 0.85 }} />
-                  <div style={{ fontSize: 8, color: 'var(--text-secondary)' }}>{r.label}</div>
-                </div>
-              )
-            })}
-          </div>
+          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Target size={14} color={CAT_COLORS.violet.color} /> Classement passeurs</p>
+          <BarChart data={bilan.topPasseurs} maxValue={Math.max(...bilan.topPasseurs.map(b => b.value)) + 1} />
         </Card>
       )}
     </div>

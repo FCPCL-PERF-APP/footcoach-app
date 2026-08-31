@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { THEME, CAT_COLORS } from '../theme'
+import { computeAlertes, getAlertesTraitees } from '../lib/alertes'
 import {
   Calendar, Users, MessageCircle, LayoutDashboard, Menu,
   Heart, Radio, BarChart3, Settings, Archive, Folder,
@@ -89,10 +90,12 @@ export default function BottomNav() {
   const mainItems = isCoach ? NAV_COACH_MAIN : isAdjoint ? NAV_STAFF_MAIN : NAV_JOUEUR_MAIN
   const moreItems = isCoach ? NAV_COACH_MORE : isAdjoint ? NAV_STAFF_MORE : NAV_JOUEUR_MORE
 
-  // Charge le nombre d'alertes actives pour le badge
+  // Charge le nombre d'alertes actives pour le badge — recalculé à chaque navigation
+  // (comme loadUnread) pour refléter tout de suite une alerte marquée "traitée" sur le
+  // Dashboard, plutôt que de rester bloqué jusqu'au prochain rechargement complet.
   useEffect(() => {
     if (isCoach) loadAlertes()
-  }, [isCoach])
+  }, [isCoach, pathname])
 
   // Charge le nombre de messages privés non lus — recalculé à chaque navigation
   // pour refléter les messages marqués "lu" en ouvrant une conversation.
@@ -103,15 +106,18 @@ export default function BottomNav() {
     if (!myAuthId) return
     // Messages privés non lus : suivi via la colonne `lu`. Messages de canal (groupe
     // général, et staff pour le staff) : pas de destinataire ni de colonne "lu" par
-    // utilisateur, donc on compare à la date du dernier message vu par canal (posée
-    // par MessagesPage.jsx en localStorage). Si ce repère n'existe pas encore (jamais
-    // ouvert ce canal sur cet appareil), tous les messages existants comptent comme
-    // non lus : c'est la réalité (ils n'ont jamais été vus), pas une valeur par défaut
-    // à zéro qui laissait le badge muet indéfiniment.
+    // utilisateur, donc on compare à la date du dernier message vu par canal — lue
+    // depuis message_lectures (serveur), pas depuis le localStorage de cet appareil :
+    // sinon lire les messages sur un appareil ne faisait jamais disparaître la pastille
+    // sur les autres (ex. lu sur iPhone, toujours marqué non lu sur iPad). Si ce repère
+    // n'existe pas encore (jamais ouvert ce canal sur aucun appareil), tous les messages
+    // existants comptent comme non lus : c'est la réalité, pas une valeur par défaut à
+    // zéro qui laisserait le badge muet indéfiniment.
     async function unreadForCanal(canal) {
-      const lastRead = localStorage.getItem(`fc-${canal}-messages-last-read`)
+      const { data: lecture } = await supabase.from('message_lectures')
+        .select('derniere_lecture').eq('user_id', myAuthId).eq('canal', canal).maybeSingle()
       let query = supabase.from('messages').select('expediteur_id').eq('groupe', true).eq('canal', canal)
-      if (lastRead) query = query.gt('created_at', lastRead)
+      if (lecture?.derniere_lecture) query = query.gt('created_at', lecture.derniere_lecture)
       const { data } = await query
       return (data || []).filter(m => m.expediteur_id !== myAuthId).length
     }
@@ -125,49 +131,28 @@ export default function BottomNav() {
     setUnreadCount((privCount || 0) + generalUnread + staffUnread)
   }
 
+  // Même calcul que DashboardPage.jsx (cf. lib/alertes.js) — avant, ce badge avait sa
+  // propre logique (différente !) et sa propre clé de dismiss, ce qui le faisait
+  // paraître bloqué indéfiniment même après avoir traité les alertes sur le Dashboard.
   async function loadAlertes() {
     try {
-      const [{ data: rpeData }, { data: joueursData }] = await Promise.all([
-        supabase.from('rpe').select('joueur_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
-          .order('created_at', { ascending: false }).limit(100),
-        supabase.from('joueurs').select('id').order('nom')
+      const [{ data: rpeData }, { data: joueursData }, { data: absencesData }, { data: statsDataRaw }] = await Promise.all([
+        supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure)')
+          .order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(300),
+        supabase.from('joueurs').select('id,nom,prenom').order('nom'),
+        supabase.from('presences').select('joueur_id, statut').in('statut', ['absent', 'blesse']),
+        supabase.from('stats_collectives').select('buts_marques, buts_encaisses, evenements(date_heure, match_type)')
+          .order('created_at', { ascending: false }).limit(20),
       ])
 
-      let count = 0
-      const joueurMap = {}
-      for (const r of (rpeData || [])) {
-        const vals = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v != null)
-        if (!vals.length) continue
-        const avg = vals.reduce((a, b) => a + b, 0) / vals.length
-        if (!joueurMap[r.joueur_id]) joueurMap[r.joueur_id] = []
-        joueurMap[r.joueur_id].push(avg)
-      }
+      const statsData = (statsDataRaw || [])
+        .filter(s => s.evenements?.match_type !== 'preparation')
+        .sort((a, b) => new Date(b.evenements?.date_heure || 0) - new Date(a.evenements?.date_heure || 0))
+      const matchResults = statsData.map(s => s.buts_marques > s.buts_encaisses ? 'V' : s.buts_marques === s.buts_encaisses ? 'N' : 'D')
 
-      // Surcharges individuelles
-      for (const [, sessions] of Object.entries(joueurMap)) {
-        const last3 = sessions.slice(0, 3)
-        const avg = last3.reduce((a, b) => a + b, 0) / last3.length
-        if (avg >= 4.5) count++
-      }
-
-      // Joueurs sans RPE — seulement s'il y a eu des événements récents (14 derniers jours)
-      const { data: recentEvents } = await supabase.from('evenements')
-        .select('id').lte('date_heure', new Date().toISOString())
-        .gte('date_heure', new Date(Date.now() - 14*24*60*60*1000).toISOString())
-        .limit(1)
-
-      if (recentEvents?.length > 0) {
-        const joueursAvecRpe = new Set(Object.keys(joueurMap))
-        // Ne compter que les joueurs qui n'ont JAMAIS eu de RPE (pas juste cette semaine)
-        const nouveauxSansRpe = (joueursData || []).filter(j => !joueursAvecRpe.has(j.id)).length
-        count += Math.min(nouveauxSansRpe, 3) // Limiter à 3 max pour éviter le spam
-      }
-
-      // Soustraire les alertes déjà traitées dans localStorage
-      const traitees = JSON.parse(localStorage.getItem('fcpcl-alertes-traitees') || '[]')
-      count = Math.max(0, count - traitees.length)
-
-      setNbAlertes(count)
+      const { alertes, alertesCollectives } = computeAlertes({ rpeData, joueursData, matchResults, absencesData })
+      const traitees = getAlertesTraitees()
+      setNbAlertes(Math.max(0, alertes.length + alertesCollectives.length - traitees.length))
     } catch (err) {
       console.error('Erreur alertes:', err)
     }

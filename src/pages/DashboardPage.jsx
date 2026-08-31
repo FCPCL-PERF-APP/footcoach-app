@@ -6,6 +6,7 @@ import { Card, PageHeader, BarChart, Spinner, ListRow, IconTile, StatTile } from
 import { THEME, CAT_COLORS } from '../theme'
 import { computePresenceBreakdown } from '../lib/presenceStats'
 import { labelSaison } from '../lib/saison'
+import { computeAlertes, alertKey } from '../lib/alertes'
 import { format, parseISO, subWeeks } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -44,12 +45,8 @@ function rpeColor(v) {
   return '#3B6D11'
 }
 
-// Le bucket (valeur arrondie) fait partie de la clé : si une alerte déjà "traitée"
-// s'aggrave (bucket différent), elle redevient visible sans attendre le reset hebdo.
-function alertKey(a, joueurId) {
-  const base = joueurId !== undefined ? `ind-${joueurId}-${a.title}` : `col-${a.title}`
-  return a.bucket !== undefined ? `${base}-${a.bucket}` : base
-}
+// alertKey importé de ../lib/alertes — partagé avec BottomNav.jsx pour que le badge
+// du menu "Plus" et le détail ici pointent sur le même calcul et le même dismiss.
 
 function LineChart({ data, color = 'var(--primary)' }) {
   if (!data || data.length < 2) return <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: 12 }}>Pas assez de données</p>
@@ -264,55 +261,9 @@ export default function DashboardPage() {
     const matchResults = (statsData || []).map(s => s.buts_marques > s.buts_encaisses ? 'V' : s.buts_marques === s.buts_encaisses ? 'N' : 'D')
     setStatsMatchs({ victoires: matchResults.filter(r => r === 'V').length, nuls: matchResults.filter(r => r === 'N').length, defaites: matchResults.filter(r => r === 'D').length, serie: matchResults.slice(0, 5) })
 
-    // Alertes
-    const alertList = []
-    const collAlertes = []
-    const totalJoueurs = (joueursData || []).length
-
-    for (const [id, j] of Object.entries(joueurMap)) {
-      // Ne pas alerter les joueurs absents ou blessés
-      if (joueursAbsentsBlessesSurEvenement.has(id)) continue
-
-      const last3 = j.sessions.slice(0, 3)
-      const avgLast3 = last3.length ? last3.reduce((a, b) => a + b, 0) / last3.length : 0
-      const avgFatLast3 = j.fatigue.slice(0, 3).filter(v => v !== null)
-      const avgMotivLast = j.motivation.slice(0, 3).filter(v => v !== null)
-      const avgMotivAll = j.motivation.filter(v => v !== null)
-      const avgPerfIndLast2 = j.perf_ind.slice(0, 2).filter(v => v !== null)
-      // bucket = valeur arrondie au 0.5 près, incluse dans la clé de "traité" plus bas :
-      // si la situation s'aggrave (bucket différent), l'alerte redevient visible même
-      // avant le reset hebdomadaire du lundi.
-      if (avgLast3 >= 4.5) alertList.push({ type: 'red', title: `${j.nom} — Surcharge`, message: `RPE ${avgLast3.toFixed(1)}/5 sur 3 sessions.`, joueurId: id, bucket: Math.round(avgLast3 * 2) / 2 })
-      if (avgFatLast3.length >= 3 && avgFatLast3.every(v => v >= 4)) {
-        const fatMoy = avgFatLast3.reduce((a, b) => a + b, 0) / avgFatLast3.length
-        alertList.push({ type: 'red', title: `${j.nom} — Fatigue chronique`, message: `Fatigue ≥ 4/5 sur 3 sessions.`, joueurId: id, bucket: Math.round(fatMoy * 2) / 2 })
-      }
-      if (avgMotivLast.length >= 2 && avgMotivAll.length >= 4) {
-        const motLast = avgMotivLast.reduce((a, b) => a + b, 0) / avgMotivLast.length
-        const motAll = avgMotivAll.reduce((a, b) => a + b, 0) / avgMotivAll.length
-        if (motAll - motLast >= 1.5) alertList.push({ type: 'orange', title: `${j.nom} — Baisse motivation`, message: `${motLast.toFixed(1)}/5 vs ${motAll.toFixed(1)}/5 en moyenne.`, joueurId: id, bucket: Math.round(motLast * 2) / 2 })
-      }
-      if (avgPerfIndLast2.length >= 2 && avgPerfIndLast2.every(v => v < 2.5)) {
-        const perfMoy = avgPerfIndLast2.reduce((a, b) => a + b, 0) / avgPerfIndLast2.length
-        alertList.push({ type: 'orange', title: `${j.nom} — Perf. faible`, message: `Perf. indiv. < 2.5/5 sur 2 sessions.`, joueurId: id, bucket: Math.round(perfMoy * 2) / 2 })
-      }
-    }
-    const joueursAvecRpe = new Set(Object.keys(joueurMap))
-    for (const j of (joueursData || [])) {
-      // Ne pas alerter si le joueur est absent ou blessé
-      if (!joueursAvecRpe.has(j.id) && !joueursAbsentsBlessesSurEvenement.has(j.id)) {
-        alertList.push({ type: 'yellow', title: `${j.nom} ${j.prenom} — RPE manquant`, message: `Aucune donnée RPE.`, joueurId: j.id })
-      }
-    }
-    if (parseFloat(rpeMoy) >= 4.2) collAlertes.push({ type: 'red', title: 'Surcharge collective', message: `RPE moyen : ${rpeMoy.toFixed(1)}/5.`, bucket: Math.round(rpeMoy * 2) / 2 })
-    const allMotiv = (rpeData || []).map(r => r.motivation).filter(v => v !== null && v !== undefined)
-    const avgMotivEquipe = allMotiv.length ? allMotiv.reduce((a, b) => a + b, 0) / allMotiv.length : 0
-    if (avgMotivEquipe < 3.0 && allMotiv.length > 0) collAlertes.push({ type: 'orange', title: 'Motivation collective faible', message: `Motivation : ${avgMotivEquipe.toFixed(1)}/5.`, bucket: Math.round(avgMotivEquipe * 2) / 2 })
-    const nbRpeRecents = new Set((rpeData || []).slice(0, 50).map(r => r.joueur_id)).size
-    if (totalJoueurs > 0 && nbRpeRecents / totalJoueurs < 0.7) collAlertes.push({ type: 'yellow', title: 'Complétion RPE insuffisante', message: `${nbRpeRecents}/${totalJoueurs} joueurs ont rempli.`, bucket: nbRpeRecents })
-    const derniers3 = matchResults.slice(0, 3)
-    if (derniers3.length >= 3 && derniers3.every(r => r === 'D')) collAlertes.push({ type: 'yellow', title: '3 défaites consécutives', message: 'Analyser les rapports.' })
-
+    // Alertes — calcul partagé avec BottomNav.jsx (cf. lib/alertes.js) pour que le
+    // badge du menu "Plus" pointe sur exactement les mêmes alertes qu'ici.
+    const { alertes: alertList, alertesCollectives: collAlertes } = computeAlertes({ rpeData, joueursData, matchResults, absencesData })
     setAlertes(alertList.slice(0, 6))
     setAlertesCollectives(collAlertes)
     setNbAlertes(alertList.length + collAlertes.length)

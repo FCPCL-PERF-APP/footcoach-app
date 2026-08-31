@@ -94,8 +94,6 @@ export default function MessagesPage() {
     if ((activeTab !== 'general' && activeTab !== 'staff') || !myAuthId) return
     const messages = canalMessages[activeTab]
     if (messages.length === 0) return
-    const lastCreatedAt = messages[messages.length - 1].created_at
-    localStorage.setItem(`fc-${activeTab}-messages-last-read`, lastCreatedAt)
     supabase.from('message_lectures')
       .upsert({ user_id: myAuthId, canal: activeTab, derniere_lecture: new Date().toISOString() }, { onConflict: 'user_id,canal' })
       .then(({ error }) => { if (error) console.error('Erreur enregistrement lecture:', error) })
