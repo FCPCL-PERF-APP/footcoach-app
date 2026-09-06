@@ -10,8 +10,14 @@ import { fr } from 'date-fns/locale'
 import {
   ArrowLeft, CheckCircle2, User, BarChart3, Swords, FileText,
   Save, Share2, ThumbsUp, AlertTriangle, Goal, Shield, WifiOff, ImagePlus, X, Loader2,
-  Target, Plus, Trash2, Maximize2, Minimize2
+  Target, Plus, Trash2, Maximize2, Minimize2, Users, Send
 } from 'lucide-react'
+
+const shareSheetBtnStyle = {
+  display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
+  padding: '11px 14px', border: '1px solid var(--border)', borderRadius: 10,
+  background: 'var(--bg-secondary)', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', cursor: 'pointer'
+}
 
 const STATS_QUEUE_TABLES = ['stats_match', 'stats_collectives', 'rapports_match']
 function statsQueueCount() {
@@ -179,6 +185,7 @@ export default function StatsPage() {
   const navigate = useNavigate()
   const [event, setEvent] = useState(null)
   const [joueurs, setJoueurs] = useState([])
+  const [staffList, setStaffList] = useState([])
   const [statsIndiv, setStatsIndiv] = useState([])
   const [activeTab, setActiveTab] = useState('individuel')
   const [loading, setLoading] = useState(true)
@@ -229,6 +236,10 @@ export default function StatsPage() {
 
   const [queueCount, setQueueCount] = useState(0)
 
+  // Partage de la composition (onglet Compo) — canal groupe, message privé à un membre
+  // du staff, ou feuille de partage native (Messages/WhatsApp...).
+  const [showShareCompo, setShowShareCompo] = useState(false)
+
   // Ignore une réponse devenue obsolète si le coach navigue vers un autre match avant
   // qu'elle ne revienne.
   const eventIdRef = useRef(eventId)
@@ -246,9 +257,10 @@ export default function StatsPage() {
 
   async function loadData() {
     setLoading(true)
-    const [{ data: ev }, { data: jrs }, { data: si }, { data: sc }, { data: rp }] = await Promise.all([
+    const [{ data: ev }, { data: jrs }, { data: st }, { data: si }, { data: sc }, { data: rp }] = await Promise.all([
       supabase.from('evenements').select('*').eq('id', eventId).single(),
       supabase.from('joueurs').select('id,nom,prenom,poste,numero,photo_url').order('nom'),
+      supabase.from('staff').select('id,nom,prenom,auth_id').order('nom'),
       supabase.from('stats_match').select('*').eq('evenement_id', eventId),
       supabase.from('stats_collectives').select('*').eq('evenement_id', eventId).maybeSingle(),
       supabase.from('rapports_match').select('*').eq('evenement_id', eventId).maybeSingle(),
@@ -256,6 +268,7 @@ export default function StatsPage() {
     if (eventIdRef.current !== eventId) return
     setEvent(ev)
     setJoueurs(jrs || [])
+    setStaffList(st || [])
     setStatsIndiv(si || [])
     if (sc) setFormCollectif(p => ({ ...p, ...sc }))
     if (rp) {
@@ -635,6 +648,75 @@ export default function StatsPage() {
       })
     } catch (err) { console.error('Erreur notif groupe:', err) }
     alert('Résumé partagé dans le canal groupe !')
+  }
+
+  // Texte de la composition (onglet Compo) — utilisé par les 3 modes de partage
+  // ci-dessous, pour ne construire le message qu'une seule fois.
+  function compoTexte() {
+    const lignes = FORMATIONS[formation].positions.map(pos => {
+      const j = joueurs.find(x => x.id === compo[pos.id])
+      return `${pos.label} : ${j ? `${j.prenom} ${j.nom}${j.numero ? ` (n°${j.numero})` : ''}` : '—'}`
+    })
+    const remplacants = banc.map(id => joueurs.find(x => x.id === id)).filter(Boolean)
+    return `Composition — ${event?.titre || 'Match'}\n(${FORMATIONS[formation].label})\n\n${lignes.join('\n')}` +
+      (remplacants.length ? `\n\nRemplaçants : ${remplacants.map(j => `${j.prenom} ${j.nom}`).join(', ')}` : '')
+  }
+
+  async function shareCompoGroupe() {
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: staffMe } = await supabase.from('staff').select('nom,prenom').eq('auth_id', user?.id).maybeSingle()
+    const auteurNom = staffMe ? `${staffMe.prenom} ${staffMe.nom}` : 'Coach'
+    const contenu = compoTexte()
+    const { error } = await supabase.from('messages').insert({
+      expediteur_id: user?.id, expediteur_nom: auteurNom,
+      expediteur_role: 'coach', groupe: true, canal: 'general', contenu
+    })
+    if (error) { alert('Erreur lors du partage : ' + error.message); return }
+    try {
+      await fetch('/api/notif-message-groupe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({ contenu, canal: 'general' })
+      })
+    } catch (err) { console.error('Erreur notif groupe:', err) }
+    setShowShareCompo(false)
+    alert('Composition partagée dans le canal groupe !')
+  }
+
+  async function shareCompoPrive(membre) {
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: staffMe } = await supabase.from('staff').select('nom,prenom').eq('auth_id', user?.id).maybeSingle()
+    const auteurNom = staffMe ? `${staffMe.prenom} ${staffMe.nom}` : 'Coach'
+    const contenu = compoTexte()
+    const { error } = await supabase.from('messages').insert({
+      expediteur_id: user?.id, expediteur_nom: auteurNom, expediteur_role: 'coach',
+      groupe: false, canal: 'general', destinataire_id: membre.auth_id, contenu
+    })
+    if (error) { alert('Erreur lors du partage : ' + error.message); return }
+    try {
+      await fetch('/api/notif-message-prive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({ destinataireId: membre.auth_id, contenu })
+      })
+    } catch (err) { console.error('Erreur notif privée:', err) }
+    setShowShareCompo(false)
+    alert(`Composition envoyée à ${membre.prenom} ${membre.nom} !`)
+  }
+
+  // Feuille de partage native (iOS/Android) — permet d'envoyer par Messages, WhatsApp,
+  // Mail... Repli sur le presse-papiers si l'appareil ne supporte pas navigator.share.
+  async function shareCompoNative() {
+    const contenu = compoTexte()
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Composition', text: contenu }) } catch { /* partage annulé par l'utilisateur */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(contenu)
+        alert('Composition copiée dans le presse-papiers — colle-la dans Messages ou WhatsApp.')
+      } catch { alert('Partage non disponible sur cet appareil.') }
+    }
+    setShowShareCompo(false)
   }
 
   const currentFormation = FORMATIONS[formation]
@@ -1039,9 +1121,30 @@ export default function StatsPage() {
 
           <div style={{ display: 'flex', gap: 8 }}>
             <Button variant="primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveRapport} disabled={saving}><Save size={13} /> Enregistrer</Button>
-            <Button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={shareRapportInApp}><Share2 size={13} /> Partager</Button>
+            <Button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={() => setShowShareCompo(true)}><Share2 size={13} /> Partager</Button>
           </div>
         </Card>
+      )}
+
+      {showShareCompo && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowShareCompo(false)}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: '20px 20px 0 0', padding: 20, width: '100%', maxWidth: 'var(--app-max-width)', margin: '0 auto' }} onClick={e => e.stopPropagation()}>
+            <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 14 }}>Partager la composition</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button onClick={shareCompoGroupe} style={shareSheetBtnStyle}><Users size={15} /> Canal groupe (tous les 16)</button>
+              <button onClick={shareCompoNative} style={shareSheetBtnStyle}><Share2 size={15} /> Messages / WhatsApp...</button>
+              {staffList.filter(s => s.auth_id).length > 0 && (
+                <>
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '6px 0 0' }}>Message privé à un membre du staff</p>
+                  {staffList.filter(s => s.auth_id).map(s => (
+                    <button key={s.id} onClick={() => shareCompoPrive(s)} style={shareSheetBtnStyle}><Send size={14} /> {s.prenom} {s.nom}</button>
+                  ))}
+                </>
+              )}
+            </div>
+            <button onClick={() => setShowShareCompo(false)} style={{ marginTop: 14, width: '100%', padding: 10, background: 'var(--bg-secondary)', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13 }}>Annuler</button>
+          </div>
+        </div>
       )}
 
       {/* SUIVI LIVE — remplace le carnet papier rempli en tribune pendant le match */}
