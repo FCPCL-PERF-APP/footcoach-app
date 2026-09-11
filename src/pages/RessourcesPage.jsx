@@ -55,7 +55,10 @@ export default function RessourcesPage() {
         const { data: urlData } = supabase.storage.from('ressources').getPublicUrl(path)
         url = urlData.publicUrl
       } else {
-        alert('Erreur upload PDF.')
+        // Message générique avant : impossible de savoir si c'est un bucket manquant,
+        // une politique RLS storage qui bloque, ou autre chose. On affiche le détail
+        // renvoyé par Supabase pour pouvoir diagnostiquer sans avoir à reproduire en aveugle.
+        alert('Erreur upload PDF : ' + (error.message || error.error || JSON.stringify(error)))
         setUploading(false)
         return
       }
