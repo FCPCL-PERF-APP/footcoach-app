@@ -5,9 +5,13 @@ const MAX_SIZE_MB = { image: 5, pdf: 15 }
 
 export function sanitizeFileName(name) {
   return (name || 'fichier')
+    // Supabase Storage refuse les clés avec caractères accentués ("Séance" → "Erreur
+    // upload : Invalid key") — on les retire avant les autres remplacements.
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[/\\]/g, '_')
     .replace(/\.\./g, '_')
     .replace(/\s/g, '_')
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
 }
 
 // Retourne un message d'erreur si le fichier est invalide, ou null s'il est accepté.
