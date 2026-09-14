@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { THEME, CAT_COLORS } from '../theme'
-import { computeAlertes, getAlertesTraitees } from '../lib/alertes'
+import { computeAlertes, getAlertesTraitees, fetchNonConvoqueSet } from '../lib/alertes'
 import {
   Calendar, Users, MessageCircle, LayoutDashboard, Menu,
   Heart, Radio, BarChart3, Settings, Archive, Folder,
@@ -137,7 +137,7 @@ export default function BottomNav() {
   async function loadAlertes() {
     try {
       const [{ data: rpeData }, { data: joueursData }, { data: absencesData }, { data: statsDataRaw }] = await Promise.all([
-        supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure)')
+        supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure,type)')
           .order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(300),
         supabase.from('joueurs').select('id,nom,prenom').order('nom'),
         supabase.from('presences').select('joueur_id, statut').in('statut', ['absent', 'blesse']),
@@ -150,7 +150,11 @@ export default function BottomNav() {
         .sort((a, b) => new Date(b.evenements?.date_heure || 0) - new Date(a.evenements?.date_heure || 0))
       const matchResults = statsData.map(s => s.buts_marques > s.buts_encaisses ? 'V' : s.buts_marques === s.buts_encaisses ? 'N' : 'D')
 
-      const { alertes, alertesCollectives } = computeAlertes({ rpeData, joueursData, matchResults, absencesData })
+      // Exclut du calcul collectif les RPE remplis par un joueur non convoqué (cf.
+      // MonSuiviPage.jsx / lib/alertes.js) — mêmes règles que DashboardPage.jsx pour que
+      // ce badge reste cohérent avec le détail affiché sur le Dashboard.
+      const nonConvoqueSet = await fetchNonConvoqueSet(supabase, rpeData || [])
+      const { alertes, alertesCollectives } = computeAlertes({ rpeData, joueursData, matchResults, absencesData, nonConvoqueSet })
       const traitees = getAlertesTraitees()
       setNbAlertes(Math.max(0, alertes.length + alertesCollectives.length - traitees.length))
     } catch (err) {

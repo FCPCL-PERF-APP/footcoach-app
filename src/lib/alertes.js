@@ -5,7 +5,30 @@
 // version de ce calcul (différente !) et sa propre clé localStorage de dismiss,
 // ce qui faisait que traiter une alerte sur le Dashboard ne faisait jamais bouger
 // le badge "Plus", qui semblait alors bloqué en permanence.
-export function computeAlertes({ rpeData, joueursData, matchResults, absencesData }) {
+// Détermine quelles entrées RPE (une seule table concernée pour les alertes collectives)
+// correspondent à un match où le joueur n'était PAS convoqué — cf. MonSuiviPage.jsx, qui
+// permet désormais à un joueur non convoqué de remplir son RPE/Footbar pour son suivi
+// personnel (ex : il a joué avec une autre équipe ce jour-là). Ces entrées doivent rester
+// visibles par joueur (fiche, comparatif...) mais ne doivent pas fausser les moyennes
+// d'équipe. Absence de ligne `convocations` (match jamais suivi via cette fonctionnalité)
+// = comportement historique inchangé, on considère le joueur convoqué par défaut.
+export async function fetchNonConvoqueSet(supabase, rows) {
+  const matchEventIds = [...new Set((rows || []).filter(r => r.evenements?.type === 'match').map(r => r.evenement_id))]
+  if (!matchEventIds.length) return new Set()
+  const { data } = await supabase.from('convocations').select('joueur_id, evenement_id, convoque').in('evenement_id', matchEventIds)
+  return new Set((data || []).filter(c => c.convoque === false).map(c => `${c.joueur_id}_${c.evenement_id}`))
+}
+
+export function computeAlertes({ rpeData, joueursData, matchResults, absencesData, nonConvoqueSet }) {
+  // Les alertes INDIVIDUELLES (surcharge d'un joueur, fatigue chronique...) restent
+  // calculées sur `rpeData` complet — vues "par joueur", elles doivent inclure les
+  // entrées hors convocation comme n'importe quelle autre entrée personnelle.
+  // Seules les alertes COLLECTIVES ci-dessous (RPE moyen équipe, motivation, complétion)
+  // utilisent la version filtrée, pour ne pas être faussées par un joueur qui a joué
+  // avec une autre équipe ce jour-là.
+  const rpeDataCollectif = nonConvoqueSet && nonConvoqueSet.size
+    ? (rpeData || []).filter(r => !nonConvoqueSet.has(`${r.joueur_id}_${r.evenement_id}`))
+    : rpeData
   const joueurMap = {}
   for (const r of (rpeData || [])) {
     if (!r.joueurs) continue
@@ -62,18 +85,18 @@ export function computeAlertes({ rpeData, joueursData, matchResults, absencesDat
     }
   }
 
-  const rpeVals = (rpeData || []).map(r => {
+  const rpeVals = (rpeDataCollectif || []).map(r => {
     const items = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v != null)
     return items.length ? items.reduce((a, b) => a + b, 0) / items.length : null
   }).filter(v => v !== null)
   const rpeMoy = rpeVals.length ? rpeVals.reduce((a, b) => a + b, 0) / rpeVals.length : 0
   if (rpeMoy >= 4.2) alertesCollectives.push({ type: 'red', title: 'Surcharge collective', message: `RPE moyen : ${rpeMoy.toFixed(1)}/5.`, bucket: Math.round(rpeMoy * 2) / 2 })
 
-  const allMotiv = (rpeData || []).map(r => r.motivation).filter(v => v !== null && v !== undefined)
+  const allMotiv = (rpeDataCollectif || []).map(r => r.motivation).filter(v => v !== null && v !== undefined)
   const avgMotivEquipe = allMotiv.length ? allMotiv.reduce((a, b) => a + b, 0) / allMotiv.length : 0
   if (avgMotivEquipe < 3.0 && allMotiv.length > 0) alertesCollectives.push({ type: 'orange', title: 'Motivation collective faible', message: `Motivation : ${avgMotivEquipe.toFixed(1)}/5.`, bucket: Math.round(avgMotivEquipe * 2) / 2 })
 
-  const nbRpeRecents = new Set((rpeData || []).slice(0, 50).map(r => r.joueur_id)).size
+  const nbRpeRecents = new Set((rpeDataCollectif || []).slice(0, 50).map(r => r.joueur_id)).size
   if (totalJoueurs > 0 && nbRpeRecents / totalJoueurs < 0.7) alertesCollectives.push({ type: 'yellow', title: 'Complétion RPE insuffisante', message: `${nbRpeRecents}/${totalJoueurs} joueurs ont rempli.`, bucket: nbRpeRecents })
 
   const derniers3 = (matchResults || []).slice(0, 3)

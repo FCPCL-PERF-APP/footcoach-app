@@ -74,6 +74,61 @@ function RpeBarChart({ rpeList, title }) {
   )
 }
 
+// Grille des 6 curseurs RPE (0 à 5) — factorisée pour être réutilisée à la fois par les
+// cartes "À remplir" (matchs/séances convoqués) et par l'ajout manuel d'un match où le
+// joueur n'était pas convoqué (cf. onglet Historique).
+function RpeInputs({ value, onChange }) {
+  return (
+    <>
+      {RPE_ITEMS.map(item => {
+        const val = value[item.key]
+        return (
+          <div key={item.key} style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label style={{ fontSize: 12, fontWeight: 600 }}>{item.label}</label>
+              <span style={{ fontSize: 13, fontWeight: 700, color: val !== undefined ? rpeColor(val) : 'var(--border)' }}>{val !== undefined ? val : '—'}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 5 }}>
+              {[0,1,2,3,4,5].map(v => (
+                <button key={v} onClick={() => onChange(item.key, v)} style={{
+                  flex: 1, padding: '9px 4px', borderRadius: 8,
+                  border: `1.5px solid ${val === v ? rpeColor(v) : 'var(--border)'}`,
+                  background: val === v ? `${rpeColor(v)}20` : '#fff',
+                  color: val === v ? rpeColor(v) : 'var(--text-secondary)',
+                  fontSize: 13, fontWeight: val === v ? 700 : 400, cursor: 'pointer'
+                }}>{v}</button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Très faible</span>
+              <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Très élevé</span>
+            </div>
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
+// Grille des champs Footbar — même logique de factorisation que RpeInputs ci-dessus.
+function FootbarInputs({ value, onChange }) {
+  return (
+    <>
+      {FOOTBAR_FIELDS.map(f => (
+        <div key={f.key}>
+          <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>
+            {f.label} {f.unit && <span style={{ color: 'var(--text-muted)' }}>({f.unit})</span>}
+          </label>
+          <input type="number" step={f.step} placeholder={f.placeholder}
+            value={value[f.key] || ''}
+            onChange={e => onChange(f.key, e.target.value)}
+            style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+        </div>
+      ))}
+    </>
+  )
+}
+
 function FootbarBilan({ footList, title }) {
   if (!footList.length) return <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Pas de données.</p>
   return (
@@ -104,6 +159,12 @@ export default function MonSuiviPage() {
 
   const [activeTab, setActiveTab] = useState('afaire')
   const [eventsAFaire, setEventsAFaire] = useState([])
+  // Matchs de la saison où le joueur n'a pas été convoqué (ex : il a joué avec une autre
+  // équipe ce jour-là) — proposés en ajout manuel dans l'onglet Historique, jamais dans
+  // "À remplir" (pas de relance pour un match qui ne le concernait pas a priori).
+  const [matchsNonConvoques, setMatchsNonConvoques] = useState([])
+  const [showAjoutManuel, setShowAjoutManuel] = useState(false)
+  const [ajoutEventId, setAjoutEventId] = useState('')
   const [rpeHistory, setRpeHistory] = useState([])
   const [footHistory, setFootHistory] = useState([])
   const [selectedHistEvent, setSelectedHistEvent] = useState('')
@@ -191,6 +252,14 @@ export default function MonSuiviPage() {
       return true
     })
     setEventsAFaire(eligibles.filter(e => !rpeIds.has(e.id)))
+
+    // Matchs passés de la saison où le joueur n'était pas convoqué (absent de
+    // `convocations`, ou marqué convoque:false) — proposés dans "Historique" pour un
+    // ajout manuel volontaire, indépendamment du délai d'une semaine ci-dessus.
+    setMatchsNonConvoques(
+      passes.filter(e => e.type === 'match' && convocMap[e.id] !== true)
+        .sort((a, b) => new Date(b.date_heure) - new Date(a.date_heure))
+    )
 
     if (!selectedHistEvent) {
       // Le premier événement (par date, pas par date de saisie) ayant un RPE ou un
@@ -338,32 +407,7 @@ export default function MonSuiviPage() {
                       <Heart size={13} color={CAT_COLORS.rose.color} /> RPE
                     </p>
                     <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>0 = très faible · 5 = très élevé</p>
-                    {RPE_ITEMS.map(item => {
-                      const val = rpeForm[item.key]
-                      return (
-                        <div key={item.key} style={{ marginBottom: 14 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                            <label style={{ fontSize: 12, fontWeight: 600 }}>{item.label}</label>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: val !== undefined ? rpeColor(val) : 'var(--border)' }}>{val !== undefined ? val : '—'}</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: 5 }}>
-                            {[0,1,2,3,4,5].map(v => (
-                              <button key={v} onClick={() => setRpeForms(p => ({ ...p, [ev.id]: { ...(p[ev.id]||{}), [item.key]: v } }))} style={{
-                                flex: 1, padding: '9px 4px', borderRadius: 8,
-                                border: `1.5px solid ${val === v ? rpeColor(v) : 'var(--border)'}`,
-                                background: val === v ? `${rpeColor(v)}20` : '#fff',
-                                color: val === v ? rpeColor(v) : 'var(--text-secondary)',
-                                fontSize: 13, fontWeight: val === v ? 700 : 400, cursor: 'pointer'
-                              }}>{v}</button>
-                            ))}
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-                            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Très faible</span>
-                            <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Très élevé</span>
-                          </div>
-                        </div>
-                      )
-                    })}
+                    <RpeInputs value={rpeForm} onChange={(k, v) => setRpeForms(p => ({ ...p, [ev.id]: { ...(p[ev.id]||{}), [k]: v } }))} />
                     <div style={{ marginBottom: 4 }}>
                       <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Commentaire (optionnel)</label>
                       <textarea value={commentaires[ev.id] || ''} onChange={e => setCommentaires(p => ({ ...p, [ev.id]: e.target.value }))}
@@ -384,17 +428,7 @@ export default function MonSuiviPage() {
                       }
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                      {FOOTBAR_FIELDS.map(f => (
-                        <div key={f.key}>
-                          <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>
-                            {f.label} {f.unit && <span style={{ color: 'var(--text-muted)' }}>({f.unit})</span>}
-                          </label>
-                          <input type="number" step={f.step} placeholder={f.placeholder}
-                            value={footForm[f.key] || ''}
-                            onChange={e => setFootForms(p => ({ ...p, [ev.id]: { ...(p[ev.id]||{}), [f.key]: e.target.value } }))}
-                            style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
-                        </div>
-                      ))}
+                      <FootbarInputs value={footForm} onChange={(k, v) => setFootForms(p => ({ ...p, [ev.id]: { ...(p[ev.id]||{}), [k]: v } }))} />
                     </div>
 
                     {savedEventId === ev.id && queued.rpe !== undefined && (
@@ -426,10 +460,93 @@ export default function MonSuiviPage() {
 
           {/* HISTORIQUE — menu déroulant */}
           {activeTab === 'historique' && (
-            histEvents.length === 0 ? (
-              <Card><p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>Aucune donnée enregistrée.</p></Card>
-            ) : (
-              <>
+            <>
+              {/* Ajout manuel d'un match où le joueur n'était pas convoqué (ex : il a joué
+                  avec une autre équipe ce jour-là) — pour son suivi personnel uniquement,
+                  ça n'entre pas dans les stats globales de ce match côté club. */}
+              {matchsNonConvoques.length > 0 && (
+                <Card style={{ marginBottom: 12 }}>
+                  {!showAjoutManuel ? (
+                    <button onClick={() => setShowAjoutManuel(true)} style={{
+                      width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: 'none',
+                      borderRadius: 10, fontSize: 12, fontWeight: 600, color: 'var(--primary)', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                    }}>+ Ajouter un match où je n'étais pas convoqué</button>
+                  ) : (
+                    <>
+                      <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Match où je n'étais pas convoqué</p>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
+                        Pour ton suivi personnel uniquement — n'entre pas dans les statistiques globales du match.
+                      </p>
+                      <select value={ajoutEventId} onChange={e => setAjoutEventId(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-card)', marginBottom: ajoutEventId ? 14 : 0 }}>
+                        <option value="">— Choisir un match —</option>
+                        {matchsNonConvoques.map(ev => (
+                          <option key={ev.id} value={ev.id}>{formatEventLabel(ev)}</option>
+                        ))}
+                      </select>
+
+                      {ajoutEventId && (() => {
+                        const rpeForm = rpeForms[ajoutEventId] || {}
+                        const footForm = footForms[ajoutEventId] || {}
+                        const hasAny = Object.keys(rpeForm).length > 0 || Object.values(footForm).some(v => v !== undefined && v !== null && v !== '')
+                        const errors = saveError[ajoutEventId] || {}
+                        const queued = savedWasQueued[ajoutEventId] || {}
+                        return (
+                          <>
+                            <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <Heart size={13} color={CAT_COLORS.rose.color} /> RPE
+                            </p>
+                            <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>0 = très faible · 5 = très élevé</p>
+                            <RpeInputs value={rpeForm} onChange={(k, v) => setRpeForms(p => ({ ...p, [ajoutEventId]: { ...(p[ajoutEventId]||{}), [k]: v } }))} />
+
+                            <div style={{ borderTop: '0.5px solid var(--bg-secondary)', margin: '14px 0' }} />
+
+                            <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <Radio size={13} color={CAT_COLORS.orange.color} /> Footbar
+                            </p>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                              <FootbarInputs value={footForm} onChange={(k, v) => setFootForms(p => ({ ...p, [ajoutEventId]: { ...(p[ajoutEventId]||{}), [k]: v } }))} />
+                            </div>
+
+                            {savedEventId === ajoutEventId && queued.rpe !== undefined && (
+                              queued.rpe
+                                ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--warning)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> RPE — pas de réseau, sera synchronisé automatiquement</div>
+                                : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--success)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> RPE enregistré !</div>
+                            )}
+                            {savedEventId === ajoutEventId && queued.footbar !== undefined && (
+                              queued.footbar
+                                ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--warning)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> Footbar — pas de réseau, sera synchronisé automatiquement</div>
+                                : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--success)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> Footbar enregistré !</div>
+                            )}
+                            {errors.rpe && (
+                              <div style={{ background: 'var(--danger-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--danger)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> RPE : {errors.rpe}</div>
+                            )}
+                            {errors.footbar && (
+                              <div style={{ background: 'var(--danger-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--danger)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> Footbar : {errors.footbar}</div>
+                            )}
+
+                            <button onClick={async () => { await handleSave(ajoutEventId); loadData() }} disabled={savingEventId === ajoutEventId || !hasAny}
+                              style={{ width: '100%', padding: 13, background: hasAny ? 'var(--gradient)' : 'var(--border)', color: hasAny ? '#fff' : 'var(--text-muted)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: hasAny ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                              {savingEventId === ajoutEventId ? 'Enregistrement...' : <><Save size={14} /> Enregistrer</>}
+                            </button>
+                          </>
+                        )
+                      })()}
+
+                      <button onClick={() => { setShowAjoutManuel(false); setAjoutEventId('') }} style={{
+                        width: '100%', padding: '8px 12px', background: 'transparent', border: 'none',
+                        fontSize: 11, color: 'var(--text-muted)', cursor: 'pointer', marginTop: 10
+                      }}>Annuler</button>
+                    </>
+                  )}
+                </Card>
+              )}
+
+              {histEvents.length === 0 ? (
+                <Card><p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>Aucune donnée enregistrée.</p></Card>
+              ) : (
+                <>
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Choisir un événement</label>
                   <select value={selectedHistEvent} onChange={e => setSelectedHistEvent(e.target.value)}
@@ -496,8 +613,9 @@ export default function MonSuiviPage() {
                     </div>
                   )}
                 </Card>
-              </>
-            )
+                </>
+              )}
+            </>
           )}
 
           {/* BILAN ENTRAÎNEMENT */}

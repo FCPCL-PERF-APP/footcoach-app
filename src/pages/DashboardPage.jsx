@@ -6,7 +6,7 @@ import { Card, PageHeader, BarChart, Spinner, ListRow, IconTile, StatTile } from
 import { THEME, CAT_COLORS } from '../theme'
 import { computePresenceBreakdown } from '../lib/presenceStats'
 import { labelSaison } from '../lib/saison'
-import { computeAlertes, alertKey } from '../lib/alertes'
+import { computeAlertes, alertKey, fetchNonConvoqueSet } from '../lib/alertes'
 import { format, parseISO, subWeeks } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -143,11 +143,11 @@ export default function DashboardPage() {
       // created_at à aujourd'hui, ce qui le faisait passer devant des événements plus
       // récents dans la fenêtre des N lignes récupérées — et donc apparaître en tête
       // de "Évolution présences/RPE" à la place des séances réellement les plus proches.
-      supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure)').order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(300),
+      supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure,type)').order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(300),
       // Jointure evenements(type) pour ne garder que les données prises en match — sinon
       // la distance moyenne "match" se retrouvait diluée par les footbar de séances
       // d'entraînement, cf. ClassementButeursPage.jsx qui applique le même filtre.
-      supabase.from('footbar').select('distance_km, joueurs(nom,prenom), evenements(type)').order('created_at', { ascending: false }).limit(100),
+      supabase.from('footbar').select('joueur_id, evenement_id, distance_km, joueurs(nom,prenom), evenements(type)').order('created_at', { ascending: false }).limit(100),
       supabase.from('stats_collectives').select('*, evenements(date_heure,titre,match_type)').order('created_at', { ascending: false }).limit(20),
       supabase.from('joueurs').select('id,nom,prenom').order('nom'),
       supabase.from('presences').select('*, evenements(date_heure)').order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(500),
@@ -200,7 +200,14 @@ export default function DashboardPage() {
       return items.length ? items.reduce((a, b) => a + b, 0) / items.length : null
     }).filter(v => v !== null)
     const rpeMoy = rpeVals.length ? rpeVals.reduce((a, b) => a + b, 0) / rpeVals.length : 0
-    const distances = (footData || []).filter(f => f.evenements?.type === 'match').map(f => f.distance_km).filter(Boolean)
+    // Exclut les Footbar remplis par un joueur non convoqué à ce match (ex : il a joué
+    // avec une autre équipe ce jour-là, cf. MonSuiviPage.jsx) — sinon sa distance
+    // faussait la moyenne collective de l'équipe pour ce match.
+    const nonConvoqueSet = await fetchNonConvoqueSet(supabase, [...(rpeData || []), ...(footData || [])])
+    const distances = (footData || [])
+      .filter(f => f.evenements?.type === 'match')
+      .filter(f => !nonConvoqueSet.has(`${f.joueur_id}_${f.evenement_id}`))
+      .map(f => f.distance_km).filter(Boolean)
     const distMoy = distances.length ? distances.reduce((a, b) => a + b, 0) / distances.length : 0
     // Buts marqués : tous les matchs joués, y compris préparation — seul un vrai score
     // renseigné compte (buts_marques null = pas encore saisi, ne doit pas tirer la
@@ -263,7 +270,7 @@ export default function DashboardPage() {
 
     // Alertes — calcul partagé avec BottomNav.jsx (cf. lib/alertes.js) pour que le
     // badge du menu "Plus" pointe sur exactement les mêmes alertes qu'ici.
-    const { alertes: alertList, alertesCollectives: collAlertes } = computeAlertes({ rpeData, joueursData, matchResults, absencesData })
+    const { alertes: alertList, alertesCollectives: collAlertes } = computeAlertes({ rpeData, joueursData, matchResults, absencesData, nonConvoqueSet })
     setAlertes(alertList.slice(0, 6))
     setAlertesCollectives(collAlertes)
     setNbAlertes(alertList.length + collAlertes.length)
