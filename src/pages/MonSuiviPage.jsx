@@ -168,6 +168,10 @@ export default function MonSuiviPage() {
   const [rpeHistory, setRpeHistory] = useState([])
   const [footHistory, setFootHistory] = useState([])
   const [selectedHistEvent, setSelectedHistEvent] = useState('')
+  // Complément/correction d'un événement déjà dans l'historique (ex : RPE rempli mais
+  // Footbar oublié) — le Footbar étant facultatif, il ne fait pas rester l'événement
+  // dans "À remplir" une fois le RPE saisi ; ceci permet d'y revenir volontairement.
+  const [showEditHist, setShowEditHist] = useState(false)
   const [rpeForms, setRpeForms] = useState({})
   const [footForms, setFootForms] = useState({})
   const [commentaires, setCommentaires] = useState({})
@@ -319,6 +323,26 @@ export default function MonSuiviPage() {
     setQueueCountFoot(getQueueCount('footbar'))
     if (queued.rpe === false || queued.footbar === false) loadData()
     setSavingEventId(null)
+  }
+
+  // Ouvre le formulaire de complément/correction pour l'événement actuellement
+  // sélectionné dans "Historique", pré-rempli avec les valeurs déjà enregistrées (pour
+  // ne pas les écraser en ne complétant que le Footbar oublié, par exemple).
+  function openEditHist() {
+    if (!rpeForms[selectedHistEvent]) {
+      const init = {}
+      RPE_ITEMS.forEach(i => { if (selectedRpe?.[i.key] != null) init[i.key] = selectedRpe[i.key] })
+      setRpeForms(p => ({ ...p, [selectedHistEvent]: init }))
+    }
+    if (!footForms[selectedHistEvent]) {
+      const init = {}
+      FOOTBAR_FIELDS.forEach(f => { if (selectedFoot?.[f.key] != null) init[f.key] = selectedFoot[f.key] })
+      setFootForms(p => ({ ...p, [selectedHistEvent]: init }))
+    }
+    if (selectedRpe?.commentaire && !commentaires[selectedHistEvent]) {
+      setCommentaires(p => ({ ...p, [selectedHistEvent]: selectedRpe.commentaire }))
+    }
+    setShowEditHist(true)
   }
 
   const rpeEntrainement = rpeHistory.filter(r => r.evenements?.type === 'seance')
@@ -549,7 +573,7 @@ export default function MonSuiviPage() {
                 <>
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 4 }}>Choisir un événement</label>
-                  <select value={selectedHistEvent} onChange={e => setSelectedHistEvent(e.target.value)}
+                  <select value={selectedHistEvent} onChange={e => { setSelectedHistEvent(e.target.value); setShowEditHist(false) }}
                     style={{ width: '100%', padding: '10px 12px', border: '0.5px solid var(--border)', borderRadius: 12, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-card)' }}>
                     {histEvents.map(({ id, ev }) => (
                       <option key={id} value={id}>{formatEventLabel(ev)}</option>
@@ -613,6 +637,66 @@ export default function MonSuiviPage() {
                     </div>
                   )}
                 </Card>
+
+                {/* Complément/correction — ex : RPE rempli mais Footbar oublié à la fin
+                    d'une séance. Le Footbar étant facultatif, remplir le RPE seul fait
+                    sortir l'événement de "À remplir" ; ce bouton permet d'y revenir. */}
+                {!showEditHist ? (
+                  <button onClick={openEditHist} style={{
+                    width: '100%', padding: '10px 12px', background: 'var(--bg-secondary)', border: 'none',
+                    borderRadius: 10, fontSize: 12, fontWeight: 600, color: 'var(--primary)', cursor: 'pointer',
+                    marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                  }}>Compléter / modifier cet événement</button>
+                ) : (() => {
+                  const rpeForm = rpeForms[selectedHistEvent] || {}
+                  const footForm = footForms[selectedHistEvent] || {}
+                  const hasAny = Object.keys(rpeForm).length > 0 || Object.values(footForm).some(v => v !== undefined && v !== null && v !== '')
+                  const errors = saveError[selectedHistEvent] || {}
+                  const queued = savedWasQueued[selectedHistEvent] || {}
+                  return (
+                    <Card style={{ marginTop: 12 }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <Heart size={13} color={CAT_COLORS.rose.color} /> RPE
+                      </p>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>0 = très faible · 5 = très élevé</p>
+                      <RpeInputs value={rpeForm} onChange={(k, v) => setRpeForms(p => ({ ...p, [selectedHistEvent]: { ...(p[selectedHistEvent]||{}), [k]: v } }))} />
+
+                      <div style={{ borderTop: '0.5px solid var(--bg-secondary)', margin: '14px 0' }} />
+
+                      <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <Radio size={13} color={CAT_COLORS.orange.color} /> Footbar
+                      </p>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                        <FootbarInputs value={footForm} onChange={(k, v) => setFootForms(p => ({ ...p, [selectedHistEvent]: { ...(p[selectedHistEvent]||{}), [k]: v } }))} />
+                      </div>
+
+                      {savedEventId === selectedHistEvent && queued.rpe !== undefined && (
+                        queued.rpe
+                          ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--warning)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> RPE — pas de réseau, sera synchronisé automatiquement</div>
+                          : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--success)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> RPE enregistré !</div>
+                      )}
+                      {savedEventId === selectedHistEvent && queued.footbar !== undefined && (
+                        queued.footbar
+                          ? <div style={{ background: 'var(--warning-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--warning)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><WifiOff size={14} /> Footbar — pas de réseau, sera synchronisé automatiquement</div>
+                          : <div style={{ background: 'var(--success-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--success)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><CheckCircle2 size={14} /> Footbar enregistré !</div>
+                      )}
+                      {errors.rpe && (
+                        <div style={{ background: 'var(--danger-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--danger)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> RPE : {errors.rpe}</div>
+                      )}
+                      {errors.footbar && (
+                        <div style={{ background: 'var(--danger-bg)', borderRadius: 8, padding: '10px 12px', marginBottom: 8, fontSize: 13, color: 'var(--danger)', textAlign: 'center', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><AlertTriangle size={13} /> Footbar : {errors.footbar}</div>
+                      )}
+
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={async () => { await handleSave(selectedHistEvent); loadData() }} disabled={savingEventId === selectedHistEvent || !hasAny}
+                          style={{ flex: 1, padding: 13, background: hasAny ? 'var(--gradient)' : 'var(--border)', color: hasAny ? '#fff' : 'var(--text-muted)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: hasAny ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                          {savingEventId === selectedHistEvent ? 'Enregistrement...' : <><Save size={14} /> Enregistrer</>}
+                        </button>
+                        <button onClick={() => setShowEditHist(false)} style={{ padding: '13px 16px', background: 'var(--bg-secondary)', border: 'none', borderRadius: 12, fontSize: 13, cursor: 'pointer' }}>Fermer</button>
+                      </div>
+                    </Card>
+                  )
+                })()}
                 </>
               )}
             </>
