@@ -21,6 +21,20 @@ const AVATAR_COLORS = [
   { bg: '#FAC775', color: '#633806' },
 ]
 
+// Non lus d'abord, puis échange le plus récent, puis alphabétique pour les contacts
+// jamais contactés (pas de date à comparer).
+function sortContacts(arr) {
+  return [...arr].sort((a, b) => (b.nonLu - a.nonLu)
+    || (b.dernierEchange && a.dernierEchange ? b.dernierEchange.localeCompare(a.dernierEchange) : 0)
+    || (b.dernierEchange ? 1 : 0) - (a.dernierEchange ? 1 : 0)
+    || a.nom.localeCompare(b.nom))
+}
+
+// Pastille rouge "non lu" (onglets, liste des contacts, messages privés).
+function RedDot({ size = 9, style }) {
+  return <span style={{ display: 'inline-block', width: size, height: size, borderRadius: '50%', background: 'var(--danger)', flexShrink: 0, ...style }} />
+}
+
 export default function MessagesPage() {
   const { profile, isCoach, isStaff } = useAuth()
   const [activeTab, setActiveTab] = useState('general')
@@ -39,13 +53,28 @@ export default function MessagesPage() {
   const [searchContact, setSearchContact] = useState('')
   const [search, setSearch] = useState('')
   const [deletingId, setDeletingId] = useState(null)
-  const bottomRef = useRef(null)
+  // Nombre de messages non lus par canal (Groupe/Staff) — pastille rouge sur l'onglet
+  // tant qu'il n'est pas ouvert.
+  const [unreadCanaux, setUnreadCanaux] = useState({ general: 0, staff: 0 })
+  // Ids des messages privés reçus qui étaient non lus à l'ouverture de la conversation
+  // (openConv les marque lus en base aussitôt) — gardés en mémoire pour afficher une
+  // pastille rouge dessus le temps de la lecture.
+  const [unreadConvIds, setUnreadConvIds] = useState(new Set())
+  const scrollRef = useRef(null)
+  const lastAutoScroll = useRef(0)
   const myAuthId = profile?.auth_id || profile?.id
 
   useEffect(() => {
     loadCanalMessages('general').then(() => setLoading(false))
-    loadContacts()
   }, [])
+
+  // Dépend de myAuthId : au premier rendu le profil peut ne pas être encore chargé, ce
+  // qui rendait les non-lus (contacts + canaux) toujours vides.
+  useEffect(() => {
+    if (!myAuthId) return
+    loadContacts()
+    loadUnreadCanaux()
+  }, [myAuthId])
 
   useEffect(() => {
     if ((activeTab === 'general' || activeTab === 'staff') && canalMessages[activeTab].length === 0) {
@@ -64,12 +93,24 @@ export default function MessagesPage() {
         const msg = payload.new
         if (msg.groupe && (msg.canal === 'general' || msg.canal === 'staff')) {
           setCanalMessages(p => ({ ...p, [msg.canal]: [...p[msg.canal], msg] }))
+          if (msg.expediteur_id !== myAuthId && activeTab !== msg.canal) {
+            setUnreadCanaux(p => ({ ...p, [msg.canal]: p[msg.canal] + 1 }))
+          }
         } else if (
           activeConv &&
           ((msg.expediteur_id === myAuthId && msg.destinataire_id === activeConv.auth_id) ||
            (msg.expediteur_id === activeConv.auth_id && msg.destinataire_id === myAuthId))
         ) {
           setConvMessages(p => [...p, msg])
+          if (msg.expediteur_id !== myAuthId) {
+            setUnreadConvIds(p => new Set(p).add(msg.id))
+            supabase.from('messages').update({ lu: true }).eq('id', msg.id)
+          }
+        } else if (!msg.groupe && msg.destinataire_id === myAuthId) {
+          // Message privé reçu d'un contact dont la conversation n'est pas ouverte :
+          // pastille rouge sur son nom et remontée en tête de liste.
+          setContacts(p => sortContacts(p.map(c => c.auth_id === msg.expediteur_id
+            ? { ...c, nonLu: true, dernierEchange: msg.created_at } : c)))
         }
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, payload => {
@@ -81,24 +122,36 @@ export default function MessagesPage() {
       })
       .subscribe()
     return () => supabase.removeChannel(sub)
-  }, [activeConv, profile])
+  }, [activeConv, profile, activeTab])
 
-  // `loading`/`activeTab` dans les dépendances : au tout premier chargement,
-  // setCanalMessages (general) arrive pendant que la liste est encore masquée par le
-  // spinner (loading=true) — bottomRef.current vaut alors null et l'effet ne scrolle
-  // nulle part. Sans reclencher l'effet une fois loading passé à false (liste montée
-  // pour de vrai), l'onglet Messages s'ouvrait toujours en haut au lieu du dernier
-  // message. Pas d'animation ('auto' plutôt que 'smooth') pour un positionnement
-  // fiable dès l'arrivée, pas juste "vers" le bas.
+  // Défilement en bas de la liste : on positionne directement scrollTop du conteneur
+  // (plutôt que scrollIntoView, peu fiable dans un conteneur scrollable sur iOS et qui
+  // pouvait aussi faire défiler toute la page). `loading`/`activeTab`/`activeConv` dans
+  // les dépendances : au premier chargement les messages arrivent pendant que la liste
+  // est encore masquée par le spinner. Un second passage après 200 ms rattrape la mise
+  // en page tardive ; et le chargement des photos (onImgLoad ci-dessous) repousse le
+  // bas de la liste — sans ça on restait bloqué au milieu de la conversation.
+  function scrollToBottom() {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+    lastAutoScroll.current = Date.now()
+  }
+  function onImgLoad() {
+    if (Date.now() - lastAutoScroll.current < 2500) scrollToBottom()
+  }
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'auto' })
-  }, [canalMessages, convMessages, loading, activeTab])
+    scrollToBottom()
+    const t = setTimeout(scrollToBottom, 200)
+    return () => clearTimeout(t)
+  }, [canalMessages, convMessages, loading, activeTab, activeConv])
 
   // Marque le canal courant comme lu jusqu'au dernier message affiché — lu par
   // BottomNav.jsx pour la pastille "non lu", et enregistré côté serveur
   // (message_lectures) pour que le coach puisse voir qui a vu les messages.
   useEffect(() => {
     if ((activeTab !== 'general' && activeTab !== 'staff') || !myAuthId) return
+    setUnreadCanaux(p => p[activeTab] ? { ...p, [activeTab]: 0 } : p)
     const messages = canalMessages[activeTab]
     if (messages.length === 0) return
     supabase.from('message_lectures')
@@ -110,6 +163,22 @@ export default function MessagesPage() {
     const { data } = await supabase.from('messages').select('*')
       .eq('groupe', true).eq('canal', canal).order('created_at', { ascending: true }).limit(300)
     setCanalMessages(p => ({ ...p, [canal]: data || [] }))
+  }
+
+  async function loadUnreadCanaux() {
+    const canaux = isStaff ? ['general', 'staff'] : ['general']
+    const { data: lectures } = await supabase.from('message_lectures').select('canal, derniere_lecture').eq('user_id', myAuthId)
+    const lectureMap = {}
+    for (const l of (lectures || [])) lectureMap[l.canal] = l.derniere_lecture
+    const res = { general: 0, staff: 0 }
+    await Promise.all(canaux.map(async canal => {
+      let q = supabase.from('messages').select('id', { count: 'exact', head: true })
+        .eq('groupe', true).eq('canal', canal).neq('expediteur_id', myAuthId)
+      if (lectureMap[canal]) q = q.gt('created_at', lectureMap[canal])
+      const { count } = await q
+      res[canal] = count || 0
+    }))
+    setUnreadCanaux(res)
   }
 
   async function loadContacts() {
@@ -137,16 +206,12 @@ export default function MessagesPage() {
       ...(joueurs || []).filter(j => j.auth_id && j.auth_id !== myAuthId).map(j => ({ ...j, type: 'joueur' })),
       ...(staff || []).filter(s => s.auth_id && s.auth_id !== myAuthId).map(s => ({ ...s, type: 'staff' }))
     ].map(c => ({ ...c, nonLu: nonLusIds.has(c.auth_id), dernierEchange: dernierEchange[c.auth_id] || null }))
-      // Non lus d'abord, puis échange le plus récent, puis alphabétique pour les
-      // contacts jamais contactés (pas de date à comparer).
-      .sort((a, b) => (b.nonLu - a.nonLu)
-        || (b.dernierEchange && a.dernierEchange ? b.dernierEchange.localeCompare(a.dernierEchange) : 0)
-        || (b.dernierEchange ? 1 : 0) - (a.dernierEchange ? 1 : 0)
-        || a.nom.localeCompare(b.nom))
-    setContacts(all)
+    setContacts(sortContacts(all))
   }
 
-  async function openConv(contact) {
+  // keepUnread : rechargement après envoi/suppression/réaction — on garde alors les
+  // pastilles "non lu" déjà affichées plutôt que de les réinitialiser.
+  async function openConv(contact, { keepUnread = false } = {}) {
     setActiveConv(contact)
     setShowNewMsg(false)
     const myAuthId = profile?.auth_id || profile?.id
@@ -157,6 +222,9 @@ export default function MessagesPage() {
       .order('created_at', { ascending: true })
       .limit(200)
     setConvMessages(data || [])
+    if (!keepUnread) {
+      setUnreadConvIds(new Set((data || []).filter(m => m.destinataire_id === myAuthId && m.lu === false).map(m => m.id)))
+    }
     await supabase.from('messages').update({ lu: true })
       .eq('destinataire_id', myAuthId).eq('expediteur_id', theirAuthId)
     // Retire immédiatement la pastille "non lu" de ce contact dans la liste, sans
@@ -237,7 +305,7 @@ export default function MessagesPage() {
       setPendingImage(null)
       setImageError(null)
       if (groupe) loadCanalMessages(canal)
-      else openConv(activeConv)
+      else openConv(activeConv, { keepUnread: true })
     } finally {
       setSending(false)
     }
@@ -312,7 +380,10 @@ export default function MessagesPage() {
             color: activeTab === tab ? 'var(--primary)' : 'var(--text-secondary)',
             fontWeight: activeTab === tab ? 600 : 400,
             display: 'flex', alignItems: 'center', gap: 5
-          }}><Icon size={12} /> {lbl}</button>
+          }}>
+            <Icon size={12} /> {lbl}
+            {activeTab !== tab && (tab === 'prives' ? contacts.some(c => c.nonLu) : unreadCanaux[tab] > 0) && <RedDot size={8} />}
+          </button>
         ))}
       </div>
 
@@ -342,7 +413,7 @@ export default function MessagesPage() {
                   </div>
                 </div>
               </div>
-              <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
+              <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
                 {filteredGroupMessages.length === 0 && (
                   <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: 20 }}>
                     {search ? `Aucun message pour "${search}"` : 'Aucun message pour l\'instant.'}
@@ -352,10 +423,9 @@ export default function MessagesPage() {
                   <MsgBubble key={msg.id} msg={msg} isMe={isMe(msg)} formatTime={formatTime}
                     canDelete={isMe(msg) || isCoach}
                     onDelete={() => { if (window.confirm('Supprimer ce message ?')) deleteMessage(msg.id) }}
-                    onReact={reactToMessage}
+                    onReact={reactToMessage} onImgLoad={onImgLoad}
                     myId={myAuthId} />
                 ))}
-                <div ref={bottomRef} />
               </div>
               <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(true, currentCanal)}
                 pendingImage={pendingImage} onImageSelect={handleImageSelect} onRemoveImage={() => setPendingImage(null)}
@@ -412,7 +482,7 @@ export default function MessagesPage() {
                       <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>{activeConv.type === 'joueur' ? activeConv.poste : activeConv.role}</p>
                     </div>
                   </div>
-                  <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
+                  <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', marginBottom: 10 }}>
                     {convMessages.length === 0 && (
                       <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: 20 }}>Début de la conversation.</p>
                     )}
@@ -421,7 +491,7 @@ export default function MessagesPage() {
                         canDelete={isMe(msg)} onDelete={async () => {
                           const { error } = await supabase.from('messages').delete().eq('id', msg.id)
                           if (error) { alert('Erreur lors de la suppression : ' + error.message); return }
-                          openConv(activeConv)
+                          openConv(activeConv, { keepUnread: true })
                         }}
                     onReact={async (msgId, emoji) => {
                           const msg = convMessages.find(m => m.id === msgId)
@@ -432,11 +502,11 @@ export default function MessagesPage() {
                           else reactions[myAuthId] = emoji
                           const { error } = await supabase.from('messages').update({ reactions }).eq('id', msgId)
                           if (error) { console.error('Erreur réaction:', error); return }
-                          openConv(activeConv)
+                          openConv(activeConv, { keepUnread: true })
                         }}
+                    onImgLoad={onImgLoad} unread={unreadConvIds.has(msg.id)}
                     myId={profile?.auth_id || profile?.id} />
                     ))}
-                    <div ref={bottomRef} />
                   </div>
                   <MsgInput value={input} onChange={setInput} onSend={() => sendMessage(false)}
                     pendingImage={pendingImage} onImageSelect={handleImageSelect} onRemoveImage={() => setPendingImage(null)}
@@ -467,7 +537,7 @@ export default function MessagesPage() {
                               <p style={{ fontSize: 13, fontWeight: c.nonLu ? 700 : 500 }}>{c.nom} {c.prenom}</p>
                               <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{c.type === 'joueur' ? c.poste : c.role}</p>
                             </div>
-                            {c.nonLu && <Circle size={9} fill="var(--primary)" color="var(--primary)" />}
+                            {c.nonLu && <RedDot />}
                             <ChevronRight size={18} color="var(--border)" />
                           </div>
                         )
@@ -484,7 +554,7 @@ export default function MessagesPage() {
   )
 }
 
-function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }) {
+function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, onImgLoad, unread, myId }) {
   const [showActions, setShowActions] = useState(false)
   const reactions = msg.reactions || {}
   const nbUp = Object.values(reactions).filter(r => r === '👍').length
@@ -505,7 +575,7 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
             <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 3, color: 'var(--primary)' }}>{msg.expediteur_nom}</p>
           )}
           {msg.image_url && (
-            <img src={msg.image_url} alt="" style={{ maxWidth: '100%', borderRadius: 10, display: 'block', marginBottom: msg.contenu ? 6 : 0 }} />
+            <img src={msg.image_url} alt="" onLoad={onImgLoad} style={{ maxWidth: '100%', borderRadius: 10, display: 'block', marginBottom: msg.contenu ? 6 : 0 }} />
           )}
           {msg.contenu && <p style={{ fontSize: 13, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>{msg.contenu}</p>}
           <p style={{ fontSize: 9, opacity: .6, marginTop: 3, textAlign: 'right' }}>{formatTime(msg.created_at)}</p>
@@ -542,6 +612,7 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, myId }
           </div>
         )}
       </div>
+      {unread && !isMe && <RedDot style={{ alignSelf: 'center', marginLeft: 6 }} />}
     </div>
   )
 }
