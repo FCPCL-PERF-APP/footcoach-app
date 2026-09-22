@@ -35,8 +35,16 @@ export default function DashboardStatsPage() {
       const defaites = useData.filter(s => (s.buts_marques || 0) < (s.buts_encaisses || 0)).length
       const totalButs = useData.reduce((s,r) => s+(r.buts_marques||0), 0)
       const totalEnc = useData.reduce((s,r) => s+(r.buts_encaisses||0), 0)
-      const pts = victoires * 3 + nuls
       const nbPrepa = dataPrepa.length
+
+      // Les points n'ont de sens qu'en championnat (pas de classement en coupe) — sinon
+      // une victoire de coupe gonflait à tort le total de points. Masqués tant qu'aucun
+      // match de championnat n'a été disputé, cf. BilanSaisonPage.jsx qui applique la
+      // même règle.
+      const dataChampionnat = useData.filter(s => s.evenements?.match_type === 'championnat')
+      const hasChampionnat = dataChampionnat.length > 0
+      const pts = dataChampionnat.filter(s => (s.buts_marques||0) > (s.buts_encaisses||0)).length * 3
+        + dataChampionnat.filter(s => (s.buts_marques||0) === (s.buts_encaisses||0)).length
 
       // Buts marqués par type
       const butMarqueAP = useData.reduce((s,r) => s+(r.but_marque_attaque_placee||0), 0)
@@ -58,7 +66,7 @@ export default function DashboardStatsPage() {
       const butsEncParPeriode = periodes.map(p => useData.reduce((s,r) => s+(r[`buts_enc_${p}`]||0), 0))
 
       setStats({
-        nbMatchs, victoires, nuls, defaites, pts, totalButs, totalEnc, nbPrepa,
+        nbMatchs, victoires, nuls, defaites, pts, hasChampionnat, totalButs, totalEnc, nbPrepa,
         butMarqueAP, butMarqueCA, butMarqueCorner, butMarquePen, butMarqueCF,
         butEncAP, butEncCA, butEncCorner, butEncPen, butEncCF,
         butsParPeriode, butsEncParPeriode
@@ -82,9 +90,9 @@ export default function DashboardStatsPage() {
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,.7)', textAlign: 'center', marginBottom: 10 }}>
               {stats.nbMatchs} matchs officiels{stats.nbPrepa > 0 ? ` · ${stats.nbPrepa} prépa. (non comptés)` : ''}
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: stats.hasChampionnat ? 'repeat(4,1fr)' : 'repeat(3,1fr)', gap: 8 }}>
               {[
-                ['Pts', stats.pts, '#FFD700'],
+                ...(stats.hasChampionnat ? [['Pts', stats.pts, '#FFD700']] : []),
                 ['V', stats.victoires, '#4ADE80'],
                 ['N', stats.nuls, '#FCD34D'],
                 ['D', stats.defaites, '#F87171'],
