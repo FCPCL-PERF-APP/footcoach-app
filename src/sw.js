@@ -24,8 +24,11 @@ self.addEventListener('activate', event => {
 
 // Notification push reçue
 self.addEventListener('push', event => {
-  if (!event.data) return
-  const data = event.data.json()
+  // Une notification doit TOUJOURS être affichée : iOS révoque l'abonnement push d'une
+  // PWA après quelques push reçus sans notification visible (payload vide ou illisible
+  // ici), ce qui coupait les notifications sans aucun signe côté appli.
+  let data
+  try { data = event.data ? event.data.json() : {} } catch { data = { body: event.data ? event.data.text() : '' } }
   event.waitUntil(
     self.registration.showNotification(data.title || 'FootCoach App', {
       body: data.body || '',
@@ -37,6 +40,22 @@ self.addEventListener('push', event => {
       renotify: true
     })
   )
+})
+
+// Le navigateur a renouvelé/invalidé l'abonnement push : on en recrée un tout de suite
+// pour ne pas rester sans abonnement valide. L'enregistrement en base se fait à la
+// prochaine ouverture de l'appli (usePush, autoSync) — le service worker n'a pas de
+// session Supabase pour écrire lui-même.
+self.addEventListener('pushsubscriptionchange', event => {
+  event.waitUntil((async () => {
+    try {
+      const key = event.oldSubscription?.options?.applicationServerKey
+      if (!key) return
+      await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })
+    } catch (err) {
+      console.error('pushsubscriptionchange:', err)
+    }
+  })())
 })
 
 // Clic sur une notification

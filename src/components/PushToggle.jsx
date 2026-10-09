@@ -3,8 +3,8 @@ import { usePush } from '../hooks/usePush'
 import { useAuth } from '../hooks/useAuth'
 
 export default function PushToggle() {
-  const { profile } = useAuth()
-  const userId = profile?.auth_id || profile?.id
+  const { user, profile } = useAuth()
+  const userId = user?.id || profile?.auth_id || profile?.id
   const { pushSupported, pushEnabled, pushError, enablePush, disablePush } = usePush(userId)
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState(null)

@@ -63,7 +63,12 @@ const routeFallback = (
 
 function AppContent() {
   const { user, profile, loading, needsOnboarding, profileError, retryProfile, signOut, isCoach, isAdjoint, isJoueur, isStaff } = useAuth()
-  usePush(user, profile)
+  // autoSync : à chaque ouverture / retour au premier plan, vérifie que l'abonnement de cet
+  // appareil existe toujours et est bien enregistré en base (et le recrée sinon) —
+  // sans ça, un abonnement expiré ou supprimé restait mort jusqu'à une réactivation
+  // manuelle des notifications. (Avant, on passait ici l'objet `user` entier au lieu
+  // de son id.)
+  usePush(user?.id, { autoSync: true })
 
   // Une fois l'app stable quelques secondes, on lève le garde-fou anti-boucle de
   // ErrorBoundary : une future erreur de chunk (ex. après un nouveau déploiement)
