@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 export default function PushToggle() {
   const { user, profile } = useAuth()
   const userId = user?.id || profile?.auth_id || profile?.id
-  const { pushSupported, pushEnabled, pushError, enablePush, disablePush } = usePush(userId)
+  const { pushSupported, pushEnabled, enablePush, disablePush } = usePush(userId)
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState(null)
 
@@ -22,9 +22,9 @@ export default function PushToggle() {
       await disablePush()
       setMsg({ ok: false, text: '🔕 Notifications désactivées.' })
     } else {
-      const success = await enablePush()
-      if (success) setMsg({ ok: true, text: '🔔 Notifications activées ! Tu recevras les messages, convocations et rappels.' })
-      else setMsg({ ok: false, text: `❌ Impossible d'activer.${pushError ? ` ${pushError}` : ' Vérifie les autorisations dans les réglages.'}` })
+      const res = await enablePush()
+      if (res.ok) setMsg({ ok: true, text: '🔔 Notifications activées ! Tu recevras les messages, convocations et rappels.' })
+      else setMsg({ ok: false, text: `❌ Impossible d'activer. ${res.error || 'Vérifie les autorisations dans les réglages.'}` })
     }
     setLoading(false)
   }

@@ -147,25 +147,34 @@ export function usePush(userId, { autoSync = false } = {}) {
     }
   }
 
+  // Retourne { ok: true } ou { ok: false, error } — le motif est renvoyé directement
+  // plutôt que lu dans l'état `pushError`, qui n'est pas encore à jour au moment où
+  // PushToggle affiche son message (d'où l'ancien message générique inutilisable).
   async function enablePush() {
-    if (!pushSupported) return false
+    if (!pushSupported) return { ok: false, error: 'Notifications non supportées ici.' }
     setPushError(null)
     try {
+      if ('Notification' in window && Notification.permission === 'denied') {
+        const error = 'Notifications bloquées pour cette appli : Réglages iPhone > Notifications > (nom de l\'appli) > Autoriser, puis réessaie.'
+        setPushError(error)
+        return { ok: false, error }
+      }
       const reg = await navigator.serviceWorker.ready
       const res = await subscribeAndSave(reg)
       if (res.error) {
         setPushError(res.error)
-        return false
+        return { ok: false, error: res.error }
       }
       setWanted(true)
       setPushEnabled(true)
-      return true
+      return { ok: true }
     } catch (err) {
       console.error('Erreur activation push:', err)
-      setPushError(err.name === 'NotAllowedError'
+      const error = err.name === 'NotAllowedError'
         ? 'Permission refusée par le téléphone/navigateur.'
-        : `${err.name || 'Erreur'} : ${err.message}`)
-      return false
+        : `${err.name || 'Erreur'} : ${err.message}`
+      setPushError(error)
+      return { ok: false, error }
     }
   }
 
