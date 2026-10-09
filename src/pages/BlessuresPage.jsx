@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { appliquerBlessureAuxPresences, libererApresRetour } from '../lib/blessurePresences'
 import { Card, PageHeader, Input, Select, Button, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO, differenceInDays } from 'date-fns'
@@ -47,29 +48,43 @@ export default function BlessuresPage() {
   async function handleSave() {
     if (!form.date_debut || !form.zone) return
     setSaving(true)
-    const { error } = await supabase.from('blessures').insert({
+    const payload = {
       joueur_id: joueurId,
       ...form,
       date_retour_prevue: form.date_retour_prevue || null,
       date_retour_effective: form.date_retour_effective || null,
-    })
-    setSaving(false)
+    }
+    const { error } = await supabase.from('blessures').insert(payload)
     if (error) {
+      setSaving(false)
       alert('Erreur lors de l\'enregistrement : ' + error.message)
       return
     }
+    // Marque automatiquement le joueur "blessé" sur les événements de la période.
+    let nbEvenements = 0
+    try {
+      nbEvenements = await appliquerBlessureAuxPresences(supabase, joueurId, payload)
+    } catch (err) {
+      alert('Blessure enregistrée, mais les présences n\'ont pas pu être mises à jour : ' + err.message)
+    }
+    setSaving(false)
+    if (nbEvenements > 0) alert(`${nbEvenements} événement(s) marqué(s) "blessé" sur la période.`)
     setShowAdd(false)
     setForm({ type_blessure: 'Musculaire', zone: 'Genou', gravite: 'moderee', date_debut: '', date_retour_prevue: '', date_retour_effective: '', description: '', traitement: '' })
     loadData()
   }
 
   async function marquerGueri(id, date) {
+    const dateRetour = date || new Date().toISOString().split('T')[0]
     const { error } = await supabase.from('blessures')
-      .update({ date_retour_effective: date || new Date().toISOString().split('T')[0], statut: 'gueri' }).eq('id', id)
+      .update({ date_retour_effective: dateRetour, statut: 'gueri' }).eq('id', id)
     if (error) {
       alert('Erreur lors de la mise à jour : ' + error.message)
       return
     }
+    // Les événements à venir marqués "blessé" par cette blessure redeviennent libres.
+    try { await libererApresRetour(supabase, joueurId, dateRetour) }
+    catch (err) { alert('Guérison enregistrée, mais les présences n\'ont pas pu être remises à jour : ' + err.message) }
     loadData()
   }
 
