@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { validateFile } from '../lib/upload'
+import { exportCompoPDF } from '../utils/compoPDF'
 import { Card, Button, Input, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -198,6 +199,8 @@ export default function StatsPage() {
   // `compo` (qui ne doit contenir que les titulaires : recomputeFromChronologie s'en
   // sert pour déduire qui a commencé le match).
   const [banc, setBanc] = useState(['', '', '', '', ''])
+  // Capitaine désigné dans la compo (joueur_id) — affiché sur le terrain, le partage et le PDF.
+  const [capitaineId, setCapitaineId] = useState('')
 
   const [formIndiv, setFormIndiv] = useState({})
   const [selectedJoueur, setSelectedJoueur] = useState('')
@@ -280,8 +283,9 @@ export default function StatsPage() {
       // de jeu de recomputeFromChronologie).
       setCompo(rp.compo_visuelle || {})
       setBanc(rp.banc || ['', '', '', '', ''])
+      setCapitaineId(rp.capitaine_id || '')
     } else {
-      setFormation('4-4-2'); setCompo({}); setBanc(['', '', '', '', ''])
+      setFormation('4-4-2'); setCompo({}); setBanc(['', '', '', '', '']); setCapitaineId('')
     }
     if (jrs?.length) setSelectedJoueur(jrs[0].id)
     setLoading(false)
@@ -547,7 +551,7 @@ export default function StatsPage() {
 
   async function saveRapport() {
     setSaving(true)
-    const payload = { evenement_id: eventId, ...formRapport, formation, compo_visuelle: compo, banc }
+    const payload = { evenement_id: eventId, ...formRapport, formation, compo_visuelle: compo, banc, capitaine_id: capitaineId || null }
     let result
     try {
       result = await upsertOrQueue('rapports_match', payload, 'evenement_id')
@@ -655,10 +659,13 @@ export default function StatsPage() {
   function compoTexte() {
     const lignes = FORMATIONS[formation].positions.map(pos => {
       const j = joueurs.find(x => x.id === compo[pos.id])
-      return `${pos.label} : ${j ? `${j.prenom} ${j.nom}${j.numero ? ` (n°${j.numero})` : ''}` : '—'}`
+      return `${pos.label} : ${j ? `${j.prenom} ${j.nom}${j.numero ? ` (n°${j.numero})` : ''}${j.id === capitaineId ? ' (C)' : ''}` : '—'}`
     })
     const remplacants = banc.map(id => joueurs.find(x => x.id === id)).filter(Boolean)
-    return `Composition — ${event?.titre || 'Match'}\n(${FORMATIONS[formation].label})\n\n${lignes.join('\n')}` +
+    const capitaine = joueurs.find(x => x.id === capitaineId)
+    return `Composition — ${event?.titre || 'Match'}\n(${FORMATIONS[formation].label})` +
+      (capitaine ? `\nCapitaine : ${capitaine.prenom} ${capitaine.nom}` : '') +
+      `\n\n${lignes.join('\n')}` +
       (remplacants.length ? `\n\nRemplaçants : ${remplacants.map(j => `${j.prenom} ${j.nom}`).join(', ')}` : '')
   }
 
@@ -1054,6 +1061,13 @@ export default function StatsPage() {
                           </text>
                         )}
                         {/* Pastille numéro (toujours visible, même avec photo) */}
+                        {joueurId === capitaineId && (
+                          <>
+                            <circle cx={pos.x - 6.5} cy={cy - 6.5} r="3.4" fill="#FACC15" stroke="#fff" strokeWidth=".5" />
+                            <text x={pos.x - 6.5} y={cy - 5.6} textAnchor="middle" dominantBaseline="middle"
+                              fontSize="3.4" fill="#111" fontWeight="800">C</text>
+                          </>
+                        )}
                         <circle cx={pos.x + 6.5} cy={cy + 6.5} r="3.2" fill="var(--primary)" stroke="#fff" strokeWidth=".5" />
                         <text x={pos.x + 6.5} y={cy + 7.4} textAnchor="middle" dominantBaseline="middle"
                           fontSize="3" fill="#fff" fontWeight="700">{joueur.numero || (i+1)}</text>
@@ -1119,9 +1133,22 @@ export default function StatsPage() {
             ))}
           </div>
 
+          {/* Capitaine — parmi les titulaires de la compo ci-dessus */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Capitaine</label>
+            <select value={capitaineId} onChange={e => setCapitaineId(e.target.value)}
+              style={{ width: '100%', padding: '6px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box' }}>
+              <option value="">— Aucun —</option>
+              {Object.values(compo).filter(Boolean).map(id => joueurs.find(j => j.id === id)).filter(Boolean)
+                .map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
+            </select>
+          </div>
+
           <div style={{ display: 'flex', gap: 8 }}>
             <Button variant="primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveRapport} disabled={saving}><Save size={13} /> Enregistrer</Button>
             <Button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={() => setShowShareCompo(true)}><Share2 size={13} /> Partager</Button>
+            <Button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+              onClick={() => exportCompoPDF({ event, formation: FORMATIONS[formation], compo, banc, joueurs, capitaineId })}><FileText size={13} /> PDF</Button>
           </div>
         </Card>
       )}
