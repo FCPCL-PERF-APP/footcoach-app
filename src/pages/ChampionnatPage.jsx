@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { bornesSaison, labelSaison } from '../lib/saison'
 import { Card, PageHeader, Button, Input, Spinner } from '../components/UI'
-import { Trophy, Plus, X, Trash2, Pencil } from 'lucide-react'
+import { Trophy, Plus, X, Trash2, Pencil, ClipboardPaste } from 'lucide-react'
 
 const FORME_COLORS = { V: '#16A34A', N: '#F59E0B', D: '#DC2626' }
 const VIDE = { journee: '', date_match: '', equipe_dom: '', equipe_ext: '', score_dom: '', score_ext: '' }
@@ -31,6 +31,28 @@ function calculer(matchs) {
     .sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp || a.nom.localeCompare(b.nom))
 }
 
+// Clé de comparaison de noms d'équipes (sans accents, casse ni ponctuation) : le site de
+// la ligue et le calendrier PDF n'écrivent pas toujours un club exactement pareil.
+function cle(nom) {
+  return nom.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+}
+
+// Lit un texte collé (une rencontre par ligne) :
+//   "Equipe A 2 - 1 Equipe B"  → match joué
+//   "Equipe A - Equipe B"      → match à venir
+function analyserTexte(texte) {
+  const lignes = texte.split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean)
+  const rows = [], ignorees = []
+  for (const l of lignes) {
+    let m = l.match(/^(.+?)\s+(\d{1,2})\s*[-–—:]\s*(\d{1,2})\s+(.+)$/)
+    if (m) { rows.push({ dom: m[1].trim(), ext: m[4].trim(), sd: parseInt(m[2], 10), se: parseInt(m[3], 10) }); continue }
+    m = l.match(/^(.+?)\s+(?:-|–|—|vs\.?|contre)\s+(.+)$/i)
+    if (m) { rows.push({ dom: m[1].trim(), ext: m[2].trim(), sd: null, se: null }); continue }
+    ignorees.push(l)
+  }
+  return { rows, ignorees }
+}
+
 function Forme({ forme }) {
   return (
     <span style={{ display: 'inline-flex', gap: 2 }}>
@@ -53,6 +75,8 @@ export default function ChampionnatPage() {
   const [form, setForm] = useState(null) // null = fermé ; { id?, ...champs }
   const [saving, setSaving] = useState(false)
   const [erreur, setErreur] = useState('')
+  const [imp, setImp] = useState(null) // { journee, date, texte }
+  const [impBusy, setImpBusy] = useState(false)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load() }, [])
@@ -111,6 +135,46 @@ export default function ChampionnatPage() {
     load()
   }
 
+  // Résout un nom collé vers le nom déjà utilisé pour cette équipe (même clé), sinon garde tel quel.
+  const nomsConnus = useMemo(() => Object.fromEntries(equipes.map(n => [cle(n), n])), [equipes])
+  const apercu = useMemo(() => {
+    if (!imp || !imp.texte.trim()) return null
+    const { rows, ignorees } = analyserTexte(imp.texte)
+    const j = parseInt(imp.journee, 10)
+    const detail = rows.map(r => {
+      const dom = nomsConnus[cle(r.dom)] || r.dom
+      const ext = nomsConnus[cle(r.ext)] || r.ext
+      const existant = matchs.find(m => m.journee === j && m.equipe_dom === dom && m.equipe_ext === ext)
+      return { ...r, dom, ext, existant, inconnues: [!nomsConnus[cle(r.dom)] && r.dom, !nomsConnus[cle(r.ext)] && r.ext].filter(Boolean) }
+    })
+    return { detail, ignorees }
+  }, [imp, nomsConnus, matchs])
+
+  async function importer() {
+    const j = parseInt(imp.journee, 10)
+    if (!j) { setErreur('Indique le numéro de journée.'); return }
+    if (!apercu?.detail.length) { setErreur('Aucune rencontre reconnue dans le texte collé.'); return }
+    setImpBusy(true); setErreur('')
+    const date = imp.date || null
+    const nouveaux = [], maj = []
+    for (const r of apercu.detail) {
+      const base = { saison, journee: j, equipe_dom: r.dom, equipe_ext: r.ext, score_dom: r.sd, score_ext: r.se }
+      if (date) base.date_match = date
+      if (r.existant) maj.push({ id: r.existant.id, ...base }); else nouveaux.push(base)
+    }
+    let err = null
+    if (nouveaux.length) ({ error: err } = await supabase.from('championnat_matchs').insert(nouveaux))
+    for (const u of maj) {
+      if (err) break
+      const { id, ...champs } = u
+      ;({ error: err } = await supabase.from('championnat_matchs').update(champs).eq('id', id))
+    }
+    setImpBusy(false)
+    if (err) { setErreur(err.message); return }
+    setImp(null); setJournee(j); setTab('journees')
+    load()
+  }
+
   function ouvrirForm(m) {
     setErreur('')
     setForm(m
@@ -131,11 +195,57 @@ export default function ChampionnatPage() {
     <div style={{ padding: 12 }}>
       <PageHeader
         title={<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Trophy size={18} /> Championnat</span>}
-        action={canEdit && !form ? <Button variant="primary" size="sm" onClick={() => ouvrirForm(null)}><Plus size={12} style={{ marginRight: 4, verticalAlign: -2 }} />Match</Button> : null}
+        action={canEdit && !form && !imp ? (
+          <div style={{ display: 'flex', gap: 6 }}>
+            <Button size="sm" onClick={() => { setErreur(''); setImp({ journee: journee ? String(journee) : '', date: '', texte: '' }) }}><ClipboardPaste size={12} style={{ marginRight: 4, verticalAlign: -2 }} />Importer</Button>
+            <Button variant="primary" size="sm" onClick={() => ouvrirForm(null)}><Plus size={12} style={{ marginRight: 4, verticalAlign: -2 }} />Match</Button>
+          </div>
+        ) : null}
       />
       <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: -8, marginBottom: 10 }}>Saison {labelSaison()}</p>
 
-      {erreur && !form && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{erreur}</p>}
+      {erreur && !form && !imp && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{erreur}</p>}
+
+      {imp && (
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <p style={{ fontSize: 13, fontWeight: 600 }}>Importer une journée</p>
+            <button onClick={() => setImp(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><X size={18} /></button>
+          </div>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+            Copie les rencontres depuis la page de la ligue et colle-les ici, une par ligne :
+            « Équipe A 2 - 1 Équipe B » (joué) ou « Équipe A - Équipe B » (à venir). Les matchs déjà saisis de cette journée sont mis à jour.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <Input label="Journée" type="number" value={imp.journee} onChange={v => setImp(p => ({ ...p, journee: v }))} />
+            <Input label="Date (optionnel)" type="date" value={imp.date} onChange={v => setImp(p => ({ ...p, date: v }))} />
+          </div>
+          <textarea value={imp.texte} onChange={e => setImp(p => ({ ...p, texte: e.target.value }))} rows={7}
+            placeholder={'Pont. Ent Trieux Fc 2 - 1 Cavan Js\nRospez Cs 0 - 0 Begard Cs'}
+            style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, boxSizing: 'border-box', fontFamily: 'inherit', background: 'var(--bg-card)', color: 'var(--text-primary)', marginBottom: 8 }} />
+          {apercu && (
+            <div style={{ marginBottom: 8 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 4 }}>{apercu.detail.length} rencontre(s) reconnue(s)</p>
+              {apercu.detail.map((r, i) => (
+                <p key={i} style={{ fontSize: 12, padding: '3px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
+                  {r.dom} <b>{r.sd !== null ? `${r.sd} - ${r.se}` : '—'}</b> {r.ext}
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 6 }}>{r.existant ? 'mise à jour' : 'nouveau'}</span>
+                  {r.inconnues.length > 0 && matchs.length > 0 && (
+                    <span style={{ fontSize: 10, color: 'var(--warning)', marginLeft: 6 }}>équipe nouvelle : {r.inconnues.join(', ')}</span>
+                  )}
+                </p>
+              ))}
+              {apercu.ignorees.length > 0 && (
+                <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>{apercu.ignorees.length} ligne(s) ignorée(s) : {apercu.ignorees.slice(0, 3).join(' · ')}{apercu.ignorees.length > 3 ? '…' : ''}</p>
+              )}
+            </div>
+          )}
+          {erreur && <p style={{ fontSize: 12, color: 'var(--danger)', marginBottom: 8 }}>{erreur}</p>}
+          <Button variant="primary" style={{ width: '100%' }} onClick={importer} disabled={impBusy || !apercu?.detail.length}>
+            {impBusy ? 'Import...' : `Importer${apercu?.detail.length ? ` (${apercu.detail.length})` : ''}`}
+          </Button>
+        </Card>
+      )}
 
       {form && (
         <Card>
