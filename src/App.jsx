@@ -43,6 +43,7 @@ const SetPasswordPage        = lazy(() => import('./pages/SetPasswordPage'))
 const ProfilCoachPage        = lazy(() => import('./pages/ProfilCoachPage'))
 const ArchiveSaisonPage      = lazy(() => import('./pages/ArchiveSaisonPage'))
 const ClassementButeursPage  = lazy(() => import('./pages/ClassementButeursPage'))
+const ChampionnatPage         = lazy(() => import('./pages/ChampionnatPage'))
 const ExportDonneesPage      = lazy(() => import('./pages/ExportDonneesPage'))
 const RadarJoueurPage        = lazy(() => import('./pages/RadarJoueurPage'))
 const BadgesJoueurPage       = lazy(() => import('./pages/BadgesJoueurPage'))
@@ -194,6 +195,7 @@ function AppContent() {
           <Route path="/tirage-au-sort"         element={isStaff ? <TirageAuSortPage /> : <Navigate to="/" />} />
           <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
 <Route path="/classement" element={isCoach || isAdjoint ? <ClassementButeursPage /> : <Navigate to="/" />} />
+<Route path="/championnat" element={<ChampionnatPage />} />
 <Route path="/stats-connexion" element={isCoach ? <StatsConnexionPage /> : <Navigate to="/" />} />
 <Route path="/stats-matchs" element={isCoach || isAdjoint ? <DashboardStatsPage /> : <Navigate to="/" />} />
 <Route path="/analyse" element={isCoach || isAdjoint ? <AnalysePage /> : <Navigate to="/" />} />
