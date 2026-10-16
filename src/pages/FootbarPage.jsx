@@ -100,7 +100,11 @@ export default function FootbarPage() {
     const payload = {
       evenement_id: selectedEvent,
       joueur_id: selectedJoueur,
-      ...Object.fromEntries(FOOTBAR_FIELDS.map(f => [f.key, form[f.key] ? parseFloat(form[f.key]) : null]))
+      // Champs au pas de 1 arrondis : une colonne entière refuse "12.5".
+      ...Object.fromEntries(FOOTBAR_FIELDS.map(f => {
+        const n = form[f.key] ? parseFloat(form[f.key]) : null
+        return [f.key, n !== null && !Number.isNaN(n) && f.step === '1' ? Math.round(n) : (Number.isNaN(n) ? null : n)]
+      }))
     }
     const { error } = await supabase.from('footbar').upsert(payload, { onConflict: 'evenement_id,joueur_id' })
     setSaving(false)

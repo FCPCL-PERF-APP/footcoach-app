@@ -304,7 +304,12 @@ export default function MonSuiviPage() {
     if (doFoot) {
       const payload = {
         joueur_id: profile.id, evenement_id: eventId,
-        ...Object.fromEntries(FOOTBAR_FIELDS.map(f => [f.key, footForm[f.key] ? parseFloat(footForm[f.key]) : null]))
+        // Champs au pas de 1 (nb de sprints, minutes, ballons...) arrondis : une colonne
+        // entière en base refuse "12.5" et faisait échouer toute la saisie.
+        ...Object.fromEntries(FOOTBAR_FIELDS.map(f => {
+          const n = footForm[f.key] ? parseFloat(footForm[f.key]) : null
+          return [f.key, n !== null && !Number.isNaN(n) && f.step === '1' ? Math.round(n) : (Number.isNaN(n) ? null : n)]
+        }))
       }
       try {
         const result = await upsertOrQueue('footbar', payload, 'evenement_id,joueur_id')
@@ -321,7 +326,15 @@ export default function MonSuiviPage() {
     setTimeout(() => setSavedEventId(null), 3000)
     setQueueCountRpe(getQueueCount('rpe'))
     setQueueCountFoot(getQueueCount('footbar'))
-    if (queued.rpe === false || queued.footbar === false) loadData()
+    // Une erreur d'enregistrement ne doit jamais passer inaperçue : avant, quand le RPE
+    // passait mais pas le Footbar, loadData() ci-dessous faisait sortir l'événement de
+    // "À remplir" (RPE présent) et le message d'erreur disparaissait avec la carte — le
+    // joueur croyait tout enregistré alors que le Footbar était perdu. On prévient donc
+    // explicitement et on ne recharge pas, pour garder la carte et les valeurs saisies.
+    if (errors.footbar || errors.rpe) {
+      const quoi = [errors.rpe && `RPE (${errors.rpe})`, errors.footbar && `Footbar (${errors.footbar})`].filter(Boolean).join(' et ')
+      alert(`⚠️ Non enregistré : ${quoi}.\n${errors.footbar && !errors.rpe && doRpe ? 'Ton RPE est bien enregistré. ' : ''}Tes valeurs sont conservées : réessaie, et si ça persiste, préviens le coach avec ce message.`)
+    } else if (queued.rpe === false || queued.footbar === false) loadData()
     setSavingEventId(null)
   }
 
