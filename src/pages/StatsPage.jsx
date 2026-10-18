@@ -4,6 +4,8 @@ import { supabase, authHeaders } from '../lib/supabase'
 import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { validateFile } from '../lib/upload'
 import { exportCompoPDF } from '../utils/compoPDF'
+import RichTextarea from '../components/RichTextarea'
+import { htmlToPlainText } from '../lib/richText'
 import { Card, Button, Input, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -127,21 +129,8 @@ function SchemaField({ label, value, uploading, onUpload, onRemove }) {
 // bouton marche pareil partout, sur tous les appareils. Composant au niveau module
 // (pas imbriqué dans StatsPage) pour éviter le bug de démontage d'input à chaque frappe
 // déjà rencontré et corrigé sur FicheJoueurPage.jsx pour la même raison.
-function RapportTextarea({ label, value, onChange, placeholder, rows = 2, style = {} }) {
-  const [expanded, setExpanded] = useState(false)
-  return (
-    <div style={{ marginBottom: 10, ...style }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
-        {label && <label style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{label}</label>}
-        <button type="button" onClick={() => setExpanded(p => !p)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex', color: 'var(--text-muted)', padding: 2, marginLeft: 'auto' }}>
-          {expanded ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-        </button>
-      </div>
-      <textarea value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        rows={expanded ? 10 : rows}
-        style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
-    </div>
-  )
+function RapportTextarea(props) {
+  return <RichTextarea {...props} />
 }
 
 // Types d'événements de la chronologie live — mêmes items que le carnet papier (but
@@ -632,8 +621,8 @@ export default function StatsPage() {
     const auteurNom = staff ? `${staff.prenom} ${staff.nom}` : 'Coach'
     const r = resultat
     const contenu = `${event?.titre} — ${r === 'V' ? 'Victoire' : r === 'N' ? 'Nul' : 'Défaite'} ${formCollectif.buts_marques}-${formCollectif.buts_encaisses}\n` +
-      (formRapport.points_forts_globaux ? `Points forts : ${formRapport.points_forts_globaux}\n` : '') +
-      (formRapport.points_faibles_globaux ? `À améliorer : ${formRapport.points_faibles_globaux}` : '')
+      (formRapport.points_forts_globaux ? `Points forts : ${htmlToPlainText(formRapport.points_forts_globaux)}\n` : '') +
+      (formRapport.points_faibles_globaux ? `À améliorer : ${htmlToPlainText(formRapport.points_faibles_globaux)}` : '')
     const { error } = await supabase.from('messages').insert({
       expediteur_id: user?.id, expediteur_nom: auteurNom,
       expediteur_role: 'coach', groupe: true, canal: 'general', contenu

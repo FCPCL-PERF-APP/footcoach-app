@@ -72,6 +72,7 @@ style.textContent = `
   input, select, textarea, button { font-family: inherit; }
   ::-webkit-scrollbar { display: none; }
   ::selection { background: ${THEME.primary}; color: white; }
+  .rt-editor:empty::before { content: attr(data-placeholder); color: var(--text-muted); pointer-events: none; }
 `
 document.head.appendChild(style)
 
