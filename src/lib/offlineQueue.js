@@ -1,7 +1,24 @@
 import { supabase } from './supabase'
+import { Sentry } from './sentry'
 
 const STORAGE_KEY = 'fc_offline_queue_v1'
 const QUEUE_EVENT = 'fc-offline-queue-changed'
+// Éléments REFUSÉS par le serveur (erreur autre que réseau : colonne manquante, contrainte,
+// droits...). Avant, ils étaient supprimés en silence après un simple console.error : la
+// donnée saisie était perdue sans que personne ne le sache. On les garde ici, avec le
+// motif, pour les afficher (SyncStatusBanner), les retenter ou les écarter volontairement.
+const FAILED_KEY = 'fc_offline_failed_v1'
+
+function readFailed() {
+  try { return JSON.parse(localStorage.getItem(FAILED_KEY) || '[]') } catch { return [] }
+}
+function writeFailed(items) {
+  try { localStorage.setItem(FAILED_KEY, JSON.stringify(items)) } catch { /* quota / stockage indisponible */ }
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(QUEUE_EVENT))
+}
+function reportError(table, error, extra) {
+  try { Sentry.captureException(error instanceof Error ? error : new Error(error?.message || String(error)), { tags: { table, source: 'offlineQueue' }, extra }) } catch { /* ne jamais casser la saisie */ }
+}
 
 function readQueue() {
   try {
@@ -50,6 +67,7 @@ export async function upsertOrQueue(table, payload, onConflict) {
       enqueueItem({ type: 'upsert', table, payload, onConflict })
       return { queued: true }
     }
+    reportError(table, error, { onConflict, code: error.code })
     throw error
   } catch (err) {
     if (isNetworkError(err)) {
@@ -82,6 +100,35 @@ async function flushOne(item) {
   return error
 }
 
+function archiverEchec(item, error) {
+  const failed = readFailed()
+  failed.push({ ...item, failedAt: new Date().toISOString(), error: error?.message || String(error) })
+  writeFailed(failed)
+}
+
+export function getFailedItems() { return readFailed() }
+export function getFailedCount() { return readFailed().length }
+
+// Remet les éléments refusés dans la file d'envoi puis retente (ex. après correction côté
+// base). Ceux qui échouent encore reviennent dans la liste des refusés, avec le nouveau motif.
+export async function retryFailed() {
+  const failed = readFailed()
+  if (!failed.length) return { flushed: 0, remaining: getQueueCount() }
+  writeFailed([])
+  const items = readQueue()
+  for (const f of failed) {
+    const { failedAt: _f, error: _e, ...item } = f
+    items.push(item)
+  }
+  writeQueue(items)
+  return flushQueue()
+}
+
+// Abandon volontaire (une seule entrée, ou toutes si id omis).
+export function discardFailed(id) {
+  writeFailed(id ? readFailed().filter(f => f.id !== id) : [])
+}
+
 export async function flushQueue(table) {
   const items = readQueue()
   const toTry = table ? items.filter(i => i.table === table) : items
@@ -100,12 +147,16 @@ export async function flushQueue(table) {
       } else if (!isNetworkError(error)) {
         // erreur non-réseau (ex. donnée devenue invalide) : on ne la retente pas indéfiniment
         console.error('Échec définitif d\'un élément en attente de synchronisation:', item, error)
+        reportError(item.table || item.type, error, { code: error.code })
+        archiverEchec(item, error)
         if (idx !== -1) remaining.splice(idx, 1)
       }
       // erreur réseau : on laisse l'item en attente, on retentera au prochain flush
     } catch (err) {
       if (!isNetworkError(err)) {
         console.error('Échec définitif d\'un élément en attente de synchronisation:', item, err)
+        reportError(item.table || item.type, err)
+        archiverEchec(item, err)
         const idx = remaining.findIndex(i => i.id === item.id)
         if (idx !== -1) remaining.splice(idx, 1)
       }

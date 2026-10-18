@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { usePush } from './hooks/usePush'
+import SyncStatusBanner from './components/SyncStatusBanner'
 import { Spinner } from './components/UI'
 import BottomNav from './components/BottomNav'
 import AppHeader from './components/AppHeader'
@@ -147,6 +148,7 @@ function AppContent() {
   return (
     <div style={{ maxWidth: 'var(--app-max-width)', margin: '0 auto', minHeight: '100vh', background: 'var(--bg-page)' }}>
       <AppHeader />
+      <SyncStatusBanner />
       <div style={{ paddingBottom: 80 }}>
         <Suspense fallback={routeFallback}>
         <Routes>
