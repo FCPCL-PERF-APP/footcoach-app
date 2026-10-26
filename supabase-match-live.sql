@@ -22,3 +22,7 @@ CREATE POLICY "match_live_write" ON match_live FOR ALL TO authenticated
 DO $$ BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE match_live;
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- Composition affichée aux joueurs pendant la diffusion (formation, postes, noms, numéros,
+-- capitaine, remplaçants) — version publique figée par le coach, sans rien d'autre du rapport.
+ALTER TABLE match_live ADD COLUMN IF NOT EXISTS compo jsonb;

@@ -560,6 +560,8 @@ export default function StatsPage() {
     // Hors-ligne, la synchro se fera à la prochaine ouverture avec réseau, comme pour
     // le calcul des points pronostics (calculerPointsPronostics).
     if (!result.queued) await recomputeFromChronologie(payload.chronologie)
+    // Compo/chronologie à jour pour les joueurs qui suivent le match en direct.
+    if (!result.queued && liveStatut) publierLive(payload.chronologie, liveStatut)
     setSaving(false); setSaved(true); setSavedOffline(result.queued); setTimeout(() => setSaved(false), 2000)
     if (!result.queued) loadData()
   }
@@ -640,6 +642,20 @@ export default function StatsPage() {
     }))
   }
 
+  // Composition publiée aux joueurs (visuel terrain) : positions déjà résolues en noms,
+  // numéros, photos — la page joueur n'a ainsi besoin ni des formations ni de la table
+  // joueurs. null tant qu'aucun titulaire n'est placé.
+  function compoPublique() {
+    const f = FORMATIONS[formation]
+    const placés = f.positions.map((pos, i) => {
+      const j = joueurs.find(x => x.id === compo[pos.id])
+      return j ? { x: pos.x, y: pos.y, nom: j.nom, numero: j.numero || (i + 1), photo: j.photo_url || null, cap: j.id === capitaineId } : { x: pos.x, y: pos.y, label: pos.label }
+    })
+    if (!placés.some(p => p.nom)) return null
+    const banc2 = banc.map(id => joueurs.find(x => x.id === id)).filter(Boolean).map(j => ({ nom: `${j.prenom?.[0] ? j.prenom[0] + '.' : ''}${j.nom}`, numero: j.numero || null }))
+    return { formation: f.label, joueurs: placés, banc: banc2 }
+  }
+
   // Publie le score et les faits de jeu pour les joueurs qui suivent à distance. Échec
   // silencieux côté saisie (le match prime) mais signalé dans la console.
   async function publierLive(chrono, statut) {
@@ -648,7 +664,7 @@ export default function StatsPage() {
       evenement_id: eventId, statut,
       score_pour: c.filter(e => e.type === 'but_pour').length,
       score_contre: c.filter(e => e.type === 'but_contre').length,
-      faits: faitsPublics(c), updated_at: new Date().toISOString(),
+      faits: faitsPublics(c), compo: compoPublique(), updated_at: new Date().toISOString(),
     }, { onConflict: 'evenement_id' })
     if (error) console.error('Diffusion live:', error)
     return error
@@ -659,7 +675,20 @@ export default function StatsPage() {
     const error = await publierLive(formRapport.chronologie, statut)
     setLiveBusy(false)
     if (error) { alert('Diffusion impossible : ' + error.message); return }
+    const demarrage = !liveStatut
     setLiveStatut(statut)
+    // Au démarrage seulement : prévient les joueurs (push) que le match commence.
+    if (demarrage) {
+      try {
+        const res = await fetch('/api/notif-evenement', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+          body: JSON.stringify({ matchLiveId: eventId })
+        })
+        const data = await res.json()
+        alert(data.success ? `Diffusion démarrée — ${data.sent || 0} joueur(s) prévenu(s) par notification.` : 'Diffusion démarrée, mais la notification n\'a pas pu être envoyée.')
+      } catch { alert('Diffusion démarrée, mais la notification n\'a pas pu être envoyée.') }
+    }
   }
 
   async function arreterLive() {
@@ -1229,14 +1258,14 @@ export default function StatsPage() {
             {!liveStatut ? (
               <>
                 <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>
-                  Les joueurs peuvent suivre le score et les buts, cartons et changements que tu saisis ci-dessous, à distance. Les notes du rapport restent privées.
+                  Les joueurs peuvent suivre à distance la composition, le score et les buts, cartons et changements que tu saisis ci-dessous. Une notification « Le match commence » leur est envoyée au démarrage. Les notes du rapport restent privées.
                 </p>
-                <Button variant="primary" style={{ width: '100%' }} disabled={liveBusy} onClick={() => changerStatutLive('en_cours')}>Démarrer la diffusion</Button>
+                <Button variant="primary" style={{ width: '100%' }} disabled={liveBusy} onClick={() => changerStatutLive('en_cours')}>Démarrer et prévenir les joueurs</Button>
               </>
             ) : (
               <>
                 <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8 }}>
-                  En ligne : chaque fait de jeu ajouté ci-dessous est publié aussitôt. Indique la phase du match :
+                  En ligne : chaque fait de jeu ajouté ci-dessous est publié aussitôt, et la compo à chaque « Enregistrer » de l'onglet Compo. Indique la phase du match :
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
                   {[['en_cours', '1ère mi-temps'], ['mi_temps', 'Mi-temps'], ['seconde_mt', '2nde mi-temps'], ['termine', 'Terminé']].map(([k, l]) => (

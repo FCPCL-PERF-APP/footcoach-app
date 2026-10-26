@@ -11,6 +11,72 @@ const STATUTS = {
   termine:    { label: 'Match terminé', live: false },
 }
 
+// Visuel de la composition (même rendu que l'onglet Compo côté coach), à partir de la
+// version publique figée par le coach — positions, noms, numéros, photos, capitaine.
+function CompoTerrain({ compo }) {
+  return (
+    <>
+      <div style={{ background: '#2d7a27', borderRadius: 12, overflow: 'hidden', maxWidth: 360, margin: '0 auto' }}>
+        <svg viewBox="0 0 100 150" style={{ width: '100%', aspectRatio: '2/3', display: 'block' }}>
+          <defs>
+            {compo.joueurs.map((p, i) => p.photo ? (
+              <clipPath key={i} id={`lc-clip-${i}`}><circle cx={p.x} cy={p.y * 1.5} r="8.5" /></clipPath>
+            ) : null)}
+          </defs>
+          {[0,1,2,3,4,5,6,7,8,9].map(i => <rect key={i} x="0" y={i * 15} width="100" height="15" fill={i % 2 === 0 ? 'rgba(255,255,255,.03)' : 'transparent'} />)}
+          <rect x="5" y="3" width="90" height="144" fill="none" stroke="rgba(255,255,255,.4)" strokeWidth=".5" rx="1" />
+          <line x1="5" y1="75" x2="95" y2="75" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+          <circle cx="50" cy="75" r="14" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+          <rect x="25" y="3" width="50" height="26" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+          <rect x="37" y="3" width="26" height="12" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+          <rect x="25" y="121" width="50" height="26" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+          <rect x="37" y="135" width="26" height="12" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth=".4" />
+          {compo.joueurs.map((p, i) => {
+            const cy = p.y * 1.5
+            if (!p.nom) return (
+              <g key={i}>
+                <circle cx={p.x} cy={cy} r="8.5" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.6)" strokeWidth=".5" />
+                <text x={p.x} y={cy + 1} textAnchor="middle" dominantBaseline="middle" fontSize="4" fill="rgba(255,255,255,.5)">{p.label}</text>
+              </g>
+            )
+            return (
+              <g key={i}>
+                {p.photo ? (
+                  <>
+                    <circle cx={p.x} cy={cy} r="9" fill="#fff" />
+                    <image href={p.photo} x={p.x - 8.5} y={cy - 8.5} width="17" height="17" clipPath={`url(#lc-clip-${i})`} preserveAspectRatio="xMidYMid slice" />
+                    <circle cx={p.x} cy={cy} r="8.5" fill="none" stroke="var(--primary)" strokeWidth=".7" />
+                  </>
+                ) : (
+                  <>
+                    <circle cx={p.x} cy={cy} r="8.5" fill="var(--primary)" stroke="rgba(255,255,255,.6)" strokeWidth=".5" />
+                    <text x={p.x} y={cy + 1.2} textAnchor="middle" dominantBaseline="middle" fontSize="4.5" fill="#fff" fontWeight="700">{p.numero}</text>
+                  </>
+                )}
+                {p.cap && (
+                  <>
+                    <circle cx={p.x - 6.5} cy={cy - 6.5} r="3.4" fill="#FACC15" stroke="#fff" strokeWidth=".5" />
+                    <text x={p.x - 6.5} y={cy - 5.6} textAnchor="middle" dominantBaseline="middle" fontSize="3.4" fill="#111" fontWeight="800">C</text>
+                  </>
+                )}
+                <circle cx={p.x + 6.5} cy={cy + 6.5} r="3.2" fill="var(--primary)" stroke="#fff" strokeWidth=".5" />
+                <text x={p.x + 6.5} y={cy + 7.4} textAnchor="middle" dominantBaseline="middle" fontSize="3" fill="#fff" fontWeight="700">{p.numero}</text>
+                <rect x={p.x - 9.5} y={cy + 10.5} width="19" height="5.2" rx="1.2" fill="rgba(0,0,0,.6)" />
+                <text x={p.x} y={cy + 14.2} textAnchor="middle" fontSize="3.2" fill="#fff" fontWeight="600">{p.nom?.slice(0, 7)}</text>
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+      {compo.banc?.length > 0 && (
+        <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 10 }}>
+          <b>Remplaçants :</b> {compo.banc.map(b => `${b.numero ? b.numero + ' ' : ''}${b.nom}`).join(' · ')}
+        </p>
+      )}
+    </>
+  )
+}
+
 function Fait({ f }) {
   const base = { display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '0.5px solid var(--bg-secondary)' }
   const min = <span style={{ width: 34, fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', flexShrink: 0 }}>{f.minute}'</span>
@@ -98,6 +164,13 @@ export default function MatchLivePage() {
             </div>
             {maj && <p style={{ fontSize: 10, textAlign: 'center', marginTop: 10, opacity: .7 }}>Mis à jour à {maj} · actualisation automatique</p>}
           </div>
+
+          {live.compo && (
+            <Card>
+              <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Composition · {live.compo.formation}</p>
+              <CompoTerrain compo={live.compo} />
+            </Card>
+          )}
 
           <Card>
             <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Faits de jeu</p>

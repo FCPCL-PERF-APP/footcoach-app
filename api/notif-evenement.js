@@ -20,7 +20,32 @@ export default async function handler(req, res) {
   const user = await requireCoach(req, supabase)
   if (!user) return res.status(403).json({ error: 'Réservé au coach' })
 
-  const { titre, dateStr, reschedule } = req.body
+  const { titre, dateStr, reschedule, matchLiveId } = req.body
+
+  // Mode "match en direct" (fonction réutilisée plutôt qu'un nouveau fichier : le plan
+  // Vercel limite le nombre de fonctions serverless) — prévient les JOUEURS que la
+  // diffusion du match commence, pour qu'absents/blessés/non convoqués puissent le suivre.
+  if (matchLiveId) {
+    try {
+      const [{ data: ev }, { data: joueurs }] = await Promise.all([
+        supabase.from('evenements').select('titre').eq('id', matchLiveId).maybeSingle(),
+        supabase.from('joueurs').select('auth_id').not('auth_id', 'is', null),
+      ])
+      const result = await sendPushToSubscriptions(webpush, supabase,
+        (joueurs || []).map(j => j.auth_id).filter(id => id && id !== user.id), {
+          title: '🔴 Le match commence !',
+          body: `${ev?.titre ? `FC PCL ${ev.titre}` : 'FC PCL'} — suis le match en direct dans l'appli.`,
+          url: `/match-live/${matchLiveId}`,
+          tag: `match-live-${matchLiveId}`
+        })
+      return res.status(200).json({ success: true, ...result })
+    } catch (err) {
+      console.error('Erreur notif match live:', err)
+      captureError(err, { endpoint: 'notif-evenement/match-live' })
+      return res.status(500).json({ error: err.message })
+    }
+  }
+
   if (!titre || !dateStr) return res.status(400).json({ error: 'titre et dateStr requis' })
 
   try {
