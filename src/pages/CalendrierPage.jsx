@@ -5,7 +5,7 @@ import { savePresenceOrQueue, flushQueue, getQueueCount } from '../lib/offlineQu
 import { useAuth } from '../hooks/useAuth'
 import { Card, Badge, Button, Input, Select, Spinner, Textarea } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
-import { format, parseISO, isAfter, isBefore } from 'date-fns'
+import { format, parseISO, isAfter } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   CalendarDays, Repeat, Plus, X, Pencil, Trash2, MapPin, Clock, Send, Hourglass,
@@ -158,8 +158,16 @@ export default function CalendrierPage() {
   }
 
   const filtered = events.filter(e => filterType === 'tous' || e.type === filterType)
-  const upcoming = filtered.filter(e => isAfter(parseISO(e.date_heure), new Date()))
-  const past = filtered.filter(e => isBefore(parseISO(e.date_heure), new Date())).reverse()
+  // Un événement reste dans "À venir" jusqu'à la fin de sa journée (et non jusqu'à son heure
+  // de début) : pendant et juste après un match, il faut pouvoir le retrouver tout de suite
+  // pour saisir les stats, sans aller le chercher dans "Passés".
+  const debutAujourdhui = new Date(); debutAujourdhui.setHours(0, 0, 0, 0)
+  const enCoursOuAVenir = e => {
+    const d = parseISO(e.date_heure)
+    return isAfter(d, new Date()) || d >= debutAujourdhui
+  }
+  const upcoming = filtered.filter(enCoursOuAVenir)
+  const past = filtered.filter(e => !enCoursOuAVenir(e)).reverse()
 
   // Initialiser l'événement passé sélectionné
   useEffect(() => {
