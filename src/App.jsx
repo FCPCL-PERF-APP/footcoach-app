@@ -45,6 +45,7 @@ const ProfilCoachPage        = lazy(() => import('./pages/ProfilCoachPage'))
 const ArchiveSaisonPage      = lazy(() => import('./pages/ArchiveSaisonPage'))
 const ClassementButeursPage  = lazy(() => import('./pages/ClassementButeursPage'))
 const ChampionnatPage         = lazy(() => import('./pages/ChampionnatPage'))
+const MatchLivePage           = lazy(() => import('./pages/MatchLivePage'))
 const ExportDonneesPage      = lazy(() => import('./pages/ExportDonneesPage'))
 const RadarJoueurPage        = lazy(() => import('./pages/RadarJoueurPage'))
 const BadgesJoueurPage       = lazy(() => import('./pages/BadgesJoueurPage'))
@@ -198,6 +199,7 @@ function AppContent() {
           <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
 <Route path="/classement" element={isCoach || isAdjoint ? <ClassementButeursPage /> : <Navigate to="/" />} />
 <Route path="/championnat" element={<ChampionnatPage />} />
+<Route path="/match-live/:id" element={<MatchLivePage />} />
 <Route path="/stats-connexion" element={isCoach ? <StatsConnexionPage /> : <Navigate to="/" />} />
 <Route path="/stats-matchs" element={isCoach || isAdjoint ? <DashboardStatsPage /> : <Navigate to="/" />} />
 <Route path="/analyse" element={isCoach || isAdjoint ? <AnalysePage /> : <Navigate to="/" />} />

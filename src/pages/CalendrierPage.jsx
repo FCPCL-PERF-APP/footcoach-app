@@ -356,6 +356,8 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
   const [showConvoques, setShowConvoques] = useState(false)
   const [listeConvoques, setListeConvoques] = useState(null)
   const [score, setScore] = useState(null)
+  // Match diffusé en direct par le coach (cf. MatchLivePage) : bouton « Suivre en direct ».
+  const [live, setLive] = useState(null)
   const date = parseISO(ev.date_heure)
   const dateStr = format(date, "EEE d MMM · HH'h'mm", { locale: fr })
 
@@ -364,8 +366,13 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
     if (isJoueur && profile?.id) checkConvocation()
     // Le score est public une fois saisi — visible par tous, pas seulement le staff,
     // pour que la liste de l'agenda serve aussi de suivi rapide des résultats.
-    if (ev.type === 'match') loadScore()
+    if (ev.type === 'match') { loadScore(); loadLive() }
   }, [ev.id])
+
+  async function loadLive() {
+    const { data } = await supabase.from('match_live').select('statut').eq('evenement_id', ev.id).maybeSingle()
+    setLive(data || null)
+  }
 
   async function loadScore() {
     const { data } = await supabase.from('stats_collectives').select('buts_marques, buts_encaisses').eq('evenement_id', ev.id).maybeSingle()
@@ -581,6 +588,17 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
       {/* Boutons STAFF (coach + adjoint/préparateur/gardien) — icône colorée par
           catégorie pour les distinguer d'un coup d'œil, au lieu d'une rangée de
           pilules grises identiques. */}
+      {live && (
+        <button onClick={() => navigate(`/match-live/${ev.id}`)} style={{
+          width: '100%', marginTop: 8, padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+          background: live.statut === 'termine' ? 'var(--bg-secondary)' : 'var(--danger-bg)',
+          color: live.statut === 'termine' ? 'var(--text-secondary)' : 'var(--danger)',
+          fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+        }}>
+          {live.statut !== 'termine' && <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger)', display: 'inline-block' }} />}
+          {live.statut === 'termine' ? 'Revoir le déroulé du match' : 'Suivre en direct'}
+        </button>
+      )}
       {isStaff && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
           {isStaff && ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}><Send size={11} color={CAT_COLORS.blue.color} style={{ marginRight: 4, verticalAlign: -2 }} />Convocations</Button>}

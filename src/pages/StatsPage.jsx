@@ -13,7 +13,7 @@ import { fr } from 'date-fns/locale'
 import {
   ArrowLeft, CheckCircle2, User, BarChart3, Swords, FileText,
   Save, Share2, ThumbsUp, AlertTriangle, Goal, Shield, WifiOff, ImagePlus, X, Loader2,
-  Target, Plus, Trash2, Maximize2, Minimize2, Users, Send
+  Target, Plus, Trash2, Maximize2, Minimize2, Users, Send, Radio
 } from 'lucide-react'
 
 const shareSheetBtnStyle = {
@@ -232,6 +232,11 @@ export default function StatsPage() {
   // du staff, ou feuille de partage native (Messages/WhatsApp...).
   const [showShareCompo, setShowShareCompo] = useState(false)
 
+  // Diffusion du match en direct (cf. MatchLivePage.jsx) : null = pas de diffusion,
+  // sinon le statut courant (en_cours | mi_temps | seconde_mt | termine).
+  const [liveStatut, setLiveStatut] = useState(null)
+  const [liveBusy, setLiveBusy] = useState(false)
+
   // Ignore une réponse devenue obsolète si le coach navigue vers un autre match avant
   // qu'elle ne revienne.
   const eventIdRef = useRef(eventId)
@@ -277,6 +282,8 @@ export default function StatsPage() {
       setFormation('4-4-2'); setCompo({}); setBanc(['', '', '', '', '']); setCapitaineId('')
     }
     if (jrs?.length) setSelectedJoueur(jrs[0].id)
+    const { data: live } = await supabase.from('match_live').select('statut').eq('evenement_id', eventId).maybeSingle()
+    setLiveStatut(live?.statut || null)
     setLoading(false)
   }
 
@@ -607,11 +614,58 @@ export default function StatsPage() {
       if (chronoForm.sortant_id) entry.sortant_id = chronoForm.sortant_id
       if (chronoForm.entrant_id) entry.entrant_id = chronoForm.entrant_id
     }
-    setFormRapport(p => ({ ...p, chronologie: [...(p.chronologie || []), entry].sort((a, b) => a.minute - b.minute) }))
+    const next = [...(formRapport.chronologie || []), entry].sort((a, b) => a.minute - b.minute)
+    setFormRapport(p => ({ ...p, chronologie: next }))
+    if (liveStatut) publierLive(next, liveStatut)
     setChronoForm({ minute: '', type: chronoForm.type, description: '', buteur_id: '', passeur_id: '', phase: '', joueur_id: '', sortant_id: '', entrant_id: '' })
   }
   function removeChronoEvent(idx) {
-    setFormRapport(p => ({ ...p, chronologie: (p.chronologie || []).filter((_, i) => i !== idx) }))
+    const next = (formRapport.chronologie || []).filter((_, i) => i !== idx)
+    setFormRapport(p => ({ ...p, chronologie: next }))
+    if (liveStatut) publierLive(next, liveStatut)
+  }
+
+  // Version publique de la chronologie : uniquement minute, type et noms courts — jamais
+  // les descriptions ni les notes du rapport (qui restent privées au staff).
+  function faitsPublics(chrono) {
+    const nom = id => {
+      const j = joueurs.find(x => x.id === id)
+      return j ? `${j.prenom?.[0] ? j.prenom[0] + '.' : ''}${j.nom}` : null
+    }
+    return (chrono || []).filter(e => e.type !== 'autre').map(e => ({
+      minute: e.minute, type: e.type,
+      ...(e.type === 'but_pour' ? { buteur: nom(e.buteur_id), passeur: nom(e.passeur_id) } : {}),
+      ...(e.type === 'carton_jaune' || e.type === 'carton_rouge' ? { joueur: nom(e.joueur_id) } : {}),
+      ...(e.type === 'changement' ? { sortant: nom(e.sortant_id), entrant: nom(e.entrant_id) } : {}),
+    }))
+  }
+
+  // Publie le score et les faits de jeu pour les joueurs qui suivent à distance. Échec
+  // silencieux côté saisie (le match prime) mais signalé dans la console.
+  async function publierLive(chrono, statut) {
+    const c = chrono || []
+    const { error } = await supabase.from('match_live').upsert({
+      evenement_id: eventId, statut,
+      score_pour: c.filter(e => e.type === 'but_pour').length,
+      score_contre: c.filter(e => e.type === 'but_contre').length,
+      faits: faitsPublics(c), updated_at: new Date().toISOString(),
+    }, { onConflict: 'evenement_id' })
+    if (error) console.error('Diffusion live:', error)
+    return error
+  }
+
+  async function changerStatutLive(statut) {
+    setLiveBusy(true)
+    const error = await publierLive(formRapport.chronologie, statut)
+    setLiveBusy(false)
+    if (error) { alert('Diffusion impossible : ' + error.message); return }
+    setLiveStatut(statut)
+  }
+
+  async function arreterLive() {
+    if (!window.confirm('Arrêter la diffusion ? Les joueurs ne verront plus le suivi en direct de ce match.')) return
+    await supabase.from('match_live').delete().eq('evenement_id', eventId)
+    setLiveStatut(null)
   }
 
   async function shareRapportInApp() {
@@ -1166,6 +1220,42 @@ export default function StatsPage() {
       {/* SUIVI LIVE — remplace le carnet papier rempli en tribune pendant le match */}
       {activeTab === 'suivi' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Diffusion en direct — les joueurs absents/blessés suivent le score et les faits
+              de jeu depuis l'agenda ("Suivre en direct"). */}
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Radio size={14} color={liveStatut ? 'var(--danger)' : 'var(--text-muted)'} /> Diffusion en direct
+            </p>
+            {!liveStatut ? (
+              <>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>
+                  Les joueurs peuvent suivre le score et les buts, cartons et changements que tu saisis ci-dessous, à distance. Les notes du rapport restent privées.
+                </p>
+                <Button variant="primary" style={{ width: '100%' }} disabled={liveBusy} onClick={() => changerStatutLive('en_cours')}>Démarrer la diffusion</Button>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8 }}>
+                  En ligne : chaque fait de jeu ajouté ci-dessous est publié aussitôt. Indique la phase du match :
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
+                  {[['en_cours', '1ère mi-temps'], ['mi_temps', 'Mi-temps'], ['seconde_mt', '2nde mi-temps'], ['termine', 'Terminé']].map(([k, l]) => (
+                    <button key={k} disabled={liveBusy} onClick={() => changerStatutLive(k)} style={{
+                      padding: '8px 4px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
+                      border: `1.5px solid ${liveStatut === k ? 'var(--primary)' : 'var(--border)'}`,
+                      background: liveStatut === k ? 'var(--primary-bg)' : 'transparent',
+                      color: liveStatut === k ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: liveStatut === k ? 700 : 400
+                    }}>{l}</button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Button style={{ flex: 1 }} onClick={() => navigate(`/match-live/${eventId}`)}>Voir comme un joueur</Button>
+                  <Button variant="danger" onClick={arreterLive}>Arrêter</Button>
+                </div>
+              </>
+            )}
+          </Card>
+
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Disposition terrain</p>
             <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>
