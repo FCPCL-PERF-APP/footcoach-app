@@ -47,7 +47,7 @@ export default function ComparatifJoueursPage() {
   async function loadJoueurs() {
     const { debut, fin } = bornesSaison()
     const [{ data }, { data: eventsSaisonIds }] = await Promise.all([
-      supabase.from('joueurs').select('id,nom,prenom,poste,numero').order('nom'),
+      supabase.from('joueurs').select('id,nom,prenom,poste,numero').eq('archive', false).order('nom'),
       supabase.from('evenements').select('id').gte('date_heure', debut).lte('date_heure', fin),
     ])
     setJoueurs(data || [])

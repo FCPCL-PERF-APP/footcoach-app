@@ -34,7 +34,7 @@ export default function PresencesRecapPage() {
     setLoadError(null)
     const { debut } = bornesSaison()
     const [{ data: jrs, error: e1 }, { data: evs, error: e2 }] = await Promise.all([
-      supabase.from('joueurs').select('id,nom,prenom').order('nom'),
+      supabase.from('joueurs').select('id,nom,prenom').eq('archive', false).order('nom'),
       // Uniquement les séances d'entraînement collectif — les matchs ne répondent pas à
       // la question "qui a suivi la préparation à l'entraînement".
       supabase.from('evenements').select('id,date_heure').eq('type', 'seance')

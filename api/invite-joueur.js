@@ -12,6 +12,9 @@ export default async function handler(req, res) {
   if (!email || !joueurId) return res.status(400).json({ error: 'Email et joueurId requis' })
 
   try {
+    // Renvoyer une invitation à un joueur archivé le réactive (retour dans l'effectif).
+    await supabase.from('joueurs').update({ archive: false, archive_le: null }).eq('id', joueurId)
+
     const appUrl = process.env.VITE_APP_URL || 'https://footcoach-fcpcl.vercel.app'
 
     // Invite via Supabase Auth Admin

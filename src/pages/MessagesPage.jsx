@@ -184,7 +184,7 @@ export default function MessagesPage() {
   async function loadContacts() {
     const myAuthId = profile?.auth_id || profile?.id
     const [{ data: joueurs }, { data: staff }, { data: nonLus }, { data: mesMessages }] = await Promise.all([
-      supabase.from('joueurs').select('id, nom, prenom, poste, auth_id').order('nom'),
+      supabase.from('joueurs').select('id, nom, prenom, poste, auth_id').eq('archive', false).order('nom'),
       supabase.from('staff').select('id, nom, prenom, role, auth_id').order('nom'),
       // Sert à faire remonter en haut de liste les contacts ayant un message non lu —
       // sans ça, la liste par défaut (tronquée à 10) peut masquer complètement qui a

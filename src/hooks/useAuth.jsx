@@ -71,6 +71,14 @@ export function AuthProvider({ children }) {
       const { data: joueurData } = await supabase
         .from('joueurs').select('*').eq('auth_id', userId).maybeSingle()
 
+      // Joueur archivé (a quitté l'effectif) : plus d'accès tant que le coach ne l'a pas
+      // réactivé ou ré-invité. (auth_id est normalement déjà retiré à l'archivage.)
+      if (joueurData?.archive) {
+        setProfile({ type: 'joueur', role: 'joueur', orphan: true, archived: true })
+        setLoading(false)
+        return
+      }
+
       if (joueurData) {
         touchLastSeen()
         setProfile({ ...joueurData, last_seen: now, type: 'joueur', role: 'joueur' })
@@ -95,6 +103,11 @@ export function AuthProvider({ children }) {
 
         const { data: joueurByEmail } = await supabase
           .from('joueurs').select('*').eq('email', authUser.email).maybeSingle()
+        if (joueurByEmail?.archive) {
+          setProfile({ type: 'joueur', role: 'joueur', orphan: true, archived: true })
+          setLoading(false)
+          return
+        }
         if (joueurByEmail) {
           await supabase.from('joueurs').update({ auth_id: userId, last_seen: now }).eq('id', joueurByEmail.id)
           setProfile({ ...joueurByEmail, auth_id: userId, last_seen: now, type: 'joueur', role: 'joueur' })

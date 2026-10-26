@@ -128,8 +128,10 @@ function AppContent() {
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--gradient)', padding: 20 }}>
       <div style={{ textAlign: 'center', background: 'var(--bg-card)', color: 'var(--text-primary)', borderRadius: 16, padding: 24, maxWidth: 340 }}>
         <div style={{ fontSize: 36, marginBottom: 10 }}>👤</div>
-        <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>Compte non lié</p>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Ton compte n'est pas encore associé à une fiche joueur ou staff. Contacte ton coach pour qu'il vérifie ton accès.</p>
+        <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{profile.archived ? 'Accès désactivé' : 'Compte non lié'}</p>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{profile.archived
+          ? "Tu ne fais plus partie de l'effectif : ton accès à l'appli est désactivé. Contacte ton coach si tu reviens."
+          : "Ton compte n'est pas encore associé à une fiche joueur ou staff. Contacte ton coach pour qu'il vérifie ton accès."}</p>
         <button onClick={signOut} style={{ marginTop: 14, padding: '10px 18px', borderRadius: 10, border: 'none', background: 'var(--gradient)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           Se déconnecter
         </button>

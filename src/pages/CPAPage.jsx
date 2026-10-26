@@ -54,7 +54,7 @@ export default function CPAPage() {
     setLoading(true)
     const [{ data: cpaData, error }, { data: jrs }] = await Promise.all([
       supabase.from('cpa').select('*').order('created_at', { ascending: false }),
-      supabase.from('joueurs').select('id,nom,prenom,poste,numero').order('nom'),
+      supabase.from('joueurs').select('id,nom,prenom,poste,numero').eq('archive', false).order('nom'),
     ])
     if (error) console.error('Erreur chargement CPA:', error)
     setCpas(cpaData || [])

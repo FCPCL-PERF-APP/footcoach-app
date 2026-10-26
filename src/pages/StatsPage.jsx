@@ -256,7 +256,7 @@ export default function StatsPage() {
     setLoading(true)
     const [{ data: ev }, { data: jrs }, { data: st }, { data: si }, { data: sc }, { data: rp }] = await Promise.all([
       supabase.from('evenements').select('*').eq('id', eventId).single(),
-      supabase.from('joueurs').select('id,nom,prenom,poste,numero,photo_url').order('nom'),
+      supabase.from('joueurs').select('id,nom,prenom,poste,numero,photo_url,archive').order('nom'),
       supabase.from('staff').select('id,nom,prenom,auth_id').order('nom'),
       supabase.from('stats_match').select('*').eq('evenement_id', eventId),
       supabase.from('stats_collectives').select('*').eq('evenement_id', eventId).maybeSingle(),
@@ -264,7 +264,16 @@ export default function StatsPage() {
     ])
     if (eventIdRef.current !== eventId) return
     setEvent(ev)
-    setJoueurs(jrs || [])
+    // Joueurs archivés (ont quitté l'effectif) : masqués des listes, sauf s'ils figurent
+    // dans les données de CE match (stats, compo, banc, chronologie) pour que les anciens
+    // matchs restent lisibles.
+    const utilises = new Set([
+      ...(si || []).map(x => x.joueur_id),
+      ...Object.values(rp?.compo_visuelle || {}), ...(rp?.banc || []), rp?.capitaine_id,
+      ...(rp?.chronologie || []).flatMap(e => [e.buteur_id, e.passeur_id, e.joueur_id, e.sortant_id, e.entrant_id]),
+    ].filter(Boolean))
+    const jrsActifs = (jrs || []).filter(j => !j.archive || utilises.has(j.id))
+    setJoueurs(jrsActifs)
     setStaffList(st || [])
     setStatsIndiv(si || [])
     if (sc) setFormCollectif(p => ({ ...p, ...sc }))
@@ -281,7 +290,7 @@ export default function StatsPage() {
     } else {
       setFormation('4-4-2'); setCompo({}); setBanc(['', '', '', '', '']); setCapitaineId('')
     }
-    if (jrs?.length) setSelectedJoueur(jrs[0].id)
+    if (jrsActifs.length) setSelectedJoueur(jrsActifs[0].id)
     const { data: live } = await supabase.from('match_live').select('statut').eq('evenement_id', eventId).maybeSingle()
     setLiveStatut(live?.statut || null)
     setLoading(false)

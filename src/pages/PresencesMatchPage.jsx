@@ -58,7 +58,7 @@ export default function PresencesMatchPage() {
       supabase.from('evenements').select('*').eq('id', eventId).single(),
       supabase.from('convocations').select('*, joueurs(*)').eq('evenement_id', eventId).eq('convoque', true),
       supabase.from('presences').select('*').eq('evenement_id', eventId),
-      supabase.from('joueurs').select('id, nom, prenom, poste, numero, photo_url').order('nom'),
+      supabase.from('joueurs').select('id, nom, prenom, poste, numero, photo_url').eq('archive', false).order('nom'),
       supabase.from('forme_joueur').select('joueur_id, forme').eq('evenement_id', eventId),
     ])
     if (eventIdRef.current !== eventId) return

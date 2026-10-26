@@ -25,7 +25,7 @@ export default function SearchPage() {
       { data: events },
       { data: messages },
     ] = await Promise.all([
-      supabase.from('joueurs').select('id, nom, prenom, poste, numero')
+      supabase.from('joueurs').select('id, nom, prenom, poste, numero').eq('archive', false)
         .or(`nom.ilike.%${q}%,prenom.ilike.%${q}%`)
         .limit(5),
       supabase.from('evenements').select('id, titre, type, date_heure')

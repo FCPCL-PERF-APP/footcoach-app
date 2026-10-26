@@ -62,7 +62,7 @@ export default function ConvocationsPage() {
     setLoading(true)
     const [{ data: ev }, { data: jrs }, { data: convocs }, { data: pres }] = await Promise.all([
       supabase.from('evenements').select('*').eq('id', eventId).single(),
-      supabase.from('joueurs').select('*').order('nom'),
+      supabase.from('joueurs').select('*').eq('archive', false).order('nom'),
       supabase.from('convocations').select('*').eq('evenement_id', eventId),
       supabase.from('presences').select('joueur_id, statut').eq('evenement_id', eventId),
     ])

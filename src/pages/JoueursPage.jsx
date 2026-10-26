@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Spinner, Avatar } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
-import { Download, Plus, AlertTriangle, ArrowRight, Search, Tag, Heart, Trash2, ChevronRight, Bandage } from 'lucide-react'
+import { Download, Plus, AlertTriangle, ArrowRight, Search, Tag, Heart, Archive, ArchiveRestore, ChevronRight, Bandage } from 'lucide-react'
 
 const AVATAR_COLORS = [
   { bg: '#B5D4F4', color: '#0C447C' },
@@ -33,7 +33,8 @@ export default function JoueursPage() {
   const [sortBy, setSortBy] = useState('nom') // 'nom' | 'rpe'
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
-  const [confirmDelete, setConfirmDelete] = useState(null)
+  const [confirmArchive, setConfirmArchive] = useState(null)
+  const [showArchives, setShowArchives] = useState(false)
 
   useEffect(() => { loadJoueurs() }, [])
 
@@ -61,21 +62,36 @@ export default function JoueursPage() {
     setLoading(false)
   }
 
-  async function deleteJoueur(joueur) {
-    const { error } = await supabase.from('joueurs').delete().eq('id', joueur.id)
-    if (error) {
-      alert('Erreur lors de la suppression : ' + error.message)
-      return
-    }
-    setConfirmDelete(null)
+  // Archivage (et non suppression) : toutes les données du joueur sont conservées, il
+  // disparaît des listes actives et n'a plus accès à l'appli. auth_id est retiré pour couper
+  // l'accès (y compris aux données protégées par RLS) ; sa fiche garde son e-mail, il suffit
+  // de le réactiver ou de lui renvoyer une invitation pour qu'il revienne.
+  async function archiverJoueur(joueur) {
+    const ancienAuthId = joueur.auth_id
+    const { error } = await supabase.from('joueurs')
+      .update({ archive: true, archive_le: new Date().toISOString(), auth_id: null }).eq('id', joueur.id)
+    if (error) { alert('Erreur lors de l\'archivage : ' + error.message); return }
+    // Plus de notifications push pour lui.
+    if (ancienAuthId) await supabase.from('push_subscriptions').delete().eq('user_id', ancienAuthId)
+    setConfirmArchive(null)
     loadJoueurs()
   }
+
+  async function reactiverJoueur(joueur) {
+    const { error } = await supabase.from('joueurs').update({ archive: false, archive_le: null }).eq('id', joueur.id)
+    if (error) { alert('Erreur lors de la réactivation : ' + error.message); return }
+    loadJoueurs()
+    alert(`${joueur.prenom} ${joueur.nom} est de retour dans l'effectif.${joueur.email ? ' Pour qu\'il retrouve l\'accès, renvoie-lui une invitation depuis sa fiche (ou il se reconnecte avec ses identifiants).' : ''}`)
+  }
+
+  const nbArchives = joueurs.filter(j => j.archive).length
 
   const postes = ['tous', ...new Set(joueurs.map(j => j.poste).filter(Boolean))]
   const groupes = ['tous', ...new Set(joueurs.map(j => j.groupe).filter(Boolean)).values()].sort()
   const [filterGroupe, setFilterGroupe] = useState('tous')
 
   let filtered = joueurs.filter(j => {
+    if (!!j.archive !== showArchives) return false
     const matchSearch = !search || `${j.nom} ${j.prenom}`.toLowerCase().includes(search.toLowerCase())
     const matchPoste = filterPoste === 'tous' || j.poste === filterPoste
     const matchGroupe = filterGroupe === 'tous' || j.groupe === filterGroupe
@@ -171,17 +187,17 @@ export default function JoueursPage() {
         </div>
       </div>
 
-      {/* Modal confirmation suppression */}
-      {confirmDelete && (
+      {/* Modal confirmation archivage */}
+      {confirmArchive && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 20, width: '100%', maxWidth: 340 }}>
-            <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Supprimer ce joueur ?</p>
+            <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Archiver ce joueur ?</p>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
-              <strong>{confirmDelete.nom} {confirmDelete.prenom}</strong> sera définitivement supprimé avec toutes ses données.
+              <strong>{confirmArchive.nom} {confirmArchive.prenom}</strong> quitte l'effectif : il disparaît des listes et perd l'accès à l'appli. <strong>Toutes ses données sont conservées</strong> et tu pourras le réactiver à tout moment.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: 10, border: '0.5px solid var(--border)', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
-              <button onClick={() => deleteJoueur(confirmDelete)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: 'var(--danger)', color: '#fff', fontSize: 13, fontWeight: 600 }}>Supprimer</button>
+              <button onClick={() => setConfirmArchive(null)} style={{ flex: 1, padding: 10, border: '0.5px solid var(--border)', borderRadius: 10, cursor: 'pointer', background: 'transparent', fontSize: 13 }}>Annuler</button>
+              <button onClick={() => archiverJoueur(confirmArchive)} style={{ flex: 1, padding: 10, border: 'none', borderRadius: 10, cursor: 'pointer', background: 'var(--primary)', color: '#fff', fontSize: 13, fontWeight: 600 }}>Archiver</button>
             </div>
           </div>
         </div>
@@ -196,7 +212,7 @@ export default function JoueursPage() {
       {loading ? <Spinner /> : loadError ? null : (
         <>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
-            {filtered.length} joueur(s)
+            {filtered.length} joueur(s){showArchives ? ' archivé(s)' : ''}
             {sortBy === 'rpe' && <span style={{ color: 'var(--danger)' }}> · Trié par RPE décroissant</span>}
           </p>
           {filtered.map((j, i) => {
@@ -239,17 +255,27 @@ export default function JoueursPage() {
                       <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>RPE</div>
                     </div>
                   )}
-                  {isCoach && (
-                    <button onClick={() => setConfirmDelete(j)}
-                      style={{ border: 'none', background: 'var(--danger-bg)', borderRadius: 6, padding: '5px 7px', cursor: 'pointer', display: 'flex' }}>
-                      <Trash2 size={13} color={'var(--danger)'} />
+                  {isCoach && (j.archive ? (
+                    <button onClick={() => reactiverJoueur(j)} title="Réactiver"
+                      style={{ border: 'none', background: 'var(--success-bg)', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--success)', fontWeight: 600 }}>
+                      <ArchiveRestore size={13} /> Réactiver
                     </button>
-                  )}
+                  ) : (
+                    <button onClick={() => setConfirmArchive(j)} title="Archiver"
+                      style={{ border: 'none', background: 'var(--bg-secondary)', borderRadius: 6, padding: '5px 7px', cursor: 'pointer', display: 'flex' }}>
+                      <Archive size={13} color="var(--text-secondary)" />
+                    </button>
+                  ))}
                   {isStaff && <ChevronRight size={18} color="var(--border)" style={{ cursor: 'pointer' }} onClick={() => navigate(`/joueurs/${j.id}`)} />}
                 </div>
               </div>
             )
           })}
+          {isCoach && nbArchives > 0 && (
+            <button onClick={() => setShowArchives(v => !v)} style={{ width: '100%', padding: '10px 12px', marginTop: 6, border: '0.5px solid var(--border)', borderRadius: 10, background: 'transparent', color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer' }}>
+              {showArchives ? "← Retour à l'effectif" : `Joueurs archivés (${nbArchives})`}
+            </button>
+          )}
           {filtered.length === 0 && (
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)', fontSize: 13 }}>
               {joueurs.length === 0 ? 'Aucun joueur. Clique sur "+ Ajouter".' : 'Aucun joueur trouvé.'}

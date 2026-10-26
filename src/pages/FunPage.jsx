@@ -236,7 +236,7 @@ export default function FunPage() {
     if (!profile?.id) return
     setLoading(true)
     const [{ data: jrs }, { data: evs }, { data: mesOnzeData }, { data: tousOnze }, { data: mesPronos }, { data: tousStats }] = await Promise.all([
-      supabase.from('joueurs').select('id, nom, prenom, poste, photo_url').order('nom'),
+      supabase.from('joueurs').select('id, nom, prenom, poste, photo_url').eq('archive', false).order('nom'),
       supabase.from('evenements').select('*').eq('type', 'match').gte('date_heure', new Date().toISOString()).order('date_heure').limit(5),
       supabase.from('onze_ideal').select('*').eq('joueur_id', profile.id).maybeSingle(),
       supabase.from('onze_ideal').select('selections, formation, joueur_id'),

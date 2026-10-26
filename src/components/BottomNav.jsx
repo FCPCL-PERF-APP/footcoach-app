@@ -142,7 +142,7 @@ export default function BottomNav() {
       const [{ data: rpeData }, { data: joueursData }, { data: absencesData }, { data: statsDataRaw }] = await Promise.all([
         supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure,type)')
           .order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(300),
-        supabase.from('joueurs').select('id,nom,prenom').order('nom'),
+        supabase.from('joueurs').select('id,nom,prenom').eq('archive', false).order('nom'),
         supabase.from('presences').select('joueur_id, statut').in('statut', ['absent', 'blesse']),
         supabase.from('stats_collectives').select('buts_marques, buts_encaisses, evenements(date_heure, match_type)')
           .order('created_at', { ascending: false }).limit(20),

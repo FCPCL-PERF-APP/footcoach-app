@@ -94,7 +94,7 @@ export default function RpePage() {
   }
 
   async function loadJoueurs() {
-    const { data } = await supabase.from('joueurs').select('id,nom,prenom,poste').order('nom')
+    const { data } = await supabase.from('joueurs').select('id,nom,prenom,poste').eq('archive', false).order('nom')
     setJoueurs(data || [])
   }
 

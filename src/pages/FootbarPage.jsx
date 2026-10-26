@@ -56,7 +56,7 @@ export default function FootbarPage() {
     // Ordre chronologique (du plus ancien au plus récent).
     const [{ data: evs }, { data: jrs }] = await Promise.all([
       supabase.from('evenements').select('*').order('date_heure', { ascending: true }),
-      supabase.from('joueurs').select('id,nom,prenom,poste').order('nom')
+      supabase.from('joueurs').select('id,nom,prenom,poste').eq('archive', false).order('nom')
     ])
     setEvents(evs || [])
     setJoueurs(jrs || [])

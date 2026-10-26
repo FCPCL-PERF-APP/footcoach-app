@@ -57,7 +57,7 @@ function TirageEquipes() {
     setLoading(true)
     const [{ data: evs }, { data: jrs }] = await Promise.all([
       supabase.from('evenements').select('*').order('date_heure', { ascending: false }),
-      supabase.from('joueurs').select('id,nom,prenom,poste').order('nom'),
+      supabase.from('joueurs').select('id,nom,prenom,poste').eq('archive', false).order('nom'),
     ])
     setEvents(evs || [])
     setJoueurs(jrs || [])

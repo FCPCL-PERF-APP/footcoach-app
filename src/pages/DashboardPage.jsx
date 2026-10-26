@@ -149,7 +149,7 @@ export default function DashboardPage() {
       // d'entraînement, cf. ClassementButeursPage.jsx qui applique le même filtre.
       supabase.from('footbar').select('joueur_id, evenement_id, distance_km, joueurs(nom,prenom), evenements(type)').order('created_at', { ascending: false }).limit(100),
       supabase.from('stats_collectives').select('*, evenements(date_heure,titre,match_type)').order('created_at', { ascending: false }).limit(20),
-      supabase.from('joueurs').select('id,nom,prenom').order('nom'),
+      supabase.from('joueurs').select('id,nom,prenom').eq('archive', false).order('nom'),
       supabase.from('presences').select('*, evenements(date_heure)').order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(500),
       supabase.from('evenements').select('*').gte('date_heure', new Date().toISOString()).order('date_heure', { ascending: true }).limit(1),
       supabase.from('presences').select('joueur_id, statut, evenement_id').in('statut', ['absent','blesse']),
