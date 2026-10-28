@@ -14,6 +14,7 @@ import {
   Dumbbell, Brain, Trophy, XCircle, RefreshCw, Calendar
 } from 'lucide-react'
 import { computePresenceBreakdown } from '../lib/presenceStats'
+import { bornesSaison, labelSaison } from '../lib/saison'
 
 const RPE_ITEMS = [
   { key: 'difficulte', label: 'Difficulté' },
@@ -113,7 +114,9 @@ export default function FicheJoueurPage() {
            { data: t }, { data: poids }, { data: comms }, { data: bless }, { data: obj }, { data: objJoueur }, { data: pres }] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', id).single(),
       supabase.from('rpe').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
-      supabase.from('footbar').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }).limit(10),
+      // Sans limite : les moyennes (match / entraînement) portent sur toute la saison ;
+      // l'historique détaillé n'affiche que les 10 plus récents.
+      supabase.from('footbar').select('*, evenements(titre,type,date_heure)').eq('joueur_id', id).order('created_at', { ascending: false }),
       // Pas de limite : le filtre "matchs officiels" (hors préparation) s'applique après
       // coup sur ces données — une limite ici tronquait le total avant ce filtre et
       // sous-comptait buts/matchs/passes dès qu'un joueur avait des matchs de prépa
@@ -739,11 +742,52 @@ export default function FicheJoueurPage() {
                 </div>
             }
           </Card>
+          {/* Moyennes Footbar de la saison, matchs et entraînements séparés. Seules les valeurs
+              renseignées (> 0) entrent dans la moyenne : un champ laissé vide ne tire pas
+              le résultat vers 0 (même règle que « Mon suivi » côté joueur). */}
+          {(() => {
+            const debut = new Date(bornesSaison().debut)
+            const saison = footHistory.filter(f => f.evenements?.date_heure && new Date(f.evenements.date_heure) >= debut)
+            const CHAMPS = [
+              ['distance_km', 'Distance', 'km'], ['sprint_max', 'V. max', 'km/h'], ['sprints', 'Sprints', ''],
+              ['distance_hi', 'Haute int.', 'm'], ['temps_jeu', 'Tps de jeu', 'min'], ['ballons_touches', 'Ballons', ''],
+              ['nb_passes', 'Passes', ''], ['nb_tirs', 'Tirs', ''],
+            ]
+            return (
+              <Card>
+                <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Footbar — moyennes {labelSaison()}</p>
+                <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>Moyenne des valeurs renseignées · max entre parenthèses</p>
+                {[['Match', saison.filter(f => f.evenements?.type === 'match')], ['Entraînement', saison.filter(f => f.evenements?.type === 'seance')]].map(([titre, liste]) => (
+                  <div key={titre} style={{ marginBottom: 12 }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>{titre} <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>· {liste.length} session(s)</span></p>
+                    {liste.length === 0
+                      ? <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Aucune donnée.</p>
+                      : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 4 }}>
+                          {CHAMPS.map(([k, l, u]) => {
+                            const vals = liste.map(f => f[k]).filter(v => v != null && v > 0)
+                            const moy = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
+                            const max = vals.length ? Math.max(...vals) : null
+                            return (
+                              <div key={k} style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: '5px 4px', textAlign: 'center' }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: moy !== null ? 'var(--primary)' : 'var(--border)' }}>{moy !== null ? `${parseFloat(moy.toFixed(1))}${u}` : '—'}</div>
+                                <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{l}</div>
+                                {max !== null && <div style={{ fontSize: 8, color: 'var(--text-secondary)' }}>({parseFloat(max.toFixed(1))})</div>}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                  </div>
+                ))}
+              </Card>
+            )
+          })()}
           <Card>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Footbar — historique</p>
             {footHistory.length === 0
               ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune donnée Footbar.</p>
-              : footHistory.map(f => (
+              : footHistory.slice(0, 10).map(f => (
                   <div key={f.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '0.5px solid var(--bg-secondary)' }}>
                     <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>{f.evenements?.titre} — {f.evenements?.date_heure ? format(parseISO(f.evenements.date_heure), 'd MMM', { locale: fr }) : ''}</p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 4 }}>
