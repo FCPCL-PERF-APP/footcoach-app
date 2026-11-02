@@ -177,6 +177,7 @@ export default function CalendrierPage() {
   // Initialiser l'événement passé sélectionné
   useEffect(() => {
     if (past.length > 0 && !selectedPastEvent) setSelectedPastEvent(past[0].id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   }, [past.length])
 
   const selectedPastEventData = past.find(e => e.id === selectedPastEvent)
@@ -387,7 +388,8 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
     // Le score est public une fois saisi — visible par tous, pas seulement le staff,
     // pour que la liste de l'agenda serve aussi de suivi rapide des résultats.
     if (ev.type === 'match') { loadScore(); loadLive() }
-  }, [ev.id])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fonctions de chargement relues à chaque rendu
+  }, [ev.id, ev.type, isStaff, isJoueur, profile?.id])
 
   async function loadLive() {
     const { data } = await supabase.from('match_live').select('statut').eq('evenement_id', ev.id).maybeSingle()
@@ -645,6 +647,7 @@ function JoueurEventActions({ ev, navigate, profile, convoque }) {
   const [saving, setSaving] = useState(false)
   const [wasQueued, setWasQueued] = useState(false)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { if (profile?.id) loadStatut() }, [ev.id, profile?.id])
 
   async function loadStatut() {
@@ -835,7 +838,7 @@ function FormeWidget({ evenementId, joueurId }) {
       <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 6 }}>Comment tu te sens aujourd'hui ?</p>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
         {[['var(--success)', 'bien', 'Bien'], ['var(--warning)', 'moyen', 'Moyen'], ['var(--danger)', 'fatigue', 'Fatigué']].map(([dotColor, val, label]) => (
-          <button key={val} onClick={() => saveForme(val)} style={{
+          <button key={val} onClick={() => saveForme(val)} disabled={saving} style={{
             flex: 1, padding: '6px 4px', borderRadius: 8, cursor: 'pointer', textAlign: 'center',
             border: `1.5px solid ${forme === val ? 'var(--primary)' : 'var(--border)'}`,
             background: forme === val ? 'var(--primary-bg)' : 'transparent',

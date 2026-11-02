@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { THEME } from '../theme'
 import { CheckCircle2, Smartphone, ArrowLeft } from 'lucide-react'

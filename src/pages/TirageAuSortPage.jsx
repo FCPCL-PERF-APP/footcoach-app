@@ -51,6 +51,7 @@ function TirageEquipes() {
   const [teams, setTeams] = useState(null)
 
   useEffect(() => { loadData() }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { if (selectedEvent) loadPresences() }, [selectedEvent])
 
   async function loadData() {

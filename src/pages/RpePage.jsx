@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { supabase, authHeaders } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Badge, Button, Select, Textarea, BarChart, Spinner, AlertCard } from '../components/UI'
 import { THEME } from '../theme'
 import { BarChart3, Users, Hourglass, AlertTriangle, CheckCircle2, MessageSquare, Bell, ClipboardCheck, Save } from 'lucide-react'
@@ -46,7 +45,6 @@ function rpeColor(v) {
 }
 
 export default function RpePage() {
-  const { isCoach } = useAuth()
   const [searchParams] = useSearchParams()
   const eventIdParam = searchParams.get('event')
 
@@ -65,6 +63,7 @@ export default function RpePage() {
   const [savingCoach, setSavingCoach] = useState(false)
   const [savedCoach, setSavedCoach] = useState(false)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { loadEvents(); loadJoueurs() }, [])
   useEffect(() => {
     if (selectedEvent) { loadRpe(); loadConvocations(); loadPresences(); loadRpeCoach() }
@@ -73,6 +72,7 @@ export default function RpePage() {
     // précédent, en les faisant passer pour celles du nouvel événement.
     setSelectedJoueurCoach('')
     setFormCoach({})
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   }, [selectedEvent])
 
   async function loadEvents() {
@@ -172,6 +172,7 @@ export default function RpePage() {
   // l'événement sélectionné change pour une séance (onglet réservé aux matchs).
   useEffect(() => {
     if (activeTab === 'coach' && currentEvent && currentEvent.type !== 'match') setActiveTab('bilan')
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   }, [currentEvent?.type])
 
   // Bilan du RPE Coach pour cet événement — même principe que "Bilan groupe" côté RPE

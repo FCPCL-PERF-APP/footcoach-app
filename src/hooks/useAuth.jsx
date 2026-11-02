@@ -1,3 +1,4 @@
+import { droitsProfil } from '../lib/droits'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase, authHeaders } from '../lib/supabase'
 import { Sentry } from '../lib/sentry'
@@ -149,16 +150,8 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
-  // 'admin' a un accès complet équivalent à 'coach' (voir StaffPage.jsx ROLES), 'preparateur' et
-  // 'gardien' sont des rôles staff à accès restreint équivalents à 'adjoint'.
-  const isCoach   = profile?.role === 'coach' || profile?.role === 'admin'
-  const isAdjoint = profile?.role === 'adjoint' || profile?.role === 'gardien' || profile?.role === 'preparateur'
-  const isStaff   = isCoach || isAdjoint
-  const isJoueur  = profile?.type === 'joueur' || (!isCoach && !isAdjoint)
-  // Saisie des données (stats, présences, blessures...) : tout le staff. La gestion du staff,
-  // la création/archivage de joueurs et l'archive de saison restent réservées à isCoach.
-  const canEdit    = isStaff
-  const canComment = isStaff
+  // Droits par rôle : voir src/lib/droits.js (source unique, testée).
+  const { isCoach, isAdjoint, isStaff, isJoueur, canEdit, canComment } = droitsProfil(profile)
 
   function retryProfile() {
     if (user) { setLoading(true); fetchProfile(user.id) }

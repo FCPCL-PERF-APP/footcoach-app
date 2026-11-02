@@ -32,6 +32,7 @@ export default function BlessuresPage() {
   })
   const [saving, setSaving] = useState(false)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { loadData() }, [joueurId])
 
   async function loadData() {

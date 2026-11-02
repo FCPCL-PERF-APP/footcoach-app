@@ -115,7 +115,7 @@ export default function StaffPage() {
       } else {
         setResult({ ok: false, message: `Fiche créée mais erreur invitation : ${data.error}` })
       }
-    } catch (err) {
+    } catch {
       setResult({ ok: false, message: 'Fiche créée mais erreur réseau pour l\'invitation.' })
     }
 
@@ -138,7 +138,7 @@ export default function StaffPage() {
         ? `Ce membre avait déjà un compte : un email de réinitialisation de mot de passe a été envoyé à ${s.email}`
         : `Invitation renvoyée à ${s.email}`)
       else alert(`Erreur : ${data.error}`)
-    } catch (err) {
+    } catch {
       alert('Erreur réseau.')
     }
   }

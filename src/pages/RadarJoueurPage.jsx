@@ -15,7 +15,7 @@ const AXES = [
   { key: 'fatigue',           label: 'Fatigue' },
 ]
 
-function RadarChart({ joueurData, equipeData, joueurNom, size = 220 }) {
+function RadarChart({ joueurData, equipeData, size = 220 }) {
   const cx = size / 2, cy = size / 2
   const r = size * 0.36
   const n = AXES.length
@@ -84,6 +84,7 @@ export default function RadarJoueurPage() {
   // avant qu'elle ne revienne (ex: retour/avant rapide dans le navigateur).
   const idRef = useRef(id)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { idRef.current = id; loadData() }, [id])
 
   async function loadData() {

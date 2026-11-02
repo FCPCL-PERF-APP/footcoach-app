@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { toutLire } from '../lib/toutLire'
-import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, BarChart, Spinner, ListRow, IconTile, StatTile } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
 import { computePresenceBreakdown } from '../lib/presenceStats'
 import { labelSaison } from '../lib/saison'
 import { computeAlertes, alertKey, fetchNonConvoqueSet } from '../lib/alertes'
-import { format, parseISO, subWeeks } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   ClipboardCheck, HelpCircle, FileText, Send, Calendar, Users, BarChart3, Heart,
@@ -125,11 +124,6 @@ export default function DashboardPage() {
       const stored = JSON.parse(localStorage.getItem('fcpcl-alertes-v2') || '{}')
       localStorage.setItem('fcpcl-alertes-v2', JSON.stringify({ ...stored, keys: next }))
     } catch { /* localStorage indisponible, on ignore */ }
-  }
-
-  function resetAlertes() {
-    setAlertesTraitees([])
-    localStorage.removeItem('fcpcl-alertes-v2')
   }
 
   useEffect(() => { loadDashboard() }, [])
@@ -350,7 +344,6 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
-  const totalAlertes = alertes.length + alertesCollectives.length
 
   return (
     <div style={{ padding: 12 }}>
@@ -470,7 +463,7 @@ export default function DashboardPage() {
                 </div>
                 {alertesCollFiltrees.length > 0 && <>
                   <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Équipe</p>
-                  {alertesCollectives.map((a, i) => {
+                  {alertesCollectives.map((a) => {
                     const key = alertKey(a)
                     if (alertesTraitees.includes(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />
@@ -478,7 +471,7 @@ export default function DashboardPage() {
                 </>}
                 {alertesFiltrees.length > 0 && <>
                   <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6, marginTop: alertesCollFiltrees.length > 0 ? 10 : 0 }}>Individuel</p>
-                  {alertes.map((a, i) => {
+                  {alertes.map((a) => {
                     const key = alertKey(a, a.joueurId)
                     if (alertesTraitees.includes(key)) return null
                     return <AlertCard key={key} {...a} navigate={navigate} onTraite={() => marquerTraite(key)} />

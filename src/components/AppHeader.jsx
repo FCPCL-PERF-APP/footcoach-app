@@ -8,7 +8,7 @@ import { Search, Moon, Sun, User, Trophy, LogOut } from 'lucide-react'
 
 export default function AppHeader() {
   const { pathname } = useLocation()
-  const { signOut, profile, isCoach, isStaff, isJoueur } = useAuth()
+  const { signOut, isCoach, isStaff, isJoueur } = useAuth()
   const { darkMode, toggleTheme } = useTheme()
   const navigate = useNavigate()
 

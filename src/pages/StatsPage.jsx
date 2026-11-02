@@ -167,7 +167,6 @@ export default function StatsPage() {
   // Capitaine désigné dans la compo (joueur_id) — affiché sur le terrain, le partage et le PDF.
   const [capitaineId, setCapitaineId] = useState('')
 
-  const [formIndiv, setFormIndiv] = useState({})
   const [selectedJoueur, setSelectedJoueur] = useState('')
   const [formJ, setFormJ] = useState({ note: '', temps_jeu: '', buts: 0, passes_decisives: 0, titulaire: true, carton_jaune: false, carton_rouge: false })
 
@@ -217,6 +216,7 @@ export default function StatsPage() {
   // qu'elle ne revienne.
   const eventIdRef = useRef(eventId)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { eventIdRef.current = eventId; loadData() }, [eventId])
 
   // Synchronise les stats/rapport saisis hors-ligne (au stade, en zone blanche) dès que

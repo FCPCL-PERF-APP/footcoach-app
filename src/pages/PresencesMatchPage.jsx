@@ -50,6 +50,7 @@ export default function PresencesMatchPage() {
   // avant qu'elle ne revienne.
   const eventIdRef = useRef(eventId)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { eventIdRef.current = eventId; loadData() }, [eventId])
 
   async function loadData() {

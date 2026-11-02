@@ -6,14 +6,6 @@ import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { Scale, Heart, Radio } from 'lucide-react'
 
-function rpeColor(v) {
-  if (!v) return 'var(--text-muted)'
-  if (v >= 4.5) return '#A32D2D'
-  if (v >= 4) return '#D85A30'
-  if (v >= 3) return '#BA7517'
-  return '#3B6D11'
-}
-
 const RPE_ITEMS = ['difficulte','fatigue','implication','motivation','perf_individuelle','perf_collective']
 const RPE_LABELS = ['Difficulté','Fatigue','Implication','Motivation','Perf. indiv.','Perf. coll.']
 const FOOT_ITEMS = [
@@ -42,6 +34,7 @@ export default function ComparatifJoueursPage() {
   useEffect(() => {
     if (idsSaison && joueur1) { joueur1Ref.current = joueur1; loadJoueurData(joueur1, setData1, joueur1Ref) }
     if (idsSaison && joueur2) { joueur2Ref.current = joueur2; loadJoueurData(joueur2, setData2, joueur2Ref) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   }, [joueur1, joueur2, idsSaison])
 
   async function loadJoueurs() {

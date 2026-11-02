@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { validateFile } from '../lib/upload'
 import PushToggle from '../components/PushToggle'
@@ -10,7 +9,6 @@ import { THEME } from '../theme'
 import { Camera, CheckCircle2, Lock, X, Save, LogOut } from 'lucide-react'
 
 export default function ProfilCoachPage() {
-  const navigate = useNavigate()
   const { profile, signOut } = useAuth()
   const [form, setForm] = useState({})
   const [loading, setLoading] = useState(true)
@@ -22,7 +20,8 @@ export default function ProfilCoachPage() {
   const [photoUploading, setPhotoUploading] = useState(false)
   const [pendingPhoto, setPendingPhoto] = useState(null)
 
-  useEffect(() => { loadProfil() }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recharge quand le profil connecté change
+  useEffect(() => { loadProfil() }, [profile?.id, profile?.auth_id])
 
   async function loadProfil() {
     const { data } = await supabase.from('staff').select('*').eq('auth_id', profile?.auth_id || profile?.id).maybeSingle()

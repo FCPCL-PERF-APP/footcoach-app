@@ -16,6 +16,7 @@ export default function ExportFicheJoueurPage() {
   const [data, setData] = useState(null)
   const printRef = useRef(null)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { loadData() }, [id])
 
   async function loadData() {
@@ -75,7 +76,7 @@ export default function ExportFicheJoueurPage() {
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
   if (!data) return null
 
-  const { joueur, officiels, totalButs, totalPD, titularisations, tempsMoy, noteMoy, rpeMoy, tauxPres, blessures, objJoueur, nbRpe } = data
+  const { joueur, officiels, totalButs, totalPD, titularisations, tempsMoy, noteMoy, rpeMoy, tauxPres, blessures, objJoueur } = data
 
   return (
     <>

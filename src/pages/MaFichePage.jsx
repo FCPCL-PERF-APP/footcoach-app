@@ -69,6 +69,7 @@ export default function MaFichePage() {
   const [photoUploading, setPhotoUploading] = useState(false)
   const [pendingPhoto, setPendingPhoto] = useState(null)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { if (profile?.id) loadData() }, [profile])
 
   async function loadData() {

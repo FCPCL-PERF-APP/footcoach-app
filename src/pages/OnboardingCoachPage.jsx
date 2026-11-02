@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
 import { THEME } from '../theme'
 import { Hand, Calendar, Users, Heart, BarChart3, MessageCircle, Trophy, ArrowLeft, ArrowRight } from 'lucide-react'
 
@@ -81,7 +79,6 @@ const STEPS = [
 export default function OnboardingCoachPage() {
   const [step, setStep] = useState(0)
   const navigate = useNavigate()
-  const { profile } = useAuth()
 
   async function finish() {
     navigate('/calendrier')

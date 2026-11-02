@@ -41,6 +41,7 @@ export default function ObjectifsPage() {
   })
   const [saving, setSaving] = useState(false)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { loadData() }, [joueurId])
 
   async function loadData() {
@@ -253,7 +254,6 @@ export default function ObjectifsPage() {
             Terminés ({termines.length})
           </p>
           {termines.map(obj => {
-            const catStyle = getCatStyle(obj.categorie)
             const st = STATUTS.find(s => s.value === obj.statut)
             return (
               <div key={obj.id} style={{ background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 12, marginBottom: 8, opacity: 0.75 }}>

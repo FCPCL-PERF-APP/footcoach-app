@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Select, Button, Spinner, BarChart } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -47,7 +46,9 @@ export default function FootbarPage() {
   const [saved, setSaved] = useState(false)
   const [relanceState, setRelanceState] = useState(null)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { loadData() }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { if (selectedEvent) { loadFootbar(); loadConvocations(); loadPresences() } }, [selectedEvent])
 
   async function loadData() {
@@ -149,18 +150,6 @@ export default function FootbarPage() {
       setRelanceState('Erreur réseau')
     }
     setTimeout(() => setRelanceState(null), 4000)
-  }
-
-  // Données comparatives pour les barres
-  function getBarData(key) {
-    return footData
-      .filter(d => d[key] !== null && d[key] !== undefined)
-      .map(d => ({
-        label: `${d.joueurs?.nom?.split(' ')[0] || ''} ${d.joueurs?.prenom?.charAt(0) || ''}.`,
-        value: parseFloat(d[key]),
-        color: 'var(--primary)'
-      }))
-      .sort((a, b) => b.value - a.value)
   }
 
   return (

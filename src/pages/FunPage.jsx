@@ -75,7 +75,7 @@ const FORMATIONS = {
   },
 }
 
-function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
+function CoachOnzeView({ joueurs, tousLesOnze }) {
   const [activeFormation, setActiveFormation] = useState('4-4-2')
   const [showPosteStats, setShowPosteStats] = useState(null)
   const nbReponses = tousLesOnze.length
@@ -186,7 +186,7 @@ function CoachOnzeView({ joueurs, tousLesOnze, statsOnze }) {
           <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
             {formConfig.postes.find(p => p.key === showPosteStats)?.label} — détail des votes
           </p>
-          {statsByPoste[showPosteStats].map(({ joueur, nb, pct }, i) => joueur ? (
+          {statsByPoste[showPosteStats].map(({ joueur, pct }, i) => joueur ? (
             <div key={joueur.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <span style={{ fontSize: 12, width: 20 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
               <span style={{ flex: 1, fontSize: 12, fontWeight: i === 0 ? 700 : 400 }}>{joueur.nom} {joueur.prenom}</span>
@@ -231,6 +231,7 @@ export default function FunPage() {
   const [savingProno, setSavingProno] = useState(null)
   const [classementPronos, setClassementPronos] = useState([])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { loadAll() }, [profile?.id])
 
   async function loadAll() {
@@ -257,7 +258,7 @@ export default function FunPage() {
     const counts = {}
     for (const onze of (tousOnze || [])) {
       if (!onze.selections) continue
-      for (const [poste, joueurId] of Object.entries(onze.selections)) {
+      for (const joueurId of Object.values(onze.selections)) {
         if (!counts[joueurId]) counts[joueurId] = { total: 0 }
         counts[joueurId].total++
       }

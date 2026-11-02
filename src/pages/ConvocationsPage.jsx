@@ -35,7 +35,6 @@ export default function ConvocationsPage() {
   const [sent, setSent] = useState(false)
   const [notifResult, setNotifResult] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [existingConvocs, setExistingConvocs] = useState([])
   const [dispos, setDispos] = useState({})
   const [sentOffline, setSentOffline] = useState(false)
   const [queueCount, setQueueCount] = useState(0)
@@ -44,6 +43,7 @@ export default function ConvocationsPage() {
   // avant qu'elle ne revienne.
   const eventIdRef = useRef(eventId)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { eventIdRef.current = eventId; loadData() }, [eventId])
 
   // Synchronise les convocations saisies hors-ligne (au stade, en zone blanche) dès que
@@ -85,7 +85,6 @@ export default function ConvocationsPage() {
     setJoueurs(sorted)
     const convocSet = new Set((convocs || []).filter(c => c.convoque).map(c => c.joueur_id))
     setSelected(convocSet)
-    setExistingConvocs(convocs || [])
     setLoading(false)
   }
 

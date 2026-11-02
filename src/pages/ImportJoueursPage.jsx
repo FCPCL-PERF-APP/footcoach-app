@@ -77,7 +77,7 @@ export default function ImportJoueursPage() {
         }
         setMapping(autoMap)
         setStep(2)
-      } catch (err) {
+      } catch {
         setError('Erreur de lecture du fichier.')
       }
     }

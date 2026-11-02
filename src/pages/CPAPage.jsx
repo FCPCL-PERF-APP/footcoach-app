@@ -29,7 +29,7 @@ const MODES = [
 ]
 
 export default function CPAPage() {
-  const { isStaff, isJoueur, profile } = useAuth()
+  const { isStaff, profile } = useAuth()
   const [cpas, setCpas] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState('tous')

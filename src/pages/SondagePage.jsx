@@ -8,7 +8,7 @@ import { fr } from 'date-fns/locale'
 import { ListChecks, Plus, X, Check, Circle, Lock } from 'lucide-react'
 
 export default function SondagePage() {
-  const { profile, isStaff, isJoueur } = useAuth()
+  const { profile, isStaff } = useAuth()
   const [sondages, setSondages] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)

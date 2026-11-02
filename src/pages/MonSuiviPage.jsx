@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { bornesSaison } from '../lib/saison'
 import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
@@ -228,14 +228,20 @@ export default function MonSuiviPage() {
       setQueueCountFoot(getQueueCount('footbar'))
       loadData()
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   }, [profile])
+
+  // Version toujours à jour de loadData pour l'écouteur ci-dessous : sans elle, il
+  // gardait l'état du moment où il a été posé (événement sélectionné, etc.).
+  const loadDataRef = useRef(loadData)
+  loadDataRef.current = loadData
 
   useEffect(() => {
     if (!profile?.id) return
     function onQueueChange() {
       setQueueCountRpe(getQueueCount('rpe'))
       setQueueCountFoot(getQueueCount('footbar'))
-      loadData()
+      loadDataRef.current()
     }
     window.addEventListener('fc-offline-queue-changed', onQueueChange)
     return () => window.removeEventListener('fc-offline-queue-changed', onQueueChange)

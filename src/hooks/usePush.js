@@ -64,6 +64,7 @@ export function usePush(userId, { autoSync = false } = {}) {
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   }, [userId])
 
   // Abonne l'appareil (sans dépendre de l'état React `pushSupported`, qui vaut encore

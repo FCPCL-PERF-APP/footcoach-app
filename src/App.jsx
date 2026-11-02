@@ -6,6 +6,7 @@ import { Spinner } from './components/UI'
 import BottomNav from './components/BottomNav'
 import AppHeader from './components/AppHeader'
 import SuiviPages from './components/SuiviPages'
+import { peutAcceder } from './lib/droits'
 import LoginPage from './pages/LoginPage'
 import { lazy, Suspense, useEffect } from 'react'
 
@@ -147,6 +148,9 @@ function AppContent() {
   )
 
   const defaultRoute = isJoueur ? '/mon-dashboard' : '/calendrier'
+  // Accès aux pages : niveaux définis dans src/lib/droits.js (testés).
+  const droits = { isCoach, isAdjoint, isStaff, isJoueur }
+  const garde = (chemin, page, repli = '/') => peutAcceder(chemin, droits) ? page : <Navigate to={repli} replace />
 
   return (
     <div style={{ maxWidth: 'var(--app-max-width)', margin: '0 auto', minHeight: '100vh', background: 'var(--bg-page)' }}>
@@ -161,53 +165,53 @@ function AppContent() {
           <Route path="/calendrier-visuel"      element={<CalendrierVisuelPage />} />
           <Route path="/calendrier-general"     element={<CalendrierGeneralPage />} />
 <Route path="/fun" element={<FunPage />} />
-          <Route path="/rpe"                    element={isCoach || isAdjoint ? <RpePage /> : <Navigate to="/" />} />
+          <Route path="/rpe" element={garde('/rpe', <RpePage />)} />
 <Route path="/cpa" element={<CPAPage />} />
-          <Route path="/footbar"                element={isCoach || isAdjoint ? <FootbarPage /> : <Navigate to="/" />} />
-          <Route path="/mon-suivi"              element={isJoueur ? <MonSuiviPage /> : <Navigate to="/rpe" />} />
+          <Route path="/footbar" element={garde('/footbar', <FootbarPage />)} />
+          <Route path="/mon-suivi" element={garde('/mon-suivi', <MonSuiviPage />, '/rpe')} />
           <Route path="/mon-rpe"                element={<Navigate to="/mon-suivi" replace />} />
           <Route path="/mon-footbar"            element={<Navigate to="/mon-suivi" replace />} />
           <Route path="/joueurs"                element={<JoueursPage />} />
-          <Route path="/joueurs/nouveau"        element={isCoach ? <NouveauJoueurPage /> : <Navigate to="/" />} />
-          <Route path="/joueurs/import"         element={isCoach ? <ImportJoueursPage /> : <Navigate to="/" />} />
+          <Route path="/joueurs/nouveau" element={garde('/joueurs/nouveau', <NouveauJoueurPage />)} />
+          <Route path="/joueurs/import" element={garde('/joueurs/import', <ImportJoueursPage />)} />
           <Route path="/joueurs/:id"            element={<FicheJoueurPage />} />
           <Route path="/joueurs/:id/blessures"  element={<BlessuresPage />} />
           <Route path="/joueurs/:id/objectifs"  element={<ObjectifsPage />} />
-<Route path="/export-fiche/:id" element={isCoach || isAdjoint ? <ExportFicheJoueurPage /> : <Navigate to="/" />} />
+          <Route path="/export-fiche/:id" element={garde('/export-fiche/:id', <ExportFicheJoueurPage />)} />
 <Route path="/onboarding-coach" element={<OnboardingCoachPage />} />
 <Route path="/search" element={<SearchPage />} />
-          <Route path="/ma-fiche"               element={isJoueur ? <MaFichePage /> : <Navigate to="/" />} />
-<Route path="/mes-objectifs" element={isJoueur ? <MesObjectifsPage /> : <Navigate to="/" />} />
+          <Route path="/ma-fiche" element={garde('/ma-fiche', <MaFichePage />)} />
+          <Route path="/mes-objectifs" element={garde('/mes-objectifs', <MesObjectifsPage />)} />
           <Route path="/messages"               element={<MessagesPage />} />
-          <Route path="/dashboard"              element={<DashboardPage />} />
-          <Route path="/mon-dashboard"          element={isJoueur ? <DashboardJoueurPage /> : <Navigate to="/dashboard" />} />
+          <Route path="/dashboard" element={garde('/dashboard', <DashboardPage />, '/mon-dashboard')} />
+          <Route path="/mon-dashboard" element={garde('/mon-dashboard', <DashboardJoueurPage />, '/dashboard')} />
           <Route path="/ressources"             element={<RessourcesPage />} />
           <Route path="/staff"                  element={<StaffPage />} />
-          <Route path="/stats/:id"              element={isCoach || isAdjoint ? <StatsPage /> : <Navigate to="/" />} />
-          <Route path="/convocations/:id"       element={isCoach || isAdjoint ? <ConvocationsPage /> : <Navigate to="/" />} />
-          <Route path="/presences/:id"          element={isCoach || isAdjoint ? <PresencesMatchPage /> : <Navigate to="/" />} />
-          <Route path="/presences-recap"        element={isCoach || isAdjoint ? <PresencesRecapPage /> : <Navigate to="/" />} />
-          <Route path="/charge-hebdo"           element={isCoach || isAdjoint ? <ChargeHebdoPage /> : <Navigate to="/" />} />
-          <Route path="/comparatif"             element={isCoach || isAdjoint ? <ComparatifJoueursPage /> : <Navigate to="/" />} />
-          <Route path="/bilan-saison"           element={isCoach || isAdjoint ? <BilanSaisonPage /> : <Navigate to="/" />} />
-          <Route path="/correlation"            element={isCoach || isAdjoint ? <CorrelationPage /> : <Navigate to="/" />} />
-<Route path="/mes-badges" element={isJoueur ? <BadgesJoueurPage /> : <Navigate to="/" />} />
+          <Route path="/stats/:id" element={garde('/stats/:id', <StatsPage />)} />
+          <Route path="/convocations/:id" element={garde('/convocations/:id', <ConvocationsPage />)} />
+          <Route path="/presences/:id" element={garde('/presences/:id', <PresencesMatchPage />)} />
+          <Route path="/presences-recap" element={garde('/presences-recap', <PresencesRecapPage />)} />
+          <Route path="/charge-hebdo" element={garde('/charge-hebdo', <ChargeHebdoPage />)} />
+          <Route path="/comparatif" element={garde('/comparatif', <ComparatifJoueursPage />)} />
+          <Route path="/bilan-saison" element={garde('/bilan-saison', <BilanSaisonPage />)} />
+          <Route path="/correlation" element={garde('/correlation', <CorrelationPage />)} />
+          <Route path="/mes-badges" element={garde('/mes-badges', <BadgesJoueurPage />)} />
 <Route path="/sondages" element={<SondagePage />} />
           <Route path="/onboarding"             element={<OnboardingPage />} />
-<Route path="/mon-bilan" element={isJoueur ? <MonBilanPage /> : <Navigate to="/" />} />
+          <Route path="/mon-bilan" element={garde('/mon-bilan', <MonBilanPage />)} />
 <Route path="/mon-profil-joueur" element={<Navigate to="/ma-fiche?onglet=compte" replace />} />
 <Route path="/set-password" element={<SetPasswordPage />} />
-          <Route path="/mon-profil"             element={isStaff ? <ProfilCoachPage /> : <Navigate to="/" />} />
-          <Route path="/tirage-au-sort"         element={isStaff ? <TirageAuSortPage /> : <Navigate to="/" />} />
-          <Route path="/archive-saison"         element={isCoach ? <ArchiveSaisonPage /> : <Navigate to="/" />} />
-<Route path="/classement" element={isCoach || isAdjoint ? <ClassementButeursPage /> : <Navigate to="/" />} />
+          <Route path="/mon-profil" element={garde('/mon-profil', <ProfilCoachPage />)} />
+          <Route path="/tirage-au-sort" element={garde('/tirage-au-sort', <TirageAuSortPage />)} />
+          <Route path="/archive-saison" element={garde('/archive-saison', <ArchiveSaisonPage />)} />
+          <Route path="/classement" element={garde('/classement', <ClassementButeursPage />)} />
 <Route path="/championnat" element={<ChampionnatPage />} />
 <Route path="/match-live/:id" element={<MatchLivePage />} />
-<Route path="/stats-connexion" element={isCoach ? <StatsConnexionPage /> : <Navigate to="/" />} />
-<Route path="/stats-matchs" element={isCoach || isAdjoint ? <DashboardStatsPage /> : <Navigate to="/" />} />
-<Route path="/analyse" element={isCoach || isAdjoint ? <AnalysePage /> : <Navigate to="/" />} />
-<Route path="/export" element={isCoach ? <ExportDonneesPage /> : <Navigate to="/" />} />
-<Route path="/joueurs/:id/radar" element={isCoach || isAdjoint ? <RadarJoueurPage /> : <Navigate to="/" />} />
+          <Route path="/stats-connexion" element={garde('/stats-connexion', <StatsConnexionPage />)} />
+          <Route path="/stats-matchs" element={garde('/stats-matchs', <DashboardStatsPage />)} />
+          <Route path="/analyse" element={garde('/analyse', <AnalysePage />)} />
+          <Route path="/export" element={garde('/export', <ExportDonneesPage />)} />
+          <Route path="/joueurs/:id/radar" element={garde('/joueurs/:id/radar', <RadarJoueurPage />)} />
 <Route path="*" element={<Navigate to={defaultRoute} replace />} />
         </Routes>
         </Suspense>

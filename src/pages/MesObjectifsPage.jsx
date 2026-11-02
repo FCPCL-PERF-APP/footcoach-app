@@ -4,8 +4,6 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Button, Spinner } from '../components/UI'
 import { THEME } from '../theme'
-import { format, parseISO } from 'date-fns'
-import { fr } from 'date-fns/locale'
 import { labelSaison } from '../lib/saison'
 import {
   ArrowLeft, Target, ClipboardList, CheckCircle2, XCircle, MessageSquare,
@@ -45,6 +43,7 @@ export default function MesObjectifsPage() {
     bilan_commentaire: '',
   })
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { if (profile?.id) loadData() }, [profile])
 
   async function loadData() {

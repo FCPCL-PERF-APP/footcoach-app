@@ -30,7 +30,7 @@ export default function SetPasswordPage() {
     // Supabase gère automatiquement le token dans l'URL
     // On attend que la session soit établie
     let ready = false
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         ready = true
         setSessionReady(true)

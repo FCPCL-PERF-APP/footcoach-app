@@ -23,6 +23,7 @@ export default function DashboardJoueurPage() {
 
   const joueurId = profile?.id
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { if (joueurId) loadAll() }, [joueurId])
 
   async function loadAll() {

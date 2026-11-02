@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { toutLire } from '../lib/toutLire'
 import { bornesSaison } from '../lib/saison'
@@ -9,7 +8,7 @@ import { Trophy, Goal, Target, BarChart3, ClipboardList, Clock, Footprints, Game
 
 const MEDALS = ['🥇', '🥈', '🥉']
 
-function Top5({ title, icon: Icon, data, valueKey, valueLabel, valueSuffix = '' }) {
+function Top5({ title, icon: Icon, data, valueKey, valueSuffix = '' }) {
   const top5 = data.slice(0, 5)
   const max = top5[0]?.[valueKey] || 1
   return (
@@ -45,7 +44,6 @@ function Top5({ title, icon: Icon, data, valueKey, valueLabel, valueSuffix = '' 
 }
 
 export default function ClassementButeursPage() {
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('buts')
   const [classements, setClassements] = useState({

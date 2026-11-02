@@ -51,6 +51,13 @@ export default function JoueursPage() {
     // d'un effectif réellement vide sur la page centrale de gestion des joueurs.
     if (error) { setLoadError(error.message); setLoading(false); return }
     setJoueurs(data || [])
+    // Badge « Blessé » de la liste : blessures sans date de retour effective (staff
+    // uniquement, les blessures n'étant pas visibles des joueurs). Jusqu'ici jamais
+    // chargées, le badge ne s'affichait donc jamais.
+    if (isStaff) {
+      const { data: bless } = await supabase.from('blessures').select('joueur_id').is('date_retour_effective', null)
+      setBlessuresActives(Object.fromEntries((bless || []).map(b => [b.joueur_id, true])))
+    }
     const { data: rpe } = await toutLire(() => supabase.from('rpe')
       .select('joueur_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
       .order('created_at', { ascending: false }))

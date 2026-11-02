@@ -53,7 +53,6 @@ export default function MessagesPage() {
   const [showNewMsg, setShowNewMsg] = useState(false)
   const [searchContact, setSearchContact] = useState('')
   const [search, setSearch] = useState('')
-  const [deletingId, setDeletingId] = useState(null)
   // Nombre de messages non lus par canal (Groupe/Staff) — pastille rouge sur l'onglet
   // tant qu'il n'est pas ouvert.
   const [unreadCanaux, setUnreadCanaux] = useState({ general: 0, staff: 0 })
@@ -75,12 +74,14 @@ export default function MessagesPage() {
     if (!myAuthId) return
     loadContacts()
     loadUnreadCanaux()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   }, [myAuthId])
 
   useEffect(() => {
     if ((activeTab === 'general' || activeTab === 'staff') && canalMessages[activeTab].length === 0) {
       loadCanalMessages(activeTab)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   }, [activeTab])
 
   // Abonnement temps réel : re-souscrit à chaque changement de conversation ouverte
@@ -123,7 +124,7 @@ export default function MessagesPage() {
       })
       .subscribe()
     return () => supabase.removeChannel(sub)
-  }, [activeConv, profile, activeTab])
+  }, [activeConv, profile, activeTab, myAuthId])
 
   // Défilement en bas de la liste : on positionne directement scrollTop du conteneur
   // (plutôt que scrollIntoView, peu fiable dans un conteneur scrollable sur iOS et qui
@@ -341,7 +342,6 @@ export default function MessagesPage() {
     const { error } = await supabase.from('messages').delete().eq('id', msgId)
     if (error) { alert('Erreur lors de la suppression : ' + error.message); return }
     setCanalMessages(p => ({ ...p, [canal]: p[canal].filter(m => m.id !== msgId) }))
-    setDeletingId(null)
   }
 
   function formatTime(ts) {
@@ -628,6 +628,7 @@ function LecteursPanel({ canal, lastMessage, onClose }) {
   const [loading, setLoading] = useState(true)
   const [rows, setRows] = useState([])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { loadLecteurs() }, [canal])
 
   async function loadLecteurs() {

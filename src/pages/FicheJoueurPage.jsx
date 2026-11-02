@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { Card, Button, Input, Select, Spinner, Avatar } from '../components/UI'
 import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME, CAT_COLORS } from '../theme'
-import { format, parseISO, differenceInDays } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
   ArrowLeft, Camera, Pencil, Save, Mail, X, Hourglass, CheckCircle2,
@@ -79,7 +79,6 @@ export default function FicheJoueurPage() {
   const [rpeHistory, setRpeHistory] = useState([])
   const [footHistory, setFootHistory] = useState([])
   const [statsHistory, setStatsHistory] = useState([])
-  const [footbarFiche, setFootbarFiche] = useState([])
   const [objJoueurData, setObjJoueurData] = useState(null)
   const [bilanForm, setBilanForm] = useState({})
   const [savingBilan, setSavingBilan] = useState(false)
@@ -107,6 +106,7 @@ export default function FicheJoueurPage() {
   // avant qu'elle ne revienne.
   const idRef = useRef(id)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { idRef.current = id; loadAll() }, [id])
 
   async function loadAll() {
@@ -334,7 +334,7 @@ export default function FicheJoueurPage() {
       } else {
         setInviteResult({ success: false, message: `Erreur : ${data.error}` })
       }
-    } catch (err) {
+    } catch {
       setInviteResult({ success: false, message: 'Erreur réseau. Réessaie.' })
     }
     setInviting(false)

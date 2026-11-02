@@ -35,6 +35,7 @@ export default function BadgesJoueurPage() {
   const [stats, setStats] = useState(null)
   const [badges, setBadges] = useState([])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- vérifié : recharge uniquement quand ces valeurs changent
   useEffect(() => { if (profile?.id) loadData() }, [profile])
 
   async function loadData() {
@@ -100,7 +101,6 @@ export default function BadgesJoueurPage() {
   }
 
   const locked = BADGE_DEFS.filter(b => !badges.find(u => u.id === b.id))
-  const categories = { présence: '📅 Présence', perf: '⚽ Performance', rpe: '📊 RPE', match: '🏆 Matchs' }
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
 

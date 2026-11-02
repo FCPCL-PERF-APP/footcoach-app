@@ -9,7 +9,6 @@ export default function ArchiveSaisonPage() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState(null)
   const [archiving, setArchiving] = useState(false)
-  const [archived, setArchived] = useState(false)
   const [step, setStep] = useState(0) // 0=aperçu, 1=confirmation, 2=terminé
   const [error, setError] = useState(null)
   const [saisonLabel, setSaisonLabel] = useState('')
