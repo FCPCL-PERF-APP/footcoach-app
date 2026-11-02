@@ -13,12 +13,12 @@ const PAGE_TITLES = {
   '/joueurs': 'Joueurs',
   '/messages': 'Messages',
   '/dashboard': 'Dashboard',
-  '/mon-dashboard': 'Dashboard',
+  '/mon-dashboard': 'Accueil',
   '/ressources': 'Ressources',
   '/staff': 'Staff technique',
   '/ma-fiche': 'Ma fiche',
   '/bilan-saison': 'Bilan de saison',
-  '/mon-bilan': 'Mon bilan',
+  '/mon-bilan': 'Ma saison',
   '/mon-profil': 'Mon profil',
   '/mon-profil-joueur': 'Mon profil',
 }
@@ -99,12 +99,7 @@ export default function AppHeader() {
 
         {/* Profil joueur */}
         {isJoueur && (
-          <button onClick={() => navigate('/mon-profil-joueur')} style={btnStyle(CHIP.profil)}><User size={15} color="#fff" /></button>
-        )}
-
-        {/* Bilan saison joueur */}
-        {isJoueur && (
-          <button onClick={() => navigate('/mon-bilan')} style={btnStyle(CHIP.trophy)}><Trophy size={15} color="#fff" /></button>
+          <button onClick={() => navigate('/ma-fiche?onglet=compte')} style={btnStyle(CHIP.profil)}><User size={15} color="#fff" /></button>
         )}
 
         {/* Déconnexion */}

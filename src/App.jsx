@@ -39,7 +39,6 @@ const BlessuresPage          = lazy(() => import('./pages/BlessuresPage'))
 const ObjectifsPage          = lazy(() => import('./pages/ObjectifsPage'))
 const OnboardingPage         = lazy(() => import('./pages/OnboardingPage'))
 const MonBilanPage           = lazy(() => import('./pages/MonBilanPage'))
-const MonProfilJoueurPage    = lazy(() => import('./pages/MonProfilJoueurPage'))
 const SetPasswordPage        = lazy(() => import('./pages/SetPasswordPage'))
 const ProfilCoachPage        = lazy(() => import('./pages/ProfilCoachPage'))
 const ArchiveSaisonPage      = lazy(() => import('./pages/ArchiveSaisonPage'))
@@ -194,7 +193,7 @@ function AppContent() {
 <Route path="/sondages" element={<SondagePage />} />
           <Route path="/onboarding"             element={<OnboardingPage />} />
 <Route path="/mon-bilan" element={isJoueur ? <MonBilanPage /> : <Navigate to="/" />} />
-<Route path="/mon-profil-joueur" element={isJoueur ? <MonProfilJoueurPage /> : <Navigate to="/" />} />
+<Route path="/mon-profil-joueur" element={<Navigate to="/ma-fiche?onglet=compte" replace />} />
 <Route path="/set-password" element={<SetPasswordPage />} />
           <Route path="/mon-profil"             element={isStaff ? <ProfilCoachPage /> : <Navigate to="/" />} />
           <Route path="/tirage-au-sort"         element={isStaff ? <TirageAuSortPage /> : <Navigate to="/" />} />

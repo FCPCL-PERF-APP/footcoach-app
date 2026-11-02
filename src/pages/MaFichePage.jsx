@@ -4,31 +4,13 @@ import { supabase } from '../lib/supabase'
 import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Button, Spinner } from '../components/UI'
+import PushToggle from '../components/PushToggle'
 import PhotoCropModal from '../components/PhotoCropModal'
 import { THEME, CAT_COLORS } from '../theme'
-import { format, parseISO } from 'date-fns'
-import { fr } from 'date-fns/locale'
 import {
-  User, Heart, BarChart3, Swords, Scale, Target, Bandage, Lock, Camera,
-  CheckCircle2, Save, MessageSquare, Lightbulb, XCircle, RefreshCw, Calendar
+  User, Heart, Scale, Target, Bandage, Lock, Camera,
+  CheckCircle2, Save, MessageSquare, Lightbulb, XCircle
 } from 'lucide-react'
-import { computePresenceBreakdown } from '../lib/presenceStats'
-
-function rpeColor(v) {
-  if (v >= 4.5) return 'var(--danger)'
-  if (v >= 4) return '#D85A30'
-  if (v >= 3) return 'var(--warning)'
-  return 'var(--success)'
-}
-
-const RPE_ITEMS = [
-  { key: 'difficulte', label: 'Difficulté' },
-  { key: 'fatigue', label: 'Fatigue' },
-  { key: 'implication', label: 'Implication' },
-  { key: 'motivation', label: 'Motivation' },
-  { key: 'perf_individuelle', label: 'Perf. indiv.' },
-  { key: 'perf_collective', label: 'Perf. coll.' },
-]
 
 function Field({ label, value, onChange, type = 'text', step, disabled = false, note }) {
   return (
@@ -74,16 +56,13 @@ export default function MaFichePage() {
   const navigate = useNavigate()
   const [joueur, setJoueur] = useState(null)
   const [form, setForm] = useState({})
-  const [rpeHistory, setRpeHistory] = useState([])
-  const [statsHistory, setStatsHistory] = useState([])
   const [poidsHistory, setPoidsHistory] = useState([])
   const [blessuresData, setBlessuresData] = useState([])
-  const [presences, setPresences] = useState([])
   const [newPoids, setNewPoids] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [activeTab, setActiveTab] = useState('infos')
+  const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('onglet') || 'infos')
   const [pwd, setPwd] = useState({ new: '', confirm: '' })
   const [pwdMsg, setPwdMsg] = useState(null)
   const [pwdSaving, setPwdSaving] = useState(false)
@@ -93,21 +72,15 @@ export default function MaFichePage() {
   useEffect(() => { if (profile?.id) loadData() }, [profile])
 
   async function loadData() {
-    const [{ data: j }, { data: rpe }, { data: stats }, { data: poids }, { data: blessures }, { data: pres }] = await Promise.all([
+    const [{ data: j }, { data: poids }, { data: blessures }] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', profile.id).single(),
-      supabase.from('rpe').select('*, evenements(titre,type,date_heure)').eq('joueur_id', profile.id).order('created_at', { ascending: false }).limit(8),
-      supabase.from('stats_match').select('*, evenements(titre,date_heure)').eq('joueur_id', profile.id).order('created_at', { ascending: false }).limit(10),
       supabase.from('suivi_poids').select('*').eq('joueur_id', profile.id).order('date_mesure', { ascending: true }).limit(12),
       supabase.from('blessures').select('*').eq('joueur_id', profile.id).order('date_debut', { ascending: false }),
-      supabase.from('presences').select('statut, evenements(type)').eq('joueur_id', profile.id),
     ])
     setJoueur(j)
     setForm(j || {})
-    setRpeHistory(rpe || [])
-    setStatsHistory(stats || [])
     setPoidsHistory(poids || [])
     setBlessuresData(blessures || [])
-    setPresences(pres || [])
     setLoading(false)
   }
 
@@ -212,30 +185,10 @@ export default function MaFichePage() {
   const fcRepos = (parseInt(form.fc_repos) || 0) * 4
   const fcReserve = fcMax && fcRepos ? fcMax - fcRepos : null
 
-  const totalButs = statsHistory.reduce((s, r) => s + (r.buts || 0), 0)
-  const totalPD = statsHistory.reduce((s, r) => s + (r.passes_decisives || 0), 0)
-  // La note du coach est subjective et réservée à son usage — remplacée ici par le
-  // temps de jeu moyen, un indicateur plus objectif et utile au joueur lui-même.
-  const tempsJeuMoy = statsHistory.length
-    ? Math.round(statsHistory.reduce((s, r) => s + (r.temps_jeu || 0), 0) / statsHistory.length)
-    : '—'
-  // Répartition des présences aux entraînements — présent/extérieur comptent comme
-  // investissement, les blessures sont exclues du taux d'engagement (absence non choisie)
-  const presenceSeances = presences.filter(p => p.evenements?.type === 'seance')
-  const presenceBreakdown = computePresenceBreakdown(presenceSeances)
-  const rpeAvg = RPE_ITEMS.map(item => {
-    const vals = rpeHistory.map(r => r[item.key]).filter(v => v !== null && v !== undefined)
-    const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
-    return { label: item.label, value: parseFloat(avg.toFixed(1)), color: rpeColor(avg) }
-  })
-
   const tabs = [
     { key: 'infos',    icon: User, label: 'Mes infos', cat: 'blue' },
     { key: 'physio',   icon: Heart, label: 'Physio & FC', cat: 'rose' },
-    { key: 'rpe',      icon: BarChart3, label: 'Mon RPE', cat: 'purple' },
-    { key: 'stats',    icon: Swords, label: 'Mes stats', cat: 'orange' },
     { key: 'poids',    icon: Scale, label: 'Mon poids', cat: 'teal' },
-    { key: 'objectifs',icon: Target, label: 'Objectifs', cat: 'amber' },
     { key: 'blessures',icon: Bandage, label: 'Blessures', cat: 'pink' },
     { key: 'compte',   icon: Lock, label: 'Compte', cat: 'slate' },
   ]
@@ -268,41 +221,11 @@ export default function MaFichePage() {
         </div>
       </div>
 
-      {/* Stats rapides */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginBottom: 14 }}>
-        {[['Matchs', statsHistory.length], ['Buts', totalButs], ['PD', totalPD], ['Temps moy.', tempsJeuMoy !== '—' ? `${tempsJeuMoy}'` : '—']].map(([l, v]) => (
-          <div key={l} style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 10, padding: 8, textAlign: 'center' }}>
-            <div style={{ fontSize: 17, fontWeight: 700 }}>{v}</div>
-            <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{l}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Présence entraînements */}
-      {presenceSeances.length > 0 && (
-        <Card style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}><Calendar size={13} color={'var(--primary)'} /> Ma présence entraînements</p>
-            <span style={{ fontSize: 15, fontWeight: 800, color: presenceBreakdown.tauxEngagement >= 80 ? 'var(--success)' : 'var(--warning)' }}>
-              {presenceBreakdown.tauxEngagement ?? '—'}%
-            </span>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
-            {[
-              { key: 'present', label: 'Présent', icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
-              { key: 'exterieur', label: 'Extérieur', icon: RefreshCw, color: 'var(--primary)', bg: 'var(--primary-bg)' },
-              { key: 'blesse', label: 'Blessé', icon: Bandage, color: 'var(--warning)', bg: 'var(--warning-bg)' },
-              { key: 'absent', label: 'Absent', icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
-            ].map(s => (
-              <div key={s.key} style={{ background: s.bg, borderRadius: 10, padding: '7px 4px', textAlign: 'center' }}>
-                <s.icon size={12} color={s.color} style={{ marginBottom: 3 }} />
-                <div style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{presenceBreakdown[s.key]}</div>
-                <div style={{ fontSize: 8, color: s.color }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+      {/* Stats, RPE, présences et objectifs : regroupés dans « Ma saison » */}
+      <button onClick={() => navigate('/mon-bilan')} style={{
+        width: '100%', marginBottom: 14, padding: '10px 12px', background: 'var(--bg-card)', border: '0.5px solid var(--border)',
+        borderRadius: 10, fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer', textAlign: 'left'
+      }}>Mes stats, RPE, présences et objectifs sont dans <strong style={{ color: 'var(--primary)' }}>Ma saison</strong> →</button>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto' }}>
@@ -464,105 +387,6 @@ export default function MaFichePage() {
         </>
       )}
 
-      {/* MON RPE */}
-      {activeTab === 'rpe' && (
-        <>
-          <Card>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Mes moyennes RPE — saison</p>
-            {rpeHistory.length === 0
-              ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune donnée RPE pour l'instant.</p>
-              : <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {rpeAvg.map(item => (
-                    <div key={item.label}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>
-                        <span>{item.label}</span>
-                        <span style={{ color: item.color, fontWeight: 600 }}>{item.value}/5</span>
-                      </div>
-                      <div style={{ height: 6, background: 'var(--bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', borderRadius: 4, background: item.color, width: `${item.value/5*100}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-            }
-          </Card>
-          {rpeHistory.map(r => {
-            const avg = (RPE_ITEMS.reduce((s, i) => s + (r[i.key] || 0), 0) / RPE_ITEMS.length).toFixed(1)
-            return (
-              <Card key={r.id}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: 600 }}>{r.evenements?.titre}</p>
-                    <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                      {r.evenements?.date_heure ? format(parseISO(r.evenements.date_heure), 'd MMM yyyy', { locale: fr }) : ''}
-                    </p>
-                  </div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: rpeColor(parseFloat(avg)), padding: '3px 10px', borderRadius: 10, background: `${rpeColor(parseFloat(avg))}20` }}>{avg}/5</span>
-                </div>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  {RPE_ITEMS.map(item => (
-                    <div key={item.key} style={{ background: 'var(--bg-secondary)', borderRadius: 6, padding: '3px 7px', fontSize: 10 }}>
-                      <span style={{ color: 'var(--text-muted)' }}>{item.label.split(' ')[0]} </span>
-                      <span style={{ fontWeight: 600, color: rpeColor(r[item.key] || 0) }}>{r[item.key] ?? '—'}</span>
-                    </div>
-                  ))}
-                </div>
-                {r.commentaire && (
-                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 6, fontStyle: 'italic', display: 'flex', alignItems: 'flex-start', gap: 5 }}>
-                    <MessageSquare size={11} style={{ flexShrink: 0, marginTop: 2 }} /> {r.commentaire}
-                  </p>
-                )}
-              </Card>
-            )
-          })}
-        </>
-      )}
-
-      {/* MES STATS */}
-      {activeTab === 'stats' && (
-        <Card>
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Mes statistiques match</p>
-          {statsHistory.length === 0
-            ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune statistique enregistrée.</p>
-            : statsHistory.map(s => (
-                <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid var(--bg-secondary)' }}>
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: 600 }}>{s.evenements?.titre}</p>
-                    <p style={{ fontSize: 10, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                      {s.temps_jeu}min · {s.titulaire ? 'Titulaire' : 'Remplaçant'}
-                      {s.carton_jaune && <span style={{ width: 8, height: 10, background: 'var(--warning)', borderRadius: 1, display: 'inline-block' }} />}
-                      {s.carton_rouge && <span style={{ width: 8, height: 10, background: 'var(--danger)', borderRadius: 1, display: 'inline-block' }} />}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {/* Pas de Note ici — subjective et réservée à l'usage du coach, cf. MaFichePage.jsx */}
-                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)' }}>{s.buts || 0}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>Buts</div></div>
-                    <div style={{ textAlign: 'center' }}><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary)' }}>{s.passes_decisives || 0}</div><div style={{ fontSize: 9, color: 'var(--text-muted)' }}>PD</div></div>
-                  </div>
-                </div>
-              ))
-          }
-        </Card>
-      )}
-
-      {/* OBJECTIFS */}
-      {activeTab === 'objectifs' && (
-        <div style={{ textAlign: 'center', padding: 20 }}>
-          <Target size={44} color={'var(--primary)'} style={{ marginBottom: 12 }} />
-          <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Mes objectifs & bilan</p>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
-            Points forts, axes d'amélioration, objectifs saison et bilan de fin de saison.
-          </p>
-          <button onClick={() => navigate('/mes-objectifs')} style={{
-            width: '100%', padding: 14, background: 'var(--gradient)',
-            color: '#fff', border: 'none', borderRadius: 12,
-            fontSize: 14, fontWeight: 700, cursor: 'pointer'
-          }}>
-            Accéder à mes objectifs →
-          </button>
-        </div>
-      )}
-
       {/* BLESSURES */}
       {activeTab === 'blessures' && (
         <>
@@ -647,6 +471,11 @@ export default function MaFichePage() {
             <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={changePassword} disabled={pwdSaving}>
               {pwdSaving ? 'Enregistrement...' : <><Save size={13} /> Modifier mon mot de passe</>}
             </Button>
+          </Card>
+
+          <Card>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Notifications</p>
+            <PushToggle />
           </Card>
 
           <Card>

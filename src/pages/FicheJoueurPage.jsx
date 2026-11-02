@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
+import MaSemaineCard from '../components/MaSemaineCard'
 import { supabase, authHeaders } from '../lib/supabase'
 import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
@@ -72,7 +73,7 @@ function Field({ label, field, form, setForm, type = 'text', disabled = false, o
 export default function FicheJoueurPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isCoach, isAdjoint, isJoueur, canComment } = useAuth()
+  const { isCoach, isAdjoint, isJoueur, isStaff, canComment, profile } = useAuth()
   const [joueur, setJoueur] = useState(null)
   const [activeTab, setActiveTab] = useState('identite')
   const [rpeHistory, setRpeHistory] = useState([])
@@ -516,6 +517,11 @@ export default function FicheJoueurPage() {
             ))}
           </div>
         </Card>
+      )}
+
+      {/* Sa semaine + mot du coach (ce que le joueur voit sur son accueil) */}
+      {isStaff && (
+        <MaSemaineCard joueurId={id} editable auteurNom={[profile?.prenom, profile?.nom].filter(Boolean).join(' ')} />
       )}
 
       {/* Tabs */}

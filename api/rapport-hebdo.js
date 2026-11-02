@@ -93,10 +93,54 @@ export default async function handler(req, res) {
         })
       : { sent: 0 }
 
-    res.status(200).json({ success: true, sent, rpeMoy, tauxPresence })
+    // Bilan individuel « Ma semaine » envoyé à chaque joueur invité : séances, RPE
+    // remplis et mot du coach éventuel. Le détail (charge, conseils) est sur son accueil.
+    let sentJoueurs = 0
+    try {
+      sentJoueurs = await envoyerBilansJoueurs(since, now)
+    } catch (err) {
+      captureError(err, { endpoint: 'rapport-hebdo', etape: 'bilans-joueurs' })
+    }
+
+    res.status(200).json({ success: true, sent, sentJoueurs, rpeMoy, tauxPresence })
   } catch (err) {
     console.error('Erreur rapport hebdo:', err)
     captureError(err, { endpoint: 'rapport-hebdo' })
     res.status(500).json({ error: err.message })
   }
+}
+
+async function envoyerBilansJoueurs(since, now) {
+  const { data: evs } = await supabase.from('evenements').select('id, type')
+    .gte('date_heure', since.toISOString()).lte('date_heure', now.toISOString())
+  const ids = (evs || []).map(e => e.id)
+  const seanceIds = new Set((evs || []).filter(e => e.type === 'seance').map(e => e.id))
+  const [{ data: joueurs }, { data: pres }, { data: rpes }, { data: mots }] = await Promise.all([
+    supabase.from('joueurs').select('id, auth_id, prenom').eq('archive', false).not('auth_id', 'is', null),
+    ids.length ? supabase.from('presences').select('joueur_id, evenement_id, statut').in('evenement_id', ids) : { data: [] },
+    ids.length ? supabase.from('rpe').select('joueur_id, evenement_id').in('evenement_id', ids) : { data: [] },
+    // Table créée par supabase-mots-coach.sql : en son absence, pas de mention du mot.
+    supabase.from('mots_coach').select('joueur_id').gte('created_at', since.toISOString()),
+  ])
+  const avecMot = new Set((mots || []).map(m => m.joueur_id))
+  const rpeFaits = new Set((rpes || []).map(r => `${r.joueur_id}|${r.evenement_id}`))
+  let envoyes = 0
+  for (const j of (joueurs || [])) {
+    const presents = (pres || []).filter(p => p.joueur_id === j.id && (p.statut === 'present' || p.statut === 'exterieur'))
+    const seancesPresent = presents.filter(p => seanceIds.has(p.evenement_id)).length
+    const rpeOk = presents.filter(p => rpeFaits.has(`${j.id}|${p.evenement_id}`)).length
+    if (!presents.length && !avecMot.has(j.id)) continue
+    const lignes = []
+    if (seanceIds.size) lignes.push(`Séances : ${seancesPresent}/${seanceIds.size}`)
+    if (presents.length) lignes.push(`RPE remplis : ${rpeOk}/${presents.length}`)
+    if (avecMot.has(j.id)) lignes.push('💬 Le coach t\'a laissé un mot')
+    const { sent } = await sendPushToSubscriptions(webpush, supabase, [j.auth_id], {
+      title: `📅 Ta semaine${j.prenom ? `, ${j.prenom}` : ''}`,
+      body: lignes.join(' · '),
+      url: '/mon-dashboard',
+      tag: 'ma-semaine',
+    })
+    envoyes += sent
+  }
+  return envoyes
 }

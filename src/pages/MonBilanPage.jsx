@@ -4,10 +4,9 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
-import { format, parseISO } from 'date-fns'
-import { fr } from 'date-fns/locale'
-import { ArrowLeft, Trophy, Swords, Heart, Calendar, Radio, Target, CheckCircle2, RefreshCw, Bandage, XCircle } from 'lucide-react'
+import { Award, ChevronRight, Trophy, Swords, Heart, Calendar, Radio, Target, CheckCircle2, RefreshCw, Bandage, XCircle } from 'lucide-react'
 import { computePresenceBreakdown } from '../lib/presenceStats'
+import { bornesSaison, labelSaison } from '../lib/saison'
 
 function rpeColor(v) {
   if (!v) return 'var(--text-muted)'
@@ -28,6 +27,8 @@ export default function MonBilanPage() {
 
   async function loadBilan() {
     setLoading(true)
+    // Limité à la saison en cours (jusqu'ici, toutes les saisons étaient additionnées).
+    const { debut, fin } = bornesSaison()
     const [
       { data: j },
       { data: statsData },
@@ -37,10 +38,14 @@ export default function MonBilanPage() {
       { data: objectifsData },
     ] = await Promise.all([
       supabase.from('joueurs').select('*').eq('id', profile.id).single(),
-      supabase.from('stats_match').select('*, evenements(titre,date_heure)').eq('joueur_id', profile.id).order('created_at', { ascending: false }),
-      supabase.from('rpe').select('*').eq('joueur_id', profile.id).order('created_at', { ascending: false }),
-      supabase.from('presences').select('statut').eq('joueur_id', profile.id),
-      supabase.from('footbar').select('distance_km, sprint_max, sprints').eq('joueur_id', profile.id),
+      supabase.from('stats_match').select('*, evenements!inner(titre,date_heure)').eq('joueur_id', profile.id)
+        .gte('evenements.date_heure', debut).lte('evenements.date_heure', fin).order('created_at', { ascending: false }),
+      supabase.from('rpe').select('*, evenements!inner(date_heure)').eq('joueur_id', profile.id)
+        .gte('evenements.date_heure', debut).lte('evenements.date_heure', fin).order('created_at', { ascending: false }),
+      supabase.from('presences').select('statut, evenements!inner(date_heure)').eq('joueur_id', profile.id)
+        .gte('evenements.date_heure', debut).lte('evenements.date_heure', fin),
+      supabase.from('footbar').select('distance_km, sprint_max, sprints, evenements!inner(date_heure)').eq('joueur_id', profile.id)
+        .gte('evenements.date_heure', debut).lte('evenements.date_heure', fin),
       supabase.from('objectifs').select('*').eq('joueur_id', profile.id),
     ])
 
@@ -95,14 +100,26 @@ export default function MonBilanPage() {
 
   if (loading) return <div style={{ padding: 12 }}><Spinner /></div>
 
-  const annee = new Date().getFullYear()
-  const saisonLabel = `${annee-1}/${annee}`
+  const saisonLabel = labelSaison()
 
   return (
     <div style={{ padding: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex' }}><ArrowLeft size={20} color={'var(--primary)'} /></button>
-        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><Trophy size={17} color={'var(--primary)'} /> Mon bilan saison {saisonLabel}</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 7 }}><Trophy size={17} color={'var(--primary)'} /> Ma saison {saisonLabel}</h1>
+      </div>
+
+      {/* Accès badges et objectifs */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+        {[
+          { icon: Award, label: 'Mes badges', path: '/mes-badges', color: '#B8860B' },
+          { icon: Target, label: 'Mes objectifs', path: '/mes-objectifs', color: 'var(--primary)' },
+        ].map(l => (
+          <button key={l.path} onClick={() => navigate(l.path)} style={{
+            padding: '10px 12px', background: 'var(--bg-card)', border: '0.5px solid var(--border)', borderRadius: 10,
+            fontSize: 12, fontWeight: 600, color: l.color, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+          }}><span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><l.icon size={14} /> {l.label}</span><ChevronRight size={14} /></button>
+        ))}
       </div>
 
       {/* Hero */}

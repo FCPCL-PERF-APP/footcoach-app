@@ -8,7 +8,7 @@ import { computeAlertes, getAlertesTraitees, fetchNonConvoqueSet } from '../lib/
 import {
   Calendar, Users, MessageCircle, LayoutDashboard, Menu,
   Heart, Radio, BarChart3, Settings, Archive, Folder,
-  ListChecks, Gamepad2, Compass, Home, User, Award, ClipboardList, Shuffle, CalendarRange, Trophy
+  ListChecks, Gamepad2, Compass, Home, User, ClipboardList, Shuffle, CalendarRange, Trophy
 } from 'lucide-react'
 
 const NAV_COACH_MAIN = [
@@ -63,16 +63,16 @@ const NAV_STAFF_MORE = [
   ]},
 ]
 const NAV_JOUEUR_MAIN = [
-  { path: '/mon-dashboard', icon: Home,          label: 'Dashboard' },
+  { path: '/mon-dashboard', icon: Home,          label: 'Accueil' },
   { path: '/calendrier',    icon: Calendar,      label: 'Agenda' },
-  { path: '/ma-fiche',      icon: User,          label: 'Ma fiche' },
+  { path: '/mon-bilan',     icon: Trophy,        label: 'Ma saison' },
   { path: '/messages',      icon: MessageCircle, label: 'Messages' },
   { path: '/plus',          icon: Menu,          label: 'Plus' },
 ]
 const NAV_JOUEUR_MORE = [
   { section: null, items: [
-    { path: '/mon-suivi',   icon: Heart,          label: 'Mon suivi', cat: 'rose' },
-    { path: '/mes-badges',  icon: Award,          label: 'Mes badges', cat: 'gold' },
+    { path: '/mon-suivi',   icon: Heart,          label: 'Mon suivi (RPE)', cat: 'rose' },
+    { path: '/ma-fiche',    icon: User,           label: 'Ma fiche', cat: 'violet' },
     { path: '/championnat', icon: Trophy,         label: 'Championnat', cat: 'blue' },
     { path: '/staff',       icon: ClipboardList,  label: 'Staff', cat: 'slate' },
     { path: '/sondages',    icon: ListChecks,     label: 'Sondages', cat: 'amber' },
