@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase, authHeaders } from '../lib/supabase'
+import { queryEquipe } from '../lib/joueursEquipe'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -54,7 +55,7 @@ export default function CPAPage() {
     setLoading(true)
     const [{ data: cpaData, error }, { data: jrs }] = await Promise.all([
       supabase.from('cpa').select('*').order('created_at', { ascending: false }),
-      supabase.from('joueurs').select('id,nom,prenom,poste,numero').eq('archive', false).order('nom'),
+      queryEquipe('id,nom,prenom,poste,numero'),
     ])
     if (error) console.error('Erreur chargement CPA:', error)
     setCpas(cpaData || [])

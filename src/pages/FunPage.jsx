@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { queryEquipe, avecJoueurs } from '../lib/joueursEquipe'
 import { useAuth } from '../hooks/useAuth'
 import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -236,12 +237,12 @@ export default function FunPage() {
     if (!profile?.id) return
     setLoading(true)
     const [{ data: jrs }, { data: evs }, { data: mesOnzeData }, { data: tousOnze }, { data: mesPronos }, { data: tousStats }] = await Promise.all([
-      supabase.from('joueurs').select('id, nom, prenom, poste, photo_url').eq('archive', false).order('nom'),
+      queryEquipe('id, nom, prenom, poste, photo_url'),
       supabase.from('evenements').select('*').eq('type', 'match').gte('date_heure', new Date().toISOString()).order('date_heure').limit(5),
       supabase.from('onze_ideal').select('*').eq('joueur_id', profile.id).maybeSingle(),
       supabase.from('onze_ideal').select('selections, formation, joueur_id'),
       supabase.from('pronostics').select('*').eq('joueur_id', profile.id),
-      supabase.from('pronostics').select('*, joueurs(nom,prenom)'),
+      supabase.from('pronostics').select('*').then(async r => ({ ...r, data: r.data ? await avecJoueurs(r.data) : r.data })),
     ])
     setJoueurs(jrs || [])
     setMatchs(evs || [])

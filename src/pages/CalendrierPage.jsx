@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
 import { savePresenceOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { useAuth } from '../hooks/useAuth'
+import { avecJoueurs } from '../lib/joueursEquipe'
 import { Card, Badge, Button, Input, Select, Spinner, Textarea } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO, isAfter } from 'date-fns'
@@ -395,7 +396,8 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
   // Les joueurs peuvent aussi voir qui est présent/absent (pas seulement le staff) —
   // le join sur joueurs(nom,prenom) sert à leur afficher les noms, pas juste le compte.
   async function loadPresenceCount() {
-    const { data } = await supabase.from('presences').select('statut, joueurs(nom, prenom)').eq('evenement_id', ev.id)
+    const { data: brut } = await supabase.from('presences').select('statut, joueur_id').eq('evenement_id', ev.id)
+    const data = brut ? await avecJoueurs(brut) : brut
     if (data) setPresenceCount({
       present: data.filter(p => p.statut === 'present').length,
       absent: data.filter(p => p.statut === 'absent').length,
@@ -422,8 +424,9 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
     setShowConvoques(p => !p)
   }
   async function loadConvoques() {
-    const { data } = await supabase.from('convocations').select('joueurs(nom, prenom)')
+    const { data: brut } = await supabase.from('convocations').select('joueur_id')
       .eq('evenement_id', ev.id).eq('convoque', true)
+    const data = await avecJoueurs(brut || [])
     setListeConvoques((data || [])
       .filter(c => c.joueurs)
       .sort((a, b) => (a.joueurs?.nom || '').localeCompare(b.joueurs?.nom || '')))

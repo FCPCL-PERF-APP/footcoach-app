@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { queryEquipe } from '../lib/joueursEquipe'
 import { useAuth } from '../hooks/useAuth'
 import { Spinner, Avatar } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
@@ -36,11 +37,15 @@ export default function JoueursPage() {
   const [confirmArchive, setConfirmArchive] = useState(null)
   const [showArchives, setShowArchives] = useState(false)
 
-  useEffect(() => { loadJoueurs() }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadJoueurs() }, [isStaff])
 
   async function loadJoueurs() {
     setLoadError(null)
-    const { data, error } = await supabase.from('joueurs').select('*').order('nom')
+    // Staff : fiches complètes. Joueurs : effectif public uniquement (la table complète leur est fermée).
+    const { data, error } = isStaff
+      ? await supabase.from('joueurs').select('*').order('nom')
+      : await queryEquipe('id, nom, prenom, poste, numero, photo_url, groupe, archive', { archive: false })
     // Sans ce garde-fou, un échec réseau/RLS affichait "Aucun joueur" — indiscernable
     // d'un effectif réellement vide sur la page centrale de gestion des joueurs.
     if (error) { setLoadError(error.message); setLoading(false); return }
