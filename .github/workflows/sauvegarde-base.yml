@@ -1,0 +1,81 @@
+name: Sauvegarde de la base Supabase
+
+# Chaque nuit : copie compl√®te de la base (sch√©ma public + comptes auth), compress√©e puis
+# chiffr√©e (AES-256) avec BACKUP_PASSPHRASE, et gard√©e 90 jours dans les artifacts.
+# Le d√©p√¥t est public : rien n'est jamais d√©pos√© en clair.
+# Restauration : voir SAUVEGARDE.md.
+#
+# Secrets √† cr√©er (Settings > Secrets and variables > Actions) :
+#   SUPABASE_DB_URL    cha√Æne de connexion ¬´ Session pooler ¬ª (port 5432) avec le mot de passe
+#   BACKUP_PASSPHRASE  phrase de chiffrement, √† garder aussi dans ta note verrouill√©e
+
+on:
+  schedule:
+    - cron: '30 2 * * *'   # 2h30 UTC = 3h30 ou 4h30 en France
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sauvegarde-base
+  cancel-in-progress: false
+
+jobs:
+  sauvegarde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: V√©rifie les secrets
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::error::Secrets SUPABASE_DB_URL et/ou BACKUP_PASSPHRASE manquants"
+            exit 1
+          fi
+
+      - name: Installe pg_dump 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          /usr/lib/postgresql/17/bin/pg_dump --version
+
+      - name: Exporte, compresse et chiffre
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          OPENSSL_PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          PGDUMP=/usr/lib/postgresql/17/bin/pg_dump
+          STAMP=$(date -u +%Y-%m-%d)
+          mkdir -p out
+          # Tables, fonctions, r√®gles d'acc√®s (RLS) et donn√©es de l'appli
+          $PGDUMP "$SUPABASE_DB_URL" --schema=public --no-owner --no-privileges --quote-all-identifiers \
+            | gzip -9 > public.sql.gz
+          # Comptes de connexion (donn√©es seulement : la structure auth appartient √† Supabase)
+          $PGDUMP "$SUPABASE_DB_URL" --schema=auth --data-only --no-owner --no-privileges \
+            | gzip -9 > auth.sql.gz
+          # Contr√¥le : la sauvegarde doit contenir des donn√©es (sinon √©chec visible)
+          LIGNES=$(gunzip -c public.sql.gz | grep -c '^COPY ' || true)
+          echo "Tables export√©es : $LIGNES"
+          if [ "$LIGNES" -lt 10 ]; then echo "::error::Sauvegarde anormalement vide"; exit 1; fi
+          for f in public auth; do
+            openssl enc -aes-256-cbc -md sha256 -pbkdf2 -iter 200000 -salt -pass env:OPENSSL_PASS \
+              -in $f.sql.gz -out out/footcoach-$STAMP-$f.sql.gz.enc
+          done
+          rm -f public.sql.gz auth.sql.gz
+          ls -la out
+
+      - name: Garde la copie chiffr√©e 90 jours
+        uses: actions/upload-artifact@v4
+        with:
+          name: sauvegarde-${{ github.run_id }}
+          path: out/
+          retention-days: 90
+          if-no-files-found: error
