@@ -1,0 +1,61 @@
+name: Sauvegarde des fichiers Supabase
+
+# Chaque dimanche : copie de tous les fichiers (photos joueurs/staff, images, ressources),
+# compressée puis chiffrée (AES-256) avec BACKUP_PASSPHRASE, gardée 90 jours.
+# Le dépôt est public : rien n'est jamais déposé en clair. Restauration : SAUVEGARDE.md.
+#
+# Secrets nécessaires (Settings > Secrets and variables > Actions) :
+#   SUPABASE_URL          adresse du projet (https://xxxx.supabase.co)
+#   SUPABASE_SERVICE_KEY  clé « service_role » (Supabase > Project Settings > API Keys)
+#   BACKUP_PASSPHRASE     même phrase que la sauvegarde de la base
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'   # dimanche 3h UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sauvegarde-fichiers
+  cancel-in-progress: false
+
+jobs:
+  sauvegarde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Télécharge, compresse et chiffre
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          OPENSSL_PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ] || [ -z "$OPENSSL_PASS" ]; then
+            echo "::error::Secrets SUPABASE_URL, SUPABASE_SERVICE_KEY et/ou BACKUP_PASSPHRASE manquants"
+            exit 1
+          fi
+          STAMP=$(date -u +%Y-%m-%d)
+          node scripts/sauvegarde-fichiers.mjs fichiers
+          mkdir -p out
+          tar -czf - fichiers | openssl enc -aes-256-cbc -md sha256 -pbkdf2 -iter 200000 -salt \
+            -pass env:OPENSSL_PASS -out out/footcoach-$STAMP-fichiers.tar.gz.enc
+          rm -rf fichiers
+          ls -la out
+
+      - name: Garde la copie chiffrée 90 jours
+        uses: actions/upload-artifact@v4
+        with:
+          name: fichiers-${{ github.run_id }}
+          path: out/
+          retention-days: 90
+          if-no-files-found: error
