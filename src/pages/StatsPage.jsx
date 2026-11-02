@@ -4,6 +4,7 @@ import { supabase, authHeaders } from '../lib/supabase'
 import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { validateFile } from '../lib/upload'
 import { exportCompoPDF } from '../utils/compoPDF'
+import { PHASES_BUT, statsCollectivesDepuisChrono, butsPassesParJoueur, cartonsParJoueur, tempsDeJeuParJoueur } from '../lib/chronologie'
 import RichTextarea from '../components/RichTextarea'
 import { htmlToPlainText } from '../lib/richText'
 import { Card, Button, Input, Spinner } from '../components/UI'
@@ -144,31 +145,6 @@ const CHRONO_TYPES = {
   autre:        { label: 'Autre',          color: 'var(--text-secondary)', bg: 'var(--bg-secondary)' },
 }
 
-// Mêmes catégories que "Buts marqués/encaissés — par type" dans l'onglet Collectif —
-// choisir la phase sur un but de la chronologie alimente directement ces compteurs, au
-// lieu de les ressaisir séparément.
-const PHASES_BUT = [
-  { key: 'attaque_placee', label: 'Attaque placée' },
-  { key: 'contre_attaque', label: 'Contre-attaque' },
-  { key: 'corner',         label: 'Corner' },
-  { key: 'penalty',        label: 'Penalty' },
-  { key: 'coup_franc',     label: 'Coup franc' },
-]
-
-// Découpage en périodes de 15' — identique à "Buts marqués/encaissés — par période"
-// dans l'onglet Collectif, déduit automatiquement de la minute saisie sur l'événement.
-function periodeButs(minute, prefix) {
-  const m = minute || 0
-  // Bornes inclusives sur la fin de période — un but à la 45' (souvent le cas, fin de
-  // 1ère mi-temps/temps additionnel) doit tomber dans la période 30-45, pas 45-60 qui
-  // est en réalité le début de la 2nde mi-temps (46').
-  if (m <= 15) return `${prefix}0_15`
-  if (m <= 30) return `${prefix}15_30`
-  if (m <= 45) return `${prefix}30_45`
-  if (m <= 60) return `${prefix}45_60`
-  if (m <= 75) return `${prefix}60_75`
-  return `${prefix}75_90`
-}
 
 export default function StatsPage() {
   const { id: eventId } = useParams()
@@ -439,118 +415,32 @@ export default function StatsPage() {
   // correspondants restent tels quels, modifiables à la main.
   async function recomputeFromChronologie(chronologie) {
     const entries = chronologie || []
-    const butsPour = entries.filter(e => e.type === 'but_pour')
-    const butsContre = entries.filter(e => e.type === 'but_contre')
-    const cartons = entries.filter(e => e.type === 'carton_jaune' || e.type === 'carton_rouge')
+    const dejaConnus = statsIndiv.map(s => s.joueur_id)
 
-    // --- Stats collectives : buts marqués / encaissés, par type et par période ---
-    if (butsPour.length || butsContre.length) {
-      const payloadCollectif = { evenement_id: eventId }
-      if (butsPour.length) {
-        payloadCollectif.buts_marques = butsPour.length
-        const phase = { attaque_placee: 0, contre_attaque: 0, corner: 0, penalty: 0, coup_franc: 0 }
-        const periode = { buts_0_15: 0, buts_15_30: 0, buts_30_45: 0, buts_45_60: 0, buts_60_75: 0, buts_75_90: 0 }
-        for (const e of butsPour) {
-          if (e.phase && phase[e.phase] !== undefined) phase[e.phase]++
-          periode[periodeButs(e.minute, 'buts_')]++
-        }
-        payloadCollectif.but_marque_attaque_placee = phase.attaque_placee
-        payloadCollectif.but_marque_contre_attaque = phase.contre_attaque
-        payloadCollectif.but_marque_corner = phase.corner
-        payloadCollectif.but_marque_penalty = phase.penalty
-        payloadCollectif.but_marque_coup_franc = phase.coup_franc
-        Object.assign(payloadCollectif, periode)
-      }
-      if (butsContre.length) {
-        payloadCollectif.buts_encaisses = butsContre.length
-        const phase = { attaque_placee: 0, contre_attaque: 0, corner: 0, penalty: 0, coup_franc: 0 }
-        const periode = { buts_enc_0_15: 0, buts_enc_15_30: 0, buts_enc_30_45: 0, buts_enc_45_60: 0, buts_enc_60_75: 0, buts_enc_75_90: 0 }
-        for (const e of butsContre) {
-          if (e.phase && phase[e.phase] !== undefined) phase[e.phase]++
-          periode[periodeButs(e.minute, 'buts_enc_')]++
-        }
-        payloadCollectif.but_enc_attaque_placee = phase.attaque_placee
-        payloadCollectif.but_enc_contre_attaque = phase.contre_attaque
-        payloadCollectif.but_enc_corner = phase.corner
-        payloadCollectif.but_enc_penalty = phase.penalty
-        payloadCollectif.but_enc_coup_franc = phase.coup_franc
-        Object.assign(payloadCollectif, periode)
-      }
-      await supabase.from('stats_collectives').upsert(payloadCollectif, { onConflict: 'evenement_id' })
+    // Stats collectives : buts marqués / encaissés, par type et par période
+    const collectif = statsCollectivesDepuisChrono(entries)
+    if (collectif) {
+      await supabase.from('stats_collectives').upsert({ evenement_id: eventId, ...collectif }, { onConflict: 'evenement_id' })
     }
 
-    // --- Stats individuelles : buts et passes décisives ---
-    if (butsPour.length) {
-      const buts = {}, passes = {}
-      for (const e of butsPour) {
-        if (e.buteur_id) buts[e.buteur_id] = (buts[e.buteur_id] || 0) + 1
-        if (e.passeur_id) passes[e.passeur_id] = (passes[e.passeur_id] || 0) + 1
-      }
-      const concernes = new Set([...Object.keys(buts), ...Object.keys(passes), ...statsIndiv.map(s => s.joueur_id)])
-      for (const joueurId of concernes) {
-        await supabase.from('stats_match').upsert({
-          evenement_id: eventId, joueur_id: joueurId,
-          buts: buts[joueurId] || 0, passes_decisives: passes[joueurId] || 0,
-        }, { onConflict: 'evenement_id,joueur_id' })
-      }
+    // Stats individuelles : buts et passes décisives
+    for (const l of butsPassesParJoueur(entries, dejaConnus)) {
+      await supabase.from('stats_match').upsert({ evenement_id: eventId, ...l }, { onConflict: 'evenement_id,joueur_id' })
     }
 
-    // --- Cartons ---
-    if (cartons.length) {
-      const jaune = new Set(cartons.filter(e => e.type === 'carton_jaune' && e.joueur_id).map(e => e.joueur_id))
-      const rouge = new Set(cartons.filter(e => e.type === 'carton_rouge' && e.joueur_id).map(e => e.joueur_id))
-      const concernes = new Set([...jaune, ...rouge, ...statsIndiv.map(s => s.joueur_id)])
-      for (const joueurId of concernes) {
-        await supabase.from('stats_match').upsert({
-          evenement_id: eventId, joueur_id: joueurId,
-          carton_jaune: jaune.has(joueurId), carton_rouge: rouge.has(joueurId),
-        }, { onConflict: 'evenement_id,joueur_id' })
-      }
+    // Cartons
+    for (const l of cartonsParJoueur(entries, dejaConnus)) {
+      await supabase.from('stats_match').upsert({ evenement_id: eventId, ...l }, { onConflict: 'evenement_id,joueur_id' })
     }
 
-    // --- Temps de jeu et titulaire ---
-    // Un joueur qui marque, passe ou prend un carton a forcément été sur le terrain à ce
-    // moment-là, même sans changement le concernant (cas le plus fréquent : un titulaire
-    // qui joue le match entier n'apparaît jamais dans un événement "changement"). Chaque
-    // joueur mentionné n'importe où dans la chronologie est donc par défaut supposé avoir
-    // débuté à la 0' et être resté jusqu'à la fin, sauf indication contraire.
-    // Gère aussi les allers-retours (sorti puis rentré plus tard dans le match) : les
-    // événements sortant/entrant du joueur sont rejoués dans l'ordre chronologique pour
-    // cumuler tous ses passages sur le terrain, pas juste une seule sortie/entrée.
-    const titulaireIds = new Set([
-      ...Object.values(compo).filter(Boolean),
-      ...statsIndiv.filter(s => s.titulaire).map(s => s.joueur_id),
-    ])
-    const joueursVusEnChrono = new Set()
-    const mouvementsParJoueur = {}
-    for (const e of entries) {
-      for (const id of [e.buteur_id, e.passeur_id, e.joueur_id, e.sortant_id, e.entrant_id]) {
-        if (id) joueursVusEnChrono.add(id)
-      }
-      if (e.type === 'changement') {
-        if (e.sortant_id) (mouvementsParJoueur[e.sortant_id] ||= []).push({ minute: e.minute || 0, sens: 'sort' })
-        if (e.entrant_id) (mouvementsParJoueur[e.entrant_id] ||= []).push({ minute: e.minute || 0, sens: 'entre' })
-      }
-    }
-    const concernes = new Set([...titulaireIds, ...joueursVusEnChrono])
-    if (concernes.size) {
-      const duree = parseInt(formCollectif.duree_match) || 90
-      for (const joueurId of concernes) {
-        const mouvements = (mouvementsParJoueur[joueurId] || []).slice().sort((a, b) => a.minute - b.minute)
-        // Titulaire = déjà connu comme tel, ou aucun mouvement "entre" avant un premier
-        // mouvement "sort" (on ne peut pas sortir sans avoir déjà commencé le match).
-        const titulaire = titulaireIds.has(joueurId) || mouvements[0]?.sens !== 'entre'
-        let surLeTerrain = titulaire, depuis = 0, tempsJeu = 0
-        for (const m of mouvements) {
-          if (m.sens === 'sort' && surLeTerrain) { tempsJeu += Math.max(0, m.minute - depuis); surLeTerrain = false }
-          else if (m.sens === 'entre' && !surLeTerrain) { surLeTerrain = true; depuis = m.minute }
-        }
-        if (surLeTerrain) tempsJeu += Math.max(0, duree - depuis)
-        await supabase.from('stats_match').upsert({
-          evenement_id: eventId, joueur_id: joueurId,
-          temps_jeu: tempsJeu, titulaire,
-        }, { onConflict: 'evenement_id,joueur_id' })
-      }
+    // Temps de jeu et titulaire (cf. tempsDeJeuParJoueur dans lib/chronologie.js)
+    const temps = tempsDeJeuParJoueur({
+      entries, compo,
+      titulairesConnus: statsIndiv.filter(s => s.titulaire).map(s => s.joueur_id),
+      duree: parseInt(formCollectif.duree_match) || 90,
+    })
+    for (const l of temps) {
+      await supabase.from('stats_match').upsert({ evenement_id: eventId, ...l }, { onConflict: 'evenement_id,joueur_id' })
     }
   }
 

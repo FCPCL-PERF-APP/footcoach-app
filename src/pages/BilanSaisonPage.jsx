@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { pointsChampionnat } from '../lib/resultats'
 import { supabase } from '../lib/supabase'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner, BarChart } from '../components/UI'
@@ -136,10 +137,7 @@ export default function BilanSaisonPage() {
     // classement) : calculés uniquement sur les matchs de championnat, et le tile
     // "Pts" est masqué tant qu'aucun n'a été disputé (ex. en plein sur une préparation
     // qui n'a joué que des matchs de coupe).
-    const matchStatsChampionnat = (matchStats || []).filter(s => s.evenements?.match_type === 'championnat')
-    const hasChampionnat = matchStatsChampionnat.length > 0
-    const ptsCalcules = matchStatsChampionnat.filter(s => s.buts_marques > s.buts_encaisses).length * 3
-      + matchStatsChampionnat.filter(s => s.buts_marques === s.buts_encaisses).length
+    const { hasChampionnat, pts: ptsCalcules } = pointsChampionnat(matchStats)
 
     setBilan({
       victoires, nuls, defaites, totalMatchs,

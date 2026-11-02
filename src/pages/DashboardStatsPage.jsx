@@ -6,6 +6,7 @@ import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { BarChart3, Goal, Shield, Clock } from 'lucide-react'
+import { pointsChampionnat } from '../lib/resultats'
 
 export default function DashboardStatsPage() {
   const navigate = useNavigate()
@@ -37,14 +38,8 @@ export default function DashboardStatsPage() {
       const totalEnc = useData.reduce((s,r) => s+(r.buts_encaisses||0), 0)
       const nbPrepa = dataPrepa.length
 
-      // Les points n'ont de sens qu'en championnat (pas de classement en coupe) — sinon
-      // une victoire de coupe gonflait à tort le total de points. Masqués tant qu'aucun
-      // match de championnat n'a été disputé, cf. BilanSaisonPage.jsx qui applique la
-      // même règle.
-      const dataChampionnat = useData.filter(s => s.evenements?.match_type === 'championnat')
-      const hasChampionnat = dataChampionnat.length > 0
-      const pts = dataChampionnat.filter(s => (s.buts_marques||0) > (s.buts_encaisses||0)).length * 3
-        + dataChampionnat.filter(s => (s.buts_marques||0) === (s.buts_encaisses||0)).length
+      // Points : championnat uniquement (cf. lib/resultats.js, partagé avec le Bilan de saison).
+      const { hasChampionnat, pts } = pointsChampionnat(useData)
 
       // Buts marqués par type
       const butMarqueAP = useData.reduce((s,r) => s+(r.but_marque_attaque_placee||0), 0)
