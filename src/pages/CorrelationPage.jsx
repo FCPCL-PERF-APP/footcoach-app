@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { toutLire } from '../lib/toutLire'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -60,8 +61,8 @@ export default function CorrelationPage() {
 
     // Récupère les RPE et les stats collectives liés aux mêmes événements, de la saison en cours
     const [{ data: rpeData, error: e1 }, { data: statsData, error: e2 }] = await Promise.all([
-      supabase.from('rpe').select('evenement_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
-        .in('evenement_id', idsSaison).order('created_at', { ascending: false }),
+      toutLire(() => supabase.from('rpe').select('evenement_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
+        .in('evenement_id', idsSaison).order('created_at', { ascending: false })),
       supabase.from('stats_collectives').select('*, evenements(titre, date_heure)')
         .in('evenement_id', idsSaison).order('created_at', { ascending: false })
     ])

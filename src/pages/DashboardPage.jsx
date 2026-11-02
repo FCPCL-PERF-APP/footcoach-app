@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { toutLire } from '../lib/toutLire'
 import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, BarChart, Spinner, ListRow, IconTile, StatTile } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
@@ -152,7 +153,7 @@ export default function DashboardPage() {
       supabase.from('joueurs').select('id,nom,prenom').eq('archive', false).order('nom'),
       supabase.from('presences').select('*, evenements(date_heure)').order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(500),
       supabase.from('evenements').select('*').gte('date_heure', new Date().toISOString()).order('date_heure', { ascending: true }).limit(1),
-      supabase.from('presences').select('joueur_id, statut, evenement_id').in('statut', ['absent','blesse']),
+      toutLire(() => supabase.from('presences').select('joueur_id, statut, evenement_id').in('statut', ['absent','blesse'])),
     ])
 
     // Tous les matchs joués (préparation incluse) triés par date réelle plutôt que par

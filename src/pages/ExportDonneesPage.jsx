@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { toutLire } from '../lib/toutLire'
 import { Card, PageHeader, Button, Spinner, IconTile } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -47,7 +48,7 @@ export default function ExportDonneesPage() {
 
   async function exportRPE() {
     setLoading(true)
-    const { data } = await supabase.from('rpe').select('*, joueurs(nom,prenom), evenements(titre,date_heure,type)').order('created_at', { ascending: false })
+    const { data } = await toutLire(() => supabase.from('rpe').select('*, joueurs(nom,prenom), evenements(titre,date_heure,type)').order('created_at', { ascending: false }))
     const headers = ['Joueur','Événement','Type','Date','Difficulté','Fatigue','Implication','Motivation','Perf. indiv.','Perf. coll.','Commentaire']
     const rows = (data || []).map(r => [
       `${r.joueurs?.nom} ${r.joueurs?.prenom}`,
@@ -62,7 +63,7 @@ export default function ExportDonneesPage() {
 
   async function exportFootbar() {
     setLoading(true)
-    const { data } = await supabase.from('footbar').select('*, joueurs(nom,prenom), evenements(titre,date_heure)').order('created_at', { ascending: false })
+    const { data } = await toutLire(() => supabase.from('footbar').select('*, joueurs(nom,prenom), evenements(titre,date_heure)').order('created_at', { ascending: false }))
     const headers = ['Joueur','Événement','Date','Distance (km)','Sprint max (km/h)','Nb sprints','Haute intensité (m)','Temps jeu (min)','Nb ballons','Nb passes','Nb tirs']
     const rows = (data || []).map(f => [
       `${f.joueurs?.nom} ${f.joueurs?.prenom}`,
@@ -76,7 +77,7 @@ export default function ExportDonneesPage() {
 
   async function exportStats() {
     setLoading(true)
-    const { data } = await supabase.from('stats_match').select('*, joueurs(nom,prenom), evenements(titre,date_heure)').order('created_at', { ascending: false })
+    const { data } = await toutLire(() => supabase.from('stats_match').select('*, joueurs(nom,prenom), evenements(titre,date_heure)').order('created_at', { ascending: false }))
     const headers = ['Joueur','Match','Date','Note','Temps jeu (min)','Buts','Passes déc.','Titulaire','Carton jaune','Carton rouge']
     const rows = (data || []).map(s => [
       `${s.joueurs?.nom} ${s.joueurs?.prenom}`,
@@ -93,7 +94,7 @@ export default function ExportDonneesPage() {
 
   async function exportPresences() {
     setLoading(true)
-    const { data } = await supabase.from('presences').select('*, joueurs(nom,prenom), evenements(titre,date_heure,type)').order('created_at', { ascending: false })
+    const { data } = await toutLire(() => supabase.from('presences').select('*, joueurs(nom,prenom), evenements(titre,date_heure,type)').order('created_at', { ascending: false }))
     const headers = ['Joueur','Événement','Type','Date','Statut']
     const rows = (data || []).map(p => [
       `${p.joueurs?.nom} ${p.joueurs?.prenom}`,

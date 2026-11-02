@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
+import { toutLire } from '../lib/toutLire'
 import { THEME, CAT_COLORS } from '../theme'
 import { computeAlertes, getAlertesTraitees, fetchNonConvoqueSet } from '../lib/alertes'
 import {
@@ -143,7 +144,7 @@ export default function BottomNav() {
         supabase.from('rpe').select('*, joueurs(id,nom,prenom), evenements(date_heure,type)')
           .order('date_heure', { foreignTable: 'evenements', ascending: false }).limit(300),
         supabase.from('joueurs').select('id,nom,prenom').eq('archive', false).order('nom'),
-        supabase.from('presences').select('joueur_id, statut').in('statut', ['absent', 'blesse']),
+        toutLire(() => supabase.from('presences').select('joueur_id, statut').in('statut', ['absent', 'blesse'])),
         supabase.from('stats_collectives').select('buts_marques, buts_encaisses, evenements(date_heure, match_type)')
           .order('created_at', { ascending: false }).limit(20),
       ])

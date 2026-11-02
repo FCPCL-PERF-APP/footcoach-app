@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { toutLire } from '../lib/toutLire'
 import { queryEquipe } from '../lib/joueursEquipe'
 import { useAuth } from '../hooks/useAuth'
 import { Spinner, Avatar } from '../components/UI'
@@ -50,9 +51,9 @@ export default function JoueursPage() {
     // d'un effectif réellement vide sur la page centrale de gestion des joueurs.
     if (error) { setLoadError(error.message); setLoading(false); return }
     setJoueurs(data || [])
-    const { data: rpe } = await supabase.from('rpe')
+    const { data: rpe } = await toutLire(() => supabase.from('rpe')
       .select('joueur_id, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective')
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false }))
     const avgs = {}, counts = {}
     for (const r of (rpe || [])) {
       const vals = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v !== null)

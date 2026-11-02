@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { toutLire } from '../lib/toutLire'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner, AlertCard } from '../components/UI'
 import { computePresenceBreakdown } from '../lib/presenceStats'
@@ -47,8 +48,8 @@ export default function PresencesRecapPage() {
 
     const idsSeances = (evs || []).map(e => e.id)
     if (idsSeances.length) {
-      const { data: pres, error: e3 } = await supabase.from('presences')
-        .select('joueur_id, evenement_id, statut').in('evenement_id', idsSeances)
+      const { data: pres, error: e3 } = await toutLire(() => supabase.from('presences')
+        .select('joueur_id, evenement_id, statut').in('evenement_id', idsSeances))
       if (e3) { setLoadError(e3.message); setLoading(false); return }
       setPresences(pres || [])
     } else {

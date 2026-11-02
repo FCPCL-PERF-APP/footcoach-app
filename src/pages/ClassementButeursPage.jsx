@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { toutLire } from '../lib/toutLire'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -62,10 +63,10 @@ export default function ClassementButeursPage() {
     const idsSaison = (eventsSaisonIds || []).map(e => e.id)
 
     const [{ data: stats }, { data: footbar }, { data: joueurs }] = await Promise.all([
-      supabase.from('stats_match')
-        .select('*, joueurs(id,nom,prenom,poste), evenements(match_type)').in('evenement_id', idsSaison),
-      supabase.from('footbar')
-        .select('joueur_id, distance_km, evenements(type)').in('evenement_id', idsSaison),
+      toutLire(() => supabase.from('stats_match')
+        .select('*, joueurs(id,nom,prenom,poste), evenements(match_type)').in('evenement_id', idsSaison)),
+      toutLire(() => supabase.from('footbar')
+        .select('joueur_id, distance_km, evenements(type)').in('evenement_id', idsSaison)),
       supabase.from('joueurs').select('id,nom,prenom,poste'),
     ])
 

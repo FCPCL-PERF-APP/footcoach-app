@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { pointsChampionnat } from '../lib/resultats'
 import { supabase } from '../lib/supabase'
+import { toutLire } from '../lib/toutLire'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner, BarChart } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
@@ -55,13 +56,13 @@ export default function BilanSaisonPage() {
       { data: eventsRaw, error: e6 },
     ] = await Promise.all([
       supabase.from('stats_collectives').select('*, evenements(titre,date_heure,match_type)').in('evenement_id', idsSaison).order('created_at', { ascending: true }),
-      supabase.from('rpe').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
+      toutLire(() => supabase.from('rpe').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison).order('created_at', { ascending: false })),
       // Jointure evenements(type) pour ne garder que le Footbar pris en match — sinon la
       // distance moyenne se retrouve diluée par les séances d'entraînement (même
       // filtre que DashboardPage.jsx/ClassementButeursPage.jsx).
-      supabase.from('footbar').select('*, joueurs(nom,prenom), evenements(type)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
-      supabase.from('stats_match').select('*, joueurs(nom,prenom), evenements(match_type)').in('evenement_id', idsSaison).order('created_at', { ascending: false }),
-      supabase.from('presences').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison),
+      toutLire(() => supabase.from('footbar').select('*, joueurs(nom,prenom), evenements(type)').in('evenement_id', idsSaison).order('created_at', { ascending: false })),
+      toutLire(() => supabase.from('stats_match').select('*, joueurs(nom,prenom), evenements(match_type)').in('evenement_id', idsSaison).order('created_at', { ascending: false })),
+      toutLire(() => supabase.from('presences').select('*, joueurs(nom,prenom)').in('evenement_id', idsSaison)),
       supabase.from('evenements').select('*').eq('type', 'match').gte('date_heure', debut).lte('date_heure', fin),
     ])
     const premiereErreur = e1 || e2 || e3 || e4 || e5 || e6

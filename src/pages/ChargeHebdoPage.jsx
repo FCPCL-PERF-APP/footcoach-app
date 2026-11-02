@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { toutLire } from '../lib/toutLire'
 import { bornesSaison } from '../lib/saison'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
@@ -41,8 +42,8 @@ export default function ChargeHebdoPage() {
     const depuis = depuisDate.toISOString()
 
     const [{ data: rpeData, error: e1 }, { data: eventsData, error: e2 }] = await Promise.all([
-      supabase.from('rpe').select('*, evenements(date_heure, type)')
-        .gte('created_at', depuis).order('created_at', { ascending: true }),
+      toutLire(() => supabase.from('rpe').select('*, evenements(date_heure, type)')
+        .gte('created_at', depuis).order('created_at', { ascending: true })),
       supabase.from('evenements').select('*')
         .gte('date_heure', depuis).order('date_heure', { ascending: true }),
     ])
