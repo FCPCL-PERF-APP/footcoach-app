@@ -1,7 +1,10 @@
 # Sauvegarde de la base Supabase
 
-Chaque nuit, GitHub (tâche « Sauvegarde de la base Supabase ») exporte toute la base,
-la chiffre avec ta phrase de chiffrement et la garde **90 jours**.
+Deux tâches GitHub chiffrent tout avec ta phrase de chiffrement et gardent chaque copie **90 jours** :
+
+- **chaque nuit**, « Sauvegarde de la base Supabase » exporte toute la base ;
+- **chaque dimanche**, « Sauvegarde des fichiers Supabase » copie toutes les photos et ressources.
+
 Le dépôt étant public, les fichiers sont illisibles sans cette phrase.
 
 ## Ce qui est sauvegardé
@@ -10,19 +13,21 @@ Le dépôt étant public, les fichiers sont illisibles sans cette phrase.
   blessures, stats, calendrier, messages…), avec les fonctions et les règles d'accès.
 - **Fichier `…-auth.sql.gz.enc`** : les comptes de connexion (e-mails, mots de passe chiffrés).
 
-**Non sauvegardé** : les fichiers déposés dans Supabase Storage (photos de joueurs,
-ressources, images des messages). Seuls leurs liens sont dans la base.
+- **Fichier `…-fichiers.tar.gz.enc`** (le dimanche) : tous les fichiers de Supabase Storage,
+  espaces `joueurs` (photos joueurs et staff, images) et `ressources` (documents partagés).
 
 ## En cas d'échec
 
 GitHub t'envoie un e-mail. Causes courantes :
 
 - mot de passe de la base changé : mets à jour le secret `SUPABASE_DB_URL` ;
+- clé de service Supabase régénérée : mets à jour le secret `SUPABASE_SERVICE_KEY` ;
 - projet Supabase en pause (projet gratuit inactif) : réactive-le depuis le tableau de bord.
 
 ## Récupérer une sauvegarde
 
-1. GitHub > dépôt `footcoach-app` > **Actions** > **Sauvegarde de la base Supabase**.
+1. GitHub > dépôt `footcoach-app` > **Actions** > **Sauvegarde de la base Supabase**
+   (ou **Sauvegarde des fichiers Supabase**).
 2. Ouvre l'exécution de la date voulue. En bas de la page, télécharge l'artifact
    `sauvegarde-…`, puis double-clique le zip pour l'ouvrir.
 3. Dans le Terminal, dans le dossier du projet :
@@ -32,6 +37,8 @@ GitHub t'envoie un e-mail. Causes courantes :
    ```
 
 4. Tape ta phrase de chiffrement. Le fichier `.sql` lisible apparaît à côté.
+   Pour les fichiers, même commande sur `footcoach-…-fichiers.tar.gz.enc` : un dossier
+   avec les photos et documents apparaît à côté.
 
 ## Restaurer
 
