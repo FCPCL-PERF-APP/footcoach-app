@@ -219,23 +219,6 @@ export function BarChart({ data, maxValue = 5 }) {
   )
 }
 
-export function ReadonlyBanner({ name, role }) {
-  return (
-    <div style={{
-      background: 'var(--primary-bg)', border: '0.5px solid var(--primary)',
-      borderRadius: 10, padding: '8px 12px',
-      display: 'flex', alignItems: 'center', gap: 8,
-      marginBottom: 12
-    }}>
-      <span style={{ fontSize: 16 }}>👁</span>
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)' }}>{name}</div>
-        <div style={{ fontSize: 10, color: 'var(--primary)' }}>Mode consultation — vous pouvez commenter les fiches joueurs</div>
-      </div>
-    </div>
-  )
-}
-
 export function AlertCard({ type = 'red', title, message }) {
   const colors = {
     red:    { border: 'var(--danger)', bg: 'var(--danger-bg)' },

@@ -155,7 +155,9 @@ export function AuthProvider({ children }) {
   const isAdjoint = profile?.role === 'adjoint' || profile?.role === 'gardien' || profile?.role === 'preparateur'
   const isStaff   = isCoach || isAdjoint
   const isJoueur  = profile?.type === 'joueur' || (!isCoach && !isAdjoint)
-  const canEdit    = isCoach
+  // Saisie des données (stats, présences, blessures...) : tout le staff. La gestion du staff,
+  // la création/archivage de joueurs et l'archive de saison restent réservées à isCoach.
+  const canEdit    = isStaff
   const canComment = isStaff
 
   function retryProfile() {

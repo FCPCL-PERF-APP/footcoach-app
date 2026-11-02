@@ -31,10 +31,10 @@ const STATUTS_CONNEXION = {
 }
 
 const ROLES = [
-  { value: 'coach',    icon: Crown, label: 'Coach principal', desc: 'Accès complet — modification, suppression, création', color: 'var(--primary)', canEdit: true },
-  { value: 'adjoint',  icon: Handshake, label: 'Coach adjoint',   desc: 'Lecture seule — consultation de toutes les données', color: 'var(--success)', canEdit: false },
-  { value: 'admin',    icon: Settings, label: 'Administrateur',  desc: 'Accès complet comme le coach principal', color: 'var(--warning)', canEdit: true },
-  { value: 'preparateur', icon: Dumbbell, label: 'Préparateur physique', desc: 'Accès RPE, Footbar et données physiques', color: 'var(--danger)', canEdit: false },
+  { value: 'coach',    icon: Crown, label: 'Coach principal', desc: 'Accès complet, dont la gestion du staff, des joueurs et l\'archive de saison', color: 'var(--primary)' },
+  { value: 'adjoint',  icon: Handshake, label: 'Coach adjoint',   desc: 'Saisie et analyse : stats, compo, présences, RPE, Footbar, blessures, calendrier', color: 'var(--success)' },
+  { value: 'admin',    icon: Settings, label: 'Administrateur',  desc: 'Accès complet comme le coach principal', color: 'var(--warning)' },
+  { value: 'preparateur', icon: Dumbbell, label: 'Préparateur physique', desc: 'Mêmes droits que le coach adjoint (saisie et analyse)', color: 'var(--danger)' },
 ]
 
 const AVATAR_COLORS = [

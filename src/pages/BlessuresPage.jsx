@@ -20,7 +20,7 @@ const GRAVITES = [
 export default function BlessuresPage() {
   const { id: joueurId } = useParams()
   const navigate = useNavigate()
-  const { isCoach, isJoueur, canEdit } = useAuth()
+  const { isJoueur, canEdit } = useAuth()
   const [joueur, setJoueur] = useState(null)
   const [blessures, setBlessures] = useState([])
   const [loading, setLoading] = useState(true)
@@ -111,7 +111,7 @@ export default function BlessuresPage() {
           <p style={{ fontSize: 16, fontWeight: 700 }}>Suivi des blessures</p>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{joueur?.nom} {joueur?.prenom} · {joueur?.poste}</p>
         </div>
-        {isCoach && (
+        {canEdit && (
           <button onClick={() => setShowAdd(!showAdd)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 11, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
             {showAdd ? <X size={12} /> : <><Plus size={12} /> Blessure</>}
           </button>
@@ -184,7 +184,7 @@ export default function BlessuresPage() {
                     Depuis le {format(parseISO(b.date_debut), 'd MMM yyyy', { locale: fr })}
                     {b.date_retour_prevue && <span> · Retour prévu le {format(parseISO(b.date_retour_prevue), 'd MMM', { locale: fr })}</span>}
                   </div>
-                  {isCoach && (
+                  {canEdit && (
                     <button onClick={() => marquerGueri(b.id, new Date().toISOString().split('T')[0])}
                       style={{ padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--success-bg)', color: 'var(--success)', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <CheckCircle2 size={11} /> Guéri
