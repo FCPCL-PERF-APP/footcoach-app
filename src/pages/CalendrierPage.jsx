@@ -9,7 +9,7 @@ import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO, isAfter } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
-  CalendarDays, Repeat, Plus, X, Pencil, Trash2, MapPin, Clock, Send, Hourglass,
+  CalendarDays, CalendarRange, Repeat, Plus, X, Pencil, Trash2, MapPin, Clock, Send, Hourglass,
   CheckCircle2, RefreshCw, XCircle, Bandage, BarChart3, Heart, Radio, Copy,
   Swords, Footprints, History, WifiOff, Save, Check, Circle, Eye, EyeOff, Info
 } from 'lucide-react'
@@ -218,6 +218,9 @@ export default function CalendrierPage() {
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => navigate('/calendrier-visuel')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
             <CalendarDays size={13} /> Vue mois
+          </button>
+          <button onClick={() => navigate('/calendrier-general')} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <CalendarRange size={13} /> Saison
           </button>
           {isCoach && <button onClick={() => setShowRecurring(!showRecurring)} style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <Repeat size={14} />

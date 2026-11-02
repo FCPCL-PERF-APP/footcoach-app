@@ -5,6 +5,7 @@ import SyncStatusBanner from './components/SyncStatusBanner'
 import { Spinner } from './components/UI'
 import BottomNav from './components/BottomNav'
 import AppHeader from './components/AppHeader'
+import SuiviPages from './components/SuiviPages'
 import LoginPage from './pages/LoginPage'
 import { lazy, Suspense, useEffect } from 'react'
 
@@ -150,6 +151,7 @@ function AppContent() {
   return (
     <div style={{ maxWidth: 'var(--app-max-width)', margin: '0 auto', minHeight: '100vh', background: 'var(--bg-page)' }}>
       <AppHeader />
+      <SuiviPages />
       <SyncStatusBanner />
       <div style={{ paddingBottom: 80 }}>
         <Suspense fallback={routeFallback}>

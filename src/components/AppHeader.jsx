@@ -2,26 +2,9 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
 import { labelSaison } from '../lib/saison'
+import { PAGE_TITLES } from '../lib/pageTitres'
 import { Search, Moon, Sun, User, Trophy, LogOut } from 'lucide-react'
 
-const PAGE_TITLES = {
-  '/calendrier': 'Calendrier',
-  '/calendrier-visuel': 'Calendrier',
-  '/rpe': 'Suivi RPE',
-  '/footbar': 'Footbar équipe',
-  '/mon-suivi': 'Mon suivi',
-  '/joueurs': 'Joueurs',
-  '/messages': 'Messages',
-  '/dashboard': 'Dashboard',
-  '/mon-dashboard': 'Accueil',
-  '/ressources': 'Ressources',
-  '/staff': 'Staff technique',
-  '/ma-fiche': 'Ma fiche',
-  '/bilan-saison': 'Bilan de saison',
-  '/mon-bilan': 'Ma saison',
-  '/mon-profil': 'Mon profil',
-  '/mon-profil-joueur': 'Mon profil',
-}
 
 export default function AppHeader() {
   const { pathname } = useLocation()

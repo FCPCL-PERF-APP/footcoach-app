@@ -5,7 +5,8 @@ import { Card, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { differenceInDays, differenceInHours, format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { ArrowLeft, Smartphone, Circle, Bell, BellOff } from 'lucide-react'
+import { ArrowLeft, Smartphone, Circle, Bell, BellOff, MousePointerClick } from 'lucide-react'
+import { PAGE_TITLES } from '../lib/pageTitres'
 
 export default function StatsConnexionPage() {
   const navigate = useNavigate()
@@ -15,11 +16,15 @@ export default function StatsConnexionPage() {
   const [scope, setScope] = useState('joueurs')
   const [filter, setFilter] = useState('tous')
   const [pushByAuthId, setPushByAuthId] = useState({})
+  const [pagesVues, setPagesVues] = useState(null)
 
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
     setLoading(true)
+    // Pages les plus ouvertes sur 30 jours (fonction fc_pages_vues, réservée au coach).
+    // En son absence (migration non lancée), le bloc ne s'affiche simplement pas.
+    supabase.rpc('fc_pages_vues', { jours: 30 }).then(({ data, error }) => setPagesVues(error ? null : (data || [])))
     const [{ data }, { data: staffData }, { data: subs }] = await Promise.all([
       supabase
         .from('joueurs')
@@ -140,6 +145,36 @@ export default function StatsConnexionPage() {
           </div>
         </div>
       </Card>
+
+      {/* Pages les plus ouvertes */}
+      {pagesVues && (() => {
+        const groupe = scope === 'joueurs' ? 'joueur' : 'staff'
+        const lignes = pagesVues.filter(p => p.groupe === groupe)
+        const max = Math.max(1, ...lignes.map(p => Number(p.ouvertures)))
+        return (
+          <Card style={{ marginBottom: 14 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MousePointerClick size={14} color={'var(--primary)'} /> Pages ouvertes — 30 derniers jours
+            </p>
+            <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
+              {scope === 'joueurs' ? 'Joueurs' : 'Staff'} · ouvertures (au plus une toutes les 10 min par personne) et nombre de personnes.
+              Une page absente de la liste n'a pas été ouverte.
+            </p>
+            {lignes.length === 0 && <p style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>Pas encore de données.</p>}
+            {lignes.map(p => (
+              <div key={p.path} style={{ marginBottom: 7 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
+                  <span>{PAGE_TITLES[p.path] || p.path}</span>
+                  <span style={{ color: 'var(--text-muted)' }}><strong style={{ color: 'var(--text-primary)' }}>{p.ouvertures}</strong> · {p.personnes} pers.</span>
+                </div>
+                <div style={{ height: 5, background: 'var(--bg-secondary)', borderRadius: 3 }}>
+                  <div style={{ height: '100%', width: `${Number(p.ouvertures) / max * 100}%`, background: 'var(--primary)', borderRadius: 3 }} />
+                </div>
+              </div>
+            ))}
+          </Card>
+        )
+      })()}
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: 5, marginBottom: 12, overflowX: 'auto', paddingBottom: 2 }}>
