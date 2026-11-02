@@ -77,9 +77,47 @@ function RpeBarChart({ rpeList, title }) {
 // Grille des 6 curseurs RPE (0 à 5) — factorisée pour être réutilisée à la fois par les
 // cartes "À remplir" (matchs/séances convoqués) et par l'ajout manuel d'un match où le
 // joueur n'était pas convoqué (cf. onglet Historique).
+// Échelle de Borg CR-10 : sert au calcul de la charge (intensité × durée).
+const INTENSITE_LIBELLES = { 0: 'Repos', 1: 'Très très facile', 2: 'Facile', 3: 'Modéré', 4: 'Un peu dur', 5: 'Dur', 6: 'Dur', 7: 'Très dur', 8: 'Très dur', 9: 'Très très dur', 10: 'Maximal' }
+function intensiteColor(v) {
+  if (v >= 8) return 'var(--danger)'
+  if (v >= 6) return '#D85A30'
+  if (v >= 4) return 'var(--warning)'
+  return 'var(--success)'
+}
+
+function IntensiteInput({ value, onChange }) {
+  return (
+    <div style={{ marginBottom: 16, padding: 10, borderRadius: 10, background: 'var(--bg-secondary)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+        <label style={{ fontSize: 12, fontWeight: 700 }}>Intensité de l'effort</label>
+        <span style={{ fontSize: 12, fontWeight: 700, color: value !== undefined ? intensiteColor(value) : 'var(--text-muted)' }}>
+          {value !== undefined ? `${value}/10 · ${INTENSITE_LIBELLES[value]}` : '—'}
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(11, 1fr)', gap: 3 }}>
+        {[0,1,2,3,4,5,6,7,8,9,10].map(v => (
+          <button key={v} onClick={() => onChange('intensite', v)} style={{
+            padding: '9px 0', borderRadius: 7,
+            border: `1.5px solid ${value === v ? intensiteColor(v) : 'var(--border)'}`,
+            background: value === v ? `${intensiteColor(v)}20` : '#fff',
+            color: value === v ? intensiteColor(v) : 'var(--text-secondary)',
+            fontSize: 12, fontWeight: value === v ? 700 : 400, cursor: 'pointer'
+          }}>{v}</button>
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+        <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Repos</span>
+        <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Effort maximal</span>
+      </div>
+    </div>
+  )
+}
+
 function RpeInputs({ value, onChange }) {
   return (
     <>
+      <IntensiteInput value={value.intensite} onChange={onChange} />
       {RPE_ITEMS.map(item => {
         const val = value[item.key]
         return (
@@ -290,7 +328,8 @@ export default function MonSuiviPage() {
       const payload = {
         joueur_id: profile.id, evenement_id: eventId,
         commentaire: commentaires[eventId] || '',
-        ...Object.fromEntries(RPE_ITEMS.map(i => [i.key, rpeForm[i.key] !== undefined ? parseFloat(rpeForm[i.key]) : null]))
+        ...Object.fromEntries(RPE_ITEMS.map(i => [i.key, rpeForm[i.key] !== undefined ? parseFloat(rpeForm[i.key]) : null])),
+        intensite: rpeForm.intensite !== undefined ? parseInt(rpeForm.intensite) : null,
       }
       try {
         const result = await upsertOrQueue('rpe', payload, 'evenement_id,joueur_id')
@@ -345,6 +384,7 @@ export default function MonSuiviPage() {
     if (!rpeForms[selectedHistEvent]) {
       const init = {}
       RPE_ITEMS.forEach(i => { if (selectedRpe?.[i.key] != null) init[i.key] = selectedRpe[i.key] })
+      if (selectedRpe?.intensite != null) init.intensite = selectedRpe.intensite
       setRpeForms(p => ({ ...p, [selectedHistEvent]: init }))
     }
     if (!footForms[selectedHistEvent]) {
@@ -607,6 +647,12 @@ export default function MonSuiviPage() {
                           <span style={{ fontSize: 16, fontWeight: 800, color: rpeColor(parseFloat(avg)) }}>{avg}/5</span>
                         ) })()}
                       </div>
+                      {selectedRpe.intensite != null && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 10, fontWeight: 600 }}>
+                          <span>Intensité de l'effort</span>
+                          <span style={{ color: intensiteColor(selectedRpe.intensite) }}>{selectedRpe.intensite}/10 · {INTENSITE_LIBELLES[selectedRpe.intensite]}</span>
+                        </div>
+                      )}
                       {RPE_ITEMS.map(item => {
                         const val = selectedRpe[item.key]
                         return (

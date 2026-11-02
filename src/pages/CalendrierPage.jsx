@@ -37,7 +37,7 @@ export default function CalendrierPage() {
   const [form, setForm] = useState({
     type: 'match', titre: '', date: '', heure: '15:00',
     lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '',
-    match_type: 'championnat', commentaire: ''
+    match_type: 'championnat', commentaire: '', duree_min: ''
   })
   const [saving, setSaving] = useState(false)
   const [queueCount, setQueueCount] = useState(0)
@@ -74,6 +74,8 @@ export default function CalendrierPage() {
       // Commentaire libre du coach (synthétique, RDV sur place...) — visible par tous
       // sur la carte du match, éditable uniquement par le coach.
       commentaire: form.type === 'match' ? (form.commentaire || null) : null,
+      // Durée réelle d'une séance (calcul de la charge) ; vide = 90 min par défaut.
+      duree_min: form.type === 'seance' && parseInt(form.duree_min) > 0 ? parseInt(form.duree_min) : null,
     }
     const { error } = editingEvent
       ? await supabase.from('evenements').update(payload).eq('id', editingEvent.id)
@@ -98,7 +100,7 @@ export default function CalendrierPage() {
     }
 
     setShowAdd(false); setEditingEvent(null)
-    setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '', commentaire: '' })
+    setForm({ type: 'match', titre: '', date: '', heure: '15:00', lieu: '', domicile: true, rdv_heure: '14:00', rdv_lieu: '', commentaire: '', duree_min: '' })
     loadEvents()
   }
 
@@ -110,7 +112,8 @@ export default function CalendrierPage() {
       heure: ev.date_heure?.split('T')[1]?.slice(0,5) || '15:00',
       lieu: ev.lieu || '', domicile: ev.domicile !== false,
       rdv_heure: ev.rdv_heure || '14:00', rdv_lieu: ev.rdv_lieu || '',
-      match_type: ev.match_type || 'championnat', commentaire: ev.commentaire || ''
+      match_type: ev.match_type || 'championnat', commentaire: ev.commentaire || '',
+      duree_min: ev.duree_min || ''
     })
     setShowAdd(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -152,7 +155,8 @@ export default function CalendrierPage() {
       rdv_heure: ev.rdv_heure || '14:00', rdv_lieu: ev.rdv_lieu || '',
       // Pas de report du commentaire — spécifique au match d'origine (synthétique, RDV
       // sur place...), qui n'a aucune raison d'être valable pour le match dupliqué.
-      match_type: ev.match_type || 'championnat', commentaire: ''
+      match_type: ev.match_type || 'championnat', commentaire: '',
+      duree_min: ev.duree_min || ''
     })
     setShowAdd(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -271,6 +275,10 @@ export default function CalendrierPage() {
             <Input label="Heure" type="time" value={form.heure} onChange={v => setForm(p => ({...p, heure: v}))} />
           </div>
           <Input label="Lieu" value={form.lieu} onChange={v => setForm(p => ({...p, lieu: v}))} placeholder="Stade municipal..." />
+          {form.type === 'seance' && (
+            <Input label="Durée (min) — pour le calcul de la charge" type="number" value={form.duree_min}
+              onChange={v => setForm(p => ({...p, duree_min: v}))} placeholder="90" />
+          )}
           {form.type === 'match' && (
             <>
               <Select label="Domicile / Déplacement" value={form.domicile ? 'dom' : 'dep'}
@@ -840,7 +848,7 @@ function FormeWidget({ evenementId, joueurId }) {
 }
 
 function RecurringModal({ onClose, onSave }) {
-  const [form, setForm] = useState({ titre: 'Entraînement', jour: '2', heure: '19:30', lieu: '', dateDebut: '', dateFin: '' })
+  const [form, setForm] = useState({ titre: 'Entraînement', jour: '2', heure: '19:30', lieu: '', dateDebut: '', dateFin: '', duree_min: '' })
   const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
   const [saving, setSaving] = useState(false)
   const iStyle = { width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }
@@ -853,7 +861,7 @@ function RecurringModal({ onClose, onSave }) {
     const current = new Date(start)
     while (current.getDay() !== jourNum) current.setDate(current.getDate() + 1)
     while (current <= end) {
-      seances.push({ type: 'seance', titre: form.titre, date_heure: `${current.toISOString().split('T')[0]}T${form.heure}:00`, lieu: form.lieu, domicile: true })
+      seances.push({ type: 'seance', titre: form.titre, date_heure: `${current.toISOString().split('T')[0]}T${form.heure}:00`, lieu: form.lieu, domicile: true, duree_min: parseInt(form.duree_min) > 0 ? parseInt(form.duree_min) : null })
       current.setDate(current.getDate() + 7)
     }
     const { error } = await supabase.from('evenements').insert(seances)
@@ -889,6 +897,7 @@ function RecurringModal({ onClose, onSave }) {
           <div><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Date début</label><input type="date" value={form.dateDebut} onChange={e => setForm(p => ({...p, dateDebut: e.target.value}))} style={iStyle} /></div>
           <div><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Date fin</label><input type="date" value={form.dateFin} onChange={e => setForm(p => ({...p, dateFin: e.target.value}))} style={iStyle} /></div>
           <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Lieu</label><input value={form.lieu} onChange={e => setForm(p => ({...p, lieu: e.target.value}))} placeholder="Terrain 1" style={iStyle} /></div>
+          <div style={{ gridColumn: '1/-1' }}><label style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 3 }}>Durée (min)</label><input type="number" value={form.duree_min} onChange={e => setForm(p => ({...p, duree_min: e.target.value}))} placeholder="90" style={iStyle} /></div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: 12, background: 'var(--gradient)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>

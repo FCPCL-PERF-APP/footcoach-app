@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { toutLire } from '../lib/toutLire'
 import { bornesSaison } from '../lib/saison'
+import { chargesDepuisRpe, indicateursJoueur, zoneAcwr } from '../lib/charge'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO, endOfWeek, subWeeks, eachWeekOfInterval } from 'date-fns'
@@ -28,6 +29,8 @@ export default function ChargeHebdoPage() {
   const [loadError, setLoadError] = useState(null)
   const [semaines, setSemaines] = useState([])
   const [activeView, setActiveView] = useState('charge')
+  const [joueursCharge, setJoueursCharge] = useState([])
+  const [partEstimee, setPartEstimee] = useState(0)
 
   useEffect(() => { loadData() }, [])
 
@@ -41,19 +44,35 @@ export default function ChargeHebdoPage() {
     const depuisDate = depuis12sem > new Date(debutSaison) ? depuis12sem : new Date(debutSaison)
     const depuis = depuisDate.toISOString()
 
-    const [{ data: rpeData, error: e1 }, { data: eventsData, error: e2 }] = await Promise.all([
+    const [{ data: rpeData, error: e1 }, { data: eventsData, error: e2 }, { data: statsData, error: e3 }, { data: joueursData, error: e4 }] = await Promise.all([
       toutLire(() => supabase.from('rpe').select('*, evenements(date_heure, type)')
         .gte('created_at', depuis).order('created_at', { ascending: true })),
       supabase.from('evenements').select('*')
         .gte('date_heure', depuis).order('date_heure', { ascending: true }),
+      toutLire(() => supabase.from('stats_match').select('evenement_id, joueur_id, temps_jeu')
+        .gte('created_at', depuis)),
+      supabase.from('joueurs').select('id, nom, prenom').eq('archive', false),
     ])
     // Sans ce garde-fou, une erreur réseau/RLS rendait la page comme si aucune donnée
     // n'existait (état vide), impossible à distinguer d'une saison qui vient de démarrer.
-    if (e1 || e2) {
-      setLoadError((e1 || e2).message)
+    if (e1 || e2 || e3 || e4) {
+      setLoadError((e1 || e2 || e3 || e4).message)
       setLoading(false)
       return
     }
+
+    // Charge sRPE de chaque séance déclarée (intensité × durée réelle ou temps de jeu)
+    const charges = chargesDepuisRpe({ rpe: rpeData || [], evenements: eventsData || [], stats: statsData || [] })
+    setPartEstimee(charges.length ? Math.round(charges.filter(c => c.estimee).length / charges.length * 100) : 0)
+    const parJoueur = new Map()
+    for (const c of charges) {
+      if (!parJoueur.has(c.joueur_id)) parJoueur.set(c.joueur_id, [])
+      parJoueur.get(c.joueur_id).push(c)
+    }
+    setJoueursCharge((joueursData || [])
+      .map(j => ({ ...j, ...indicateursJoueur(parJoueur.get(j.id) || []) }))
+      .filter(j => j.aigue > 0 || j.chronique > 0)
+      .sort((a, b) => (b.acwr ?? -1) - (a.acwr ?? -1)))
 
     // Groupe par semaine
     const weeks = eachWeekOfInterval(
@@ -91,11 +110,17 @@ export default function ChargeHebdoPage() {
         return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
       }
 
-      // Charge = RPE moyen × nb séances (monotonie simplifiée)
+      // Charge de la semaine = moyenne, sur les joueurs ayant répondu, de leur total
+      // sRPE de la semaine (UA). Un joueur sans réponse n'est pas compté comme 0.
       const rpeMoy = calcRpe(weekRpe)
       const nbSeances = weekEvents.filter(e => e.type === 'seance').length
       const nbMatchs = weekEvents.filter(e => e.type === 'match').length
-      const charge = rpeMoy ? parseFloat((rpeMoy * (nbSeances + nbMatchs * 1.5)).toFixed(1)) : null
+      const totaux = {}
+      for (const c of charges) {
+        if (c.date >= weekStart && c.date <= weekEnd) totaux[c.joueur_id] = (totaux[c.joueur_id] || 0) + c.charge
+      }
+      const vals = Object.values(totaux)
+      const charge = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null
 
       return {
         label, dateLabel, weekStart, weekEnd,
@@ -118,7 +143,7 @@ export default function ChargeHebdoPage() {
     setLoading(false)
   }
 
-  const maxCharge = Math.max(10, ...semaines.map(s => s.charge || 0))
+  const maxCharge = Math.max(100, ...semaines.map(s => s.charge || 0))
   const maxRpe = 5
   const W = 320, H = 120, PAD = 20
   const activeData = semaines.filter(s => s.charge !== null || s.rpeMoy !== null)
@@ -154,7 +179,7 @@ export default function ChargeHebdoPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
                 {[
                   { label: 'RPE moy.', value: derniereSemaine.rpeMoy ?? '—', color: rpeColor(derniereSemaine.rpeMoy) },
-                  { label: 'Charge', value: derniereSemaine.charge ?? '—', color: 'var(--primary)' },
+                  { label: 'Charge (UA)', value: derniereSemaine.charge ?? '—', color: 'var(--primary)' },
                   { label: 'Séances', value: derniereSemaine.nbSeances, color: '#3B6D11' },
                   { label: 'Matchs', value: derniereSemaine.nbMatchs, color: 'var(--primary)' },
                 ].map(m => (
@@ -197,11 +222,11 @@ export default function ChargeHebdoPage() {
           {activeView === 'charge' && activeData.length >= 2 && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Charge d'entraînement — 12 semaines</p>
-              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>Charge = RPE moyen × nombre de séances</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
+                Charge par joueur et par semaine (moyenne équipe) = intensité de l'effort (0-10) × durée en minutes, en UA.
+                {partEstimee > 0 && ` ${partEstimee} % des valeurs sont estimées (RPE remplis avant la question d'intensité).`}
+              </p>
               <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 120 }}>
-                {/* Zones de danger */}
-                <rect x={PAD} y={PAD} width={W-PAD*2} height={(H-PAD*2)*0.15} fill="#FCEBEB" opacity="0.5" />
-                <text x={W-PAD-2} y={PAD+10} textAnchor="end" fontSize="8" fill="#A32D2D">Surcharge</text>
                 {/* Courbe */}
                 <polyline
                   points={activeData.filter(s => s.charge !== null).map((s, i) => `${xPos(i)},${yPosCharge(s.charge)}`).join(' ')}
@@ -209,7 +234,8 @@ export default function ChargeHebdoPage() {
                 {activeData.map((s, i) => s.charge !== null && (
                   <g key={i}>
                     <circle cx={xPos(i)} cy={yPosCharge(s.charge)} r="4"
-                      fill={s.charge > maxCharge * 0.85 ? '#A32D2D' : 'var(--primary)'} />
+                      fill={'var(--primary)'} />
+                    <text x={xPos(i)} y={yPosCharge(s.charge)-8} textAnchor="middle" fontSize="8" fill="var(--text-muted)">{s.charge}</text>
                     <text x={xPos(i)} y={H-4} textAnchor="middle" fontSize="8" fill="var(--text-muted)">{s.label}</text>
                   </g>
                 ))}
@@ -261,6 +287,35 @@ export default function ChargeHebdoPage() {
                   </g>
                 ))}
               </svg>
+            </Card>
+          )}
+
+          {/* Indicateurs par joueur */}
+          {activeView === 'charge' && joueursCharge.length > 0 && (
+            <Card>
+              <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Joueurs — charge des 7 derniers jours</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>
+                Ratio = charge des 7 derniers jours ÷ moyenne hebdo des 4 dernières semaines.
+                0,8 à 1,3 : zone optimale · au-delà de 1,5 : hausse brutale, risque de blessure accru.
+                Monotonie &gt; 2 : semaine trop uniforme, pas assez de récupération.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 52px 52px 72px', gap: 4, fontSize: 9, color: 'var(--text-muted)', paddingBottom: 4, borderBottom: '0.5px solid var(--border)' }}>
+                <span>Joueur</span><span style={{ textAlign: 'right' }}>7 j (UA)</span><span style={{ textAlign: 'right' }}>Monot.</span><span style={{ textAlign: 'right' }}>Ratio</span>
+              </div>
+              {joueursCharge.map(j => {
+                const z = zoneAcwr(j.acwr)
+                return (
+                  <div key={j.id} style={{ display: 'grid', gridTemplateColumns: '1fr 52px 52px 72px', gap: 4, alignItems: 'center', padding: '7px 0', borderBottom: '0.5px solid var(--bg-secondary)', fontSize: 12 }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.prenom} {j.nom}</span>
+                    <span style={{ textAlign: 'right', fontWeight: 600 }}>{j.aigue}</span>
+                    <span style={{ textAlign: 'right', color: j.monotonie > 2 ? 'var(--danger)' : 'var(--text-secondary)', fontWeight: j.monotonie > 2 ? 700 : 400 }}>{j.monotonie ?? '—'}</span>
+                    <span style={{ textAlign: 'right' }}>
+                      {z ? <span style={{ fontSize: 11, fontWeight: 700, color: z.couleur }}>{j.acwr} · {z.label}</span>
+                         : <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Pas assez de données</span>}
+                    </span>
+                  </div>
+                )
+              })}
             </Card>
           )}
 
