@@ -4,7 +4,8 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist', 'node_modules'] },
+  // *.nosync : dossiers déplacés hors synchronisation iCloud (node_modules, dist sont des liens vers eux)
+  { ignores: ['dist', 'node_modules', 'dist.nosync', 'node_modules.nosync', '**/node_modules.nosync/**', '**/dist.nosync/**'] },
   {
     files: ['src/sw.js'],
     languageOptions: {
