@@ -30,6 +30,7 @@ const RessourcesPage         = lazy(() => import('./pages/RessourcesPage'))
 const StaffPage              = lazy(() => import('./pages/StaffPage'))
 const StatsConnexionPage     = lazy(() => import('./pages/StatsConnexionPage'))
 const StatsPage              = lazy(() => import('./pages/StatsPage'))
+const FeuilleMatchPage       = lazy(() => import('./pages/FeuilleMatchPage'))
 const ConvocationsPage       = lazy(() => import('./pages/ConvocationsPage'))
 const PresencesMatchPage     = lazy(() => import('./pages/PresencesMatchPage'))
 const PresencesRecapPage     = lazy(() => import('./pages/PresencesRecapPage'))
@@ -188,6 +189,7 @@ function AppContent() {
           <Route path="/ressources"             element={<RessourcesPage />} />
           <Route path="/staff"                  element={<StaffPage />} />
           <Route path="/stats/:id" element={garde('/stats/:id', <StatsPage />)} />
+          <Route path="/match/:id" element={garde('/match/:id', <FeuilleMatchPage />)} />
           <Route path="/convocations/:id" element={garde('/convocations/:id', <ConvocationsPage />)} />
           <Route path="/presences/:id" element={garde('/presences/:id', <PresencesMatchPage />)} />
           <Route path="/presences-recap" element={garde('/presences-recap', <PresencesRecapPage />)} />

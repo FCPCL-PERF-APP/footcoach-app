@@ -1,5 +1,6 @@
 // Titres des pages, affichés dans l'en-tête et dans la mesure d'usage.
 export const PAGE_TITLES = {
+  '/match/:id': 'Feuille de match',
   '/calendrier': 'Calendrier',
   '/calendrier-visuel': 'Calendrier',
   '/rpe': 'Suivi RPE',

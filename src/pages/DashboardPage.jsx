@@ -7,10 +7,11 @@ import { THEME, CAT_COLORS } from '../theme'
 import { computePresenceBreakdown } from '../lib/presenceStats'
 import { labelSaison } from '../lib/saison'
 import { computeAlertes, alertKey, fetchNonConvoqueSet } from '../lib/alertes'
+import { dernierMatchACompleter } from '../lib/chargerFeuilleMatch'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
-  ClipboardCheck, HelpCircle, FileText, Send, Calendar, Users, BarChart3, Heart,
+  ClipboardCheck, ClipboardList, HelpCircle, FileText, Send, Calendar, Users, BarChart3, Heart,
   AlertTriangle, CheckCircle2, TrendingUp, Circle, ArrowRight
 } from 'lucide-react'
 
@@ -88,6 +89,9 @@ export default function DashboardPage() {
   const [prochainEvent, setProchainEvent] = useState(null)
   const [nbAlertes, setNbAlertes] = useState(0)
   const [aujourdhui, setAujourdhui] = useState({ presencesAConfirmer: [], rpeManquants: 0, convocationsManquantes: [] })
+  // Dernier match des 7 derniers jours dont la Feuille de match n'est pas complète.
+  const [feuilleACompleter, setFeuilleACompleter] = useState(null)
+  useEffect(() => { dernierMatchACompleter().then(setFeuilleACompleter, () => {}) }, [])
   const [alertesTraitees, setAlertesTraitees] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('fcpcl-alertes-v2') || '{}')
@@ -354,6 +358,11 @@ export default function DashboardPage() {
           {/* AUJOURD'HUI / À FAIRE */}
           {(() => {
             const items = []
+            if (feuilleACompleter) items.push({
+              icon: ClipboardList, label: `Feuille de match — ${feuilleACompleter.event?.titre || ''}`,
+              sub: `${feuilleACompleter.faites}/${feuilleACompleter.total} étapes faites · ${feuilleACompleter.etapes.filter(e => e.obligatoire && !e.fait).map(e => e.label.toLowerCase()).join(', ')}`,
+              action: () => navigate(`/match/${feuilleACompleter.event.id}`), cat: 'purple'
+            })
             aujourdhui.presencesAConfirmer.forEach(p => items.push({
               icon: HelpCircle, label: `Présence à confirmer — ${p.event.titre}`,
               sub: `${p.nb} joueur(s) sans réponse`, action: () => navigate('/calendrier'), cat: 'amber'

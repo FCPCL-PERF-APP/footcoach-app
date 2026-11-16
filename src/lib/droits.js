@@ -23,7 +23,7 @@ export const ACCES_PAGES = {
   '/set-password': 'tous', '/championnat': 'tous', '/match-live/:id': 'tous',
 
   '/rpe': 'staff', '/footbar': 'staff', '/dashboard': 'staff', '/export-fiche/:id': 'staff',
-  '/stats/:id': 'staff', '/convocations/:id': 'staff', '/presences/:id': 'staff',
+  '/stats/:id': 'staff', '/match/:id': 'staff', '/convocations/:id': 'staff', '/presences/:id': 'staff',
   '/presences-recap': 'staff', '/charge-hebdo': 'staff', '/comparatif': 'staff',
   '/bilan-saison': 'staff', '/correlation': 'staff', '/mon-profil': 'staff',
   '/tirage-au-sort': 'staff', '/classement': 'staff', '/stats-matchs': 'staff',

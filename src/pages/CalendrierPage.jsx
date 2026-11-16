@@ -10,7 +10,7 @@ import { THEME, CAT_COLORS } from '../theme'
 import { format, parseISO, isAfter } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
-  CalendarDays, CalendarRange, Repeat, Plus, X, Pencil, Trash2, MapPin, Clock, Send, Hourglass,
+  CalendarDays, CalendarRange, ClipboardList, Repeat, Plus, X, Pencil, Trash2, MapPin, Clock, Send, Hourglass,
   CheckCircle2, RefreshCw, XCircle, Bandage, BarChart3, Heart, Radio, Copy,
   Swords, Footprints, History, WifiOff, Save, Check, Circle, Eye, EyeOff, Info
 } from 'lucide-react'
@@ -633,6 +633,11 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
       )}
       {isStaff && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          {ev.type === 'match' && (
+            <button onClick={() => navigate(`/match/${ev.id}`)} style={{ width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              <ClipboardList size={13} /> Feuille de match
+            </button>
+          )}
           {isStaff && ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/convocations/${ev.id}`)}><Send size={11} color={CAT_COLORS.blue.color} style={{ marginRight: 4, verticalAlign: -2 }} />Convocations</Button>}
           <Button size="sm" onClick={() => navigate(`/presences/${ev.id}`)}><CheckCircle2 size={11} color={'var(--success)'} style={{ marginRight: 4, verticalAlign: -2 }} />Présences</Button>
           {ev.type === 'match' && <Button size="sm" onClick={() => navigate(`/stats/${ev.id}`)}><BarChart3 size={11} color={CAT_COLORS.purple.color} style={{ marginRight: 4, verticalAlign: -2 }} />Stats</Button>}

@@ -7,7 +7,7 @@ import { THEME } from '../theme'
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval,
          isSameDay, isSameMonth, isToday, addMonths, subMonths } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { List, ChevronLeft, ChevronRight, MapPin, Clock, Send, BarChart3, Heart, Swords, Footprints, Plus } from 'lucide-react'
+import { ClipboardList, List, ChevronLeft, ChevronRight, MapPin, Clock, Send, BarChart3, Heart, Swords, Footprints, Plus } from 'lucide-react'
 
 const TYPE_COLORS = { match: 'var(--primary)', seance: 'var(--success)' }
 const RES_COULEUR = { V: 'var(--success)', N: 'var(--warning)', D: 'var(--danger)' }
@@ -203,6 +203,10 @@ export default function CalendrierVisuelPage() {
                 )}
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {isStaff && ev.type === 'match' && (
+                    <button onClick={() => navigate(`/match/${ev.id}`)}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 10, border: 'none', background: 'var(--primary)', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><ClipboardList size={13} /> Feuille de match</button>
+                  )}
                   {isStaff && ev.type === 'match' && (
                     <button onClick={() => navigate(`/convocations/${ev.id}`)}
                       style={{ padding: '5px 10px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}><Send size={11} /> Convoquer</button>

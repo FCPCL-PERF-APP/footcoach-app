@@ -8,6 +8,7 @@ import { PHASES_BUT, statsCollectivesDepuisChrono, butsPassesParJoueur, cartonsP
 import RichTextarea from '../components/RichTextarea'
 import { htmlToPlainText } from '../lib/richText'
 import { tabPossible, tabReussis, resumeTab } from '../lib/tirsAuBut'
+import { noterPronostics } from '../lib/pronostics'
 import { Card, Button, Input, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -157,7 +158,8 @@ export default function StatsPage() {
   const [joueurs, setJoueurs] = useState([])
   const [staffList, setStaffList] = useState([])
   const [statsIndiv, setStatsIndiv] = useState([])
-  const [activeTab, setActiveTab] = useState('individuel')
+  // Onglet d'ouverture : ?onglet=collectif|compo|suivi|rapport (liens de la Feuille de match).
+  const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('onglet') || 'individuel')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -370,40 +372,11 @@ export default function StatsPage() {
   }
 
   async function calculerPointsPronostics(butsMarques, butsEncaisses) {
-    // Récupérer tous les pronostics pour ce match
-    const { data: pronos } = await supabase.from('pronostics')
-      .select('*').eq('evenement_id', eventId)
-    if (!pronos?.length) return
-
-    // pronostics.score_domicile/score_exterieur représentent l'équipe à domicile/à
-    // l'extérieur (au sens propre) : on traduit donc "buts marqués/encaissés par FC PCL"
-    // selon que FC PCL joue à domicile ou à l'extérieur pour ce match.
-    const scoreReel_dom = event?.domicile !== false ? butsMarques : butsEncaisses
-    const scoreReel_ext = event?.domicile !== false ? butsEncaisses : butsMarques
-
-    const tendanceReelle = scoreReel_dom > scoreReel_ext ? 'V' : scoreReel_dom < scoreReel_ext ? 'D' : 'N'
-
-    let echecs = 0
-    for (const prono of pronos) {
-      const dom = prono.score_domicile
-      const ext = prono.score_exterieur
-      let pts = 0
-
-      if (dom === scoreReel_dom && ext === scoreReel_ext) {
-        pts = 3 // Score exact
-      } else {
-        const tendanceProno = dom > ext ? 'V' : dom < ext ? 'D' : 'N'
-        if (tendanceProno === tendanceReelle) pts = 1 // Bonne tendance
-      }
-
-      const { error } = await supabase.from('pronostics').update({ score_points: pts }).eq('id', prono.id)
-      if (error) echecs++
-    }
-    // Une échec isolé ne doit pas empêcher le reste de la saisie du match de
-    // s'enregistrer (déjà fait à ce stade) — juste prévenir qu'un pronostic n'a pas
-    // été noté, plutôt que de laisser un joueur avec des points manquants sans trace.
+    const echecs = await noterPronostics(eventId, event?.domicile, butsMarques, butsEncaisses)
+    // Un échec isolé ne doit pas empêcher le reste de la saisie : on prévient seulement.
     if (echecs > 0) alert(`${echecs} pronostic(s) n'ont pas pu être notés (erreur réseau/serveur). Réessaie en rouvrant cette page.`)
   }
+
 
   async function saveStatsJoueur() {
     // Garde-fou anti-double-soumission au niveau de la fonction elle-même (pas
