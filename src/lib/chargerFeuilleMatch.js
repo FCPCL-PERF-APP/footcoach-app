@@ -1,6 +1,6 @@
 // Charge tout ce qu'il faut pour la Feuille de match d'un événement (une requête par table).
 import { supabase } from './supabase'
-import { joueursDuMatch, etapesFeuille } from './feuilleMatch'
+import { joueursDuMatch, etapesFeuille, CASES_APRES_MATCH } from './feuilleMatch'
 
 export async function chargerFeuilleMatch(evenementId) {
   const [ev, jrs, conv, pres, rap, sc, notes, rpe, foot, si] = await Promise.all([
@@ -8,7 +8,7 @@ export async function chargerFeuilleMatch(evenementId) {
     supabase.from('joueurs').select('id, nom, prenom, poste, archive').order('nom'),
     supabase.from('convocations').select('joueur_id').eq('evenement_id', evenementId).eq('convoque', true),
     supabase.from('presences').select('joueur_id, statut').eq('evenement_id', evenementId),
-    supabase.from('rapports_match').select('compo_visuelle, banc, chronologie, points_forts_globaux, points_faibles_globaux, notes_libres, recap_mi_temps').eq('evenement_id', evenementId).maybeSingle(),
+    supabase.from('rapports_match').select(`compo_visuelle, banc, chronologie, ${CASES_APRES_MATCH.join(', ')}`).eq('evenement_id', evenementId).maybeSingle(),
     supabase.from('stats_collectives').select('*').eq('evenement_id', evenementId).maybeSingle(),
     supabase.from('rpe_coach').select('*').eq('evenement_id', evenementId),
     supabase.from('rpe').select('joueur_id').eq('evenement_id', evenementId),

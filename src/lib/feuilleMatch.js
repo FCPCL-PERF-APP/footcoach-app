@@ -25,7 +25,15 @@ export function joueursDuMatch({ joueurs = [], convoques = null, absents = new S
   return joueurs.filter(j => ids.has(j.id) && !absents.has(j.id))
 }
 
-const texteRempli = v => typeof v === 'string' && v.replace(/<[^>]*>/g, '').trim() !== ''
+const texteRempli = v => typeof v === 'string' && v.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() !== ''
+
+// Cases « Après-match » du rapport (hors schémas) : le rapport n'est « rédigé » que
+// lorsqu'elles sont toutes remplies.
+export const CASES_APRES_MATCH = [
+  'compo_adversaire', 'joueurs_a_surveiller',
+  'points_forts_globaux', 'points_faibles_globaux',
+  'points_positifs_off', 'problemes_off', 'points_positifs_def', 'problemes_def',
+]
 
 // Liste des étapes avec leur état. `obligatoire` = compte dans la progression.
 export function etapesFeuille({ nbConvoques = 0, rapport = null, score = null, cibles = [], notes = [], rpeIds = new Set(), footIds = new Set(), nbStatsIndiv = 0 }) {
@@ -35,7 +43,8 @@ export function etapesFeuille({ nbConvoques = 0, rapport = null, score = null, c
   const nbFoot = ciblesIds.filter(id => footIds.has(id)).length
   const chrono = Array.isArray(rapport?.chronologie) ? rapport.chronologie : []
   const compoFaite = Object.values(rapport?.compo_visuelle || {}).some(Boolean)
-  const rapportFait = ['points_forts_globaux', 'points_faibles_globaux', 'notes_libres', 'recap_mi_temps'].some(k => texteRempli(rapport?.[k]))
+  const casesRemplies = CASES_APRES_MATCH.filter(k => texteRempli(rapport?.[k])).length
+  const rapportFait = casesRemplies === CASES_APRES_MATCH.length
   const scoreFait = score?.buts_marques != null && score?.buts_encaisses != null
   const n = ciblesIds.length
   const etapes = [
@@ -47,7 +56,7 @@ export function etapesFeuille({ nbConvoques = 0, rapport = null, score = null, c
     { cle: 'indiv', moment: 'Après', label: 'Stats individuelles', fait: nbStatsIndiv > 0, detail: chrono.length ? 'Calculées depuis le suivi live' : `${nbStatsIndiv} joueur(s) renseigné(s)`, obligatoire: false },
     { cle: 'rpe', moment: 'Après', label: 'RPE des joueurs', fait: n > 0 && nbRpe === n, detail: `${nbRpe}/${n}`, obligatoire: true },
     { cle: 'footbar', moment: 'Après', label: 'Footbar', fait: n > 0 && nbFoot === n, detail: `${nbFoot}/${n} · facultatif`, obligatoire: false },
-    { cle: 'rapport', moment: 'Après', label: 'Rapport', fait: rapportFait, detail: rapportFait ? 'Rédigé' : 'À rédiger', obligatoire: true },
+    { cle: 'rapport', moment: 'Après', label: 'Rapport', fait: rapportFait, detail: rapportFait ? 'Rédigé' : `Après-match : ${casesRemplies}/${CASES_APRES_MATCH.length} cases remplies`, obligatoire: true },
   ]
   const obligatoires = etapes.filter(e => e.obligatoire)
   return { etapes, faites: obligatoires.filter(e => e.fait).length, total: obligatoires.length }
