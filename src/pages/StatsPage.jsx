@@ -157,6 +157,12 @@ export default function StatsPage() {
   const [event, setEvent] = useState(null)
   const [joueurs, setJoueurs] = useState([])
   const [staffList, setStaffList] = useState([])
+  // Partage du rapport à des membres du staff
+  const [showShareRapport, setShowShareRapport] = useState(false)
+  const [rapportDest, setRapportDest] = useState(new Set())
+  const [rapportMessage, setRapportMessage] = useState('Peux-tu compléter le rapport de ce match ? Merci !')
+  const [envoiRapport, setEnvoiRapport] = useState(false)
+  const [moiAuthId, setMoiAuthId] = useState(null)
   const [statsIndiv, setStatsIndiv] = useState([])
   // Onglet d'ouverture : ?onglet=collectif|compo|suivi|rapport (liens de la Feuille de match).
   const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('onglet') || 'individuel')
@@ -602,34 +608,60 @@ export default function StatsPage() {
     setLiveStatut(null)
   }
 
-  async function shareRapportInApp() {
+  // Partage du rapport en message privé à des membres du staff choisis, avec un bouton
+  // qui ouvre la Feuille de match (pour qu'ils complètent le rapport eux aussi).
+  async function ouvrirPartageRapport() {
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: staff } = await supabase.from('staff').select('nom,prenom').eq('auth_id', user?.id).maybeSingle()
-    // "Prénom Nom" — cohérent avec le nom affiché dans les notifications push.
-    const auteurNom = staff ? `${staff.prenom} ${staff.nom}` : 'Coach'
-    const r = resultat
-    const contenu = `${event?.titre} — ${r === 'V' ? 'Victoire' : r === 'N' ? 'Nul' : 'Défaite'} ${formCollectif.buts_marques}-${formCollectif.buts_encaisses}` +
-      (tabResume ? ` (${tabResume.qualifie ? 'qualifiés' : 'éliminés'} aux tirs au but ${tabResume.marques}-${tabResume.encaisses})` : '') + '\n' +
-      (formRapport.points_forts_globaux ? `Points forts : ${htmlToPlainText(formRapport.points_forts_globaux)}\n` : '') +
-      (formRapport.points_faibles_globaux ? `À améliorer : ${htmlToPlainText(formRapport.points_faibles_globaux)}` : '')
-    const { error } = await supabase.from('messages').insert({
-      expediteur_id: user?.id, expediteur_nom: auteurNom,
-      expediteur_role: 'coach', groupe: true, canal: 'general', contenu
-    })
-    if (error) {
-      alert('Erreur lors du partage : ' + error.message)
-      return
-    }
-    // Comme pour un message normal (MessagesPage.jsx) : sans cet appel, personne n'est
-    // notifié du résumé, il faut ouvrir la messagerie par hasard pour le découvrir.
-    try {
-      await fetch('/api/notif-message-groupe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-        body: JSON.stringify({ contenu, canal: 'general' })
+    setMoiAuthId(user?.id || null)
+    setRapportDest(new Set())
+    setShowShareRapport(true)
+  }
+  function texteRapport(messagePerso) {
+    const date = event?.date_heure ? format(parseISO(event.date_heure), 'EEE d MMM', { locale: fr }) : ''
+    const aScore = formCollectif.buts_marques !== '' && formCollectif.buts_marques != null && formCollectif.buts_encaisses !== '' && formCollectif.buts_encaisses != null
+    return `📋 Rapport de match — ${event?.titre || ''}${date ? ` (${date})` : ''}` +
+      (aScore ? `\n${resultatLabels[resultat]} ${formCollectif.buts_marques}-${formCollectif.buts_encaisses}` +
+        (tabResume ? ` (${tabResume.qualifie ? 'qualifiés' : 'éliminés'} aux tirs au but ${tabResume.marques}-${tabResume.encaisses})` : '') : '') +
+      (messagePerso?.trim() ? `\n\n${messagePerso.trim()}` : '')
+  }
+  async function envoyerRapport() {
+    const dests = staffList.filter(m => rapportDest.has(m.auth_id))
+    if (!dests.length) return
+    setEnvoiRapport(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    const moi = staffList.find(m => m.auth_id === user?.id)
+    const auteurNom = moi ? `${moi.prenom} ${moi.nom}` : 'Coach'
+    const contenu = texteRapport(rapportMessage) + `\n\nOuvrir la feuille de match : /match/${eventId}`
+    let ok = 0
+    for (const m of dests) {
+      const { error } = await supabase.from('messages').insert({
+        expediteur_id: user?.id, expediteur_nom: auteurNom, expediteur_role: 'coach',
+        groupe: false, canal: 'general', destinataire_id: m.auth_id, contenu
       })
-    } catch (err) { console.error('Erreur notif groupe:', err) }
-    alert('Résumé partagé dans le canal groupe !')
+      if (error) continue
+      ok++
+      try {
+        await fetch('/api/notif-message-prive', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+          body: JSON.stringify({ destinataireId: m.auth_id, contenu: texteRapport(rapportMessage) })
+        })
+      } catch (err) { console.error('Erreur notif privée:', err) }
+    }
+    setEnvoiRapport(false)
+    setShowShareRapport(false)
+    alert(ok === dests.length ? `Rapport envoyé à ${ok} membre(s) du staff.` : `Envoyé à ${ok} sur ${dests.length} — réessaie pour les autres.`)
+  }
+  async function partagerRapportNatif() {
+    const texte = texteRapport(rapportMessage) +
+      (formRapport.points_forts_globaux ? `\n\nPoints forts adverses : ${htmlToPlainText(formRapport.points_forts_globaux)}` : '') +
+      (formRapport.points_faibles_globaux ? `\nPoints faibles adverses : ${htmlToPlainText(formRapport.points_faibles_globaux)}` : '')
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Rapport de match', text: texte }) } catch { /* annulé */ }
+    } else {
+      try { await navigator.clipboard.writeText(texte); alert('Rapport copié — colle-le dans Messages ou WhatsApp.') } catch { alert('Partage non disponible sur cet appareil.') }
+    }
+    setShowShareRapport(false)
   }
 
   // Texte de la composition (onglet Compo) — utilisé par les 3 modes de partage
@@ -1197,6 +1229,47 @@ export default function StatsPage() {
         </Card>
       )}
 
+      {showShareRapport && (() => {
+        const membres = staffList.filter(m => m.auth_id && m.auth_id !== moiAuthId)
+        const tous = membres.length > 0 && membres.every(m => rapportDest.has(m.auth_id))
+        const basculer = authId => setRapportDest(p => { const n = new Set(p); n.has(authId) ? n.delete(authId) : n.add(authId); return n })
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowShareRapport(false)}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: '20px 20px 0 0', padding: 20, width: '100%', maxWidth: 'var(--app-max-width)', margin: '0 auto', maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+              <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Partager le rapport</p>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>Message privé avec un bouton qui ouvre la feuille de match, pour compléter le rapport.</p>
+              {membres.length === 0 ? (
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>Aucun autre membre du staff n'a encore de compte dans l'appli.</p>
+              ) : (
+                <>
+                  <button onClick={() => setRapportDest(tous ? new Set() : new Set(membres.map(m => m.auth_id)))} style={{ ...shareSheetBtnStyle, justifyContent: 'space-between' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Users size={15} /> Tout le staff</span>
+                    {tous ? <CheckCircle2 size={16} color="var(--primary)" /> : null}
+                  </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '8px 0 10px' }}>
+                    {membres.map(m => (
+                      <button key={m.id} onClick={() => basculer(m.auth_id)} style={{ ...shareSheetBtnStyle, justifyContent: 'space-between', borderColor: rapportDest.has(m.auth_id) ? 'var(--primary)' : undefined }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Send size={14} /> {m.prenom} {m.nom}</span>
+                        {rapportDest.has(m.auth_id) ? <CheckCircle2 size={16} color="var(--primary)" /> : null}
+                      </button>
+                    ))}
+                  </div>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>Message</label>
+                  <textarea value={rapportMessage} onChange={e => setRapportMessage(e.target.value)} rows={2}
+                    style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, boxSizing: 'border-box', fontFamily: 'inherit', marginBottom: 10 }} />
+                  <Button variant="primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                    onClick={envoyerRapport} disabled={envoiRapport || rapportDest.size === 0}>
+                    <Send size={13} /> {envoiRapport ? 'Envoi…' : `Envoyer à ${rapportDest.size} personne(s)`}
+                  </Button>
+                </>
+              )}
+              <button onClick={partagerRapportNatif} style={{ ...shareSheetBtnStyle, marginTop: 10 }}><Share2 size={15} /> Messages / WhatsApp...</button>
+              <button onClick={() => setShowShareRapport(false)} style={{ marginTop: 10, width: '100%', padding: 10, background: 'var(--bg-secondary)', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 13 }}>Annuler</button>
+            </div>
+          </div>
+        )
+      })()}
+
       {showShareCompo && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }} onClick={() => setShowShareCompo(false)}>
           <div style={{ background: 'var(--bg-card)', borderRadius: '20px 20px 0 0', padding: 20, width: '100%', maxWidth: 'var(--app-max-width)', margin: '0 auto' }} onClick={e => e.stopPropagation()}>
@@ -1509,7 +1582,7 @@ export default function StatsPage() {
 
           <div style={{ display: 'flex', gap: 8 }}>
             <Button variant="primary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={saveRapport} disabled={saving}><Save size={13} /> Enregistrer</Button>
-            <Button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={shareRapportInApp}><Share2 size={13} /> Partager</Button>
+            <Button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }} onClick={ouvrirPartageRapport}><Share2 size={13} /> Partager</Button>
           </div>
         </div>
       )}

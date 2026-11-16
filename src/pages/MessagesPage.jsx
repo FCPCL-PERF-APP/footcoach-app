@@ -5,6 +5,8 @@ import { useAuth } from '../hooks/useAuth'
 import { Card, PageHeader, Spinner, Avatar, Button } from '../components/UI'
 import { THEME, CAT_COLORS } from '../theme'
 import { validateFile } from '../lib/upload'
+import { lienInterne, texteSansLien } from '../lib/liensApp'
+import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Mail, Users, MessageCircle, Search, ArrowLeft, ArrowRight, ChevronRight, Trash2, Send, Shield, Eye, X, CheckCircle2, Circle, Image as ImageIcon } from 'lucide-react'
@@ -556,6 +558,8 @@ export default function MessagesPage() {
 }
 
 function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, onImgLoad, unread, myId }) {
+  const navigate = useNavigate()
+  const lien = lienInterne(msg.contenu)
   const [showActions, setShowActions] = useState(false)
   const reactions = msg.reactions || {}
   const nbUp = Object.values(reactions).filter(r => r === '👍').length
@@ -578,7 +582,13 @@ function MsgBubble({ msg, isMe, formatTime, canDelete, onDelete, onReact, onImgL
           {msg.image_url && (
             <img src={msg.image_url} alt="" onLoad={onImgLoad} style={{ maxWidth: '100%', borderRadius: 10, display: 'block', marginBottom: msg.contenu ? 6 : 0 }} />
           )}
-          {msg.contenu && <p style={{ fontSize: 13, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>{msg.contenu}</p>}
+          {msg.contenu && <p style={{ fontSize: 13, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>{lien ? texteSansLien(msg.contenu) : msg.contenu}</p>}
+          {lien && (
+            <button onClick={e => { e.stopPropagation(); navigate(lien) }} style={{
+              marginTop: 6, width: '100%', padding: '8px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
+              background: isMe ? 'rgba(255,255,255,.25)' : 'var(--primary)', color: '#fff', fontSize: 12, fontWeight: 700
+            }}>Ouvrir la feuille de match</button>
+          )}
           <p style={{ fontSize: 9, opacity: .6, marginTop: 3, textAlign: 'right' }}>{formatTime(msg.created_at)}</p>
         </div>
 
