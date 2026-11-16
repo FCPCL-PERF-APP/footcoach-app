@@ -7,6 +7,7 @@ import { THEME } from '../theme'
 import { Award, ChevronRight, Trophy, Swords, Heart, Calendar, Radio, Target, CheckCircle2, RefreshCw, Bandage, XCircle } from 'lucide-react'
 import { computePresenceBreakdown } from '../lib/presenceStats'
 import { bornesSaison, labelSaison } from '../lib/saison'
+import TirsAuButJoueur from '../components/TirsAuButJoueur'
 
 function rpeColor(v) {
   if (!v) return 'var(--text-muted)'
@@ -173,6 +174,8 @@ export default function MonBilanPage() {
           </div>
         ))}
       </div>
+
+      <TirsAuButJoueur joueurId={profile?.id} titre="Mes tirs au but" />
 
       {/* RPE */}
       <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Heart size={11} /> Charge & bien-être</p>

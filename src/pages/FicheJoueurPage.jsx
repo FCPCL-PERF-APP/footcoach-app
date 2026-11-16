@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import MaSemaineCard from '../components/MaSemaineCard'
+import TirsAuButJoueur from '../components/TirsAuButJoueur'
 import { supabase, authHeaders } from '../lib/supabase'
 import { validateFile } from '../lib/upload'
 import { useAuth } from '../hooks/useAuth'
@@ -823,6 +824,7 @@ export default function FicheJoueurPage() {
               </div>
             ))}
           </div>
+          <TirsAuButJoueur joueurId={id} titre="Tirs au but — saison" />
           <Card>
             {statsHistory.length === 0
               ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune statistique.</p>

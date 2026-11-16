@@ -22,3 +22,18 @@ describe('tirs au but', () => {
     expect(resumeTab({ buts_marques: 1, buts_encaisses: 1 })).toBeNull()
   })
 })
+
+import { bilanTabJoueur } from './tirsAuBut'
+describe('bilanTabJoueur', () => {
+  it('compte les tirs du joueur avec leur ordre de passage', () => {
+    const lignes = [
+      { evenement_id: 'm1', evenements: { titre: 'Coupe 1', date_heure: '2026-10-01' }, tab_tireurs: [{ joueur_id: 'a', reussi: true }, { joueur_id: 'b', reussi: false }] },
+      { evenement_id: 'm2', evenements: { titre: 'Coupe 2', date_heure: '2026-11-01' }, tab_tireurs: [{ joueur_id: 'c', reussi: true }, { joueur_id: 'b', reussi: true }] },
+      { evenement_id: 'm3', tab_tireurs: null },
+    ]
+    const r = bilanTabJoueur(lignes, 'b')
+    expect([r.tires, r.reussis, r.rates]).toEqual([2, 1, 1])
+    expect(r.tirs.map(t => [t.titre, t.ordre, t.reussi])).toEqual([['Coupe 2', 2, true], ['Coupe 1', 2, false]])
+    expect(bilanTabJoueur(lignes, 'z').tires).toBe(0)
+  })
+})
