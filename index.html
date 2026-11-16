@@ -12,6 +12,52 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Filet de sécurité au démarrage : si l'appli ne s'affiche pas (fichier d'une
+         ancienne version gardé en mémoire après une mise à jour, réseau coupé...),
+         on vide le cache de l'appli et on recharge une fois ; si ça ne suffit pas,
+         on affiche un bouton au lieu d'un écran blanc. -->
+    <script>
+      (function () {
+        var root = document.getElementById('root')
+        var CLE = 'fc-secours-demarrage'
+        function demarree() { return root && root.childElementCount > 0 }
+        function nettoyer() {
+          var t = []
+          try {
+            if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+              t.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister() })) }))
+            }
+            if (window.caches && caches.keys) {
+              t.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k) })) }))
+            }
+          } catch (e) {}
+          return Promise.all(t).catch(function () {})
+        }
+        function afficher() {
+          if (demarree()) return
+          root.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,sans-serif">' +
+            '<p style="font-size:17px;font-weight:700;margin-bottom:8px">L\'application n\'a pas pu démarrer</p>' +
+            '<p style="font-size:13px;color:#666;margin-bottom:20px;max-width:300px">Vérifie ta connexion internet, puis touche le bouton ci-dessous.</p>' +
+            '<button id="fc-recharger" style="padding:12px 24px;border-radius:12px;border:none;background:#185FA5;color:#fff;font-size:15px;font-weight:700">Recharger</button></div>'
+          document.getElementById('fc-recharger').onclick = function () { nettoyer().then(function () { location.reload() }) }
+        }
+        function secours() {
+          if (demarree()) return
+          var deja = false
+          try { deja = sessionStorage.getItem(CLE) === '1'; sessionStorage.setItem(CLE, '1') } catch (e) {}
+          if (deja) { afficher(); return }
+          nettoyer().then(function () { location.reload() })
+        }
+        // Script de l'appli introuvable ou invalide : secours immédiat.
+        window.addEventListener('error', function (e) {
+          if (e.target && e.target.tagName === 'SCRIPT') setTimeout(secours, 300)
+        }, true)
+        // Rien d'affiché au bout de 12 s : secours.
+        setTimeout(secours, 12000)
+        // Démarrage réussi : on réarme le filet pour la prochaine fois.
+        setTimeout(function () { if (demarree()) { try { sessionStorage.removeItem(CLE) } catch (e) {} } }, 15000)
+      })()
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
