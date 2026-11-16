@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { resumeTab } from '../lib/tirsAuBut'
 import { Card, PageHeader, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -200,6 +201,11 @@ export default function DashboardStatsPage() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: 14, fontWeight: 700 }}>{m.buts_marques}-{m.buts_encaisses}</span>
+                    {resumeTab(m) && (
+                      <span style={{ fontSize: 10, fontWeight: 600, color: resumeTab(m).qualifie ? 'var(--success)' : 'var(--danger)' }}>
+                        TAB {resumeTab(m).marques}-{resumeTab(m).encaisses}
+                      </span>
+                    )}
                     <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
                       background: v ? 'var(--success-bg)' : n ? 'var(--warning-bg)' : 'var(--danger-bg)',
                       color: v ? 'var(--success)' : n ? 'var(--warning)' : 'var(--danger)' }}>

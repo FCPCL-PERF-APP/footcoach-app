@@ -7,6 +7,7 @@ import { exportCompoPDF } from '../utils/compoPDF'
 import { PHASES_BUT, statsCollectivesDepuisChrono, butsPassesParJoueur, cartonsParJoueur, tempsDeJeuParJoueur } from '../lib/chronologie'
 import RichTextarea from '../components/RichTextarea'
 import { htmlToPlainText } from '../lib/richText'
+import { tabPossible, tabReussis, resumeTab } from '../lib/tirsAuBut'
 import { Card, Button, Input, Spinner } from '../components/UI'
 import { THEME } from '../theme'
 import { format, parseISO } from 'date-fns'
@@ -52,6 +53,8 @@ const FORM_COLLECTIF_INITIAL = {
   // Buts encaissés par période
   buts_enc_0_15: '', buts_enc_15_30: '', buts_enc_30_45: '',
   buts_enc_45_60: '', buts_enc_60_75: '', buts_enc_75_90: '',
+  // Tirs au but (coupe, match nul) : tab_marques est calculé depuis la liste des tireurs.
+  tab_tireurs: [], tab_marques: '', tab_encaisses: '',
 }
 
 const FORMATIONS = {
@@ -252,7 +255,7 @@ export default function StatsPage() {
     setJoueurs(jrsActifs)
     setStaffList(st || [])
     setStatsIndiv(si || [])
-    if (sc) setFormCollectif(p => ({ ...p, ...sc }))
+    if (sc) setFormCollectif(p => ({ ...p, ...sc, tab_tireurs: sc.tab_tireurs || [] }))
     if (rp) {
       setFormRapport(p => ({ ...p, ...rp }))
       setFormation(rp.formation || '4-4-2')
@@ -278,6 +281,18 @@ export default function StatsPage() {
   const resultat = scoreMarques > scoreEncaisses ? 'V' : scoreMarques < scoreEncaisses ? 'D' : 'N'
   const resultatColors = { V: 'var(--success)', N: 'var(--warning)', D: 'var(--danger)' }
   const resultatLabels = { V: 'Victoire', N: 'Match nul', D: 'Défaite' }
+
+  // Tirs au but : proposés seulement en coupe sur un score nul.
+  const avecTab = tabPossible(event?.match_type, formCollectif.buts_marques, formCollectif.buts_encaisses)
+  const tireursTab = formCollectif.tab_tireurs || []
+  const tabResume = avecTab ? resumeTab({
+    buts_marques: scoreMarques, buts_encaisses: scoreEncaisses,
+    tab_marques: tireursTab.length ? tabReussis(tireursTab) : (formCollectif.tab_marques === '' ? null : formCollectif.tab_marques),
+    tab_encaisses: formCollectif.tab_encaisses === '' ? null : formCollectif.tab_encaisses,
+  }) : null
+  function majTireur(i, champ, valeur) {
+    setFormCollectif(p => ({ ...p, tab_tireurs: (p.tab_tireurs || []).map((t, k) => k === i ? { ...t, [champ]: valeur } : t) }))
+  }
 
   // Seuls ces deux champs sont du texte libre ("1 - 0") — tous les autres champs de
   // formCollectif sont des colonnes numériques : un champ laissé vide reste une chaîne
@@ -322,6 +337,15 @@ export default function StatsPage() {
         const v = formCollectif[k]
         return [k, CHAMPS_TEXTE_COLLECTIF.has(k) ? (v || null) : (v === '' || v === null || v === undefined ? null : parseInt(v))]
       }))
+    }
+    // Tirs au but : effacés si le match n'est plus un nul de coupe ; sinon le nombre de
+    // réussis vient de la liste des tireurs (lignes sans joueur ignorées).
+    if (avecTab) {
+      const tireurs = (formCollectif.tab_tireurs || []).filter(t => t.joueur_id)
+      payload.tab_tireurs = tireurs.length ? tireurs.map(t => ({ joueur_id: t.joueur_id, reussi: t.reussi === true })) : null
+      if (tireurs.length) payload.tab_marques = tabReussis(tireurs)
+    } else {
+      payload.tab_tireurs = null; payload.tab_marques = null; payload.tab_encaisses = null
     }
     let result
     try {
@@ -602,7 +626,8 @@ export default function StatsPage() {
     // "Prénom Nom" — cohérent avec le nom affiché dans les notifications push.
     const auteurNom = staff ? `${staff.prenom} ${staff.nom}` : 'Coach'
     const r = resultat
-    const contenu = `${event?.titre} — ${r === 'V' ? 'Victoire' : r === 'N' ? 'Nul' : 'Défaite'} ${formCollectif.buts_marques}-${formCollectif.buts_encaisses}\n` +
+    const contenu = `${event?.titre} — ${r === 'V' ? 'Victoire' : r === 'N' ? 'Nul' : 'Défaite'} ${formCollectif.buts_marques}-${formCollectif.buts_encaisses}` +
+      (tabResume ? ` (${tabResume.qualifie ? 'qualifiés' : 'éliminés'} aux tirs au but ${tabResume.marques}-${tabResume.encaisses})` : '') + '\n' +
       (formRapport.points_forts_globaux ? `Points forts : ${htmlToPlainText(formRapport.points_forts_globaux)}\n` : '') +
       (formRapport.points_faibles_globaux ? `À améliorer : ${htmlToPlainText(formRapport.points_faibles_globaux)}` : '')
     const { error } = await supabase.from('messages').insert({
@@ -759,6 +784,11 @@ export default function StatsPage() {
             <div style={{ fontSize: 11, fontWeight: 700, color: resultatColors[resultat], background: 'rgba(255,255,255,.2)', borderRadius: 8, padding: '3px 10px' }}>
               {resultatLabels[resultat]}
             </div>
+            {tabResume && (
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginTop: 4 }}>
+                {tabResume.qualifie ? 'Qualifiés' : 'Éliminés'} · {tabResume.label}
+              </div>
+            )}
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>{event?.titre?.replace('vs ', '') || 'Adv.'}</div>
@@ -895,6 +925,56 @@ export default function StatsPage() {
           {(hasButPourLive || hasButContreLive) && (
             <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>Calculé depuis Suivi live — modifie/supprime l'événement là-bas pour corriger.</p>
           )}
+          {/* Tirs au but — coupe, match nul */}
+          {avecTab && (
+            <div style={{ border: '0.5px solid var(--warning)', borderRadius: 10, padding: 10, margin: '8px 0 12px', background: 'var(--warning-bg)' }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--warning)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <Target size={13} /> Tirs au but
+                {tabResume && <span style={{ marginLeft: 'auto', color: tabResume.qualifie ? 'var(--success)' : 'var(--danger)' }}>
+                  {tabResume.qualifie ? 'Qualifiés' : 'Éliminés'} {tabResume.marques}-{tabResume.encaisses}
+                </span>}
+              </p>
+              <p style={{ fontSize: 10, color: 'var(--text-secondary)', marginBottom: 6 }}>Nos tireurs, dans l'ordre :</p>
+              {tireursTab.map((t, i) => (
+                <div key={i} style={{ display: 'grid', gridTemplateColumns: '18px 1fr 76px 76px 26px', gap: 4, alignItems: 'center', marginBottom: 5 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)' }}>{i + 1}</span>
+                  <select value={t.joueur_id || ''} onChange={e => majTireur(i, 'joueur_id', e.target.value)}
+                    style={{ padding: '6px 6px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, minWidth: 0, background: 'var(--bg-card)' }}>
+                    <option value="">Tireur…</option>
+                    {joueurs.map(j => <option key={j.id} value={j.id}>{j.prenom} {j.nom}</option>)}
+                  </select>
+                  {[[true, 'Réussi', 'var(--success)', 'var(--success-bg)'], [false, 'Raté', 'var(--danger)', 'var(--danger-bg)']].map(([val, lbl, c, bg]) => (
+                    <button key={lbl} type="button" onClick={() => majTireur(i, 'reussi', val)} style={{
+                      padding: '6px 2px', borderRadius: 8, fontSize: 11, cursor: 'pointer', fontWeight: t.reussi === val ? 700 : 400,
+                      border: `1px solid ${t.reussi === val ? c : 'var(--border)'}`, background: t.reussi === val ? bg : 'var(--bg-card)',
+                      color: t.reussi === val ? c : 'var(--text-secondary)'
+                    }}>{lbl}</button>
+                  ))}
+                  <button type="button" onClick={() => setFormCollectif(p => ({ ...p, tab_tireurs: (p.tab_tireurs || []).filter((_, k) => k !== i) }))}
+                    style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }} aria-label="Retirer ce tireur"><Trash2 size={13} /></button>
+                </div>
+              ))}
+              <button type="button" onClick={() => setFormCollectif(p => ({ ...p, tab_tireurs: [...(p.tab_tireurs || []), { joueur_id: '', reussi: null }] }))}
+                style={{ width: '100%', padding: 7, borderRadius: 8, border: '1px dashed var(--warning)', background: 'transparent', color: 'var(--warning)', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginBottom: 8 }}>
+                <Plus size={12} /> Ajouter un tireur
+              </button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>TAB réussis — nous</label>
+                  <div style={{ padding: '7px 10px', borderRadius: 8, background: 'var(--bg-card)', fontSize: 14, fontWeight: 700, border: '0.5px solid var(--border)' }}>
+                    {tireursTab.length ? tabReussis(tireursTab) : '—'}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 10, color: 'var(--text-secondary)', marginBottom: 2 }}>TAB réussis — adversaire</label>
+                  <input type="number" min="0" value={formCollectif.tab_encaisses ?? ''}
+                    onChange={e => setFormCollectif(p => ({ ...p, tab_encaisses: e.target.value }))}
+                    style={{ width: '100%', padding: '7px 10px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 14, fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+              </div>
+            </div>
+          )}
+
           <Input label="Durée du match (min)" type="number" value={formCollectif.duree_match || ''}
             onChange={v => setFormCollectif(p => ({...p, duree_match: v}))} placeholder="90" />
 

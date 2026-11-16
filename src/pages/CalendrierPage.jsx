@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, authHeaders } from '../lib/supabase'
+import { resumeTab } from '../lib/tirsAuBut'
 import { savePresenceOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { useAuth } from '../hooks/useAuth'
 import { avecJoueurs } from '../lib/joueursEquipe'
@@ -397,7 +398,7 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
   }
 
   async function loadScore() {
-    const { data } = await supabase.from('stats_collectives').select('buts_marques, buts_encaisses').eq('evenement_id', ev.id).maybeSingle()
+    const { data } = await supabase.from('stats_collectives').select('buts_marques, buts_encaisses, tab_marques, tab_encaisses').eq('evenement_id', ev.id).maybeSingle()
     if (data && data.buts_marques !== null && data.buts_encaisses !== null) setScore(data)
   }
 
@@ -485,6 +486,13 @@ function EventCard({ ev, isCoach, isAdjoint, isJoueur, navigate, past = false, p
               }}>
                 <Circle size={7} fill={resultatColor} color={resultatColor} />
                 {dom ? `${scoreNous} - ${scoreAdv}` : `${scoreAdv} - ${scoreNous}`}
+                {(() => {
+                  const tab = resumeTab(score)
+                  if (!tab) return null
+                  return <span style={{ fontWeight: 600, color: tab.qualifie ? 'var(--success)' : 'var(--danger)' }}>
+                    · TAB {dom ? `${tab.marques}-${tab.encaisses}` : `${tab.encaisses}-${tab.marques}`}
+                  </span>
+                })()}
               </span>
             )
           })()}
