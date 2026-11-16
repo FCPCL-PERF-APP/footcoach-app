@@ -4,7 +4,7 @@ import { supabase, authHeaders } from '../lib/supabase'
 import { upsertOrQueue, flushQueue, getQueueCount } from '../lib/offlineQueue'
 import { validateFile } from '../lib/upload'
 import { exportCompoPDF } from '../utils/compoPDF'
-import { PHASES_BUT, statsCollectivesDepuisChrono, butsPassesParJoueur, cartonsParJoueur, tempsDeJeuParJoueur } from '../lib/chronologie'
+import { PHASES_BUT, statsCollectivesDepuisChrono, butsPassesParJoueur, cartonsParJoueur, tempsDeJeuParJoueur, penaltysParJoueur } from '../lib/chronologie'
 import RichTextarea from '../components/RichTextarea'
 import { htmlToPlainText } from '../lib/richText'
 import { tabPossible, tabReussis, resumeTab } from '../lib/tirsAuBut'
@@ -144,6 +144,7 @@ const CHRONO_TYPES = {
   but_contre:   { label: 'But contre',     color: 'var(--danger)', bg: 'var(--danger-bg)' },
   carton_jaune: { label: 'Carton jaune',   color: '#A16207', bg: '#FEF9C3' },
   carton_rouge: { label: 'Carton rouge',   color: 'var(--danger)', bg: 'var(--danger-bg)' },
+  penalty_rate: { label: 'Pénalty raté (nous)', color: '#C2410C', bg: '#FFEDD5' },
   changement:   { label: 'Changement',     color: 'var(--primary)', bg: 'var(--primary-bg)' },
   autre:        { label: 'Autre',          color: 'var(--text-secondary)', bg: 'var(--bg-secondary)' },
 }
@@ -171,7 +172,7 @@ export default function StatsPage() {
   const [capitaineId, setCapitaineId] = useState('')
 
   const [selectedJoueur, setSelectedJoueur] = useState('')
-  const [formJ, setFormJ] = useState({ note: '', temps_jeu: '', buts: 0, passes_decisives: 0, titulaire: true, carton_jaune: false, carton_rouge: false })
+  const [formJ, setFormJ] = useState({ note: '', temps_jeu: '', buts: 0, passes_decisives: 0, titulaire: true, carton_jaune: false, carton_rouge: false, penaltys_marques: '', penaltys_rates: '' })
 
   const [formCollectif, setFormCollectif] = useState({ ...FORM_COLLECTIF_INITIAL })
 
@@ -308,6 +309,7 @@ export default function StatsPage() {
   const hasButPourLive = chronologieList.some(e => e.type === 'but_pour')
   const hasButContreLive = chronologieList.some(e => e.type === 'but_contre')
   const hasCartonsLive = chronologieList.some(e => e.type === 'carton_jaune' || e.type === 'carton_rouge')
+  const hasPenaltysLive = chronologieList.some(e => e.type === 'penalty_rate' || (e.type === 'but_pour' && e.phase === 'penalty'))
   // Tout événement qui nomme un joueur (but, passe, carton, changement) peut désormais
   // faire calculer son temps de jeu (cf. recomputeFromChronologie) — pas seulement un
   // changement le concernant directement.
@@ -417,6 +419,8 @@ export default function StatsPage() {
       buts: formJ.buts ? parseInt(formJ.buts) : 0,
       passes_decisives: formJ.passes_decisives ? parseInt(formJ.passes_decisives) : 0,
       titulaire: formJ.titulaire, carton_jaune: formJ.carton_jaune, carton_rouge: formJ.carton_rouge,
+      penaltys_marques: formJ.penaltys_marques === '' ? null : parseInt(formJ.penaltys_marques),
+      penaltys_rates: formJ.penaltys_rates === '' ? null : parseInt(formJ.penaltys_rates),
     }
     let result
     try {
@@ -454,6 +458,11 @@ export default function StatsPage() {
 
     // Cartons
     for (const l of cartonsParJoueur(entries, dejaConnus)) {
+      await supabase.from('stats_match').upsert({ evenement_id: eventId, ...l }, { onConflict: 'evenement_id,joueur_id' })
+    }
+
+    // Pénaltys marqués / ratés
+    for (const l of penaltysParJoueur(entries, dejaConnus)) {
       await supabase.from('stats_match').upsert({ evenement_id: eventId, ...l }, { onConflict: 'evenement_id,joueur_id' })
     }
 
@@ -534,7 +543,7 @@ export default function StatsPage() {
       if (chronoForm.phase) entry.phase = chronoForm.phase
     }
     if (chronoForm.type === 'but_contre' && chronoForm.phase) entry.phase = chronoForm.phase
-    if ((chronoForm.type === 'carton_jaune' || chronoForm.type === 'carton_rouge') && chronoForm.joueur_id) entry.joueur_id = chronoForm.joueur_id
+    if ((chronoForm.type === 'carton_jaune' || chronoForm.type === 'carton_rouge' || chronoForm.type === 'penalty_rate') && chronoForm.joueur_id) entry.joueur_id = chronoForm.joueur_id
     if (chronoForm.type === 'changement') {
       if (chronoForm.sortant_id) entry.sortant_id = chronoForm.sortant_id
       if (chronoForm.entrant_id) entry.entrant_id = chronoForm.entrant_id
@@ -560,7 +569,7 @@ export default function StatsPage() {
     return (chrono || []).filter(e => e.type !== 'autre').map(e => ({
       minute: e.minute, type: e.type,
       ...(e.type === 'but_pour' ? { buteur: nom(e.buteur_id), passeur: nom(e.passeur_id) } : {}),
-      ...(e.type === 'carton_jaune' || e.type === 'carton_rouge' ? { joueur: nom(e.joueur_id) } : {}),
+      ...(e.type === 'carton_jaune' || e.type === 'carton_rouge' || e.type === 'penalty_rate' ? { joueur: nom(e.joueur_id) } : {}),
       ...(e.type === 'changement' ? { sortant: nom(e.sortant_id), entrant: nom(e.entrant_id) } : {}),
     }))
   }
@@ -820,8 +829,8 @@ export default function StatsPage() {
               <select value={selectedJoueur} onChange={e => {
                 setSelectedJoueur(e.target.value)
                 const ex = statsIndiv.find(s => s.joueur_id === e.target.value)
-                if (ex) setFormJ({ note: ex.note || '', temps_jeu: ex.temps_jeu || '', buts: ex.buts || 0, passes_decisives: ex.passes_decisives || 0, titulaire: ex.titulaire !== false, carton_jaune: ex.carton_jaune || false, carton_rouge: ex.carton_rouge || false })
-                else setFormJ({ note: '', temps_jeu: '', buts: 0, passes_decisives: 0, titulaire: true, carton_jaune: false, carton_rouge: false })
+                if (ex) setFormJ({ note: ex.note || '', temps_jeu: ex.temps_jeu || '', buts: ex.buts || 0, passes_decisives: ex.passes_decisives || 0, titulaire: ex.titulaire !== false, carton_jaune: ex.carton_jaune || false, carton_rouge: ex.carton_rouge || false, penaltys_marques: ex.penaltys_marques ?? '', penaltys_rates: ex.penaltys_rates ?? '' })
+                else setFormJ({ note: '', temps_jeu: '', buts: 0, passes_decisives: 0, titulaire: true, carton_jaune: false, carton_rouge: false, penaltys_marques: '', penaltys_rates: '' })
               }} style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}>
                 {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom} — {j.poste}</option>)}
               </select>
@@ -853,6 +862,17 @@ export default function StatsPage() {
             {(hasButPourLive || hasChangementsLive) && (
               <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>Calculé depuis Suivi live — modifie/supprime l'événement là-bas pour corriger.</p>
             )}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+              {[['Pénaltys marqués', 'penaltys_marques'], ['Pénaltys ratés', 'penaltys_rates']].map(([label, field]) => (
+                <div key={field}>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 3 }}>{label}</label>
+                  <input type="number" min="0" value={formJ[field] ?? ''} disabled={hasPenaltysLive}
+                    onChange={e => setFormJ(p => ({...p, [field]: e.target.value}))}
+                    style={{ width: '100%', padding: '8px 10px', border: '0.5px solid var(--border)', borderRadius: 10, fontSize: 13, outline: 'none', boxSizing: 'border-box', background: hasPenaltysLive ? 'var(--bg-secondary)' : 'var(--bg-card)', color: hasPenaltysLive ? 'var(--text-muted)' : 'inherit' }} />
+                </div>
+              ))}
+            </div>
+            {hasPenaltysLive && <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: -6, marginBottom: 8 }}>Pénaltys calculés depuis Suivi live (but en phase « Penalty » ou « Pénalty raté »).</p>}
             <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: hasChangementsLive ? 'default' : 'pointer', opacity: hasChangementsLive ? .6 : 1 }}>
                 <input type="checkbox" checked={formJ.titulaire} disabled={hasChangementsLive} onChange={e => setFormJ(p => ({...p, titulaire: e.target.checked}))} /> Titulaire
@@ -1370,10 +1390,10 @@ export default function StatsPage() {
                 {PHASES_BUT.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
               </select>
             )}
-            {(chronoForm.type === 'carton_jaune' || chronoForm.type === 'carton_rouge') && (
+            {(chronoForm.type === 'carton_jaune' || chronoForm.type === 'carton_rouge' || chronoForm.type === 'penalty_rate') && (
               <select value={chronoForm.joueur_id} onChange={e => setChronoForm(p => ({...p, joueur_id: e.target.value}))}
                 style={{ width: '100%', padding: '7px 8px', border: '0.5px solid var(--border)', borderRadius: 8, fontSize: 12, outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}>
-                <option value="">Joueur...</option>
+                <option value="">{chronoForm.type === 'penalty_rate' ? 'Tireur...' : 'Joueur...'}</option>
                 {joueurs.map(j => <option key={j.id} value={j.id}>{j.nom} {j.prenom}</option>)}
               </select>
             )}

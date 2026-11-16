@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tabPossible, tabReussis, resumeTab } from './tirsAuBut'
+import { tabPossible, tabReussis, resumeTab, bilanTabJoueur, bilanPenaltysJoueur } from './tirsAuBut'
 
 describe('tirs au but', () => {
   it('seulement en coupe et sur un nul saisi', () => {
@@ -23,7 +23,6 @@ describe('tirs au but', () => {
   })
 })
 
-import { bilanTabJoueur } from './tirsAuBut'
 describe('bilanTabJoueur', () => {
   it('compte les tirs du joueur avec leur ordre de passage', () => {
     const lignes = [
@@ -35,5 +34,17 @@ describe('bilanTabJoueur', () => {
     expect([r.tires, r.reussis, r.rates]).toEqual([2, 1, 1])
     expect(r.tirs.map(t => [t.titre, t.ordre, t.reussi])).toEqual([['Coupe 2', 2, true], ['Coupe 1', 2, false]])
     expect(bilanTabJoueur(lignes, 'z').tires).toBe(0)
+  })
+})
+
+describe('bilanPenaltysJoueur', () => {
+  it('additionne marqués et ratés, ignore les matchs sans pénalty', () => {
+    const r = bilanPenaltysJoueur([
+      { evenement_id: 'm1', evenements: { titre: 'A', date_heure: '2026-09-01' }, penaltys_marques: 1, penaltys_rates: 1 },
+      { evenement_id: 'm2', evenements: { titre: 'B', date_heure: '2026-10-01' }, penaltys_marques: 2, penaltys_rates: null },
+      { evenement_id: 'm3', penaltys_marques: 0, penaltys_rates: 0 },
+    ])
+    expect([r.tires, r.reussis, r.rates]).toEqual([4, 3, 1])
+    expect(r.matchs.map(m => m.titre)).toEqual(['B', 'A'])
   })
 })

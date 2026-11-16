@@ -93,6 +93,10 @@ function Fait({ f }) {
     <div style={base}>{min}<Square size={16} fill={f.type === 'carton_jaune' ? '#FACC15' : '#DC2626'} color="transparent" />
       <p style={{ fontSize: 13 }}>{f.type === 'carton_jaune' ? 'Carton jaune' : 'Carton rouge'}{f.joueur ? ` — ${f.joueur}` : ''}</p></div>
   )
+  if (f.type === 'penalty_rate') return (
+    <div style={base}>{min}<Goal size={16} color="#C2410C" />
+      <p style={{ fontSize: 13, color: '#C2410C' }}>Pénalty manqué{f.joueur ? ` — ${f.joueur}` : ''}</p></div>
+  )
   if (f.type === 'changement') return (
     <div style={base}>{min}<RefreshCw size={15} color="var(--primary)" />
       <p style={{ fontSize: 13 }}>Changement : <span style={{ color: 'var(--success)' }}>↑ {f.entrant || '?'}</span> <span style={{ color: 'var(--danger)' }}>↓ {f.sortant || '?'}</span></p></div>

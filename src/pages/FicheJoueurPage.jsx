@@ -824,7 +824,7 @@ export default function FicheJoueurPage() {
               </div>
             ))}
           </div>
-          <TirsAuButJoueur joueurId={id} titre="Tirs au but — saison" />
+          <TirsAuButJoueur joueurId={id} titre="Pénaltys et tirs au but — saison" />
           <Card>
             {statsHistory.length === 0
               ? <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Aucune statistique.</p>

@@ -114,3 +114,17 @@ export function tempsDeJeuParJoueur({ entries, compo = {}, titulairesConnus = []
     return { joueur_id, temps_jeu, titulaire }
   })
 }
+
+// Pénaltys par joueur : marqués = « But pour » de phase Penalty avec buteur ;
+// ratés = événement « Pénalty raté » avec tireur. Rien n'est calculé si la chronologie
+// ne contient aucun pénalty (la saisie manuelle de l'onglet Indiv. reste la source).
+export function penaltysParJoueur(entries, dejaConnus = []) {
+  const marques = (entries || []).filter(e => e.type === 'but_pour' && e.phase === 'penalty')
+  const rates = (entries || []).filter(e => e.type === 'penalty_rate')
+  if (!marques.length && !rates.length) return []
+  const m = {}, r = {}
+  for (const e of marques) if (e.buteur_id) m[e.buteur_id] = (m[e.buteur_id] || 0) + 1
+  for (const e of rates) if (e.joueur_id) r[e.joueur_id] = (r[e.joueur_id] || 0) + 1
+  const concernes = new Set([...Object.keys(m), ...Object.keys(r), ...dejaConnus])
+  return [...concernes].map(joueur_id => ({ joueur_id, penaltys_marques: m[joueur_id] || 0, penaltys_rates: r[joueur_id] || 0 }))
+}

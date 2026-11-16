@@ -175,7 +175,7 @@ export default function MonBilanPage() {
         ))}
       </div>
 
-      <TirsAuButJoueur joueurId={profile?.id} titre="Mes tirs au but" />
+      <TirsAuButJoueur joueurId={profile?.id} titre="Mes pénaltys et tirs au but" />
 
       {/* RPE */}
       <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Heart size={11} /> Charge & bien-être</p>

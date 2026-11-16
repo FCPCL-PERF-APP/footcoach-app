@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { periodeButs, statsCollectivesDepuisChrono, butsPassesParJoueur, cartonsParJoueur, tempsDeJeuParJoueur } from './chronologie'
+import { periodeButs, statsCollectivesDepuisChrono, butsPassesParJoueur, cartonsParJoueur, tempsDeJeuParJoueur, penaltysParJoueur } from './chronologie'
 
 describe('periodeButs — bornes inclusives en fin de période', () => {
   it.each([
@@ -185,5 +185,24 @@ describe('tempsDeJeuParJoueur', () => {
     })
     expect(temps(r, 'A').temps_jeu).toBeGreaterThanOrEqual(0)
     expect(temps(r, 'B').temps_jeu).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('penaltysParJoueur', () => {
+  it('compte marqués (but de phase penalty) et ratés par tireur', () => {
+    const entries = [
+      { type: 'but_pour', phase: 'penalty', buteur_id: 'a' },
+      { type: 'but_pour', phase: 'corner', buteur_id: 'a' },
+      { type: 'penalty_rate', joueur_id: 'a' },
+      { type: 'penalty_rate', joueur_id: 'b' },
+    ]
+    expect(penaltysParJoueur(entries, ['c'])).toEqual([
+      { joueur_id: 'a', penaltys_marques: 1, penaltys_rates: 1 },
+      { joueur_id: 'b', penaltys_marques: 0, penaltys_rates: 1 },
+      { joueur_id: 'c', penaltys_marques: 0, penaltys_rates: 0 },
+    ])
+  })
+  it('rien sans pénalty dans la chronologie', () => {
+    expect(penaltysParJoueur([{ type: 'but_pour', buteur_id: 'a' }], ['a'])).toEqual([])
   })
 })

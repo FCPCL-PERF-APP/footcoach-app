@@ -34,3 +34,14 @@ export function bilanTabJoueur(lignes, joueurId) {
   const reussis = tirs.filter(t => t.reussi).length
   return { tires: tirs.length, reussis, rates: tirs.length - reussis, tirs }
 }
+
+// Pénaltys tirés en match (temps réglementaire) d'un joueur, depuis ses lignes stats_match.
+export function bilanPenaltysJoueur(lignesStats) {
+  const matchs = (lignesStats || [])
+    .map(s => ({ evenement_id: s.evenement_id, titre: s.evenements?.titre || '', date: s.evenements?.date_heure || null, marques: Number(s.penaltys_marques) || 0, rates: Number(s.penaltys_rates) || 0 }))
+    .filter(m => m.marques + m.rates > 0)
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+  const reussis = matchs.reduce((a, m) => a + m.marques, 0)
+  const tires = reussis + matchs.reduce((a, m) => a + m.rates, 0)
+  return { tires, reussis, rates: tires - reussis, matchs }
+}
