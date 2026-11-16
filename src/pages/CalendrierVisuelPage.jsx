@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { resultatMatch } from '../lib/resultats'
 import { useAuth } from '../hooks/useAuth'
 import { THEME } from '../theme'
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval,
@@ -9,6 +10,9 @@ import { fr } from 'date-fns/locale'
 import { List, ChevronLeft, ChevronRight, MapPin, Clock, Send, BarChart3, Heart, Swords, Footprints, Plus } from 'lucide-react'
 
 const TYPE_COLORS = { match: 'var(--primary)', seance: 'var(--success)' }
+const RES_COULEUR = { V: 'var(--success)', N: 'var(--warning)', D: 'var(--danger)' }
+const RES_FOND = { V: 'var(--success-bg)', N: 'var(--warning-bg)', D: 'var(--danger-bg)' }
+const RES_LABEL = { V: 'Victoire', N: 'Nul', D: 'Défaite' }
 
 export default function CalendrierVisuelPage() {
   const navigate = useNavigate()
@@ -18,12 +22,20 @@ export default function CalendrierVisuelPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
   const [dayEvents, setDayEvents] = useState([])
+  // Résultats des matchs déjà joués, par événement (score saisi dans Stats > Collectif).
+  const [resultats, setResultats] = useState({})
 
   useEffect(() => { loadEvents() }, [])
 
   async function loadEvents() {
-    const { data } = await supabase.from('evenements').select('*').order('date_heure')
+    const [{ data }, { data: scores }] = await Promise.all([
+      supabase.from('evenements').select('*').order('date_heure'),
+      supabase.from('stats_collectives').select('evenement_id, buts_marques, buts_encaisses, tab_marques, tab_encaisses'),
+    ])
     setEvents(data || [])
+    const map = {}
+    for (const sc of (scores || [])) { const r = resultatMatch(sc); if (r) map[sc.evenement_id] = r }
+    setResultats(map)
   }
 
   const monthStart = startOfMonth(currentMonth)
@@ -101,7 +113,16 @@ export default function CalendrierVisuelPage() {
                 color: isSelected ? '#fff' : today ? 'var(--primary)' : isSameMonth(day, currentMonth) ? 'var(--text-primary)' : 'var(--border)'
               }}>{format(day, 'd')}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-                {hasMatch && <div style={{ width: 6, height: 6, borderRadius: '50%', background: isSelected ? '#fff' : TYPE_COLORS.match }} />}
+                {dayEvs.filter(e => e.type === 'match').map(m => {
+                  const r = resultats[m.id]
+                  if (!r) return <div key={m.id} style={{ width: 6, height: 6, borderRadius: '50%', background: isSelected ? '#fff' : TYPE_COLORS.match }} />
+                  return (
+                    <span key={m.id} style={{
+                      fontSize: 9, fontWeight: 800, lineHeight: 1.2, padding: '1px 3px', borderRadius: 4, whiteSpace: 'nowrap',
+                      background: isSelected ? '#fff' : RES_FOND[r.code], color: RES_COULEUR[r.code]
+                    }}>{m.domicile !== false ? `${r.nous}-${r.adv}` : `${r.adv}-${r.nous}`}</span>
+                  )
+                })}
                 {hasSeance && <div style={{ width: 6, height: 6, borderRadius: '50%', background: isSelected ? 'rgba(255,255,255,.7)' : TYPE_COLORS.seance }} />}
                 {dayEvs.length > 1 && !hasMatch && !hasSeance && (
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--text-muted)' }} />
@@ -157,6 +178,23 @@ export default function CalendrierVisuelPage() {
                     {format(parseISO(ev.date_heure), "HH'h'mm")}
                   </span>
                 </div>
+                {ev.type === 'match' && resultats[ev.id] && (() => {
+                  const r = resultats[ev.id]
+                  const dom = ev.domicile !== false
+                  return (
+                    <p style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 15, fontWeight: 800, padding: '2px 10px', borderRadius: 8, background: RES_FOND[r.code], color: RES_COULEUR[r.code] }}>
+                        {dom ? `${r.nous} - ${r.adv}` : `${r.adv} - ${r.nous}`}
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: RES_COULEUR[r.code] }}>{RES_LABEL[r.code]}</span>
+                      {r.tab && (
+                        <span style={{ fontSize: 11, fontWeight: 600, color: r.tab.qualifie ? 'var(--success)' : 'var(--danger)' }}>
+                          {r.tab.qualifie ? 'Qualifiés' : 'Éliminés'} aux TAB {dom ? `${r.tab.nous}-${r.tab.adv}` : `${r.tab.adv}-${r.tab.nous}`}
+                        </span>
+                      )}
+                    </p>
+                  )
+                })()}
                 {ev.lieu && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} /> {ev.lieu}</p>}
                 {ev.type === 'match' && ev.rdv_heure && (
                   <p style={{ fontSize: 11, color: 'var(--primary)', marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>

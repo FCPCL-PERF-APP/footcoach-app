@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { pointsChampionnat } from './resultats'
+import { pointsChampionnat, resultatMatch } from './resultats'
 
 const s = (type, bm, be) => ({ buts_marques: bm, buts_encaisses: be, evenements: { match_type: type } })
 
@@ -24,5 +24,17 @@ describe('pointsChampionnat', () => {
   it('aucun match : pas de tuile points', () => {
     expect(pointsChampionnat([])).toMatchObject({ hasChampionnat: false, pts: 0 })
     expect(pointsChampionnat(null).hasChampionnat).toBe(false)
+  })
+})
+
+describe('resultatMatch', () => {
+  it('score non saisi', () => expect(resultatMatch({ buts_marques: null, buts_encaisses: 1 })).toBeNull())
+  it('victoire, nul, défaite', () => {
+    expect(resultatMatch({ buts_marques: 2, buts_encaisses: 1 }).code).toBe('V')
+    expect(resultatMatch({ buts_marques: 0, buts_encaisses: 3 }).code).toBe('D')
+    expect(resultatMatch({ buts_marques: 1, buts_encaisses: 1 })).toEqual({ code: 'N', nous: 1, adv: 1, tab: null })
+  })
+  it('nul avec tirs au but', () => {
+    expect(resultatMatch({ buts_marques: 1, buts_encaisses: 1, tab_marques: 4, tab_encaisses: 5 }).tab).toEqual({ nous: 4, adv: 5, qualifie: false })
   })
 })
