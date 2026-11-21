@@ -8,6 +8,9 @@ import { computePresenceBreakdown } from '../lib/presenceStats'
 import { labelSaison } from '../lib/saison'
 import { computeAlertes, alertKey, fetchNonConvoqueSet } from '../lib/alertes'
 import { dernierMatchACompleter } from '../lib/chargerFeuilleMatch'
+import { intensiteRpe } from '../lib/charge'
+import { presenceSeancesParSemaine } from '../lib/suiviRetours'
+import SuiviRetoursCard from '../components/SuiviRetoursCard'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -91,6 +94,8 @@ export default function DashboardPage() {
   const [aujourdhui, setAujourdhui] = useState({ presencesAConfirmer: [], rpeManquants: 0, convocationsManquantes: [] })
   // Dernier match des 7 derniers jours dont la Feuille de match n'est pas complète.
   const [feuilleACompleter, setFeuilleACompleter] = useState(null)
+  const [sansRpe7j, setSansRpe7j] = useState([])
+  const [rpeParItemNb, setRpeParItemNb] = useState(0)
   useEffect(() => { dernierMatchACompleter().then(setFeuilleACompleter, () => {}) }, [])
   const [alertesTraitees, setAlertesTraitees] = useState(() => {
     try {
@@ -154,6 +159,22 @@ export default function DashboardPage() {
       toutLire(() => supabase.from('presences').select('joueur_id, statut, evenement_id').in('statut', ['absent','blesse'])),
     ])
 
+    // 8 dernières semaines : RPE (intensité, ressenti, par joueur) et séances (présence).
+    const depuis8sem = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000).toISOString()
+    const [{ data: rpe8 }, { data: seances8 }] = await Promise.all([
+      toutLire(() => supabase.from('rpe').select('joueur_id, evenement_id, intensite, difficulte, fatigue, implication, motivation, perf_individuelle, perf_collective, evenements!inner(date_heure)')
+        .gte('evenements.date_heure', depuis8sem).lte('evenements.date_heure', new Date().toISOString())),
+      supabase.from('evenements').select('id, date_heure').eq('type', 'seance')
+        .gte('date_heure', depuis8sem).lte('date_heure', new Date().toISOString()).order('date_heure'),
+    ])
+    const idsSeances8 = (seances8 || []).map(e => e.id)
+    const { data: presSeances8 } = idsSeances8.length
+      ? await toutLire(() => supabase.from('presences').select('joueur_id, evenement_id, statut').in('evenement_id', idsSeances8))
+      : { data: [] }
+    const il7j = Date.now() - 7 * 24 * 60 * 60 * 1000
+    const rpe7j = (rpe8 || []).filter(r => new Date(r.evenements.date_heure).getTime() >= il7j)
+    const moyenne = v => (v.length ? v.reduce((a, b) => a + b, 0) / v.length : null)
+
     // Tous les matchs joués (préparation incluse) triés par date réelle plutôt que par
     // date de saisie — utilisé pour "Buts / match", qui doit compter tous les buts
     // marqués quel que soit le type de match.
@@ -213,55 +234,54 @@ export default function DashboardPage() {
     // moyenne vers 0).
     const buts = statsDataTousMatchs.map(s => s.buts_marques).filter(v => v !== null && v !== undefined)
     const butsMoy = buts.length ? buts.reduce((a, b) => a + b, 0) / buts.length : 0
-    setMetrics({ rpeMoy: rpeMoy.toFixed(1), presence: presenceMoy.toFixed(0), distMoy: distMoy.toFixed(1), butsMoy: butsMoy.toFixed(1) })
+    const intensite7j = moyenne(rpe7j.map(r => intensiteRpe(r)?.valeur).filter(v => v != null))
+    setMetrics({ rpeMoy: rpeMoy.toFixed(1), intensite7j: intensite7j != null ? intensite7j.toFixed(1) : '—', presence: presenceMoy.toFixed(0), distMoy: distMoy.toFixed(1), butsMoy: butsMoy.toFixed(1) })
 
     // RPE par item
     const itemKeys = ['difficulte','fatigue','implication','motivation','perf_individuelle','perf_collective']
     const itemLabels = ['Difficulté','Fatigue','Implication','Motivation','Perf. indiv.','Perf. coll.']
+    setRpeParItemNb(rpe7j.length)
     setRpeParItem(itemKeys.map((key, i) => {
-      const vals = (rpeData || []).map(r => r[key]).filter(v => v !== null && v !== undefined)
+      const vals = rpe7j.map(r => r[key]).filter(v => v !== null && v !== undefined)
       const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
       return { label: itemLabels[i], value: parseFloat(avg.toFixed(1)), color: rpeColor(avg) }
     }))
 
-    // Évolution RPE par semaine
-    const rpeByWeek = {}
-    for (const r of (rpeData || [])) {
-      if (!r.evenements?.date_heure) continue
-      const date = parseISO(r.evenements.date_heure)
-      const weekLabel = format(date, "'S'w", { locale: fr })
-      const vals = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v !== null && v !== undefined)
-      if (!vals.length) continue
-      const avg = vals.reduce((a, b) => a + b, 0) / vals.length
-      if (!rpeByWeek[weekLabel]) rpeByWeek[weekLabel] = []
-      rpeByWeek[weekLabel].push(avg)
+    // Intensité déclarée (0-10) par semaine — anciens RPE estimés depuis la difficulté.
+    const intParSemaine = new Map()
+    for (const r of (rpe8 || [])) {
+      const v = intensiteRpe(r)?.valeur
+      if (v == null) continue
+      const d = parseISO(r.evenements.date_heure)
+      const cle = format(d, "RRRR-II")
+      if (!intParSemaine.has(cle)) intParSemaine.set(cle, { label: format(d, "'S'I"), vals: [] })
+      intParSemaine.get(cle).vals.push(v)
     }
-    setRpeEvolution(Object.entries(rpeByWeek).slice(-8).map(([label, vals]) => ({
-      label, value: parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1))
-    })))
+    setRpeEvolution([...intParSemaine.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-8)
+      .map(([, w]) => ({ label: w.label, value: parseFloat(moyenne(w.vals).toFixed(1)) })))
 
-    setPresenceEvolution(Object.values(presByEvent).filter(p => p.total > 0 && p.date && new Date(p.date) <= maintenant && p.tauxEngagement !== null)
-      .sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-8)
-      .map(p => ({ label: format(parseISO(p.date), 'd/M', { locale: fr }), value: p.tauxEngagement })))
-
-    // RPE par joueur
-    const joueurMap = {}
-    for (const r of (rpeData || [])) {
-      if (!r.joueurs) continue
-      const id = r.joueurs.id
-      const vals = [r.difficulte, r.fatigue, r.implication, r.motivation, r.perf_individuelle, r.perf_collective].filter(v => v !== null && v !== undefined)
-      if (!vals.length) continue
-      const avg = vals.reduce((a, b) => a + b, 0) / vals.length
-      if (!joueurMap[id]) joueurMap[id] = { nom: `${r.joueurs.nom} ${r.joueurs.prenom?.[0] || ''}.`, id, sessions: [], motivation: [], fatigue: [], perf_ind: [] }
-      joueurMap[id].sessions.push(avg)
-      joueurMap[id].motivation.push(r.motivation)
-      joueurMap[id].fatigue.push(r.fatigue)
-      joueurMap[id].perf_ind.push(r.perf_individuelle)
+    // Présence aux séances par semaine, en % de l'effectif (non-réponse = absent).
+    const statutsSeances = new Map()
+    for (const p of (presSeances8 || [])) {
+      if (!statutsSeances.has(p.evenement_id)) statutsSeances.set(p.evenement_id, new Map())
+      statutsSeances.get(p.evenement_id).set(p.joueur_id, p.statut)
     }
-    setRpeParJoueur(Object.values(joueurMap).map(j => {
-      const avg = j.sessions.reduce((a, b) => a + b, 0) / j.sessions.length
-      return { label: j.nom, value: parseFloat(avg.toFixed(1)), color: rpeColor(avg) }
-    }).sort((a, b) => b.value - a.value).slice(0, 8))
+    setPresenceEvolution(presenceSeancesParSemaine(seances8 || [], { joueurs: joueursData || [], statuts: statutsSeances }, d => format(parseISO(d), "'S'I")).slice(-8))
+
+    // Intensité déclarée par joueur sur les 7 derniers jours (joueurs sans RPE à part).
+    const parJoueur = new Map()
+    for (const r of rpe7j) {
+      const v = intensiteRpe(r)?.valeur
+      if (v == null) continue
+      if (!parJoueur.has(r.joueur_id)) parJoueur.set(r.joueur_id, [])
+      parJoueur.get(r.joueur_id).push(v)
+    }
+    const nomJ = id => { const j = (joueursData || []).find(x => x.id === id); return j ? `${j.nom} ${j.prenom?.[0] || ''}.` : '?' }
+    setRpeParJoueur([...parJoueur.entries()].map(([id, v]) => {
+      const m = moyenne(v)
+      return { label: `${nomJ(id)} (${v.length})`, value: parseFloat(m.toFixed(1)), color: m >= 8 ? 'var(--danger)' : m >= 6 ? '#D85A30' : m >= 4 ? 'var(--warning)' : 'var(--success)' }
+    }).sort((a, b) => b.value - a.value))
+    setSansRpe7j((joueursData || []).filter(j => !parJoueur.has(j.id)))
 
     // Résultats
     const matchResults = (statsData || []).map(s => s.buts_marques > s.buts_encaisses ? 'V' : s.buts_marques === s.buts_encaisses ? 'N' : 'D')
@@ -412,6 +432,9 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* SUIVI DES RETOURS (RPE / Footbar) par événement */}
+          <SuiviRetoursCard />
+
           {/* RACCOURCIS RAPIDES */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 14 }}>
             {[
@@ -499,7 +522,7 @@ export default function DashboardPage() {
           {/* Métriques */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 12 }}>
             {[
-              { label: 'RPE moyen équipe', value: `${metrics.rpeMoy}/5`, sub: 'Toutes sessions', color: rpeColor(parseFloat(metrics.rpeMoy)) },
+              { label: 'Intensité moy.', value: metrics.intensite7j === '—' ? '—' : `${metrics.intensite7j}/10`, sub: '7 derniers jours · effort déclaré', color: 'var(--primary)' },
               { label: 'Engagement moy.', value: `${metrics.presence}%`, sub: 'Ce mois · présent + extérieur', color: metrics.presence >= 80 ? 'var(--success)' : 'var(--warning)' },
               { label: 'Dist. moy. match', value: `${metrics.distMoy} km`, sub: 'Footbar', color: 'var(--primary)' },
               { label: 'Buts / match', value: metrics.butsMoy, sub: labelSaison(), color: 'var(--primary)' },
@@ -530,9 +553,10 @@ export default function DashboardPage() {
           {rpeEvolution.length >= 2 && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <TrendingUp size={14} color={'var(--primary)'} /> Évolution RPE équipe
+                <TrendingUp size={14} color={'var(--primary)'} /> Intensité de l'effort — par semaine
               </p>
-              <LineChart data={rpeEvolution} color={rpeColor(parseFloat(metrics.rpeMoy))} />
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: -6, marginBottom: 8 }}>Moyenne des intensités déclarées par les joueurs (0 à 10). La charge complète est dans Analyse → Charge hebdomadaire.</p>
+              <LineChart data={rpeEvolution} color={'var(--primary)'} />
             </Card>
           )}
 
@@ -540,28 +564,36 @@ export default function DashboardPage() {
           {presenceEvolution.length >= 2 && (
             <Card>
               <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <TrendingUp size={14} color={'var(--primary)'} /> Évolution présences (%)
+                <TrendingUp size={14} color={'var(--primary)'} /> Présence aux entraînements — par semaine
               </p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: -6, marginBottom: 8 }}>% de l'effectif présent (ou en travail extérieur) aux séances. Un joueur sans réponse compte absent ; les blessés sont retirés de l'effectif.</p>
               <LineChart data={presenceEvolution} color={'var(--primary)'} />
             </Card>
           )}
 
           {/* RPE par item */}
           <Card>
-            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>RPE équipe — par item</p>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>Ressenti de l'équipe — 7 derniers jours</p>
+            <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>Moyenne des réponses aux questions du RPE (sur 5), sur les {rpeParItemNb} réponses de la semaine.</p>
             <BarChart data={rpeParItem} maxValue={5} />
           </Card>
 
           {/* RPE par joueur */}
-          {rpeParJoueur.length > 0 && (
+          {(rpeParJoueur.length > 0 || sansRpe7j.length > 0) && (
             <Card>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <p style={{ fontSize: 13, fontWeight: 600 }}>RPE par joueur</p>
+                <p style={{ fontSize: 13, fontWeight: 600 }}>Intensité par joueur — 7 derniers jours</p>
                 <button onClick={() => navigate('/joueurs')} style={{ fontSize: 11, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer' }}>
                   Voir tous →
                 </button>
               </div>
-              <BarChart data={rpeParJoueur} maxValue={5} />
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: -6, marginBottom: 8 }}>Intensité moyenne déclarée (0 à 10) ; entre parenthèses, le nombre de RPE remplis.</p>
+              <BarChart data={rpeParJoueur} maxValue={10} />
+              {sansRpe7j.length > 0 && (
+                <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 8 }}>
+                  Aucun RPE ces 7 jours ({sansRpe7j.length}) : {sansRpe7j.map(j => `${j.prenom} ${j.nom?.[0] || ''}.`).join(', ')}
+                </p>
+              )}
             </Card>
           )}
 
